@@ -1,0 +1,637 @@
+#!/usr/bin/perl
+# Radius daemon
+# Copyright (C) 2008, AllWorldIT
+# Copyright (C) 2007, Nigel Kukard  <nkukard@lbsd.net>
+# 
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License along
+# with this program; if not, write to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+
+
+use strict;
+use warnings;
+
+# Set library directory
+use lib qw(
+	../ ./ 
+	smradius/modules/authentication
+);
+
+package radiusd;
+
+
+use base qw(Net::Server::PreFork);
+use Config::IniFiles;
+use Getopt::Long;
+use Sys::Syslog;
+
+use smradius::version;
+use smradius::constants;
+use smradius::logging;
+use smradius::config;
+#use cbp::dbilayer;
+#use cbp::cache;
+
+use Radius::Packet;
+
+use Data::Dumper;
+
+
+
+# Override configuration
+sub configure {
+	my ($self,$defaults) = @_;
+	my $server = $self->{'server'};
+
+
+	# If we hit a hash, add the config vars to the server
+	if (defined($defaults)) {
+		foreach my $item (keys %{$defaults}) {
+			$server->{$item} = $defaults->{$item};
+		}
+		return;
+	}
+
+	# Set defaults
+	my $cfg;
+	$cfg->{'config_file'} = "/etc/smradiusd.conf";
+
+	$server->{'timeout'} = 120;
+	$server->{'background'} = "yes";
+	$server->{'pid_file'} = "/var/run/smradiusd.pid";
+	$server->{'log_level'} = 2;
+	$server->{'log_file'} = "/var/log/smradiusd.log";
+
+	$server->{'host'} = "*";
+	$server->{'port'} = [ 1812, 1813 ];
+	$server->{'proto'} = 'udp';
+			
+	$server->{'min_servers'} = 4;
+	$server->{'min_spare_servers'} = 4;
+	$server->{'max_spare_servers'} = 12;
+	$server->{'max_servers'} = 25;
+	$server->{'max_requests'} = 1000;
+
+	# Parse command line params
+	my $cmdline;
+	%{$cmdline} = ();
+	GetOptions(
+			\%{$cmdline},
+			"help",
+			"config:s",
+			"debug",
+			"fg",
+	) or die "Error parsing commandline arguments";
+	
+	# Check for some args
+	if ($cmdline->{'help'}) {
+		$self->displayHelp();
+		exit 0;
+	}
+	if (defined($cmdline->{'config'}) && $cmdline->{'config'} ne "") {
+		$cfg->{'config_file'} = $cmdline->{'config'};
+	}
+
+	# Check config file exists
+	if (! -f $cfg->{'config_file'}) {
+		die("No configuration file '".$cfg->{'config_file'}."' found!\n");
+	}
+	
+	# Use config file, ignore case
+	tie my %inifile, 'Config::IniFiles', (
+			-file => $cfg->{'config_file'},
+			-nocase => 1
+	) or die "Failed to open config file '".$cfg->{'config_file'}."': $!";
+	# Copy config
+	my %config = %inifile;
+	untie(%inifile);
+
+	# Pull in params for the server
+	my @server_params = (
+			'log_level','log_file',
+#			'port',   - We don't want to override this do we?
+			'host',
+			'cidr_allow', 'cidr_deny',
+			'pid_file', 
+			'user', 'group',
+			'timeout',
+			'background',
+			'min_servers',     
+			'min_spare_servers',
+			'max_spare_servers',
+			'max_servers',
+			'max_requests',
+	);
+	foreach my $param (@server_params) {
+		$server->{$param} = $config{'server'}{$param} if (defined($config{'server'}{$param}));
+	}
+
+	# Fix up these ...
+	if (defined($server->{'cidr_allow'})) {
+		my @lst = split(/,\s;/,$server->{'cidr_allow'});
+		$server->{'cidr_allow'} = \@lst;
+	}
+	if (defined($server->{'cidr_deny'})) {
+		my @lst = split(/,\s;/,$server->{'cidr_deny'});
+		$server->{'cidr_deny'} = \@lst;
+	}
+
+	# Override
+	if ($cmdline->{'debug'}) {
+		$server->{'log_level'} = 4;
+		$cfg->{'debug'} = 1;
+	}
+
+	# If we set on commandline for foreground, keep in foreground
+	if ($cmdline->{'fg'} || (defined($config{'server'}{'background'}) && $config{'server'}{'background'} eq "no" )) {
+		$server->{'background'} = undef;
+		$server->{'log_file'} = undef;
+	} else {
+		$server->{'setsid'} = 1;
+	}
+
+	# Loop with logging detail
+	if (defined($config{'server'}{'log_detail'})) {
+		# Lets see what we have to enable
+		foreach my $detail (split(/[,\s;]/,$config{'server'}{'log_detail'})) {
+			$cfg->{'logging'}{$detail} = 1;
+		}
+	}
+	
+	#
+	# Authentication plugins
+	#
+	my @auth_params = (
+			'plugins',
+	);
+	my $auth;
+	foreach my $param (@auth_params) {
+		$auth->{$param} = $config{'authentication'}{$param} if (defined($config{'authentication'}{$param}));
+	}
+
+	if (!defined($auth->{'plugins'})) {
+		$self->log(LOG_ERR,"[SMRADIUS] Authentication configuration error: 'plugins' not found");
+		exit 1;
+	}
+	# Split off plugins
+	foreach my $plugin (@{$auth->{'plugins'}}) {
+		$plugin =~ s/\s+//g;
+	}
+
+	#
+	# Dictionary configuration
+	#
+	my @dictionary_params = (
+			'load',
+	);
+	my $dictionary;
+	foreach my $param (@dictionary_params) {
+		$dictionary->{$param} = $config{'dictionary'}{$param} if (defined($config{'dictionary'}{$param}));
+	}
+
+	if (!defined($dictionary->{'load'})) {
+		$self->log(LOG_ERR,"[SMRADIUS] Dictionary configuration error: 'load' not found");
+		exit 1;
+	}
+	# Split off dictionaries to load
+	foreach my $fn (@{$dictionary->{'load'}}) {
+		$fn =~ s/\s+//g;
+	}
+	
+	$cfg->{'authentication'} = $auth;
+	$cfg->{'dictionary'} = $dictionary;
+
+	$cfg->{'plugins'} = [ @{$auth->{'plugins'}} ];
+
+	# Save our config and stuff
+	$self->{'config'} = $cfg;
+	$self->{'cmdline'} = $cmdline;
+	$self->{'inifile'} = \%config;
+}
+
+
+
+# Run straight after ->run
+sub post_configure_hook {
+	my $self = shift;
+	my $config = $self->{'config'};
+
+
+	# Load dictionaries
+	$self->log(LOG_NOTICE,"[SMRADIUS] Initializing dictionaries...");
+	my $dict = new Radius::Dictionary;
+	foreach my $fn (@{$config->{'dictionary'}->{'load'}}) {
+		# Load dictionary
+		if (!$dict->readfile($fn)) {
+			$self->log(LOG_WARN,"[SMRADIUS] Failed to load dictionary '$fn': $!");
+		}
+		$self->log(LOG_DEBUG,"[SMRADIUS] Loaded plugin '$fn'.");
+	}
+	$self->log(LOG_NOTICE,"[SMRADIUS] Dictionaries initialized.");
+	# Store the dictionary
+	$self->{'radius'}->{'dictionary'} = $dict;
+
+	# Load authentication mechs
+	$self->log(LOG_NOTICE,"[SMRADIUS] Initializing authentication mechanisms...");
+	# Load plugins
+	foreach my $plugin (@{$config->{'plugins'}}) {
+		# Load plugin
+		my $res = eval("
+			use $plugin;
+			plugin_register(\$self,\"$plugin\",\$${plugin}::pluginInfo);
+		");
+		if ($@ || (defined($res) && $res != 0)) {
+			$self->log(LOG_WARN,"[SMRADIUS] Error loading authentication plugin $plugin ($@)");
+		} else {
+			$self->log(LOG_DEBUG,"[SMRADIUS] Authentication plugin '$plugin' loaded.");
+		}
+	}
+	$self->log(LOG_NOTICE,"[SMRADIUS] Authentication mechanisms initialized.");
+
+	$self->log(LOG_NOTICE,"[SMRADIUS] Initializing system modules.");
+	# Init config
+	smradius::config::Init($self);
+	# Init caching engine
+#	smradius::cache::Init($self);
+	$self->log(LOG_NOTICE,"[SMRADIUS] System modules initialized.");
+	
+}
+
+
+
+# Register plugin info
+sub plugin_register {
+	my ($self,$plugin,$info) = @_;
+
+
+	# If no info, return
+	if (!defined($info)) {
+		print(STDERR "WARNING: Plugin info not found for plugin => $plugin\n");
+		return -1;
+	}
+
+	# Set real module name & save
+	$info->{'Module'} = $plugin;
+	push(@{$self->{'plugins'}},$info);
+
+	# If we should, init the module
+	if (defined($info->{'Init'})) {
+		$info->{'Init'}($self);
+	}
+
+	return 0;
+}
+
+
+
+# Initialize child
+sub child_init_hook
+{
+	my $self = shift;
+
+	
+	$self->SUPER::child_init_hook();
+	
+#	$self->log(LOG_DEBUG,"[CBPOLICYD] Starting up caching engine");
+#	cbp::cache::connect($self);
+
+	# This is the database connection timestamp, if we connect, it resets to 0
+	# if not its used to check if we must kill the child and try a reconnect
+	$self->{'client'}->{'dbh_status'} = time();
+	
+	# Init system stuff
+#	$self->{'client'}->{'dbh'} = cbp::dbilayer::Init($self);
+#	if (defined($self->{'client'}->{'dbh'})) {
+#		# Check if we succeeded
+#		if (!($self->{'client'}->{'dbh'}->connect())) {
+#			# If we succeeded, record OK
+#			$self->{'client'}->{'dbh_status'} = 0;
+#		} else {
+#			$self->log(LOG_WARN,"[CBPOLICYD] Failed to connect to database: ".$self->{'client'}->{'dbh'}->Error()." ($$)");
+#		}
+#	} else {
+#		$self->log(LOG_WARN,"[CBPOLICYD] Failed to Initialize: ".cbp::dbilayer::internalErr()." ($$)");
+#	}
+	
+}
+
+
+
+# Destroy the child
+sub child_finish_hook {
+	my $self = shift;
+	my $server = $self->{'server'};
+
+	$self->SUPER::child_finish_hook();
+	
+#	$self->log(LOG_DEBUG,"[CBPOLICYD] Shutting down caching engine ($$)");
+#	cbp::cache::disconnect($self);
+}
+
+
+
+# Process requests we get
+sub process_request {
+	my $self = shift;
+	my $server = $self->{'server'};
+	my $log = defined($server->{'config'}{'logging'}{'modules'});
+
+
+	# Grab packet
+	my $udp_packet = $server->{'udp_data'};
+
+	# Check min size
+	if (length($udp_packet) < 18)
+	{
+		$self->log(LOG_WARN, "[SMRADIUS] Packet too short - Ignoring");
+		return;
+	}
+
+	# Parse packet
+	my $pkt = new Radius::Packet($self->{'radius'}->{'dictionary'},$udp_packet);
+
+	# VERIFY SOURCE SERVER
+	$self->log(LOG_DEBUG,"[SMRADIUS] Packet From = > ".$server->{'peeraddr'}."\n");
+
+	# GET SECRET FROM DB, cache for 5 mins
+
+	# DECODE PASSWORD
+
+	# QUERY USER & USERDATA IN DB
+	# CHECK IF PASS MATCHES 
+
+
+	# Is this an accounting request
+	if ($pkt->code eq "Accounting-Request") {
+
+
+	# Or maybe a access request
+	} elsif ($pkt->code eq "Access-Request") {
+		my $user = {
+			'Username' => $pkt->attr('User-Name')
+		};
+
+		# Are we authenticated?
+		my $authenticated = 0;
+		my $mechanism;
+
+		# Loop with modules
+		foreach my $module (@{$self->{'plugins'}}) {
+			# Try authenticate
+			if ($module->{'Auth_try'}) {
+				$self->log(LOG_INFO,"[SMRADIUS] Trying authentication plugin '".$module->{'Name'}."'");
+				my $res = $module->{'Auth_try'}($server,$user,$pkt);
+
+				# Check result
+				if (!defined($res)) {
+					$self->log(LOG_DEBUG,"[SMRADIUS] Error authenticating with module  '".$module->{'Name'}."' for username '".
+							$user->{'Username'}."'");
+
+				# Check if we skipping this plugin
+				} elsif ($res == MOD_RES_SKIP) {
+					$self->log(LOG_DEBUG,"[SMRADIUS] Skipping '".$module->{'Name'}."' for username '".$user->{'Username'}."'");
+
+				# Check if we got a positive result back
+				} elsif ($res == MOD_RES_ACK) {
+					$self->log(LOG_NOTICE,"[SMRADIUS] Authenticated: Username = '".$user->{'Username'}."'");
+					$mechanism = $module;
+					$authenticated = 1;
+					last;
+
+				# Or a negative result
+				} elsif ($res == MOD_RES_NACK) {
+					$self->log(LOG_NOTICE,"[SMRADIUS] Failed authentication: Username = '".$user->{'Username'}."'");
+					$mechanism = $module;
+					last;
+
+				}
+			}
+		}
+
+	# We don't know how to handle this
+	} else {
+		$self->log(LOG_WARN,"[SMRADIUS] We cannot handle code: '".$pkt->code."'");
+	}
+
+return;
+#	$pkt->dump;
+
+	# PAP
+	if ((my $rawPassword = $pkt->attr('User-Password'))) {
+
+
+		print(STDERR "RECEIVED\n");
+		print(STDERR "User-Pass: len = ".length($rawPassword).", hex = ".unpack("H*",$rawPassword)."\n");
+		print(STDERR "\n\n");
+
+		my $result = $pkt->password("test","User-Password");
+	
+		print(STDERR "CALC\n");
+		print(STDERR "Result   : len = ".length($result).", hex = ".unpack("H*",$result).", password = $result\n");
+
+	}
+
+	# CHAP
+	if ((my $rawChallenge = $pkt->attr('CHAP-Challenge')) && (my $rawPassword = $pkt->attr('CHAP-Password'))) {
+		print(STDERR "This is a CHAP challenge....\n");
+	
+		print(STDERR "RECEIVED\n");
+		print(STDERR "Challenge: len = ".length($rawChallenge).", hex = ".unpack("H*",$rawChallenge)."\n");
+		print(STDERR "Password : len = ".length($rawPassword).", hex = ".unpack("H*",$rawPassword)."\n");
+		print(STDERR "\n\n");
+
+		my $id = substr($rawPassword,0,1);
+		print(STDERR "ID: ".length($id).", hex = ".unpack("H*",$id)."\n");
+
+		my $result = encode_chap($id,$rawChallenge,"mytest");
+		
+		print(STDERR "CALC\n");
+		print(STDERR "Result   : len = ".length($result).", hex = ".unpack("H*",$result)."\n");
+		print(STDERR "\n\n");
+	}
+
+
+	# Is this a MSCHAP autehentication attempt?
+	if ((my $rawChallenge = $pkt->vsattr("311",'MS-CHAP-Challenge'))) {
+		print(STDERR "This is a MS-CHAP challenge....\n");
+
+		# MSCHAPv1
+		if (my $rawResponse = $pkt->vsattr("311",'MS-CHAP-Response')) {
+			my $challenge = @{$rawChallenge}[0];
+			my $response = substr(@{$rawResponse}[0],2);
+
+			print(STDERR "RECEIVED\n");
+			print(STDERR "Challenge: len = ".length($challenge).", hex = ".unpack("H*",$challenge)."\n");
+			print(STDERR "Reponse  : len = ".length($response).", hex = ".unpack("H*",$response)."\n");
+			print(STDERR "\n\n");
+
+
+
+			print(STDERR "CHOPPED OFFF!!\n");
+#			my $peerChallenge = substr($response,0,16);
+			my $NtResponse = substr($response,24,24);
+#			print(STDERR "Challenge: len = ".length($peerChallenge).", hex = ".unpack("H*",$peerChallenge)."\n");
+			print(STDERR "NTRespons: len = ".length($NtResponse).", hex = ".unpack("H*",$NtResponse)."\n");
+			print(STDERR "\n\n");
+
+			my $unipass = "mytest";
+			$unipass =~ s/(.)/$1\0/g; # convert ASCII to unicaode
+			my $username = "nigel";
+
+			print(STDERR "TEST\n");
+#			my $ourChallenge = ChallengeHash($peerChallenge,$challenge,$username);
+			my $ourResponse = NtChallengeResponse($challenge,$unipass);
+			print(STDERR "Calculate: len = ".length($ourResponse).", hex = ".unpack("H*",$ourResponse)."\n");
+			print(STDERR "\n\n");
+
+
+		# MSCHAPv2
+		} elsif (my $rawResponse = $pkt->vsattr("311",'MS-CHAP2-Response')) {
+			my $challenge = @{$rawChallenge}[0];
+			my $response = substr(@{$rawResponse}[0],2);
+
+			print(STDERR "RECEIVED\n");
+			print(STDERR "Challenge: len = ".length($challenge).", hex = ".unpack("H*",$challenge)."\n");
+			print(STDERR "Reponse  : len = ".length($response).", hex = ".unpack("H*",$response)."\n");
+			print(STDERR "\n\n");
+
+
+
+			print(STDERR "CHOPPED OFFF!!\n");
+			my $peerChallenge = substr($response,0,16);
+			my $NtRespnse = substr($response,24,24);
+			print(STDERR "Challenge: len = ".length($peerChallenge).", hex = ".unpack("H*",$peerChallenge)."\n");
+			print(STDERR "NTRespons: len = ".length($NtRespnse).", hex = ".unpack("H*",$NtRespnse)."\n");
+			print(STDERR "\n\n");
+
+			my $unipass = "mytest";
+			$unipass =~ s/(.)/$1\0/g; # convert ASCII to unicaode
+			my $username = "nigel";
+
+			print(STDERR "TEST\n");
+			my $ourChallenge = ChallengeHash($peerChallenge,$challenge,$username);
+			my $ourResponse = NtChallengeResponse($ourChallenge,$unipass);
+			print(STDERR "Calculate: len = ".length($ourResponse).", hex = ".unpack("H*",$ourResponse)."\n");
+			print(STDERR "\n\n");
+
+
+
+		}
+	}
+
+
+
+#	printf("GOT PACKET: user = %s/%s, nas-ip = %s, nas-port-type = %s, nas-port = %s, connect-info = %s, service-type = %s\n",
+#		$pkt->attr('User-Name'), $pkt->password('test'),
+#		$pkt->attr('NAS-IP-Address'),
+#		$pkt->attr('NAS-Port-Type'),
+#		$pkt->attr('NAS-Port'),
+#		$pkt->attr('Connect-Info'),
+#		$pkt->attr('Service-Type')
+#	);
+
+
+	if ($pkt->code eq "Accounting-Request") {
+		my $resp = Radius::Packet->new($self->{'config'}->{'dictionary'});
+		$resp->set_code('Accounting-Response');
+		$resp->set_identifier($pkt->identifier);
+		$resp->set_authenticator($pkt->authenticator);
+		$udp_packet = auth_resp($resp->pack, "test");
+		$server->{'client'}->send($udp_packet);
+
+
+	} elsif ($pkt->code eq "Access-Request") {
+		my $resp = Radius::Packet->new($self->{'config'}->{'dictionary'});
+    	$resp->set_code('Access-Accept');
+	    $resp->set_identifier($pkt->identifier);
+	    $resp->set_authenticator($pkt->authenticator);
+	    $resp->set_attr('Framed-IP-Address' => "192.168.0.233");
+		$udp_packet = auth_resp($resp->pack, "test");
+		$server->{'client'}->send($udp_packet);
+	}
+
+
+}
+
+
+
+# Initialize child
+sub server_exit
+{
+	my $self = shift;
+
+	
+	$self->log(LOG_DEBUG,"Destroying system modules.");
+	# Destroy cache
+#	cbp::cache::Destroy($self);
+	$self->log(LOG_DEBUG,"System modules destroyed.");
+
+	# Parent exit
+	$self->SUPER::server_exit();
+}
+
+
+
+# Slightly better logging
+sub log
+{
+	my ($self,$level,$msg,@args) = @_;
+
+	# Check log level and set text
+	my $logtxt = "UNKNOWN";
+	if ($level == LOG_DEBUG) {
+		$logtxt = "DEBUG";
+	} elsif ($level == LOG_INFO) {
+		$logtxt = "INFO";
+	} elsif ($level == LOG_NOTICE) {
+		$logtxt = "NOTICE";
+	} elsif ($level == LOG_WARN) {
+		$logtxt = "WARNING";
+	} elsif ($level == LOG_ERR) {
+		$logtxt = "ERROR";
+	} 
+
+	# Parse message nicely
+	if ($msg =~ /^(\[[^\]]+\]) (.*)/s) {
+		$msg = "$1 $logtxt: $2";
+	} else {
+		$msg = "[CORE] $logtxt: $msg";
+	}
+
+	$self->SUPER::log($level,"[".$self->log_time." - $$] $msg",@args);
+}
+
+
+
+# Display help
+sub displayHelp {
+	print(STDERR "SMRadius v".VERSION." - Copyright (c) 2007-2008 AllWorldIT\n");
+
+	print(STDERR<<EOF);
+
+Usage: $0 [args]
+    --config=<file>        Configuration file
+    --debug                Put into debug mode
+    --fg                   Don't go into background
+
+EOF
+}
+
+
+
+
+__PACKAGE__->run;
+
+
+1;
+# vim: ts=4

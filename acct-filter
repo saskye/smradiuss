@@ -1,0 +1,893 @@
+#!/usr/bin/perl -w
+# Author: Nigel Kukard  <nkukard@lbsd.net>
+# Date: 17/04/2007
+# Desc: Accounting filter for GNU Radius
+# License: GPL
+
+use strict;
+use Benchmark;
+use Getopt::Long;
+use DateTime;
+use Time::HiRes qw( gettimeofday tv_interval );
+
+use MIME::Lite;
+
+# Set library directory
+use lib qw(../../);
+
+use sm::config;
+use sm::dblayer;
+
+# Radius stuff
+use Authen::Radius;
+
+# Common stuff
+require("common.pm");
+
+use Data::Dumper;
+
+
+# Notify constants
+use constant {
+	NOTIFY_CHECK	=> 1,
+	NOTIFY_RESET	=> 2,
+};
+
+
+my %optctl = ();
+
+GetOptions(\%optctl, "help");
+
+
+# Check if user wants usage
+if (defined($optctl{'help'})) {
+	displayUsage();
+}
+
+# Open up logfile
+my $logfile = "/var/log/radius/acct-filter";
+open(FH,">> $logfile") or die "Failed to open '$logfile': $!";
+
+
+# Load radius dictionaries
+Authen::Radius->load_dictionary("raddb/dictionary");
+
+
+# Databases
+my $dbh;  # Authentication
+my $dbh_log;  # Logs
+
+# Get db handle
+$dbh = sm::dbilayer->new($cfg_db_DSN, $cfg_db_Username, $cfg_db_Password);
+if (!$dbh) {
+	print(STDERR "Error creating database object: ".sm::dbilayer->internalErr());
+	exit 1;
+}
+
+# Connect to database
+if ($dbh->connect() != 0) {
+	print(STDERR "Error connecting to database: ".$dbh->err); 
+	exit 1;
+}
+
+# Check if we must use split db's
+if (defined($cfg_radiuslog_db_DSN)) {
+	# Get log db handle
+	$dbh_log = sm::dbilayer->new($cfg_radiuslog_db_DSN, $cfg_radiuslog_db_Username, $cfg_radiuslog_db_Password);
+	if (!$dbh_log) {
+		print(STDERR "Error creating database object: ".sm::dbilayer->internalErr());
+		exit 1;
+	}
+
+	# Connect to database
+	if ($dbh_log->connect() != 0) {
+		print(STDERR "Error connecting to database: ".$dbh_log->err); 
+		exit 1;
+	}
+# If not use the main DB
+} else {
+	$dbh_log = $dbh;
+}
+
+
+
+# Signal handler for dead children
+use POSIX "WNOHANG";
+sub REAPER {
+	my $child;
+	# If a second child dies while in the signal handler caused by the
+	# first death, we won't get another signal. So must loop here else
+	# we will leave the unreaped child as a zombie. And the next time
+	# two children die we get another zombie. And so on.
+	while (($child = waitpid(-1,WNOHANG)) > 0) {
+#		$Kid_Status{$child} = $?;
+		1;
+	}
+	$SIG{CHLD} = \&REAPER;  # still loathe sysV
+}
+$SIG{CHLD} = \&REAPER;
+
+
+
+# No buffering
+select((select(FH), $| = 1)[0]);
+select((select(STDOUT), $| = 1)[0]);
+
+
+# Handled requests
+my $requests = 0;
+
+# Loop with input
+while (my $line = <STDIN>) {
+	my %acct;
+	my @acct;
+
+
+	# Inc number of requests
+	$requests++;
+
+	# Munch off \n
+	chomp($line);
+
+	# Check number of results
+	if ((@acct = split /:/, $line) != 21) {
+		print(FH "ERROR: Number of params from radiusd: ".(@acct)."/$line\n");
+		goto END;
+	}
+
+	# Pull in request
+	($acct{'User-Name'},$acct{'Status-Type'},$acct{'Acct-Session-Id'},$acct{'NAS-IP-Address'},$acct{'NAS-Port-Type'},$acct{'NAS-Port'},
+			$acct{'Called-Station-Id'},$acct{'Calling-Station-Id'},$acct{'Delay'},$acct{'Acct-Session-Time'},
+			$acct{'Acct-Input-Octets'},$acct{'Acct-Output-Octets'},$acct{'Acct-Input-Gigawords'},$acct{'Acct-Output-Gigawords'},
+			$acct{'Ascend-Xmit-Rate'},$acct{'Ascend-Data-Rate'},$acct{'Framed-IP-Address'},$acct{'Connect-Info'},$acct{'Service-Type'},
+			$acct{'Class'},$acct{'Acct-Terminate-Cause'}) = @acct;
+
+	# Pull timestamp	
+	my $dt = DateTime->from_epoch( epoch => time() );
+	$acct{'Timestamp'} = $dt->strftime('%Y-%m-%d %H:%M:%S');
+
+	my $timer0 = [gettimeofday];
+
+	# Grab user details
+	my $userData = getUser($dbh,$acct{'User-Name'});
+	if (ref $userData ne "HASH") {
+		print(FH "ERROR: $userData\n");
+		$userData->{'AgentID'} = 0;
+		$userData->{'RadiusClassID'} = 0;
+		$userData->{'UsageCap'} = 0;
+	}
+
+	printf(FH 'ACCT - AgentID: %s, ClassID: %s, User-Name: %s, Status-Type: %s, Timestamp: %s, Acct-Session-Id: %s, NAS-IP-Address: %s, NAS-Port-Type: %s, NAS-Port: %s, Called-Station-Id: %s, Calling-Station-Id: %s, Delay: %s, Acct-Session-Time: %s, Acct-Input-Octets: %s, Acct-Output-Octets: %s, Acct-Input-Gigawords: %s, Acct-Output-Gigawords: %s, Ascend-Xmit-Rate: %s, Ascend-Data-Rate: %s, Framed-IP-Address: %s, Connect-Info: %s, Service-Type: %s, Class: %s, Acct-Terminate-Cause: %s'."\n",$userData->{'AgentID'},$userData->{'RadiusClassID'},$acct{'User-Name'},$acct{'Status-Type'},$acct{'Timestamp'},$acct{'Acct-Session-Id'},$acct{'NAS-IP-Address'},$acct{'NAS-Port-Type'},$acct{'NAS-Port'},$acct{'Called-Station-Id'},$acct{'Calling-Station-Id'},$acct{'Delay'},$acct{'Acct-Session-Time'},$acct{'Acct-Input-Octets'},$acct{'Acct-Output-Octets'},$acct{'Acct-Input-Gigawords'},$acct{'Acct-Output-Gigawords'},$acct{'Ascend-Xmit-Rate'},$acct{'Ascend-Data-Rate'},$acct{'Framed-IP-Address'},$acct{'Connect-Info'},$acct{'Service-Type'},$acct{'Class'},$acct{'Acct-Terminate-Cause'});
+	
+	#	IF ADSL  (ADSL specific stuff)
+	if ($acct{'NAS-Port-Type'} eq "5") {
+		# Calculate dates
+		my $date = DateTime->from_epoch( epoch => time() );
+		my $today = $date->ymd();
+		$date->set_day(1);
+	    my $thismonth = $date->ymd();
+		$date->add( months => 1);
+	    my $nextmonth = $date->ymd();
+		
+		my $extraQuery = "";
+
+
+		# NULL - uncapped, no limits
+		if (!defined($userData->{'UsageCap'})) {
+			$extraQuery = "AND Timestamp > ".$dbh->quote($thismonth)." AND Timestamp < ".$dbh->quote($nextmonth);
+
+		# > 0 - normal cap, check usage for this month, check topups for this month
+		# Calculate cap user has  (acctinputoctets + (2^32 * gigawords)) /1024 / 1024
+		# Calculate usage user has
+		} elsif ($userData->{'UsageCap'} > 0) {
+			$extraQuery = "AND Timestamp > ".$dbh->quote($thismonth)." AND Timestamp < ".$dbh->quote($nextmonth);
+
+		# 0 - topup account
+		} elsif ($userData->{'UsageCap'} == 0) {
+
+		}
+
+		# Grab users usage
+		my $usageData = getUsage($dbh_log,$acct{'User-Name'},$extraQuery);
+		if (ref $usageData ne "HASH") {
+			print(FH "ERROR: $usageData\n");
+#			print(STDOUT "1\n");
+			goto END;
+		}
+		$userData->{'TotalUsage'} = $usageData->{'Total'};
+		
+		# Only total up this month
+		$extraQuery = "";
+		if (defined($userData->{'UsageCap'}) && $userData->{'UsageCap'} > 0) {
+			$extraQuery = "AND ValidFrom <= ".$dbh->quote($today)." AND ValidTo > ".$dbh->quote($today);
+		}
+		# Get how much we've been topped up
+		my $topupData = getTopups($dbh,$acct{'User-Name'},$extraQuery);
+		if (ref $topupData ne "HASH") {
+			print(FH "ERROR: $topupData\n");
+#			print(STDOUT "1\n");
+			goto END;
+		}
+		$userData->{'Topups'} = $topupData->{'Total'};
+
+		$userData->{'SessUsage'} = 0;
+		# If we updating or disconnecting, calculate the session usage so far
+		if ($acct{'Status-Type'} == 2 || $acct{'Status-Type'} == 3) {
+			# Check how much data we used in this session
+			my $sessUsage = 0; 
+			if (defined($acct{'Acct-Input-Octets'}) && $acct{'Acct-Input-Octets'} > 0) {
+				$sessUsage += $acct{'Acct-Input-Octets'} / 1024 / 1024;
+			}
+			if (defined($acct{'Acct-Input-Gigawords'}) && $acct{'Acct-Input-Gigawords'} > 0) {
+				$sessUsage += $acct{'Acct-Input-Gigawords'} * 4096;
+			}
+			# Add up output
+			if (defined($acct{'Acct-Output-Octets'}) && $acct{'Acct-Output-Octets'} > 0) {
+				$sessUsage += $acct{'Acct-Output-Octets'} / 1024 / 1024;
+			}
+			if (defined($acct{'Acct-Output-Gigawords'}) && $acct{'Acct-Output-Gigawords'} > 0) {
+				$sessUsage += $acct{'Acct-Output-Gigawords'} * 4096;
+			}
+			$userData->{'SessUsage'} = ceil($sessUsage);
+		}
+
+		# Print usage stats
+		printf(FH '     - Usage => Total: %s, Session: %s, Cap: %s, Topups: %s'."\n",
+					$userData->{'TotalUsage'},
+					$userData->{'SessUsage'},
+					defined($userData->{'UsageCap'}) ? $userData->{'UsageCap'} : "uncapped",
+					$userData->{'Topups'},
+		);
+
+		# Capping & usage predictions
+		my $totalCap = !defined($userData->{'UsageCap'}) ? 0 : $userData->{'UsageCap'} + $userData->{'Topups'};
+		if (defined($userData->{'UsageCap'}) && $userData->{'UsageCap'} >= 0) {
+			my $exceeded = 0;
+
+			# Checking if we updating or stopping the session, if we are, check capping
+			if ($totalCap <= $userData->{'TotalUsage'} && ($acct{'Status-Type'} == 2 || $acct{'Status-Type'} == 3)) {
+				print(FH "     - TEST: User has exceeded cap by ".($userData->{'TotalUsage'} - $totalCap)."Mbyte\n");
+
+				# If this is an update, user is still logged in, so disconnect them
+				if ($userData->{'CappingType'} == 1 && $acct{'Status-Type'} == 3) {
+					print(FH "     - TEST: User is still logged in, disconnecting\n");
+					disconnectUser($dbh,\*FH,$userData,\%acct);
+
+				# If user just got kicked off, notify them
+				} elsif ($userData->{'CappingType'} == 1 && $acct{'Status-Type'} == 2) {
+					print(FH "     - TEST: Notifying user\n");
+					# We reset notifications, cause the user MUST get this and we dont mind updating him in future
+					notifyUser($dbh,$dbh_log,\*FH,$userData,NOTIFY_RESET,
+							sprintf('Username %s has been capped, please contact your ISP should you need a topup',$userData->{'Username'}),
+					);
+				}
+
+				$exceeded = 1;
+			}
+
+			# Check if we may exceed the cap in the next hour, we need at least 1hrs of data for accuracy
+			if (!$exceeded && $acct{'Acct-Session-Time'} > 3600) {
+				my $perSecUsage = $userData->{'SessUsage'} / $acct{'Acct-Session-Time'};
+				my $hrPredict = sprintf('%.2f',($perSecUsage * 3600));
+
+				print(FH "     - User is predicted to use ${hrPredict}Mb in the next hour\n");
+				# If user is infact predicted to exceed, notify them
+				if ($totalCap <= $userData->{'TotalUsage'} + $hrPredict) {
+					print(FH "     - This will exceed users cap, notifying user\n");
+					notifyUser($dbh,$dbh_log,\*FH,$userData,NOTIFY_CHECK,
+							sprintf('Username %s may be capped in the next hour based on current usage stats, please contact your ISP should you need a topup',
+									$userData->{'Username'}),
+					);
+				}
+			}
+		}
+	}
+
+	# START
+	if ($acct{'Status-Type'} == 1) {
+		# Start accounting
+		my $res = $dbh_log->do("
+				INSERT INTO radiusLogs
+					(
+						AgentID,
+						Username,
+						RadiusClassID,
+						UsageCap,
+						Topups,
+						Timestamp,
+						AcctDelayTime,
+						AcctSessionID,
+						NASIPAddress,
+						NASPortType,
+						NASPort,
+						CalledStationID,
+						CallingStationID,
+						ConnectInfo,
+						ServiceType,
+						Class,
+						FramedIPAddress,
+						Status
+					)
+				VALUES
+					(
+						".$dbh_log->quote($userData->{'AgentID'}).",
+						".$dbh_log->quote($acct{'User-Name'}).",
+						".$dbh_log->quote($userData->{'RadiusClassID'}).",
+						".$dbh_log->quote($userData->{'UsageCap'}).",
+						".$dbh_log->quote($userData->{'Topups'}).",
+						".$dbh_log->quote($acct{'Timestamp'}).",
+						".$dbh_log->quote($acct{'Delay'}).",
+						".$dbh_log->quote($acct{'Acct-Session-Id'}).",
+						".$dbh_log->quote($acct{'NAS-IP-Address'}).",
+						".$dbh_log->quote($acct{'NAS-Port-Type'}).",
+						".$dbh_log->quote($acct{'NAS-Port'}).",
+						".$dbh_log->quote($acct{'Called-Station-Id'}).",
+						".$dbh_log->quote($acct{'Calling-Station-Id'}).",
+						".$dbh_log->quote($acct{'Connect-Info'}).",
+						".$dbh_log->quote($acct{'Service-Type'}).",
+						".$dbh_log->quote($acct{'Class'}).",
+						".$dbh_log->quote($acct{'Framed-IP-Address'}).",
+						".$dbh_log->quote(1)."
+					)
+		");
+		if (!$res) {
+			print(FH "ERROR: Failed to insert radius auth fail data: ".$dbh_log->err."\n");
+#			print(STDOUT "1\n");
+			goto END;
+		}
+
+	# STOP
+	} elsif ($acct{'Status-Type'} == 2) {
+		# Stop accounting
+		my $res = $dbh_log->do("
+				UPDATE radiusLogs
+				SET
+					Status = ".$dbh_log->quote(3).",
+					NASTransmitRate = ".$dbh_log->quote($acct{'Ascend-Xmit-Rate'}).",
+					NASReceiveRate = ".$dbh_log->quote($acct{'Ascend-Data-Rate'}).",
+					AcctSessionTime = ".$dbh_log->quote($acct{'Acct-Session-Time'}).",
+					AcctInputOctets = ".$dbh_log->quote($acct{'Acct-Input-Octets'}).",
+					AcctOutputOctets = ".$dbh_log->quote($acct{'Acct-Output-Octets'}).",
+					AcctInputGigawords = ".$dbh_log->quote($acct{'Acct-Input-Gigawords'}).",
+					AcctOutputGigawords = ".$dbh_log->quote($acct{'Acct-Output-Gigawords'}).",
+					ConnectTermReason = ".$dbh_log->quote($acct{'Acct-Terminate-Cause'}).",
+					LastAccUpdate = ".$dbh_log->quote($acct{'Timestamp'})."
+				WHERE
+					Username = ".$dbh_log->quote($acct{'User-Name'})."
+					AND AcctSessionID = ".$dbh_log->quote($acct{'Acct-Session-Id'})."
+					AND NASIPAddress = ".$dbh_log->quote($acct{'NAS-IP-Address'})."
+		");
+		if (!$res) {
+			print(FH "ERROR: Failed to update stop accounting data: ".$dbh_log->err."\n");
+#			print(STDOUT "1\n");
+			goto END;
+		}
+		
+		$res = 0 if ($res eq "0E0");
+
+		print(FH "     - Rows updated: $res\n");
+		
+		# Check if we updated duplicates, if we did, fix them
+		if ($res > 1) {
+			fixDuplicates(\%acct);
+		}
+
+	# UPDATE
+	} elsif ($acct{'Status-Type'} == 3) {
+		# Update accounting
+		my $res = $dbh_log->do("
+				UPDATE radiusLogs
+				SET
+					Status = ".$dbh_log->quote(2).",
+					NASTransmitRate = ".$dbh_log->quote($acct{'Ascend-Xmit-Rate'}).",
+					NASReceiveRate = ".$dbh_log->quote($acct{'Ascend-Data-Rate'}).",
+					AcctSessionTime = ".$dbh_log->quote($acct{'Acct-Session-Time'}).",
+					AcctInputOctets = ".$dbh_log->quote($acct{'Acct-Input-Octets'}).",
+					AcctOutputOctets = ".$dbh_log->quote($acct{'Acct-Output-Octets'}).",
+					AcctInputGigawords = ".$dbh_log->quote($acct{'Acct-Input-Gigawords'}).",
+					AcctOutputGigawords = ".$dbh_log->quote($acct{'Acct-Output-Gigawords'}).",
+					ConnectTermReason = ".$dbh_log->quote($acct{'Acct-Terminate-Cause'}).",
+					LastAccUpdate = ".$dbh_log->quote($acct{'Timestamp'})."
+				WHERE
+					Username = ".$dbh_log->quote($acct{'User-Name'})."
+					AND AcctSessionID = ".$dbh_log->quote($acct{'Acct-Session-Id'})."
+					AND NASIPAddress = ".$dbh_log->quote($acct{'NAS-IP-Address'})."
+		");
+		if (!$res) {
+			print(FH "ERROR: Failed to update accounting data: ".$dbh_log->err."\n");
+#			print(STDOUT "1\n");
+			goto END;
+		}
+
+		$res = 0 if ($res eq "0E0");
+
+		print(FH "     - Rows updated: $res\n");
+
+		# Create record as it doesn't exist!
+		if ($res == 0) {
+			# Start accounting
+			my $res = $dbh_log->do("
+					INSERT INTO radiusLogs
+						(
+							AgentID,
+							Username,
+							RadiusClassID,
+							UsageCap,
+							Topups,
+							Timestamp,
+							AcctDelayTime,
+							AcctSessionID,
+							NASIPAddress,
+							NASPortType,
+							NASPort,
+							CalledStationID,
+							CallingStationID,
+							ConnectInfo,
+							ServiceType,
+							Class,
+							FramedIPAddress,
+							NASTransmitRate,
+							NASReceiveRate,
+							AcctSessionTime,
+							AcctInputOctets,
+							AcctOutputOctets,
+							AcctInputGigawords,
+							AcctOutputGigawords,
+							ConnectTermReason,
+							Status
+						)
+					VALUES
+						(
+							".$dbh_log->quote($userData->{'AgentID'}).",
+							".$dbh_log->quote($acct{'User-Name'}).",
+							".$dbh_log->quote($userData->{'RadiusClassID'}).",
+							".$dbh_log->quote($userData->{'UsageCap'}).",
+							".$dbh_log->quote($userData->{'Topups'}).",
+							".$dbh_log->quote(
+								$acct{'Timestamp'} - defined($acct{'Acct-Session-Time'}) ? $acct{'Acct-Session-Time'} : 0
+							).",
+							".$dbh_log->quote($acct{'Delay'}).",
+							".$dbh_log->quote($acct{'Acct-Session-Id'}).",
+							".$dbh_log->quote($acct{'NAS-IP-Address'}).",
+							".$dbh_log->quote($acct{'NAS-Port-Type'}).",
+							".$dbh_log->quote($acct{'NAS-Port'}).",
+							".$dbh_log->quote($acct{'Called-Station-Id'}).",
+							".$dbh_log->quote($acct{'Calling-Station-Id'}).",
+							".$dbh_log->quote($acct{'Connect-Info'}).",
+							".$dbh_log->quote($acct{'Service-Type'}).",
+							".$dbh_log->quote($acct{'Class'}).",
+							".$dbh_log->quote($acct{'Framed-IP-Address'}).",
+							".$dbh_log->quote($acct{'Ascend-Xmit-Rate'}).",
+							".$dbh_log->quote($acct{'Ascend-Data-Rate'}).",
+							".$dbh_log->quote($acct{'Acct-Session-Time'}).",
+							".$dbh_log->quote($acct{'Acct-Input-Octets'}).",
+							".$dbh_log->quote($acct{'Acct-Output-Octets'}).",
+							".$dbh_log->quote($acct{'Acct-Input-Gigawords'}).",
+							".$dbh_log->quote($acct{'Acct-Output-Gigawords'}).",
+							".$dbh_log->quote(0).",
+							".$dbh_log->quote(1)."
+						)
+			");
+			if (!$res) {
+				print(FH "ERROR: Failed to insert radius auth fail data: ".$dbh_log->err."\n");
+#				print(STDOUT "1\n");
+				goto END;
+			}
+			print(FH "     - Lost accounting record created\n");
+		}
+
+		# Check if we updated duplicates, if we did, fix them
+		if ($res > 1) {
+			fixDuplicates(\%acct);
+		}
+	}
+	
+	my $timer1 = [gettimeofday];
+	my $timediff = tv_interval($timer0,$timer1);
+	print(FH "Code execution took: ${timediff}s\n");
+
+END:
+	# Check if we've handled enough requests
+	if ($requests >= 1000) {
+		print(FH "Handled enough request, terminating\n");
+		last;
+	}
+#	print(STDOUT "0\n");
+}
+close(FH);
+
+
+# Function to resolve duplicates
+sub fixDuplicates
+{
+	my ($acct) = @_;
+
+
+	# Select duplicates
+	my $sth = $dbh_log->select("
+			SELECT ID
+			FROM
+				radiusLogs
+			WHERE
+				Username = ".$dbh_log->quote($acct->{'User-Name'})."
+				AND NASIPAddress = ".$dbh_log->quote($acct->{'NAS-IP-Address'})."
+				AND AcctSessionID = ".$dbh_log->quote($acct->{'Acct-Session-Id'})."
+			ORDER BY ID
+			LIMIT 99 OFFSET 1
+	");
+	if (!$sth) {
+		print(FH "ERROR: Selecting duplicates: ".$dbh_log->err."\n");
+		print(STDOUT "1\n");
+		return;
+	}
+	# Return if no rows returned
+	return if ($sth->rows < 1);
+
+	my @IDs = ();
+	# Pull in duplicates
+	while (my $dup = $sth->fetchrow_hashref()) {
+		push(@IDs,$dup->{'ID'});
+	}
+	$sth->finish();
+	# Remove duplicates
+	my $res = $dbh_log->do("
+			DELETE FROM radiusLogs
+			WHERE
+				ID IN (".join(',',@IDs).")
+	");
+	if (!$res) {
+		print(FH "ERROR: Failed to remove duplicates: ".$dbh_log->err."\n");
+	} else {
+		$res = 0 if ($res eq "0E0");
+		print(FH "     - Duplicates removed: $res\n");
+	}
+}
+
+
+# Disconnect user
+sub disconnectUser
+{
+	my ($dbh,$fh,$userData,$acct) = @_;
+
+
+	# If radius classID == 0, means we don't know about this user, just return, nothing we can do
+	if ($userData->{'RadiusClassID'} == 0) {
+		print($fh "     - (D) Radius class ID is zero, cannot disconnect\n");
+		return;
+	}
+	
+	# Grab class data
+	my $classData = getClass($dbh,$userData->{'RadiusClassID'});
+
+	# Check if we got a hash, if not just return, error already reported in common.pm
+	if (ref $classData ne "HASH") {
+		print($fh "     - (D) No class data, cannot disconnect: $classData\n");
+		return;
+	}
+
+	# Check if we have POD server list, if not ... return
+	if (!defined($classData->{'PODServers'}) || $classData->{'PODServers'} eq "") {
+		print($fh "     - (D) No POD servers, cannot disconnect\n");
+		return;
+	}
+
+	# Loop with POD servers and add to list
+	my @podServers;
+	foreach my $i (split(/,/,$classData->{'PODServers'})) {
+		my %server;
+		# Pull out data we need
+		if ($i =~ /^(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\/([^:]+):(\d+)$/) {
+			($server{'IP'},$server{'Secret'},$server{'Port'}) = ($1,$2,$3);
+		# If we didn't understand it, bitch
+		} else {
+			print($fh "     - (D) Did not understand POD server definition '$i'\n");
+			return;
+		}
+		# Add to list
+		push(@podServers,\%server);
+	}
+
+	# Fork off notification handler
+	my $child_pid;
+	if (!defined($child_pid = fork())) {
+		print($fh "      - (D) ERROR: Cannot fork: $!\n");
+	} elsif ($child_pid) {
+		# I'm the parent
+		return;
+	} else {
+		# I'm the child
+		sleep(5);
+
+		# Grab a server
+		foreach my $server (@podServers)
+		{
+			# Fire up radius
+			my $r = new Authen::Radius(Host => $server->{'IP'}.':'.$server->{'Port'}, Secret => $server->{'Secret'}, Debug => 1);
+			if (!$r) {
+				print($fh "FORK - (D) ".$userData->{'Username'}.", failed to create radius object\n");
+				exit;
+			}
+			# Set attributes
+			$r->add_attributes(
+				{ 	Name => 'User-Name', 			Value => $userData->{'Username'} },
+				{ 	Name => 'Framed-IP-Address', 	Value => $acct->{'Framed-IP-Address'} },
+				{ 	Name => 'NAS-IP-Address', 		Value => $acct->{'NAS-IP-Address'} },
+			);
+			# Send packet
+			my $res = $r->send_packet(DISCONNECT_REQUEST);
+			print($fh "FORK - (D) ".$userData->{'Username'}.", Result1: ".Dumper($res)."\n");
+			# Clear & grab result
+			$r->clear_attributes();
+			$res = $r->recv_packet();
+			# Disect packet and see whats going on
+			print($fh "FORK - (D) ".$userData->{'Username'}.", Result2: ".Dumper($res)."\n");
+			my $value = $r->{'attributes'};
+			if (defined($value)) {
+			        my ($v1,$v2,$v3,$v4) = unpack('C C N',$value);
+				printf($fh "FORK - (D) ".$userData->{'Username'}.", Got reply: v1=%s, v2=%s, v3=%s, v4=%s\n",
+					defined($v1) ? $v1 : '<undef>',
+					defined($v2) ? $v2 : '<undef>',
+					defined($v3) ? $v3 : '<undef>',
+					defined($v4) ? $v4 : '<undef>'
+				);
+				# Last it, as we got a reply
+				last;
+			# This would mean a timeout?
+			} else {
+				print($fh "FORK - (D) ".$userData->{'Username'}.", Got reply: undefined\n");
+			}
+		}
+	} 
+}
+
+
+
+# Notify user
+sub notifyUser
+{
+	my ($dbh,$dbh_log,$fh,$userData,$action,$message) = @_;
+
+
+	# If no notification method is specified, just return
+	return if (!defined($userData->{'NotifyMethod'}) || $userData->{'NotifyMethod'} eq "");
+
+	# Get current notification status
+	my $notifyStatus = getNotifyStatus($dbh_log,$userData);
+	if (ref $notifyStatus ne "HASH") {
+		print($fh "     - (N) No notify status: $notifyStatus\n");
+		return;
+	}
+	printf($fh '     - (N) Notify status, id = %s, lastupdate = %s, updateinterval = %s'."\n",
+			defined($notifyStatus->{'ID'}) ? $notifyStatus->{'ID'} : 'new',
+			$notifyStatus->{'LastUpdate'},
+			$notifyStatus->{'UpdateInterval'});
+
+	# Time now
+	my $now = time();
+
+	# Check if we should reset
+	if ($action & NOTIFY_RESET == NOTIFY_RESET) {
+		$notifyStatus->{'UpdateInterval'} = 86400;
+	
+	# If we not resetting, check if we should do a check
+	} else {
+		# Calculate delta
+		my $delta = (($now - $notifyStatus->{'LastUpdate'}) + $notifyStatus->{'UpdateInterval'}) / 2;
+		$delta = 86400 if ($delta > 86400); # 1 day window only
+
+		print($fh "     - (N) Notify delta = $delta\n");
+	
+		# Check actions
+		if ($action & NOTIFY_CHECK == NOTIFY_CHECK) {
+			# Return if delta is less than half a day
+			return if ($delta < 43200);
+			print($fh "     - (N) Notify check, succeeded\n");
+		}
+
+		$notifyStatus->{'UpdateInterval'} = $delta;
+	}
+
+	$notifyStatus->{'LastUpdate'} = $now;
+	my $res = updateNotifyStatus($dbh_log,$userData,$notifyStatus);
+	if (!$res) {
+		print($fh "     - (N) Notify data updated\n");
+	} else {
+		print($fh "     - (N) Notify update error: $res\n");
+	}
+
+	# Get agent data
+	my $agentData = getAgent($dbh,$userData->{'AgentID'});
+	# Check if we got a hash, if not just return, error already reported in common.pm
+	if (ref $agentData ne "HASH") {
+		print($fh "     - (N) No agent data, cannot notify: $agentData\n");
+		return;
+	}
+
+	# Fork off notification handler
+	my $child_pid;
+	if (!defined($child_pid = fork())) {
+		print($fh "     - (N) ERROR: Cannot fork: $!\n");
+	} elsif ($child_pid) {
+		# I'm the parent
+		return;
+	} else {
+		# I'm the child
+		sleep(5);
+	
+		# Pull out notification email addy
+		my @methods = split /,/, $userData->{'NotifyMethod'};
+
+		print($fh "FORK - (N) Resume for: ".$userData->{'Username'}."\n");
+		# Loop with notification methods
+		foreach my $method (@methods) {
+
+			# Check for email addy
+			if ($method =~ /^\S+@\S+$/) {
+				print($fh "FORK - (N) Its an email addy: $method\n");
+		
+				# Create message
+				my $msg = MIME::Lite->new(
+						From	=> $agentData->{'ContactEmail'},
+						To		=> $method,
+						Bcc		=> $agentData->{'ContactEmail'},
+						Subject	=> "ADSL user ".$userData->{'Username'},
+						Type	=> 'multipart/mixed'
+				);
+
+				# Attach body
+				$msg->attach(
+						Type	=> 'TEXT',
+						Encoding 	=> 'quoted-printable',
+						Data	=> $message,
+				);
+
+				# Send
+				if (!(my $res = $msg->send())) {
+					print($fh "FORK - (N) Failed to send email\n");
+				}
+
+
+			# First character can only be 1-9, next char is second part of country code, then 9 digit phone number (without 0)
+			} elsif ($method =~ /^\+([1-9][0-9]{0,1})([1-9][0-9]{8})$/) {
+				my $country = $1;
+				my $number = $2;
+					
+				use URI::Escape;
+				my $cmd = "echo '".uri_escape($message,"\x00-\x1f\x7f-\xff\"\'")."' | /usr/local/sitemanager-trunk/scripts/sms/sendsms --send-to='$country$number'";
+
+
+				if ($country eq "27") {
+					print($fh "FORK - (N) Its a cellphone in allowed country $country: $method\n");
+
+					open(LOG,">> /var/log/radius/sms.log");
+					printf(LOG '%s:SENT:%s:%s:%s%s', $userData->{'AgentID'}, $country . $number, $userData->{'Username'}, $cmd, "\n");
+					close(LOG);
+
+					print($fh "FORK - (N) Going to run command: $cmd\n");
+					system($cmd);
+					if ($? == -1) {
+						print($fh "FORK - (N) Failed to execute: $!\n");
+					} elsif ($? & 127) {
+						printf($fh  "FORK - (N) Child died with signal %d\n",($? & 127));
+					} else {
+						printf($fh "FORK - (N) Child exited with value %d\n", $? >> 8);
+					}
+
+				} else {
+					print($fh "FORK - (N) Its a cellphone in dis-allowed country $country: $method\n");
+
+					open(LOG,">> /var/log/radius/sms.log");
+					printf(LOG '%s:REJECT:%s:%s:%s%s', $userData->{'AgentID'}, $country . $number, $userData->{'Username'}, $cmd, "\n");
+					close(LOG);
+				}
+
+			# Not understood
+			} else {
+				print($fh "FORK - (N) I DO NOT UNDERSTAND NOTIFY METHOD => '$method'\n");
+			}
+		}
+		exit;
+	} 
+}
+
+
+# Function to get a notification status
+sub getNotifyStatus
+{
+	my ($dbh,$userData) = @_;
+
+
+	my %notifyStatus;
+
+	# Select tracking information
+	my $sth = $dbh->select("
+		SELECT 
+			ID, Username, LastUpdate, UpdateInterval, LastValue
+		FROM 
+			radiusNotifyTrack
+		WHERE 
+			Username = ".$dbh->quote($userData->{'Username'})."
+	");
+	if (!$sth) {
+		return "Database error: ".$dbh->err;
+	}
+
+	# Tracking info exists
+	if ($sth->rows == 1) {
+		# Pull data
+		my $data = $sth->fetchrow_hashref();
+		$sth->finish();
+		# Sanity  check	
+		return "Undefined data!" if (ref $data ne "HASH");
+
+		$notifyStatus{'ID'} = $data->{'ID'};
+		$notifyStatus{'LastUpdate'} = $data->{'LastUpdate'};
+		$notifyStatus{'UpdateInterval'} = $data->{'UpdateInterval'};
+		$notifyStatus{'LastValue'} = $data->{'LastValue'};
+
+	# No tracking info
+	} elsif ($sth->rows == 0) {
+		$sth->finish();
+		$notifyStatus{'LastUpdate'} = 0;
+		$notifyStatus{'UpdateInterval'} = 86400;
+
+		# Insert record seeing as it doesn't exist
+		my $res = $dbh->do("
+				INSERT INTO radiusNotifyTrack
+					(
+						Username,
+						LastUpdate,
+						UpdateInterval
+					)
+				VALUES
+					(
+						".$dbh->quote($userData->{'Username'}).",
+						".$dbh->quote($notifyStatus{'LastUpdate'}).",
+						".$dbh->quote($notifyStatus{'UpdateInterval'})."
+					)
+		");
+		return "Failed to insert radius tracking data: ".$dbh->err if (!$res);
+
+	# Wth happened here?
+	} else {
+		my $msg = "Unknown number of rows returned for radius tracking: ".$sth->rows;
+		$sth->finish();
+		return $msg;
+	}
+
+	return \%notifyStatus;
+}
+
+
+# Function to update users notify status
+sub updateNotifyStatus
+{
+	my ($dbh,$userData,$notifyStatus) = @_;
+
+
+	# Update accounting
+	my $res = $dbh->do("
+		UPDATE radiusNotifyTrack
+		SET
+			LastUpdate = ".$dbh->quote($notifyStatus->{'LastUpdate'}).",
+			UpdateInterval = ".$dbh->quote($notifyStatus->{'UpdateInterval'})."
+		WHERE
+			Username = ".$dbh->quote($userData->{'Username'})."
+	");
+	if (!$res) {
+		return "Failed to update notify tracking data: ".$dbh->err;
+	}
+
+	return;
+}
+
+
+
+# Display usage
+sub displayUsage {
+	print("Usage: $0 [--quiet]\n");
+	exit 0;
+} 
+
+
+# vim: ts=4
