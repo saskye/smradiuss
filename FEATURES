@@ -1,0 +1,42 @@
+FEATURES
+--------
+
+Network Engine:
+* Prefork design
+
+
+Database/Storage:
+* Database independent design
+	- Support for MySQL, PostgreSQL, Oracle, Sqlite3
+	- Replicated database support
+* Custom database queries allowing usage of returned results as macros
+
+
+Authentication:
+* Plugin: PAP
+* Plugin: CHAP
+* Plugin: MSCHAP (Supports MSCHAPv1 & MSCHAPv2)
+
+
+Radius Protocol:
+* Vendor specific attributes
+* Supported attribute operators include  =, :=, ==, +=, !=, >, >=, <, <=, =~, !~, =*, !*
+
+
+Enhanced features:
+* Plugin: Topups
+* Plugin: Auto-topups
+* Plugin: Usage/Time caps
+* Plugin: Prepaid accounting based on usage/time 
+* Plugin: Creation of accounting START records when no START record has been received but an interim update has - helps on slow/lossly links
+* Plugin: Notifications, % based or approximate time based
+* Plugin: User blacklists
+
+Todo:
+* Radius proxy - with filtering of requests/values ... etc in both directions + adding items.
+* Port 1700 proxy back to NAS's.
+
+Ideas:
+* E-commerce integration & API - very popular request
+* Database load balancing .... none of our largest clients have requested this, we talking 1 million users + ... *shrug*
+* IP Pools (in database)
