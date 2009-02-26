@@ -25,6 +25,7 @@ use warnings;
 use lib qw(
 	../ ./ 
 	smradius/modules/authentication
+	smradius/modules/userdb
 );
 
 package radiusd;
@@ -172,19 +173,25 @@ sub configure {
 	# Authentication plugins
 	#
 	my @auth_params = (
-			'plugins',
+			'mechanisms',
+			'users',
 	);
 	my $auth;
 	foreach my $param (@auth_params) {
 		$auth->{$param} = $config{'authentication'}{$param} if (defined($config{'authentication'}{$param}));
 	}
 
-	if (!defined($auth->{'plugins'})) {
-		$self->log(LOG_ERR,"[SMRADIUS] Authentication configuration error: 'plugins' not found");
+	if (!defined($auth->{'mechanisms'})) {
+		$self->log(LOG_ERR,"[SMRADIUS] Authentication configuration error: Mechanism plugins not found");
 		exit 1;
 	}
+	if (!defined($auth->{'users'})) {
+		$self->log(LOG_ERR,"[SMRADIUS] Authentication configuration error: Userdb plugins not found");
+		exit 1;
+	}
+
 	# Split off plugins
-	foreach my $plugin (@{$auth->{'plugins'}}) {
+	foreach my $plugin (@{$auth->{'mechanisms'}},@{$auth->{'users'}}) {
 		$plugin =~ s/\s+//g;
 	}
 
@@ -211,7 +218,10 @@ sub configure {
 	$cfg->{'authentication'} = $auth;
 	$cfg->{'dictionary'} = $dictionary;
 
-	$cfg->{'plugins'} = [ @{$auth->{'plugins'}} ];
+	$cfg->{'plugins'} = [ 
+		@{$auth->{'mechanisms'}},
+		@{$auth->{'users'}} 
+	];
 
 	# Save our config and stuff
 	$self->{'config'} = $cfg;
@@ -241,8 +251,7 @@ sub post_configure_hook {
 	# Store the dictionary
 	$self->{'radius'}->{'dictionary'} = $dict;
 
-	# Load authentication mechs
-	$self->log(LOG_NOTICE,"[SMRADIUS] Initializing authentication mechanisms...");
+	$self->log(LOG_NOTICE,"[SMRADIUS] Initializing modules...");
 	# Load plugins
 	foreach my $plugin (@{$config->{'plugins'}}) {
 		# Load plugin
@@ -251,12 +260,12 @@ sub post_configure_hook {
 			plugin_register(\$self,\"$plugin\",\$${plugin}::pluginInfo);
 		");
 		if ($@ || (defined($res) && $res != 0)) {
-			$self->log(LOG_WARN,"[SMRADIUS] Error loading authentication plugin $plugin ($@)");
+			$self->log(LOG_WARN,"[SMRADIUS] Error loading plugin $plugin ($@)");
 		} else {
-			$self->log(LOG_DEBUG,"[SMRADIUS] Authentication plugin '$plugin' loaded.");
+			$self->log(LOG_DEBUG,"[SMRADIUS] Plugin '$plugin' loaded.");
 		}
 	}
-	$self->log(LOG_NOTICE,"[SMRADIUS] Authentication mechanisms initialized.");
+	$self->log(LOG_NOTICE,"[SMRADIUS] Plugins initialized.");
 
 	$self->log(LOG_NOTICE,"[SMRADIUS] Initializing system modules.");
 	# Init config
@@ -360,7 +369,7 @@ sub process_request {
 	my $pkt = new Radius::Packet($self->{'radius'}->{'dictionary'},$udp_packet);
 
 	# VERIFY SOURCE SERVER
-	$self->log(LOG_DEBUG,"[SMRADIUS] Packet From = > ".$server->{'peeraddr'}."\n");
+	$self->log(LOG_DEBUG,"[SMRADIUS] Packet From = > ".$server->{'peeraddr'});
 
 
 #LOGIN
@@ -450,21 +459,26 @@ sub process_request {
 	# Is this an accounting request
 	if ($pkt->code eq "Accounting-Request") {
 
+		$self->log(LOG_DEBUG,"[SMRADIUS] Accounting Request Packet");
 
 	# Or maybe a access request
 	} elsif ($pkt->code eq "Access-Request") {
+	
+	
+		$self->log(LOG_DEBUG,"[SMRADIUS] Access Request Packet");
+		$self->log(LOG_DEBUG,"[SMRADIUS] Packet: ".$pkt->dump);
+	
 		# Main user hash with everything in
 		my $user = {
 			'Username' => $pkt->attr('User-Name')
 		};
 
-		# Found stuff
-		my $found = 0;
-		my $userdb;
-		# Authentication stuff
+		# UserDB variables
+		my $userdb;  # This is the module that ACK or NACK the user
+		# Authentication variables
 		my $authenticated = 0;
 		my $mechanism;
-		# Authorization stuff
+		# Authorization variables
 		my $authorized = 0;
 
 
@@ -475,9 +489,9 @@ sub process_request {
 		# Loop with modules to try find user
 		foreach my $module (@{$self->{'plugins'}}) {
 			# Try find user
-			if ($module->{'Auth_find'}) {
-				$self->log(LOG_INFO,"[SMRADIUS] FIND: Trying  plugin '".$module->{'Name'}."' for username '".$user->{'Username'}."'");
-				my $res = $module->{'Auth_find'}($self,$user);
+			if ($module->{'User_find'}) {
+				$self->log(LOG_INFO,"[SMRADIUS] FIND: Trying plugin '".$module->{'Name'}."' for username '".$user->{'Username'}."'");
+				my $res = $module->{'User_find'}($self,$user,$pkt);
 
 				# Check result
 				if (!defined($res)) {
@@ -491,13 +505,11 @@ sub process_request {
 				} elsif ($res == MOD_RES_ACK) {
 					$self->log(LOG_NOTICE,"[SMRADIUS] FIND: Username found with '".$module->{'Name'}."'");
 					$userdb = $module;
-					$found = 1;
 					last;
 
 				# Or a negative result
 				} elsif ($res == MOD_RES_NACK) {
 					$self->log(LOG_NOTICE,"[SMRADIUS] FIND: Username not found with '".$module->{'Name'}."'");
-					$userdb = $module;
 					last;
 
 				}
@@ -505,7 +517,8 @@ sub process_request {
 		}
 
 		# If no user is found, bork out ...
-		if (!$found) {
+		if (!defined($userdb)) {
+			$self->log(LOG_INFO,"[SMRADIUS] FIND: No plugin found for username '".$user->{'Username'}."'");
 			goto CHECK_RESULT;
 		}
 
@@ -514,17 +527,21 @@ sub process_request {
 		#
 
 		# Get user data
-		if ($userdb->{'Auth_get'}) {
-			my $res = $userdb->{'Auth_get'}($self,$user);
+		if ($userdb->{'User_get'}) {
+			my $res = $userdb->{'User_get'}($self,$user);
 
 			# Check result
 			if (!defined($res) || ref($res) ne "HASH") {
-				$self->log(LOG_WARNING,"[SMRADIUS] GET: No data returned from '".$userdb->{'Name'}."' for user '".$user->{'Username'}."'");
+				$self->log(LOG_WARN,"[SMRADIUS] GET: No data returned from '".$userdb->{'Name'}."' for username '".$user->{'Username'}."'");
 				goto CHECK_RESULT;
 			}
-			# Setup user data
-			$user->{'User'} = $res->{'User'};
-			$user->{'Group'} = $res->{'Group'};
+			# Setup user dataw
+			$user->{'ClearPassword'} = $res->{'ClearPassword'};
+			$user->{'Attributes'} = $res->{'Attributes'};
+		} else {
+			$self->log(LOG_INFO,"[SMRADIUS] GET: No 'User_get' funcation available for module '".$userdb->{'Name'}."'");
+
+			goto CHECK_RESULT;
 		}
 
 		#
@@ -575,14 +592,25 @@ sub process_request {
 		   	$resp->set_code('Access-Accept');
 			$resp->set_identifier($pkt->identifier);
 			$resp->set_authenticator($pkt->authenticator);
-			$resp->set_attr('Framed-IP-Address' => "192.168.0.233");
+			# Loop with user attributes and add to radius response
+			foreach my $attr (@{$user->{'Attributes'}}) {
+				$resp->set_attr($attr->{'Name'},$attr->{'Value'});
+			}
+			$self->log(LOG_DEBUG,"[SMRADIUS] User attributes:".Dumper($user));
+		
 			$udp_packet = auth_resp($resp->pack, "test");
 			$server->{'client'}->send($udp_packet);
 		}
+
 CHECK_RESULT:
 		# Check if found and authenticated
-		if (!$found || !$authenticated) {
-		} else {
+		if (!$authenticated) {
+			my $resp = Radius::Packet->new($self->{'radius'}->{'dictionary'});
+		   	$resp->set_code('Access-Reject');
+			$resp->set_identifier($pkt->identifier);
+			$resp->set_authenticator($pkt->authenticator);
+			$udp_packet = auth_resp($resp->pack, "test");
+			$server->{'client'}->send($udp_packet);
 		}
 
 	# We don't know how to handle this
