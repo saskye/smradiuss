@@ -1,7 +1,4 @@
-# PAP
-#
-# References:
-#	RFC1334 - PPP Authentication Protocols
+# Test user database
 #
 # Copyright (C) 2008, AllWorldIT
 # 
@@ -19,17 +16,13 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-package mod_auth_pap;
+package mod_userdb_test;
 
 use strict;
 use warnings;
 
 # Modules we need
 use smradius::constants;
-use Digest::MD5;
-
-use Data::Dumper; 
-
 
 
 # Exporter stuff
@@ -45,11 +38,12 @@ our (@ISA,@EXPORT,@EXPORT_OK);
 
 # Plugin info
 our $pluginInfo = {
-	Name => "PAP Authentication",
+	Name => "Test User Database",
 	Init => \&init,
 	
-	# Authentication
-	Auth_try => \&authenticate,
+	# User database
+	User_find => \&find,
+	User_get => \&get,
 };
 
 
@@ -63,42 +57,58 @@ sub init
 
 
 
-## @authenticate
-# Try authenticate user
+## @find
+# Try find a user
 #
 # @param server Server object
-# @param user User hash
+# @param user User
 # @param packet Radius packet
 #
 # @return Result
-sub authenticate
+sub find
 {
 	my ($server,$user,$packet) = @_;
 
 
-	# Pull in attributes
-	my $encPassword = $packet->attr('User-Password');
-
-	# Check if this is PAP authentication
-	return MOD_RES_SKIP if (!defined($encPassword));
-
-	print(STDERR "RECEIVED\n");
-	print(STDERR "User-Pass: len = ".length($encPassword).", hex = ".unpack("H*",$encPassword)."\n");
-	print(STDERR "\n\n");
-
-	my $clearPassword = $packet->password("test","User-Password");
-
-	print(STDERR "CALC\n");
-	print(STDERR "Result   : len = ".length($clearPassword).", hex = ".unpack("H*",$clearPassword).", password = $clearPassword\n");
-
-
-	# Compare passwords
-	if ($user->{'ClearPassword'} eq $clearPassword) {
+	# Test username
+	if ($user->{'Username'} eq "testuser") {
 		return MOD_RES_ACK;
-	}
+	}	
 
 
-	return MOD_RES_NACK;
+	return MOD_RES_SKIP;
+}
+
+
+## @get
+# Try to get a user
+#
+# @param server Server object
+# @param user User
+# @param packet Radius packet
+#
+# @return Result
+sub get
+{
+	my ($server,$user,$packet) = @_;
+
+
+	my $userDetails = { 
+		'ClearPassword' => 'doap',
+		'Attributes' => [
+			{
+				'Name' => 'Framed-IP-Address',
+				'Value' => '192.168.0.233'
+			},
+			{
+				'Name' => 'Session-Timeout',
+				'Value' => '60'
+			}
+		]
+	};
+
+
+	return $userDetails;
 }
 
 
