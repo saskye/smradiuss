@@ -1,0 +1,253 @@
+@PRELOAD@
+
+
+/* Users */
+CREATE TABLE @PREFIX@users (
+	ID			@SERIAL_TYPE@,
+
+	Username		VARCHAR(255) NOT NULL,
+
+	Description		TEXT,
+
+	Disabled		SMALLINT NOT NULL DEFAULT '0'
+
+	UNIQUE (Username)
+) @CREATE_TABLE_SUFFIX@;
+CREATE INDEX @PREFIX@users_idx1 ON @PREFIX@users (Username);
+
+
+/* User check items */
+CREATE TABLE @PREFIX@user_check_items (
+	ID			@SERIAL_TYPE@,
+
+	Name			VARCHAR(255) NOT NULL,
+	Op			VARCHAR(3) NOT NULL,
+	Value			VARCHAR(255),
+
+	Disabled		SMALLINT NOT NULL DEFAULT '0'
+
+	UNIQUE (Name)
+) @CREATE_TABLE_SUFFIX@;
+
+
+/* User reply items */
+CREATE TABLE @PREFIX@user_reply_items (
+	ID			@SERIAL_TYPE@,
+
+	Name			VARCHAR(255) NOT NULL,
+	Op			VARCHAR(3) NOT NULL,
+	Value			VARCHAR(255),
+
+	Disabled		SMALLINT NOT NULL DEFAULT '0'
+
+	UNIQUE (Name)
+) @CREATE_TABLE_SUFFIX@;
+
+
+
+/* Groups */
+CREATE TABLE @PREFIX@groups (
+	ID			@SERIAL_TYPE@,
+
+	Name			VARCHAR(255) NOT NULL,
+
+	Priority		SMALLINT NOT NULL,
+
+	Disabled		SMALLINT NOT NULL DEFAULT '0',
+
+	Comment			VARCHAR(1024),
+
+	UNIQUE (Name)
+)  @CREATE_TABLE_SUFFIX@;
+CREATE INDEX @PREFIX@groups_idx1 ON @PREFIX@users (Name);
+
+
+/* Group check items */
+CREATE TABLE @PREFIX@group_check_items (
+	ID			@SERIAL_TYPE@,
+
+	Name			VARCHAR(255) NOT NULL,
+	Op			VARCHAR(3) NOT NULL,
+	Value			VARCHAR(255),
+
+	Disabled		SMALLINT NOT NULL DEFAULT '0'
+
+	UNIQUE (Name)
+) @CREATE_TABLE_SUFFIX@;
+
+
+/* Group reply items */
+CREATE TABLE @PREFIX@group_reply_items (
+	ID			@SERIAL_TYPE@,
+
+	Name			VARCHAR(255) NOT NULL,
+	Op			VARCHAR(3) NOT NULL,
+	Value			VARCHAR(255),
+
+	Disabled		SMALLINT NOT NULL DEFAULT '0'
+
+	UNIQUE (Name)
+) @CREATE_TABLE_SUFFIX@;
+
+
+
+/* User to group mapping */
+CREATE TABLE @PREFIX@users_to_groups (
+	ID			@SERIAL_TYPE@,
+
+	UserID			@SERIAL_REF_TYPE@ NOT NULL,
+	GroupID			@SERIAL_REF_TYPE@ NOT NULL,
+
+	Disabled		SMALLINT NOT NULL DEFAULT '0',
+	Comment			VARCHAR(1024),
+
+	UNIQUE (UserID,GroupID),
+	FOREIGN KEY (UserID) REFERENCES @PREFIX@users(ID),
+	FOREIGN KEY (GroupID) REFERENCES @PREFIX@groups(ID)
+)  @CREATE_TABLE_SUFFIX@;
+CREATE INDEX @PREFIX@users_to_groups_idx1 ON @PREFIX@users_to_groups (UserID,GroupID);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* Member list for policies */
+CREATE TABLE @PREFIX@policy_members (
+	ID			@SERIAL_TYPE@,
+
+	PolicyID		@SERIAL_REF_TYPE@,
+
+	/* 
+		Format of key: 
+		NULL = any
+		a.b.c.d/e = IP address with optional /e
+		@domain = domain specification, 
+		%xyz = xyz group, 
+		abc@domain = abc user specification
+
+		all options support negation using !<key>
+	*/
+	Source			TEXT,
+	Destination		TEXT,
+
+	Comment			VARCHAR(1024),
+
+	Disabled		SMALLINT NOT NULL DEFAULT '0',
+
+	FOREIGN KEY (PolicyID) REFERENCES @PREFIX@policies(ID)
+) @CREATE_TABLE_SUFFIX@;
+
+
+/* Default System Policy */
+INSERT INTO @PREFIX@policy_members (PolicyID,Source,Destination) VALUES
+	(1,NULL,NULL);
+/* Default Outbound System Policy */
+INSERT INTO @PREFIX@policy_members (PolicyID,Source,Destination) VALUES
+	(2,'%internal_ips,%internal_domains','!%internal_domains');
+/* Default Inbound System Policy */
+INSERT INTO @PREFIX@policy_members (PolicyID,Source,Destination) VALUES
+	(3,'!%internal_ips,!%internal_domains','%internal_domains');
+/* Default Internal System Policy */
+INSERT INTO @PREFIX@policy_members (PolicyID,Source,Destination) VALUES
+	(4,'%internal_ips,%internal_domains','%internal_domains');
+/* Test Policy */
+INSERT INTO @PREFIX@policy_members (PolicyID,Source,Destination) VALUES
+	(5,'@example.net',NULL);
+
+
+
+/* Groups usable in ACL */
+CREATE TABLE @PREFIX@policy_groups (
+	ID			@SERIAL_TYPE@,
+
+	Name			VARCHAR(255) NOT NULL,
+
+
+	Disabled		SMALLINT NOT NULL DEFAULT '0',
+
+	Comment			VARCHAR(1024),
+
+
+	UNIQUE (Name)
+)  @CREATE_TABLE_SUFFIX@;
+
+INSERT INTO @PREFIX@policy_groups (Name) VALUES ('internal_ips');
+INSERT INTO @PREFIX@policy_groups (Name) VALUES ('internal_domains');
+
+
+
+/* Group members */
+CREATE TABLE @PREFIX@policy_group_members (
+	ID			@SERIAL_TYPE@,
+
+	PolicyGroupID		@SERIAL_REF_TYPE@,
+
+	/* Format of member: a.b.c.d/e = ip,  @domain = domain, %xyz = xyz group, abc@domain = abc user */
+	Member			VARCHAR(255) NOT NULL,
+	
+
+	Disabled		SMALLINT NOT NULL DEFAULT '0',
+	Comment			VARCHAR(1024),
+
+
+	FOREIGN KEY (PolicyGroupID) REFERENCES @PREFIX@policy_groups(ID)
+)  @CREATE_TABLE_SUFFIX@;
+
+INSERT INTO @PREFIX@policy_group_members (PolicyGroupID,Member) VALUES (1,'10.0.0.0/8');
+INSERT INTO @PREFIX@policy_group_members (PolicyGroupID,Member) VALUES (2,'@example.org');
+INSERT INTO @PREFIX@policy_group_members (PolicyGroupID,Member) VALUES (2,'@example.com');
+
+
+
+/* Message session tracking */
+CREATE TABLE @PREFIX@session_tracking (
+	Instance		VARCHAR(255),
+	QueueID			VARCHAR(255),
+
+	Timestamp		BIGINT NOT NULL,
+
+	ClientAddress		VARCHAR(64),
+	ClientName		VARCHAR(255),
+	ClientReverseName	VARCHAR(255),
+
+	Protocol		VARCHAR(255),
+
+	EncryptionProtocol	VARCHAR(255),
+	EncryptionCipher	VARCHAR(255),
+	EncryptionKeySize	VARCHAR(255),
+
+	SASLMethod		VARCHAR(255),
+	SASLSender		VARCHAR(255),
+	SASLUsername		VARCHAR(255),
+
+	Helo			VARCHAR(255),
+
+	Sender			VARCHAR(255),
+
+	Size			@BIG_INTEGER@,
+
+	RecipientData		TEXT,  /* Policy state information */
+
+	UNIQUE (Instance)
+)  @CREATE_TABLE_SUFFIX@;
+CREATE INDEX @PREFIX@session_tracking_idx1 ON @PREFIX@session_tracking (QueueID,ClientAddress,Sender);
+CREATE INDEX @PREFIX@session_tracking_idx2 ON @PREFIX@session_tracking (Timestamp);
+
+
+
