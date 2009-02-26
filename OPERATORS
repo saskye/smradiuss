@@ -1,5 +1,5 @@
 Op 	 Example and documentation
-= 	
+------------------------------------
 
 Attribute = Value
     Not allowed as a check item for RADIUS protocol attributes. It is allowed for server configuration attributes (Auth-Type, etc), and sets the value of on attribute, only if there is no other item of the same attribute. 
