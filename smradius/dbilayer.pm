@@ -19,13 +19,13 @@
 
 
 
-package cbp::dbilayer;
+package smradius::dbilayer;
 
 use strict;
 use warnings;
 
 
-use cbp::config;
+use smradius::config;
 use DBI;
 
 
@@ -47,11 +47,11 @@ sub internalErr
 sub Init
 {
 	my $server = shift;
-	my $dbconfig = $server->{'cbp'}->{'database'};
+	my $dbconfig = $server->{'smradius'}->{'database'};
 
 
 	# Check if we created
-	my $dbh = cbp::dbilayer->new($dbconfig->{'DSN'},$dbconfig->{'Username'},$dbconfig->{'Password'},$dbconfig->{'TablePrefix'});
+	my $dbh = smradius::dbilayer->new($dbconfig->{'DSN'},$dbconfig->{'Username'},$dbconfig->{'Password'},$dbconfig->{'TablePrefix'});
 	return undef if (!defined($dbh));
 
 	return $dbh;

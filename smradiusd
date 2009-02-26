@@ -39,8 +39,8 @@ use smradius::version;
 use smradius::constants;
 use smradius::logging;
 use smradius::config;
-#use cbp::dbilayer;
-#use cbp::cache;
+use smradius::dbilayer;
+use smradius::cache;
 
 use Radius::Packet;
 
@@ -293,7 +293,6 @@ sub plugin_register {
 }
 
 
-
 # Initialize child
 sub child_init_hook
 {
@@ -302,26 +301,26 @@ sub child_init_hook
 	
 	$self->SUPER::child_init_hook();
 	
-#	$self->log(LOG_DEBUG,"[CBPOLICYD] Starting up caching engine");
-#	cbp::cache::connect($self);
+	$self->log(LOG_DEBUG,"[SMRADIUS] Starting up caching engine");
+	smradius::cache::connect($self);
 
 	# This is the database connection timestamp, if we connect, it resets to 0
 	# if not its used to check if we must kill the child and try a reconnect
 	$self->{'client'}->{'dbh_status'} = time();
 	
 	# Init system stuff
-#	$self->{'client'}->{'dbh'} = cbp::dbilayer::Init($self);
-#	if (defined($self->{'client'}->{'dbh'})) {
-#		# Check if we succeeded
-#		if (!($self->{'client'}->{'dbh'}->connect())) {
-#			# If we succeeded, record OK
-#			$self->{'client'}->{'dbh_status'} = 0;
-#		} else {
-#			$self->log(LOG_WARN,"[CBPOLICYD] Failed to connect to database: ".$self->{'client'}->{'dbh'}->Error()." ($$)");
-#		}
-#	} else {
-#		$self->log(LOG_WARN,"[CBPOLICYD] Failed to Initialize: ".cbp::dbilayer::internalErr()." ($$)");
-#	}
+	$self->{'client'}->{'dbh'} = smradius::dbilayer::Init($self);
+	if (defined($self->{'client'}->{'dbh'})) {
+		# Check if we succeeded
+		if (!($self->{'client'}->{'dbh'}->connect())) {
+			# If we succeeded, record OK
+			$self->{'client'}->{'dbh_status'} = 0;
+		} else {
+			$self->log(LOG_WARN,"[SMRADIUS] Failed to connect to database: ".$self->{'client'}->{'dbh'}->Error()." ($$)");
+		}
+	} else {
+		$self->log(LOG_WARN,"[SMRADIUS] Failed to Initialize: ".smradius::dbilayer::internalErr()." ($$)");
+	}
 	
 }
 
@@ -334,10 +333,9 @@ sub child_finish_hook {
 
 	$self->SUPER::child_finish_hook();
 	
-#	$self->log(LOG_DEBUG,"[CBPOLICYD] Shutting down caching engine ($$)");
-#	cbp::cache::disconnect($self);
+	$self->log(LOG_DEBUG,"[SMRADIUS] Shutting down caching engine ($$)");
+	smradius::cache::disconnect($self);
 }
-
 
 
 # Process requests we get
@@ -407,7 +405,7 @@ sub process_request {
 #b. SELECT Attribute, OP, Value FROM UserAttributes WHERE UserID = ${user.id}
 
 # Attribute groups
-#c. SELECT Group FROM UsersToGroups WHERE UserID
+#c. SELECT Group FROM UsersToGroups WHERE UserID = ${user.id}
 # Save the query result, so we can use it as macros... ${group.<column name>} below...
 
 # Group attributes
@@ -419,26 +417,34 @@ sub process_request {
 #
 
 # On user AUTH ....
-#1. Execute query (a), set query result in hash
-#2. Check if password matches
+#1. Execute query (a), set query result in 'user' hash
+#	- Check 'disabled' parameter
+#2. Run past plugins - check if we authenticate
 #	- if not reject
-#3. Pull in query (c) & (d)
+#3. Pull in query (c), loop with groups for query (d)
 #4. Merge in query (b)
 #5. Check attributes that need checking
 #	- reject if fail
 #6. Return attributes that need to be returned
 
 
+# find user
+# get user
+#	- User
+#		- Password
+#			{mech}data
+#		- Data
+#			(additional columns from table)
+#		- Attributes (array)
+#			Attribute,OP,Value
+#	- Group (array)
+#		- Data
+#			(additional columns from table)
+#		- Attributes
+#			Attribute,OP,Value
+# try authenticate
+# check attribs
 
-
-
-	# GET SECRET FROM DB, cache for 5 mins
-
-	# DECODE PASSWORD
-
-	# QUERY USER & USERDATA IN DB
-	# CHECK IF PASS MATCHES 
-	$pkt->dump;
 
 
 	# Is this an accounting request
@@ -447,46 +453,121 @@ sub process_request {
 
 	# Or maybe a access request
 	} elsif ($pkt->code eq "Access-Request") {
+		# Main user hash with everything in
 		my $user = {
 			'Username' => $pkt->attr('User-Name')
 		};
 
-		# Are we authenticated?
+		# Found stuff
+		my $found = 0;
+		my $userdb;
+		# Authentication stuff
 		my $authenticated = 0;
 		my $mechanism;
+		# Authorization stuff
+		my $authorized = 0;
+
+
+		#
+		# FIND USER
+		#
+
+		# Loop with modules to try find user
+		foreach my $module (@{$self->{'plugins'}}) {
+			# Try find user
+			if ($module->{'Auth_find'}) {
+				$self->log(LOG_INFO,"[SMRADIUS] FIND: Trying  plugin '".$module->{'Name'}."' for username '".$user->{'Username'}."'");
+				my $res = $module->{'Auth_find'}($self,$user);
+
+				# Check result
+				if (!defined($res)) {
+					$self->log(LOG_DEBUG,"[SMRADIUS] FIND: Error with plugin '".$module->{'Name'}."'");
+
+				# Check if we skipping this plugin
+				} elsif ($res == MOD_RES_SKIP) {
+					$self->log(LOG_DEBUG,"[SMRADIUS] FIND: Skipping '".$module->{'Name'}."'");
+
+				# Check if we got a positive result back
+				} elsif ($res == MOD_RES_ACK) {
+					$self->log(LOG_NOTICE,"[SMRADIUS] FIND: Username found with '".$module->{'Name'}."'");
+					$userdb = $module;
+					$found = 1;
+					last;
+
+				# Or a negative result
+				} elsif ($res == MOD_RES_NACK) {
+					$self->log(LOG_NOTICE,"[SMRADIUS] FIND: Username not found with '".$module->{'Name'}."'");
+					$userdb = $module;
+					last;
+
+				}
+			}
+		}
+
+		# If no user is found, bork out ...
+		if (!$found) {
+			goto CHECK_RESULT;
+		}
+
+		#
+		# GET USER
+		#
+
+		# Get user data
+		if ($userdb->{'Auth_get'}) {
+			my $res = $userdb->{'Auth_get'}($self,$user);
+
+			# Check result
+			if (!defined($res) || ref($res) ne "HASH") {
+				$self->log(LOG_WARNING,"[SMRADIUS] GET: No data returned from '".$userdb->{'Name'}."' for user '".$user->{'Username'}."'");
+				goto CHECK_RESULT;
+			}
+			# Setup user data
+			$user->{'User'} = $res->{'User'};
+			$user->{'Group'} = $res->{'Group'};
+		}
+
+		#
+		# AUTHENTICATE USER
+		#
 
 		# Loop with modules
 		foreach my $module (@{$self->{'plugins'}}) {
 			# Try authenticate
 			if ($module->{'Auth_try'}) {
-				$self->log(LOG_INFO,"[SMRADIUS] Trying authentication plugin '".$module->{'Name'}."'");
+				$self->log(LOG_INFO,"[SMRADIUS] AUTH: Trying plugin '".$module->{'Name'}."' for '".$user->{'Username'}."'");
 				my $res = $module->{'Auth_try'}($self,$user,$pkt);
 
 				# Check result
 				if (!defined($res)) {
-					$self->log(LOG_DEBUG,"[SMRADIUS] Error authenticating with module  '".$module->{'Name'}."' for username '".
-							$user->{'Username'}."'");
+					$self->log(LOG_DEBUG,"[SMRADIUS] AUTH: Error with plugin  '".$module->{'Name'}."'");
 
 				# Check if we skipping this plugin
 				} elsif ($res == MOD_RES_SKIP) {
-					$self->log(LOG_DEBUG,"[SMRADIUS] Skipping '".$module->{'Name'}."' for username '".$user->{'Username'}."'");
+					$self->log(LOG_DEBUG,"[SMRADIUS] AUTH: Skipping '".$module->{'Name'}."'");
 
 				# Check if we got a positive result back
 				} elsif ($res == MOD_RES_ACK) {
-					$self->log(LOG_NOTICE,"[SMRADIUS] Authenticated: Username = '".$user->{'Username'}."'");
+					$self->log(LOG_NOTICE,"[SMRADIUS] AUTH: Authenticated by '".$module->{'Name'}."'");
 					$mechanism = $module;
 					$authenticated = 1;
 					last;
 
 				# Or a negative result
 				} elsif ($res == MOD_RES_NACK) {
-					$self->log(LOG_NOTICE,"[SMRADIUS] Failed authentication: Username = '".$user->{'Username'}."'");
+					$self->log(LOG_NOTICE,"[SMRADIUS] AUTH: Failed authentication by '".$module->{'Name'}."'");
 					$mechanism = $module;
 					last;
 
 				}
 			}
 		}
+
+		#
+		# AUTHORIZE USER
+		#
+
+		# FIXME: Merge attributes
 
 		# Check if we authenticated or not
 		if ($authenticated) {
@@ -497,6 +578,11 @@ sub process_request {
 			$resp->set_attr('Framed-IP-Address' => "192.168.0.233");
 			$udp_packet = auth_resp($resp->pack, "test");
 			$server->{'client'}->send($udp_packet);
+		}
+CHECK_RESULT:
+		# Check if found and authenticated
+		if (!$found || !$authenticated) {
+		} else {
 		}
 
 	# We don't know how to handle this
