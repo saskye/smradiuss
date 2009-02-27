@@ -98,12 +98,20 @@ sub get
 		'Attributes' => [
 			{
 				'Name' => 'Framed-IP-Address',
+				'Operator' => '=',
 				'Value' => '192.168.0.233'
 			},
 			{
 				'Name' => 'Session-Timeout',
+				'Operator' => '=',
 				'Value' => '60'
+			},
+			{
+				'Name' => 'NAS-Port-Type',
+				'Operator' => '==',
+				'Value' => 'Ethernet'
 			}
+
 		]
 	};
 
