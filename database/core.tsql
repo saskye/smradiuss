@@ -48,7 +48,7 @@ CREATE INDEX @PREFIX@groups_idx1 ON @PREFIX@groups (Name);
 
 
 /* Group attributes */
-CREATE TABLE @PREFIX@group_check_items (
+CREATE TABLE @PREFIX@group_attributes (
 	ID			@SERIAL_TYPE@,
 
 	Name			VARCHAR(255) NOT NULL,
