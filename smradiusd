@@ -306,6 +306,7 @@ sub plugin_register {
 sub child_init_hook
 {
 	my $self = shift;
+	my $config = $self->{'config'};
 
 	
 	$self->SUPER::child_init_hook();
@@ -313,22 +314,25 @@ sub child_init_hook
 	$self->log(LOG_DEBUG,"[SMRADIUS] Starting up caching engine");
 	smradius::cache::connect($self);
 
-	# This is the database connection timestamp, if we connect, it resets to 0
-	# if not its used to check if we must kill the child and try a reconnect
-	$self->{'client'}->{'dbh_status'} = time();
-	
-	# Init system stuff
-	$self->{'client'}->{'dbh'} = smradius::dbilayer::Init($self);
-	if (defined($self->{'client'}->{'dbh'})) {
-		# Check if we succeeded
-		if (!($self->{'client'}->{'dbh'}->connect())) {
+	# Do we need database support?
+	if ($self->{'smradius'}->{'database'}->{'enable'}) {
+		# This is the database connection timestamp, if we connect, it resets to 0
+		# if not its used to check if we must kill the child and try a reconnect
+		$self->{'client'}->{'dbh_status'} = time();
+
+		# Init core database support
+		$self->{'client'}->{'dbh'} = smradius::dbilayer::Init($self);
+		if (defined($self->{'client'}->{'dbh'})) {
+			# Check if we succeeded
+			if (!($self->{'client'}->{'dbh'}->connect())) {
 			# If we succeeded, record OK
-			$self->{'client'}->{'dbh_status'} = 0;
+				$self->{'client'}->{'dbh_status'} = 0;
+			} else {
+				$self->log(LOG_WARN,"[SMRADIUS] Failed to connect to database: ".$self->{'client'}->{'dbh'}->Error()." ($$)");
+			}
 		} else {
-			$self->log(LOG_WARN,"[SMRADIUS] Failed to connect to database: ".$self->{'client'}->{'dbh'}->Error()." ($$)");
+			$self->log(LOG_WARN,"[SMRADIUS] Failed to Initialize: ".smradius::dbilayer::internalErr()." ($$)");
 		}
-	} else {
-		$self->log(LOG_WARN,"[SMRADIUS] Failed to Initialize: ".smradius::dbilayer::internalErr()." ($$)");
 	}
 	
 }

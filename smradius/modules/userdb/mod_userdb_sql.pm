@@ -16,13 +16,14 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-package mod_sql_test;
+package mod_userdb_sql;
 
 use strict;
 use warnings;
 
 # Modules we need
 use smradius::constants;
+use smradius::logging;
 
 
 # Exporter stuff
@@ -53,6 +54,14 @@ our $pluginInfo = {
 sub init
 {
 	my $server = shift;
+	my $config = $server->{'config'};
+
+
+	# Enable support for database
+	if (!$server->{'smradius'}->{'database'}->{'enable'}) {
+		$server->log(LOG_NOTICE,"[MOD_USERDB_SQL] Enabling database support.");
+		$server->{'smradius'}->{'database'}->{'enable'} = 1;
+	}
 }
 
 
@@ -88,7 +97,7 @@ sub get
 {
 	my ($server,$user,$packet) = @_;
 
-
+	my $userDetails;
 	# TODO: Query user and get attributes, return in $userDetails hash
 
 	return $userDetails;

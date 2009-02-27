@@ -29,6 +29,10 @@ our (@ISA,@EXPORT);
 @EXPORT = qw(
 );
 
+
+use smradius::logging;
+
+
 # Our vars
 my $config;
 
@@ -49,11 +53,11 @@ sub Init
 	$db->{'DSN'} = $config->{'database'}{'dsn'};
 	$db->{'Username'} = $config->{'database'}{'username'};
 	$db->{'Password'} = $config->{'database'}{'password'};
+	$db->{'enabled'} = 0;
 
 	# Check we have all the config we need
 	if (!defined($db->{'DSN'})) {
-		$server->log(1,"smradius/config.pm: No 'DSN' defined in config file for 'database'");
-		exit 1;
+		$server->log(LOG_NOTICE,"smradius/config.pm: No 'DSN' defined in config file for 'database'");
 	}
 
 	$server->{'smradius'}{'database'} = $db;
