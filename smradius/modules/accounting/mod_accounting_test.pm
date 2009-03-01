@@ -71,7 +71,7 @@ sub acct_log
 
 	$server->log(LOG_DEBUG,"Packet: ".$packet->dump());
 
-	return MOD_RES_SKIP;
+	return MOD_RES_ACK;
 }
 
 
