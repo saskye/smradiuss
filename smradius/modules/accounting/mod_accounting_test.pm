@@ -24,6 +24,7 @@ use warnings;
 # Modules we need
 use smradius::constants;
 use smradius::logging;
+use smradius::util;
 
 
 # Exporter stuff
@@ -47,7 +48,6 @@ our $pluginInfo = {
 };
 
 
-
 ## @internal
 # Initialize module
 sub init
@@ -66,10 +66,57 @@ sub init
 # @return Result
 sub acct_log
 {
-	my ($server,$packet) = @_;
+	my ($server,$user,$packet) = @_;
 
 
-	$server->log(LOG_DEBUG,"Packet: ".$packet->dump());
+	my $string = "
+NAS-Port-Type: %{accounting.NAS-Port-Type}
+Acct-Input-String: %{accounting.Acct-Input-String}
+Acct-Session-Id: %{accounting.Acct-Session-Id}
+Acct-Output-Gigawords: %{accounting.Acct-Output-Gigawords}
+Service-Type: %{accounting.Service-Type}
+Called-Station-Id: %{accounting.Called-Station-Id}
+Acct-Output-String: %{accounting.Acct-Output-String}
+Acct-Authentic: %{accounting.Acct-Authentic}
+Acct-Status-Type: %{accounting.Acct-Status-Type}
+Acct-Output-Packets: %{accounting.Acct-Output-Packets}
+NAS-IP-Address: %{accounting.NAS-IP-Address}
+NAS-Port-Id: %{accounting.NAS-Port-Id}
+Acct-Terminate-Cause: %{accounting.Acct-Terminate-Cause}
+Acct-Session-Time: %{accounting.Acct-Session-Time}
+Calling-Station-Id: %{accounting.Calling-Station-Id}
+Framed-Protocol: %{accounting.Framed-Protocol}
+User-Name: %{accounting.User-Name}
+NAS-Identifier: %{accounting.NAS-Identifier}
+Event-Timestamp: %{accounting.Event-Timestamp}
+Acct-Input-Gigawords: %{accounting.Acct-Input-Gigawords}
+Acct-Input-Packets: %{accounting.Acct-Input-Packets}
+Framed-IP-Address: %{accounting.Framed-IP-Address}
+NAS-Port: %{accounting.NAS-Port}
+Acct-Delay-Time: %{accounting.Acct-Delay-Time}
+";
+
+	my $template;
+	foreach my $attr ($packet->attributes) {
+		$template->{'accounting'}->{$attr} = $packet->attr($attr)
+	}
+	$template->{'user'} = $user;
+
+
+	use Data::Dumper;
+	print(STDERR Dumper(templateReplace($string,$template)));
+
+	if ($packet->attr('Acct-Status-Type') eq "Start") {
+		$server->log(LOG_DEBUG,"Start Packet: ".$packet->dump());
+
+	} elsif ($packet->attr('Acct-Status-Type') eq "Alive") {
+		$server->log(LOG_DEBUG,"Alive Packet: ".$packet->dump());
+
+	} elsif ($packet->attr('Acct-Status-Type') eq "Stop") {
+		$server->log(LOG_DEBUG,"Stop Packet: ".$packet->dump());
+
+	}
+
 
 	return MOD_RES_ACK;
 }
