@@ -513,6 +513,13 @@ sub process_request {
 				}
 			}
 		}
+		# Tell the NAS we got its packet	
+		my $resp = Radius::Packet->new($self->{'radius'}->{'dictionary'});
+	   	$resp->set_code('Accounting-Response');
+		$resp->set_identifier($pkt->identifier);
+		$resp->set_authenticator($pkt->authenticator);
+		$udp_packet = auth_resp($resp->pack, "test");
+		$server->{'client'}->send($udp_packet);
 
 
 	# Or maybe a access request
