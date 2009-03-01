@@ -26,6 +26,7 @@ use lib qw(
 	../ ./ 
 	smradius/modules/authentication
 	smradius/modules/userdb
+	smradius/modules/accounting
 );
 
 package radiusd;
@@ -196,6 +197,27 @@ sub configure {
 	}
 
 	#
+	# Accounting plugins
+	#
+	my @acct_params = (
+			'plugins',
+	);
+	my $acct;
+	foreach my $param (@acct_params) {
+		$acct->{$param} = $config{'accounting'}{$param} if (defined($config{'accounting'}{$param}));
+	}
+
+	if (!defined($acct->{'plugins'})) {
+		$self->log(LOG_ERR,"[SMRADIUS] Accounting configuration error: Plugins not found");
+		exit 1;
+	}
+
+	# Split off plugins
+	foreach my $plugin (@{$auth->{'plugins'}}) {
+		$plugin =~ s/\s+//g;
+	}
+
+	#
 	# Dictionary configuration
 	#
 	my @dictionary_params = (
@@ -220,7 +242,8 @@ sub configure {
 
 	$cfg->{'plugins'} = [ 
 		@{$auth->{'mechanisms'}},
-		@{$auth->{'users'}} 
+		@{$auth->{'users'}},
+		@{$acct->{'plugins'}} 
 	];
 
 	# Save our config and stuff
@@ -464,6 +487,33 @@ sub process_request {
 	if ($pkt->code eq "Accounting-Request") {
 
 		$self->log(LOG_DEBUG,"[SMRADIUS] Accounting Request Packet");
+
+		# Loop with modules to try something that handles accounting
+		foreach my $module (@{$self->{'plugins'}}) {
+			# Try find user
+			if ($module->{'Accounting_log'}) {
+				$self->log(LOG_INFO,"[SMRADIUS] ACCOUNTING: Trying plugin '".$module->{'Name'}."'");
+				my $res = $module->{'Accounting_log'}($self,$pkt);
+
+				# Check result
+				if (!defined($res)) {
+					$self->log(LOG_DEBUG,"[SMRADIUS] ACCOUNTING: Error with plugin '".$module->{'Name'}."'");
+
+				# Check if we skipping this plugin
+				} elsif ($res == MOD_RES_SKIP) {
+					$self->log(LOG_DEBUG,"[SMRADIUS] ACCOUNTING: Skipping '".$module->{'Name'}."'");
+
+				# Check if we got a positive result back
+				} elsif ($res == MOD_RES_ACK) {
+					$self->log(LOG_NOTICE,"[SMRADIUS] ACCOUNTING: Accounting logged using '".$module->{'Name'}."'");
+
+				# Check if we got a negative result back
+				} elsif ($res == MOD_RES_NACK) {
+					$self->log(LOG_NOTICE,"[SMRADIUS] ACCOUNTING: Accounting NOT LOGGED using '".$module->{'Name'}."'");
+				}
+			}
+		}
+
 
 	# Or maybe a access request
 	} elsif ($pkt->code eq "Access-Request") {
