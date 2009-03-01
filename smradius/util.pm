@@ -52,9 +52,12 @@ sub templateReplace
 			# Grab value
 			my $itemVal = $hashref->{$section}->{$item};
 			# Replace in string
-			$string =~ s/\%{$section\.$item}/$itemVal/gi;
+			$string =~ s/\%{$section\.$item(=[^}]+)?}/$itemVal/gi;
 		}
 	}
+
+	# Replace blanks
+	$string =~ s/\%{[a-z]+\.[a-z0-9\-]+(?:=([^}]+))?}/$1/gi;
 
 	return $string;
 }
