@@ -570,7 +570,6 @@ sub unpack {
   {
       my $length = unpack "x C", $attrdat;
       my ($type, $value) = unpack "C x a${\($length-2)}", $attrdat;
-print(STDERR "Type: $type, length: $length, value: ".unpack('H*',$value).", value: >$value<\n");
       if ($type == $VSA) {    # Vendor-Specific Attribute
 	  my ($vid) = unpack "N", $value;
 	  substr ($value, 0, 4) = "";
