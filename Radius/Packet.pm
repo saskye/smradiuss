@@ -124,6 +124,18 @@ sub attr
     return;
 }
 
+sub rawattr
+{
+    my ($self, $name ) = @_;
+    
+    my @attr = $self->_attributes;
+    
+    for (my $i = $#attr; $i >= 0; $i-- ) {
+        return $attr[$i][2] if $attr[$i][0] eq $name;
+    }
+    return;
+}
+
 sub attributes {
     my ($self) = @_;
     
