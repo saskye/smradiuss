@@ -482,18 +482,79 @@ sub process_request {
 # check attribs
 
 
+	# Main user hash with everything in
+	my $user;
+	# UserDB module if we using/need it
+	my $userdb;
+
+	# Common stuff for multiple codes....
+	if ($pkt->code eq "Accounting-Request" || $pkt->code eq "Access-Request") {
+		# Set username
+		$user->{'Username'} = $pkt->attr('User-Name');
+		
+		#
+		# FIND USER
+		#
+
+		# Loop with modules to try find user
+		foreach my $module (@{$self->{'plugins'}}) {
+			# Try find user
+			if ($module->{'User_find'}) {
+				$self->log(LOG_INFO,"[SMRADIUS] FIND: Trying plugin '".$module->{'Name'}."' for username '".$user->{'Username'}."'");
+				my $res = $module->{'User_find'}($self,$user,$pkt);
+
+				# Check result
+				if (!defined($res)) {
+					$self->log(LOG_DEBUG,"[SMRADIUS] FIND: Error with plugin '".$module->{'Name'}."'");
+
+				# Check if we skipping this plugin
+				} elsif ($res == MOD_RES_SKIP) {
+					$self->log(LOG_DEBUG,"[SMRADIUS] FIND: Skipping '".$module->{'Name'}."'");
+
+				# Check if we got a positive result back
+				} elsif ($res == MOD_RES_ACK) {
+					$self->log(LOG_NOTICE,"[SMRADIUS] FIND: Username found with '".$module->{'Name'}."'");
+					$userdb = $module;
+					last;
+
+				# Or a negative result
+				} elsif ($res == MOD_RES_NACK) {
+					$self->log(LOG_NOTICE,"[SMRADIUS] FIND: Username not found with '".$module->{'Name'}."'");
+					last;
+
+				}
+			}
+		}
+	}
+
 
 	# Is this an accounting request
 	if ($pkt->code eq "Accounting-Request") {
 
 		$self->log(LOG_DEBUG,"[SMRADIUS] Accounting Request Packet");
 
+		#
+		# GET USER
+		#
+
+		# Get user data
+		my $user;
+		if (defined($userdb) && defined($userdb->{'User_get'})) {
+			my $res = $userdb->{'User_get'}($self,$user);
+
+			# Check result
+			if (defined($res) && ref($res) eq "HASH") {
+				# We're only after the attributes here
+				$user->{'Attributes'} = $res->{'Attributes'};
+			}
+		}
+
 		# Loop with modules to try something that handles accounting
 		foreach my $module (@{$self->{'plugins'}}) {
 			# Try find user
 			if ($module->{'Accounting_log'}) {
 				$self->log(LOG_INFO,"[SMRADIUS] ACCOUNTING: Trying plugin '".$module->{'Name'}."'");
-				my $res = $module->{'Accounting_log'}($self,$pkt);
+				my $res = $module->{'Accounting_log'}($self,$user,$pkt);
 
 				# Check result
 				if (!defined($res)) {
@@ -529,53 +590,12 @@ sub process_request {
 		$self->log(LOG_DEBUG,"[SMRADIUS] Access Request Packet");
 		$self->log(LOG_DEBUG,"[SMRADIUS] Packet: ".$pkt->dump);
 	
-		# Main user hash with everything in
-		my $user = {
-			'Username' => $pkt->attr('User-Name')
-		};
-
-		# UserDB variables
-		my $userdb;  # This is the module that ACK or NACK the user
 		# Authentication variables
 		my $authenticated = 0;
 		my $mechanism;
 		# Authorization variables
 		my $authorized = 0;
 
-
-		#
-		# FIND USER
-		#
-
-		# Loop with modules to try find user
-		foreach my $module (@{$self->{'plugins'}}) {
-			# Try find user
-			if ($module->{'User_find'}) {
-				$self->log(LOG_INFO,"[SMRADIUS] FIND: Trying plugin '".$module->{'Name'}."' for username '".$user->{'Username'}."'");
-				my $res = $module->{'User_find'}($self,$user,$pkt);
-
-				# Check result
-				if (!defined($res)) {
-					$self->log(LOG_DEBUG,"[SMRADIUS] FIND: Error with plugin '".$module->{'Name'}."'");
-
-				# Check if we skipping this plugin
-				} elsif ($res == MOD_RES_SKIP) {
-					$self->log(LOG_DEBUG,"[SMRADIUS] FIND: Skipping '".$module->{'Name'}."'");
-
-				# Check if we got a positive result back
-				} elsif ($res == MOD_RES_ACK) {
-					$self->log(LOG_NOTICE,"[SMRADIUS] FIND: Username found with '".$module->{'Name'}."'");
-					$userdb = $module;
-					last;
-
-				# Or a negative result
-				} elsif ($res == MOD_RES_NACK) {
-					$self->log(LOG_NOTICE,"[SMRADIUS] FIND: Username not found with '".$module->{'Name'}."'");
-					last;
-
-				}
-			}
-		}
 
 		# If no user is found, bork out ...
 		if (!defined($userdb)) {
