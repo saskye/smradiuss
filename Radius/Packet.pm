@@ -50,7 +50,7 @@ sub vendors      { keys %{$_[0]->{VSAttributes}};			}
 sub vsattributes { keys %{$_[0]->{VSAttributes}->{$_[1]}};		}
 sub vsattr       { $_[0]->{VSAttributes}->{$_[1]}->{$_[2]};		}
 sub set_vsattr   { 
-    my ($self, $vendor, $name, $value, $rewrite_flag) = @_;
+    my ($self, $vendor, $name, $value, $rewrite_flag, $rawValue) = @_;
     $self->{VSAttributes}->{$vendor} = {} unless exists($self->{VSAttributes}->{$vendor});
     my $attr = $self->{VSAttributes}->{$vendor};
 
@@ -67,7 +67,7 @@ sub set_vsattr   {
 	}    
     }
 
-    push @{$attr->{$name}}, $value;
+    push @{$attr->{$name}}, $value, $rawValue;
 }
 
 sub unset_vsattr {
@@ -80,7 +80,7 @@ sub show_unknown_entries { $_[0]->{unknown_entries} = $_[1]; 		}
 
 sub set_attr 
 {
-    my ($self, $name, $value, $rewrite_flag) = @_;
+    my ($self, $name, $value, $rewrite_flag, $rawValue) = @_;
     my ($push, $pos );
 
     $push = 1 unless $rewrite_flag;
@@ -101,6 +101,7 @@ sub set_attr
         } elsif ($found) {
             $attr[$pos][0] = $name;
             $attr[$pos][1] = $value;
+            $attr[$pos][2] = $rawValue;
             $self->_set_attributes( \@attr );
             return;
         } else {
@@ -108,7 +109,7 @@ sub set_attr
         }
     }
 
-    $self->_push_attr( $name, $value ) if $push;
+    $self->_push_attr( $name, $value, $rawValue ) if $push;
 }
 
 sub attr
@@ -205,7 +206,7 @@ sub unset_attr_slot {
 # as specified in RFC 2865
 sub _attributes     { @{ $_[0]->{Attributes} || [] }; }
 sub _set_attributes { $_[0]->{Attributes} = $_[1]; }
-sub _push_attr      { push @{ $_[0]->{Attributes} }, [ $_[1], $_[2] ]; }
+sub _push_attr      { push @{ $_[0]->{Attributes} }, [ $_[1], $_[2], $_[3] ]; }
 
 # Decode the password
 sub password {
@@ -475,7 +476,7 @@ sub unpack {
 	     my $num=unpack("N", $_[0]);
 	     return ( defined $dict->val_has_name($_[1]) &&
 		      defined $dict->val_name($_[1],$num) ) ?
-		      $dict->val_name($_[1],$num) : $num ;
+		      ($dict->val_name($_[1],$num),undef,$num) : $num ;
 	 },
 	 "ipaddr" => sub {
 	     return length($_[0]) == 4 ? inet_ntoa($_[0]) : $_[0];
@@ -520,7 +521,7 @@ sub unpack {
 	    my $num=unpack("N", $_[0]);
 	    return ( $dict->vsaval_has_name($_[2], $_[1]) 
 		     && $dict->vsaval_name($_[2], $_[1],$num) )  
-		? $dict->vsaval_name($_[2], $_[1], $num )
+		? ( $dict->vsaval_name($_[2], $_[1], $num ), undef, $num)
 		: $num;
 	},
 	"ipaddr" => sub {
@@ -557,6 +558,7 @@ sub unpack {
   {
       my $length = unpack "x C", $attrdat;
       my ($type, $value) = unpack "C x a${\($length-2)}", $attrdat;
+print(STDERR "Type: $type, length: $length, value: ".unpack('H*',$value).", value: >$value<\n");
       if ($type == $VSA) {    # Vendor-Specific Attribute
 	  my ($vid) = unpack "N", $value;
 	  substr ($value, 0, 4) = "";
@@ -597,7 +599,7 @@ sub unpack {
 		  substr($value, 0, $vlength) = ""; # Skip this section
 		  next;
 	      }
-	      my ($val, $tag) = 
+	      my ($val, $tag, $rawValue) = 
 		  &{$vsaunpacker{$dict->vsattr_numtype($vid, $vtype)}}($vvalue,
 								       $vtype,
 								       $vid);
@@ -612,7 +614,7 @@ sub unpack {
 	      else 
 	      {
 		  $self->set_vsattr($vid, $dict->vsattr_name($vid, $vtype), 
-				    $val);
+				    $val, undef, $rawValue);
 	      }
 	      substr($value, 0, $vlength) = "";
 	  }
@@ -630,14 +632,14 @@ sub unpack {
 	      substr($attrdat, 0, $length) = ""; # Skip this section
 	      next;
 	  }
-	  my ($val,$tag) = &{$unpacker{$dict->attr_numtype($type)}}($value, 
+	  my ($val,$tag,$rawValue) = &{$unpacker{$dict->attr_numtype($type)}}($value, 
 								    $type);
 	  if ( defined $tag ) {
 	      if ( ! defined $val ) { $val = "-emtpy-" };
 	      $self->set_taggedattr($dict->attr_name($type), $val , $tag);
 	  }
 	  else {
-	      $self->set_attr($dict->attr_name($type), $val);
+	      $self->set_attr($dict->attr_name($type), $val, undef, $rawValue);
 	  }
       }
       substr($attrdat, 0, $length) = ""; # Skip this section
