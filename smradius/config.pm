@@ -21,6 +21,7 @@
 package smradius::config;
 
 use strict;
+use warnings;
 
 # Exporter stuff
 require Exporter;
