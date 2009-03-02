@@ -26,6 +26,7 @@ use smradius::constants;
 use smradius::logging;
 use smradius::util;
 
+use Data::Dumper;
 
 # Exporter stuff
 require Exporter;
@@ -68,8 +69,81 @@ sub init
 
 	# Default configs...
 	$config->{'accounting_start_query'} = "
-		INSERT DEFAULT
+		INSERT INTO accounting 
+				(
+					Username,
+					ServiceType,
+					FramedProtocol,
+					NASPort,
+					NASPortType,
+					CallingStationID,
+					CalledStationID,
+					NASPortID,
+					AcctSessionID,
+					FramedIPAddress,
+					AcctAuthentic,
+					EventTimestamp,
+					AcctStatusType,
+					NASIdentifier,
+					NASIPAddress,
+					AcctDelayTime
+				)
+			VALUES
+				(
+					%{accounting.User-Name},
+					%{accounting.Service-Type},
+					%{accounting.Framed-Protocol},
+					%{accounting.NAS-Port},
+					%{accounting.NAS-Port-Type},
+					%{accounting.Calling-Station-Id},
+					%{accounting.Called-Station-Id},
+					%{accounting.NAS-Port-Id},
+					%{accounting.Acct-Session-Id},
+					%{accounting.Framed-IP-Address},
+					%{accounting.Acct-Authentic},
+					%{accounting.Event-Timestamp},
+					%{accounting.Acct-Status-Type},
+					%{accounting.NAS-Identifier},
+					%{accounting.NAS-IP-Address},
+					%{accounting.Acct-Delay-Time}
+				)
 	";
+
+	$config->{'accounting_update_query'} = "
+		UPDATE accounting
+			SET
+					AcctSessionTime = %{accounting.Acct-Session-Time},
+					AcctInputOctets = %{accounting.Acct-Input-Octets},
+					AcctInputGigawords = %{accounting.Acct-Input-Gigawords},
+					AcctInputPackets = %{accounting.Acct-Input-Packets},
+					AcctOutputOctets = %{accounting.Acct-Output-Octets},
+					AcctOutputGigawords = %{accounting.Acct-Output-Gigawords},
+					AcctOutputPackets = %{accounting.Acct-Output-Packets},
+					AcctStatusType = %{accounting.Acct-Status-Type}
+			WHERE
+					UserName = %{accounting.User-Name},
+					AND AcctSessionID = %{accounting.Acct-Session-Id},
+					AND NASIPAddress = %{accounting.NAS-IP-Address}
+	";
+
+	$config->{'accounting_stop_query'} = "
+		UPDATE accounting
+			SET
+					AcctSessionTime = %{accounting.Acct-Session-Time},
+					AcctInputOctets = %{accounting.Acct-Input-Octets},
+					AcctInputGigawords = %{accounting.Acct-Input-Gigawords},
+					AcctInputPackets = %{accounting.Acct-Input-Packets},
+					AcctOutputOctets = %{accounting.Acct-Output-Octets},
+					AcctOutputGigawords = %{accounting.Acct-Output-Gigawords},
+					AcctOutputPackets = %{accounting.Acct-Output-Packets},
+					AcctStatusType = %{accounting.Acct-Status-Type},
+					AcctTerminateCause = %{accounting.Acct-Terminate-Cause}
+			WHERE
+					UserName = %{accounting.User-Name},
+					AND AcctSessionID = %{accounting.Acct-Session-Id},
+					AND NASIPAddress = %{accounting.NAS-IP-Address}
+	";
+
 
 	# Setup SQL queries
 	if (defined($scfg->{'mod_accounting_sql'})) {
@@ -77,6 +151,14 @@ sub init
 		if (defined($scfg->{'mod_accounting_sql'}->{'accounting_start_query'}) &&
 				$scfg->{'mod_accounting_sql'}->{'accounting_start_query'} ne "") {
 			$config->{'accounting_start_query'} = $scfg->{'mod_accounting_sql'}->{'accounting_start_query'};
+		}
+		if (defined($scfg->{'mod_accounting_sql'}->{'accounting_update_query'}) &&
+				$scfg->{'mod_accounting_sql'}->{'accounting_update_query'} ne "") {
+			$config->{'accounting_update_query'} = $scfg->{'mod_accounting_sql'}->{'accounting_update_query'};
+		}
+		if (defined($scfg->{'mod_accounting_sql'}->{'accounting_stop_query'}) &&
+				$scfg->{'mod_accounting_sql'}->{'accounting_stop_query'} ne "") {
+			$config->{'accounting_stop_query'} = $scfg->{'mod_accounting_sql'}->{'accounting_stop_query'};
 		}
 	}
 }
@@ -107,15 +189,15 @@ sub acct_log
 
 	if ($packet->attr('Acct-Status-Type') eq "Start") {
 		$server->log(LOG_DEBUG,"Start Packet: ".$packet->dump());
-
-		use Data::Dumper;
 		print(STDERR Dumper(templateReplace($config->{'accounting_start_query'},$template)));
 
 	} elsif ($packet->attr('Acct-Status-Type') eq "Alive") {
 		$server->log(LOG_DEBUG,"Alive Packet: ".$packet->dump());
+		print(STDERR Dumper(templateReplace($config->{'accounting_update_query'},$template)));
 
 	} elsif ($packet->attr('Acct-Status-Type') eq "Stop") {
 		$server->log(LOG_DEBUG,"Stop Packet: ".$packet->dump());
+		print(STDERR Dumper(templateReplace($config->{'accounting_stop_query'},$template)));
 
 	}
 
