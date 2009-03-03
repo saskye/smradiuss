@@ -28,9 +28,25 @@ require Exporter;
 our (@ISA,@EXPORT);
 @ISA = qw(Exporter);
 @EXPORT = qw(
+	niceUndef
 	templateReplace
 );
 
+
+
+## @fn niceUndef($string)
+# If string defined return 'string', or if undefined return -undef-
+#
+# @param string String to check
+#
+# @return Return 'string' if defined, or -undef- otherwise
+sub niceUndef
+{
+	my $string = shift;
+
+
+	return defined($string) ? "'$string'" : '-undef-';
+}
 
 
 ## @fn templateReplace($string,$hashref)
