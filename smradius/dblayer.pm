@@ -18,7 +18,7 @@
 
 
 
-package cbp::dblayer;
+package smradius::dblayer;
 
 use strict;
 use warnings;
@@ -45,9 +45,9 @@ our (@ISA,@EXPORT);
 
 
 
-use cbp::config;
+use smradius::config;
 
-use cbp::dbilayer;
+use smradius::dbilayer;
 
 
 # Database handle
