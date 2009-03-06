@@ -61,21 +61,18 @@ sub templateReplace
 	my ($string,$hashref) = @_;
 
 
-	# Loop with hash sections
-	foreach my $section (keys %{$hashref}) {
-		# Loop with section items
-		foreach my $item (keys %{$hashref->{$section}}) {
-			# Grab value
-			my $itemVal = $hashref->{$section}->{$item};
-			# Replace in string
-			$string =~ s/\%{$section\.$item(=[^}]+)?}/$itemVal/gi;
-		}
-	}
+	my @valueArray = ();
 
 	# Replace blanks
-	$string =~ s/\%{[a-z]+\.[a-z0-9\-]+(?:=([^}]+))?}/$1/gi;
+	while (my ($entireMacro,$section,$item,$default) = ($string =~ /(\%{([a-z]+)\.([a-z0-9\-]+)(?:=([^}]+))?})/i )) {
+		# Replace macro with ?	
+		$string =~ s/$entireMacro/\?/;
+		# Add value onto our array
+		push(@valueArray,$hashref->{$section}->{$item});
+		
+	}
 
-	return $string;
+	return ($string, @valueArray);
 }
 
 
