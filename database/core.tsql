@@ -1,6 +1,5 @@
 @PRELOAD@
 
-
 /* Users */
 CREATE TABLE @PREFIX@users (
 	ID			@SERIAL_TYPE@,
@@ -78,6 +77,58 @@ CREATE TABLE @PREFIX@users_to_groups (
 CREATE INDEX @PREFIX@users_to_groups_idx1 ON @PREFIX@users_to_groups (UserID,GroupID);
 
 
+/* Accounting */
+CREATE TABLE @PREFIX@accounting (
+	ID			@SERIAL_TYPE@,
 
+	Username		VARCHAR(255) NOT NULL,
 
+	ServiceType		INT UNSIGNED NOT NULL,
 
+	FramedProtocol		INT UNSIGNED NOT NULL, 
+
+	NASPort			VARCHAR(255) NOT NULL,
+		
+	NASPortType		INT UNSIGNED NOT NULL,
+
+	CallingStationID	VARCHAR(255) NOT NULL, 
+
+	CalledStationID		VARCHAR(255) NOT NULL,
+
+	NASPortID		VARCHAR(255) NOT NULL,
+
+	AcctSessionID		VARCHAR(255) NOT NULL,
+	
+	FramedIPAddress		VARCHAR(16) NOT NULL,
+
+	AcctAuthentic		INT UNSIGNED NOT NULL,
+
+	EventTimestamp		INT UNSIGNED NOT NULL,
+
+	NASIdentifier		VARCHAR(255) NOT NULL,	
+
+	NASIPAddress		VARCHAR(16) NOT NULL,
+
+	AcctDelayTime		INT UNSIGNED NOT NULL,
+
+	AcctSessionTime		INT UNSIGNED NOT NULL,
+
+	AcctInputOctets		INT UNSIGNED NOT NULL,
+
+	AcctInputGigawords	INT UNSIGNED NOT NULL,
+
+	AcctInputPackets	INT UNSIGNED NOT NULL,	
+
+	AcctOutputOctets	INT UNSIGNED NOT NULL,
+
+	AcctOutputGigawords	INT UNSIGNED NOT NULL,
+
+	AcctOutputPackets	INT UNSIGNED NOT NULL,
+
+	AcctStatusType		INT UNSIGNED NOT NULL,
+
+	AcctTerminateCause	INT UNSIGNED NOT NULL
+) @CREATE_TABLE_SUFFIX@;
+CREATE INDEX @PREFIX@accounting_idx1 ON @PREFIX@accounting (Username);
+
+/* FIXME: indexes */
