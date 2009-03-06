@@ -23,6 +23,7 @@ use warnings;
 
 # Modules we need
 use smradius::constants;
+use smradius::dblayer;
 use smradius::logging;
 use smradius::util;
 
@@ -62,14 +63,15 @@ sub init
 
 
 	# Enable support for database
-	if (!$server->{'smradius'}->{'database'}->{'enable'}) {
+	$server->log(LOG_NOTICE,"[MOD_ACCOUNTING_SQL] Enabling database support");
+	if (!$server->{'smradius'}->{'database'}->{'enabled'}) {
 		$server->log(LOG_NOTICE,"[MOD_ACCOUNTING_SQL] Enabling database support.");
-		$server->{'smradius'}->{'database'}->{'enable'} = 1;
+		$server->{'smradius'}->{'database'}->{'enabled'} = 1;
 	}
 
 	# Default configs...
-	$config->{'accounting_start_query'} = "
-		INSERT INTO accounting 
+	$config->{'accounting_start_query'} = '
+		INSERT INTO @TP@accounting 
 				(
 					Username,
 					ServiceType,
@@ -107,10 +109,10 @@ sub init
 					%{accounting.NAS-IP-Address},
 					%{accounting.Acct-Delay-Time}
 				)
-	";
+	';
 
-	$config->{'accounting_update_query'} = "
-		UPDATE accounting
+	$config->{'accounting_update_query'} = '
+		UPDATE @TP@accounting
 			SET
 					AcctSessionTime = %{accounting.Acct-Session-Time},
 					AcctInputOctets = %{accounting.Acct-Input-Octets},
@@ -121,13 +123,13 @@ sub init
 					AcctOutputPackets = %{accounting.Acct-Output-Packets},
 					AcctStatusType = %{accounting.Acct-Status-Type}
 			WHERE
-					UserName = %{accounting.User-Name},
-					AND AcctSessionID = %{accounting.Acct-Session-Id},
+					UserName = %{accounting.User-Name}
+					AND AcctSessionID = %{accounting.Acct-Session-Id}
 					AND NASIPAddress = %{accounting.NAS-IP-Address}
-	";
+	';
 
-	$config->{'accounting_stop_query'} = "
-		UPDATE accounting
+	$config->{'accounting_stop_query'} = '
+		UPDATE @TP@accounting
 			SET
 					AcctSessionTime = %{accounting.Acct-Session-Time},
 					AcctInputOctets = %{accounting.Acct-Input-Octets},
@@ -139,10 +141,10 @@ sub init
 					AcctStatusType = %{accounting.Acct-Status-Type},
 					AcctTerminateCause = %{accounting.Acct-Terminate-Cause}
 			WHERE
-					UserName = %{accounting.User-Name},
-					AND AcctSessionID = %{accounting.Acct-Session-Id},
+					UserName = %{accounting.User-Name}
+					AND AcctSessionID = %{accounting.Acct-Session-Id}
 					AND NASIPAddress = %{accounting.NAS-IP-Address}
-	";
+	';
 
 
 	# Setup SQL queries
@@ -181,26 +183,45 @@ sub acct_log
 	# Build template
 	my $template;
 	foreach my $attr ($packet->attributes) {
-		$template->{'accounting'}->{$attr} = $packet->attr($attr)
+		$template->{'accounting'}->{$attr} = $packet->rawattr($attr)
 	}
 	$template->{'user'} = $user;
 
 
 
 	if ($packet->attr('Acct-Status-Type') eq "Start") {
-		$server->log(LOG_DEBUG,"Start Packet: ".$packet->dump());
-		print(STDERR Dumper(templateReplace($config->{'accounting_start_query'},$template)));
+		# Replace template entries
+		my @dbDoParams = templateReplace($config->{'accounting_start_query'},$template);
+
+		# Insert into database
+		my $sth = DBDo(@dbDoParams);
+		if (!$sth) {
+			$server->log(LOG_ERR,"[MOD_ACCOUNTING_SQL] Failed to insert accounting START record: ".smradius::dblayer::Error());
+			return MOD_RES_NACK;
+		}
 
 	} elsif ($packet->attr('Acct-Status-Type') eq "Alive") {
-		$server->log(LOG_DEBUG,"Alive Packet: ".$packet->dump());
-		print(STDERR Dumper(templateReplace($config->{'accounting_update_query'},$template)));
+		# Replace template entries
+		my @dbDoParams = templateReplace($config->{'accounting_update_query'},$template);
+
+		# Update database
+		my $sth = DBDo(@dbDoParams);
+		if (!$sth) {
+			$server->log(LOG_ERR,"[MOD_ACCOUNTING_SQL] Failed to update accounting ALIVE record: ".smradius::dblayer::Error());
+			return MOD_RES_NACK;
+		}
 
 	} elsif ($packet->attr('Acct-Status-Type') eq "Stop") {
-		$server->log(LOG_DEBUG,"Stop Packet: ".$packet->dump());
-		print(STDERR Dumper(templateReplace($config->{'accounting_stop_query'},$template)));
+		# Replace template entries
+		my @dbDoParams = templateReplace($config->{'accounting_stop_query'},$template);
 
+		# Update database
+		my $sth = DBDo(@dbDoParams);
+		if (!$sth) {
+			$server->log(LOG_ERR,"[MOD_ACCOUNTING_SQL] Failed to update accounting STOP record: ".smradius::dblayer::Error());
+			return MOD_RES_NACK;
+		}
 	}
-
 
 	return MOD_RES_ACK;
 }
