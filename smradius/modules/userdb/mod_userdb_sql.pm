@@ -58,9 +58,9 @@ sub init
 
 
 	# Enable support for database
-	if (!$server->{'smradius'}->{'database'}->{'enable'}) {
+	if (!$server->{'smradius'}->{'database'}->{'enabled'}) {
 		$server->log(LOG_NOTICE,"[MOD_USERDB_SQL] Enabling database support.");
-		$server->{'smradius'}->{'database'}->{'enable'} = 1;
+		$server->{'smradius'}->{'database'}->{'enabled'} = 1;
 	}
 }
 
