@@ -131,7 +131,11 @@ sub rawattr
     my @attr = $self->_attributes;
     
     for (my $i = $#attr; $i >= 0; $i-- ) {
-        return $attr[$i][2] if $attr[$i][0] eq $name;
+	# Check if this is the attr we're after
+	if ($attr[$i][0] eq $name) {
+		# If it is, return the raw attribute if it exists, else return the nicer dict one
+		return defined($attr[$i][2]) ? $attr[$i][2] : $attr[$i][1];
+	}
     }
     return;
 }
