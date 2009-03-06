@@ -24,7 +24,8 @@ use warnings;
 # Modules we need
 use smradius::constants;
 use smradius::logging;
-
+use smradius::dblayer;
+use smradius::util;
 
 # Exporter stuff
 require Exporter;
@@ -47,14 +48,15 @@ our $pluginInfo = {
 	User_get => \&get,
 };
 
-
+# Module config
+my $config;
 
 ## @internal
 # Initialize module
 sub init
 {
 	my $server = shift;
-	my $config = $server->{'config'};
+	my $scfg = $server->{'inifile'};
 
 
 	# Enable support for database
@@ -62,9 +64,28 @@ sub init
 		$server->log(LOG_NOTICE,"[MOD_USERDB_SQL] Enabling database support.");
 		$server->{'smradius'}->{'database'}->{'enabled'} = 1;
 	}
+
+	#Default configs...
+	$config->{'userdb_select_query'} = '
+		SELECT 
+			ID 
+		FROM 
+			@TP@users 
+		WHERE 
+			UserName = %{authentication.User-Name}
+	';
+	
+
+	# Setup SQL queries
+	if (defined($scfg->{'mod_userdb_sql'})) {
+		# Pull in queries
+		if (defined($scfg->{'mod_userdb_sql'}->{'userdb_select_query'}) &&
+				$scfg->{'mod_userdb_sql'}->{'userdb_select_query'} ne "") {
+			$config->{'userdb_select_query'} = $scfg->{'mod_userdb_sql'}->{'userdb_select_query'};
+			
+		}
+	}
 }
-
-
 
 ## @find
 # Try find a user
@@ -78,6 +99,24 @@ sub find
 {
 	my ($server,$user,$packet) = @_;
 
+	# Build template
+	my $template;
+	$server->log(LOG_DEBUG,"[MOD_USERDB_SQL] Find function called");
+	foreach my $attr ($packet->attributes) {
+		$template->{'authentication'}->{$attr} = $packet->rawattr($attr)
+	}
+	$template->{'user'} = $user;
+
+	# Replace template entries
+	my @dbDoParams = templateReplace($config->{'userdb_select_query'},$template);
+
+	my $sth = DBSelect(@dbDoParams);
+	if (!$sth) {
+		$server->log(LOG_ERR,"Failed to find user data: ".smradius::dblayer::Error());
+		return -1;
+	}
+
+	$server->log(LOG_NOTICE,"Number of rows : ".$sth->rows());
 
 	# TODO: Query database and see if this user exists
 
