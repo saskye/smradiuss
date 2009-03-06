@@ -261,6 +261,11 @@ sub post_configure_hook {
 	my $config = $self->{'config'};
 
 
+	# Init config
+	$self->log(LOG_NOTICE,"[SMRADIUS] Initializing configuration...");
+	smradius::config::Init($self);
+	$self->log(LOG_NOTICE,"[SMRADIUS] Configuration initialized.");
+
 	# Load dictionaries
 	$self->log(LOG_NOTICE,"[SMRADIUS] Initializing dictionaries...");
 	my $dict = new Radius::Dictionary;
@@ -292,8 +297,6 @@ sub post_configure_hook {
 	$self->log(LOG_NOTICE,"[SMRADIUS] Plugins initialized.");
 
 	$self->log(LOG_NOTICE,"[SMRADIUS] Initializing system modules.");
-	# Init config
-	smradius::config::Init($self);
 	# Init caching engine
 #	smradius::cache::Init($self);
 	$self->log(LOG_NOTICE,"[SMRADIUS] System modules initialized.");
@@ -322,6 +325,7 @@ sub plugin_register {
 		$info->{'Init'}($self);
 	}
 
+
 	return 0;
 }
 
@@ -337,9 +341,9 @@ sub child_init_hook
 	
 	$self->log(LOG_DEBUG,"[SMRADIUS] Starting up caching engine");
 	smradius::cache::connect($self);
-
+	
 	# Do we need database support?
-	if ($self->{'smradius'}->{'database'}->{'enable'}) {
+	if ($self->{'smradius'}->{'database'}->{'enabled'}) {
 		# This is the database connection timestamp, if we connect, it resets to 0
 		# if not its used to check if we must kill the child and try a reconnect
 		$self->{'client'}->{'dbh_status'} = time();
@@ -398,6 +402,42 @@ sub process_request {
 
 	# VERIFY SOURCE SERVER
 	$self->log(LOG_DEBUG,"[SMRADIUS] Packet From = > ".$server->{'peeraddr'});
+
+	# Check if we got connected, if not ... bypass
+	if ($self->{'client'}->{'dbh_status'} > 0) {
+		my $action;
+
+		$self->log(LOG_WARN,"[SMRADIUS] Client in BYPASS mode due to DB connection failure!");
+		# Check bypass mode
+		if (!defined($self->{'inifile'}{'database'}{'bypass_mode'})) {
+			$self->log(LOG_ERR,"[SMRADIUS] No bypass_mode specified for failed database connections, defaulting to tempfail");
+			$action = "tempfail";
+		# Check for "tempfail"
+		} elsif (lc($self->{'inifile'}{'database'}{'bypass_mode'}) eq "tempfail") {
+		# And for "bypass"
+		} elsif (lc($self->{'inifile'}{'database'}{'bypass_mode'}) eq "pass") {
+		}
+		
+		# Check if we need to reconnect or not
+		my $timeout = $self->{'inifile'}{'database'}{'bypass_timeout'};
+		if (!defined($timeout)) {
+			$self->log(LOG_ERR,"[SMRADIUS] No bypass_timeout specified for failed database connections, defaulting to 120s");
+			$timeout = 120;
+		}
+		# Get time left
+		my $timepassed = time() - $self->{'client'}->{'dbh_status'};
+		# Then check...
+		if ($timepassed >= $timeout) {
+			$self->log(LOG_NOTICE,"[SMRADIUS] Client BYPASS timeout exceeded, reconnecting...");
+			exit 0;
+		} else {
+			$self->log(LOG_NOTICE,"[SMRADIUS] Client still in BYPASS mode, ".( $timeout - $timepassed )."s left till next reconnect");
+			return;
+		}
+	}
+
+	# Setup database handle
+	smradius::dblayer::setHandle($self->{'client'}->{'dbh'});
 
 
 #LOGIN
@@ -621,7 +661,7 @@ sub process_request {
 			$user->{'ClearPassword'} = $res->{'ClearPassword'};
 			$user->{'Attributes'} = $res->{'Attributes'};
 		} else {
-			$self->log(LOG_INFO,"[SMRADIUS] GET: No 'User_get' funcation available for module '".$userdb->{'Name'}."'");
+			$self->log(LOG_INFO,"[SMRADIUS] GET: No 'User_get' function available for module '".$userdb->{'Name'}."'");
 
 			goto CHECK_RESULT;
 		}
@@ -676,6 +716,7 @@ sub process_request {
 			#
 
 			if ($attr->{'Operator'} eq '==' ) {
+				# Check packet for value
 				my $attrVal = $pkt->attr($attr->{'Name'});
 				$self->log(LOG_DEBUG,"[SMRADIUS] Processing '".$attr->{'Name'}."' == '".$attr->{'Value'}."' against NAS value ".niceUndef($attrVal));
 				# Skip if value not defined
@@ -730,6 +771,7 @@ sub process_request {
 			# Not allowed as a reply item.
 
 			} elsif ($attr->{'Operator'} eq '<') {
+				# Check packet for value
 				my $attrVal = $pkt->attr($attr->{'Name'});
 				$self->log(LOG_DEBUG,"[SMRADIUS] Processing ".$attr->{'Name'}."' < '".$attr->{'Value'}." against NAS value ".niceUndef($attrVal));
 				# Skip if value not defined
@@ -755,6 +797,7 @@ sub process_request {
 			# Not allowed as a reply item.
 
 			} elsif ($attr->{'Operator'} eq '<=') {
+				# Check packet for value
 				my $attrVal = $pkt->attr($attr->{'Name'});
 				$self->log(LOG_DEBUG,"[SMRADIUS] Processing '".$attr->{'Name'}."' <= '".$attr->{'Value'}."' against NAS value ".niceUndef($attrVal));
 				# Skip if value not defined
@@ -780,6 +823,7 @@ sub process_request {
 			# Not allowed as a reply item.
 
 			} elsif ($attr->{'Operator'} eq '>=') {
+				# Check packet for value
 				my $attrVal = $pkt->attr($attr->{'Name'});
 				$self->log(LOG_DEBUG,"[SMRADIUS] Processing '".$attr->{'Name'}."' >= '".$attr->{'Value'}."' against NAS value ".niceUndef($attrVal));
 				# Skip if value not defined
@@ -807,6 +851,7 @@ sub process_request {
 			# Needs fixing, need to retrieve name, not value?
 
 			} elsif ($attr->{'Operator'} eq '=*') {
+				# Check packet for value
 				my $attrVal = $pkt->attr($attr->{'Name'});
 				$self->log(LOG_DEBUG,"[SMRADIUS] Processing '".$attr->{'Name'}."' =* '".$attr->{'Value'}."' against NAS ".niceUndef($attrVal));
 				# Check for matching value
@@ -815,7 +860,7 @@ sub process_request {
 					$authorized = 0;
 					next;
 				} else {
-					$self->log(LOG_DEBUG,"[SMRADIUS] - Attribute '".$attr->{'Name'}."' matched");
+					$self->log(LOG_DEBUG,"[SMRADIUS] - Attribute '".$attr->{'Name'}."' matches");
 				}
 
 			# Operator !=
@@ -827,6 +872,7 @@ sub process_request {
 			# Not allowed as a reply item.
 
 			} elsif ($attr->{'Operator'} eq '!=') {
+				# Check packet for value
 				my $attrVal = $pkt->attr($attr->{'Name'});
 				$self->log(LOG_DEBUG,"[SMRADIUS] Processing '".$attr->{'Name'}."' != '".$attr->{'Value'}."' against NAS value ".niceUndef($attrVal));
 				# Skip if value not defined
@@ -852,6 +898,7 @@ sub process_request {
 			# Not allowed as a reply item.
 
 			} elsif ($attr->{'Operator'} eq '!*') {
+				# Check packet for value
 				my $attrVal = $pkt->attr($attr->{'Name'});
 				$self->log(LOG_DEBUG,"[SMRADIUS] Processing '".$attr->{'Name'}."' !* '".$attr->{'Value'}."' against NAS value ".niceUndef($attrVal));
 				# Skip if value not defined
@@ -859,6 +906,8 @@ sub process_request {
 					$self->log(LOG_DEBUG,"[SMRADIUS] - Attribute '".$attr->{'Name'}."' not defined");
 					$authorized = 0;
 					next;
+				} else {
+					$self->log(LOG_DEBUG,"[SMRADIUS] - Attribute '".$attr->{'Name'}."' matches");
 				}
 
 			# Operator: =~
@@ -870,6 +919,7 @@ sub process_request {
 			# Not allowed as a reply item.
 
 			} elsif ($attr->{'Operator'} eq '=~') {
+				# Check packet for value
 				my $attrVal = $pkt->attr($attr->{'Name'});
 				$self->log(LOG_DEBUG,"[SMRADIUS] Processing '".$attr->{'Name'}."' =~ '".$attr->{'Value'}."' against NAS value ".niceUndef($attrVal));
 				# Skip if value not defined
@@ -896,6 +946,7 @@ sub process_request {
 			# Not allowed as a reply item.
 
 			} elsif ($attr->{'Operator'} eq '!~') {
+				# Check packet for value
 				my $attrVal = $pkt->attr($attr->{'Name'});
 				$self->log(LOG_DEBUG,"[SMRADIUS] Processing '".$attr->{'Name'}."' !~ '".$attr->{'Value'}."' against NAS value ".niceUndef($attrVal));
 				# Skip if value not defined
@@ -914,7 +965,7 @@ sub process_request {
 				}
 			}
 
-			# FIXME - Nigel
+			# FIXME
 			# Operator: +=
 			#
 			# Use: Attribute += Value
@@ -925,6 +976,7 @@ sub process_request {
 			# attribute is added to the reply items.
 
 			#if ($attr->{'Operator'} eq '+=') {
+			#	# Check packet for value
 			#	my $attrVal = $pkt->attr($attr->{'Name'});
 			#	$self->log(LOG_DEBUG,"[SMRADIUS] Processing '".$attr->{'Name'}."' !~ '".$attr->{'Value'}."' against NAS value ".niceUndef($attrVal));
 			#	# Skip if value not defined
@@ -934,7 +986,8 @@ sub process_request {
 			#	}
 			#	# Check for correct value
 			#	if ($attrVal == $attr->{'Value'}) {
-			#		#FIXME add to config item list
+			#	# FIXME - Add to config items
+			#		#add to config item list
 			#		$self->log(LOG_DEBUG,"[SMRADIUS] ".$attr->{'Name'}.": $attrVal exists and is equal to ".$attr->{'Name'});
 			#	} else {
 			#		$self->log(LOG_DEBUG,"[SMRADIUS] ".$attr->{'Name'}.": $attrVal exists and is not equal to ".$attr->{'Name'});
@@ -953,6 +1006,7 @@ sub process_request {
 			# As a reply item, it has an itendtical meaning, but for the reply items, instead of the request items.
 
 			#if ($attr->{'Operator'} eq ':=') {
+			#	# Check packet for value
 			#	my $attrVal = $pkt->attr($attr->{'Name'});
 			#	$self->log(LOG_DEBUG,"[SMRADIUS] Processing '".$attr->{'Name'}."' !~ '".$attr->{'Value'}."' against NAS value ".niceUndef($attrVal));
 			#	# Skip if value not defined
@@ -962,9 +1016,10 @@ sub process_request {
 			#	}
 			#	# Check for correct value
 			#	if ($attrVal == $attr->{'Value'}) {
-			#		#FIXME add to config item list
+			#	# FIXME - Add or replace config items
+			#		#add to config item list
 			#		$self->log(LOG_DEBUG,"[SMRADIUS] ".$attr->{'Name'}.": $attrVal exists and is equal to ".$attr->{'Name'});
-			#	} else {
+			#		} else {
 			#		$self->log(LOG_DEBUG,"[SMRADIUS] ".$attr->{'Name'}.": $attrVal exists and is not equal to ".$attr->{'Name'});
 			#		$authorized = 0;
 			#		last;
@@ -983,18 +1038,21 @@ sub process_request {
 			# Loop with user attributes and add to radius response
 			foreach my $attr (@{$user->{'Attributes'}}) {
 
-				#Operator: =
+				# Operator: =
 				#
-				#Use: Attribute = Value
-				#Not allowed as a check item for RADIUS protocol attributes. It is allowed for server
-				#configuration attributes (Auth-Type, etc), and sets the value of on attribute,
-				#only if there is no other item of the same attribute.
+				# Use: Attribute = Value
+				# Not allowed as a check item for RADIUS protocol attributes. It is allowed for server
+				# configuration attributes (Auth-Type, etc), and sets the value of on attribute,
+				# only if there is no other item of the same attribute.
 				#
-				#As a reply item, it means "add the item to the reply list, but only if there is
-				#no other item of the same attribute.
+				# As a reply item, it means "add the item to the reply list, but only if there is
+				# no other item of the same attribute.
 
 				if ($attr->{'Operator'} eq '=') {
-					$resp->set_attr($attr->{'Name'},$attr->{'Value'});
+					my $attrVal = $resp->attr($attr->{'Name'});
+					if (!defined($attrVal)) {
+						$resp->set_attr($attr->{'Name'},$attr->{'Value'});
+					}
 
 				# Operator: :=
 				#
