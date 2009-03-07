@@ -196,7 +196,8 @@ sub acct_log
 		# Insert into database
 		my $sth = DBDo(@dbDoParams);
 		if (!$sth) {
-			$server->log(LOG_ERR,"[MOD_ACCOUNTING_SQL] Failed to insert accounting START record: ".smradius::dblayer::Error());
+			$server->log(LOG_ERR,"[MOD_ACCOUNTING_SQL] Failed to insert accounting START record: ".
+					smradius::dblayer::Error());
 			return MOD_RES_NACK;
 		}
 
@@ -207,7 +208,8 @@ sub acct_log
 		# Update database
 		my $sth = DBDo(@dbDoParams);
 		if (!$sth) {
-			$server->log(LOG_ERR,"[MOD_ACCOUNTING_SQL] Failed to update accounting ALIVE record: ".smradius::dblayer::Error());
+			$server->log(LOG_ERR,"[MOD_ACCOUNTING_SQL] Failed to update accounting ALIVE record: ".
+					smradius::dblayer::Error());
 			return MOD_RES_NACK;
 		}
 
