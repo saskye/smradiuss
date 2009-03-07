@@ -542,7 +542,7 @@ sub process_request {
 			# Try find user
 			if ($module->{'User_find'}) {
 				$self->log(LOG_INFO,"[SMRADIUS] FIND: Trying plugin '".$module->{'Name'}."' for username '".$user->{'Username'}."'");
-				my $res = $module->{'User_find'}($self,$user,$pkt);
+				my ($res,$userdb_data) = $module->{'User_find'}($self,$user,$pkt);
 
 				# Check result
 				if (!defined($res)) {
@@ -556,6 +556,7 @@ sub process_request {
 				} elsif ($res == MOD_RES_ACK) {
 					$self->log(LOG_NOTICE,"[SMRADIUS] FIND: Username found with '".$module->{'Name'}."'");
 					$userdb = $module;
+					$user->{'_UserDB_Data'} = $userdb_data;
 					last;
 
 				# Or a negative result
@@ -579,9 +580,8 @@ sub process_request {
 		#
 
 		# Get user data
-		my $user;
 		if (defined($userdb) && defined($userdb->{'User_get'})) {
-			my $res = $userdb->{'User_get'}($self,$user);
+			my $res = $userdb->{'User_get'}($self,$user,$pkt);
 
 			# Check result
 			if (defined($res) && ref($res) eq "HASH") {
@@ -650,7 +650,7 @@ sub process_request {
 
 		# Get user data
 		if ($userdb->{'User_get'}) {
-			my $res = $userdb->{'User_get'}($self,$user);
+			my $res = $userdb->{'User_get'}($self,$user,$pkt);
 
 			# Check result
 			if (!defined($res) || ref($res) ne "HASH") {
