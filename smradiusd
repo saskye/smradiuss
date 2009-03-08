@@ -44,6 +44,7 @@ use smradius::config;
 use smradius::dbilayer;
 use smradius::cache;
 use smradius::util;
+use smradius::attributes;
 
 use Radius::Packet;
 
@@ -706,325 +707,20 @@ sub process_request {
 		# AUTHORIZE USER
 		#
 
+		# Build a list of our attributes in the packet
+		my $authAttributes;
+		foreach my $attr ($pkt->attributes) {
+			$authAttributes->{$attr} = $pkt->rawattr($attr);
+		}
+
+		# Loop with attributes we got from the user
 		foreach my $attr (@{$user->{'Attributes'}}) {
-
-			# Operator: ==
-			#
-			# Use: Attribute == Value
-			# As a check item, it matches if the named attribute is present in the request,
-			# AND has the given value.
-			#
-
-			if ($attr->{'Operator'} eq '==' ) {
-				# Check packet for value
-				my $attrVal = $pkt->attr($attr->{'Name'});
-				$self->log(LOG_DEBUG,"[SMRADIUS] Processing '".$attr->{'Name'}."' == '".$attr->{'Value'}."' against NAS value ".niceUndef($attrVal));
-				# Skip if value not defined
-				if (!defined($attrVal)) {
-					$self->log(LOG_DEBUG,"[SMRADIUS] - Attribute '".$attr->{'Name'}."' not defined");
-					next;
-				}
-				# Check for correct value
-				if ($attrVal eq $attr->{'Value'}) {
-					$self->log(LOG_DEBUG,"[SMRADIUS] - Attribute '".$attr->{'Name'}."' with value '$attrVal' matched");
-				} else {
-					$self->log(LOG_DEBUG,"[SMRADIUS] - Attribute '".$attr->{'Name'}."' with value '$attrVal' does not match");
-					$authorized = 0;
-					last;
-				}
-
-			# Operator: >
-			#
-			# Use: Attribute > Value
-			# As a check item, it matches if the request contains an attribute
-			# with a value greater than the one given.
-			#
-			# Not allowed as a reply item.
-
-			} elsif ($attr->{'Operator'} eq '>') {
-				my $attrVal = $pkt->attr($attr->{'Name'});
-				$self->log(LOG_DEBUG,"[SMRADIUS] Processing '".$attr->{'Name'}."' > '".$attr->{'Value'}."' against NAS value ".niceUndef($attrVal));
-				# Skip if value not defined
-				if (!defined($attrVal)) {
-					$self->log(LOG_DEBUG,"[SMRADIUS] - Attribute '".$attr->{'Name'}."' not defined");
-					next;
-				}
-				if ($attrVal =~ /^[0-9]+$/) {
-					# Check for correct value
-					if ($attrVal > $attr->{'Value'}) {
-						$self->log(LOG_DEBUG,"[SMRADIUS] - Attribute '".$attr->{'Name'}."' with value '$attrVal' matched");
-					} else {
-						$self->log(LOG_DEBUG,"[SMRADIUS] - Attribute '".$attr->{'Name'}."' with value '$attrVal' does not match");
-						$authorized = 0;
-						last;
-					}
-				} else {
-					$self->log(LOG_WARN,"[SMRADIUS] - Attribute '".$attr->{'Name'}."' with value '$attrVal' is NOT a number!");
-				}
-
-			# Operator: <
-			#
-			# Use: Attribute < Value
-			# As a check item, it matches if the request contains an attribute
-			# with a value less than the one given.
-			#
-			# Not allowed as a reply item.
-
-			} elsif ($attr->{'Operator'} eq '<') {
-				# Check packet for value
-				my $attrVal = $pkt->attr($attr->{'Name'});
-				$self->log(LOG_DEBUG,"[SMRADIUS] Processing ".$attr->{'Name'}."' < '".$attr->{'Value'}." against NAS value ".niceUndef($attrVal));
-				# Skip if value not defined
-				if (!defined($attrVal)) {
-					$self->log(LOG_DEBUG,"[SMRADIUS] - Attribute '".$attr->{'Name'}."' not defined");
-					next;
-				}
-				# Check for correct value
-				if ($attrVal < $attr->{'Value'}) {
-					$self->log(LOG_DEBUG,"[SMRADIUS] - Attribute '".$attr->{'Name'}."' with value '$attrVal' less than current value");
-				} else {
-					$self->log(LOG_DEBUG,"[SMRADIUS] - Attribute '".$attr->{'Name'}."' with value '$attrVal' does not match");
-					$authorized = 0;
-					last;
-				}
-
-			# Operator: <=
-			#
-			# Use: Attribute <= Value
-			# As a check item, it matches if the request contains an attribute
-			# with a value less than, or equal to the one given.
-			#
-			# Not allowed as a reply item.
-
-			} elsif ($attr->{'Operator'} eq '<=') {
-				# Check packet for value
-				my $attrVal = $pkt->attr($attr->{'Name'});
-				$self->log(LOG_DEBUG,"[SMRADIUS] Processing '".$attr->{'Name'}."' <= '".$attr->{'Value'}."' against NAS value ".niceUndef($attrVal));
-				# Skip if value not defined
-				if (!defined($attrVal)) {
-					$self->log(LOG_DEBUG,"[SMRADIUS] - Attribute '".$attr->{'Name'}."' not defined");
-					next;
-				}
-				# Check for correct value
-				if ($attrVal <= $attr->{'Value'}) {
-					$self->log(LOG_DEBUG,"[SMRADIUS] - Attribute '".$attr->{'Name'}."' with value '$attrVal' less than or equals current value");
-				} else {
-					$self->log(LOG_DEBUG,"[SMRADIUS] - Attribute '".$attr->{'Name'}."' with value '$attrVal' greater than current value");
-					$authorized = 0;
-					last;
-				}
-
-			# Operator: >=
-			#
-			# Use: Attribute >= Value
-			# As a check item, it matches if the request contains an attribute
-			# with a value greater than, or equal to the one given.
-			#
-			# Not allowed as a reply item.
-
-			} elsif ($attr->{'Operator'} eq '>=') {
-				# Check packet for value
-				my $attrVal = $pkt->attr($attr->{'Name'});
-				$self->log(LOG_DEBUG,"[SMRADIUS] Processing '".$attr->{'Name'}."' >= '".$attr->{'Value'}."' against NAS value ".niceUndef($attrVal));
-				# Skip if value not defined
-				if (!defined($attrVal)) {
-					$self->log(LOG_DEBUG,"[SMRADIUS] - Attribute '".$attr->{'Name'}."' not defined");
-					next;
-				}
-				# Check for correct value
-				if ($attrVal >= $attr->{'Value'}) {
-					$self->log(LOG_DEBUG,"[SMRADIUS] - Attribute '".$attr->{'Name'}."' with value '$attrVal' greater than or equals current value");
-				} else {
-					$self->log(LOG_DEBUG,"[SMRADIUS] - Attribute '".$attr->{'Name'}."' with value '$attrVal' less than current value");
-					$authorized = 0;
-					last;
-				}
-
-			# Operator: =*
-			#
-			# Use: Attribute =* Value
-			# As a check item, it matches if the request contains the named attribute,
-			# no matter what the value is.
-			#
-			# Not allowed as a reply item.
-
-			# Needs fixing, need to retrieve name, not value?
-
-			} elsif ($attr->{'Operator'} eq '=*') {
-				# Check packet for value
-				my $attrVal = $pkt->attr($attr->{'Name'});
-				$self->log(LOG_DEBUG,"[SMRADIUS] Processing '".$attr->{'Name'}."' =* '".$attr->{'Value'}."' against NAS ".niceUndef($attrVal));
-				# Check for matching value
-				if (!defined($attrVal)) {
-					$self->log(LOG_DEBUG,"[SMRADIUS] - Attribute '".$attr->{'Name'}."' not matched");
-					$authorized = 0;
-					next;
-				} else {
-					$self->log(LOG_DEBUG,"[SMRADIUS] - Attribute '".$attr->{'Name'}."' matches");
-				}
-
-			# Operator !=
-			#
-			# Use: Attribute != Value
-			# As a check item, matches if the given attribute is in the
-			# request, AND does not have the given value.
-			#
-			# Not allowed as a reply item.
-
-			} elsif ($attr->{'Operator'} eq '!=') {
-				# Check packet for value
-				my $attrVal = $pkt->attr($attr->{'Name'});
-				$self->log(LOG_DEBUG,"[SMRADIUS] Processing '".$attr->{'Name'}."' != '".$attr->{'Value'}."' against NAS value ".niceUndef($attrVal));
-				# Skip if value not defined
-				if (!defined($attrVal)) {
-					$self->log(LOG_DEBUG,"[SMRADIUS] - Attribute '".$attr->{'Name'}."' not defined");
-					next;
-				}
-				# Check for correct value
-				if ($attrVal ne $attr->{'Value'}) {
-					$self->log(LOG_DEBUG,"[SMRADIUS] - Attribute '".$attr->{'Name'}."' matches");
-				} else {
-					$self->log(LOG_DEBUG,"[SMRADIUS] - Attribute '".$attr->{'Name'}."' does not match");
-					$authorized = 0;
-					last;
-				}
-
-			# Operator: !*
-			#
-			# Use: Attribute !* Value
-			# As a check item, matches if the request does not contain the named attribute, no matter
-			# what the value is.
-			#
-			# Not allowed as a reply item.
-
-			} elsif ($attr->{'Operator'} eq '!*') {
-				# Check packet for value
-				my $attrVal = $pkt->attr($attr->{'Name'});
-				$self->log(LOG_DEBUG,"[SMRADIUS] Processing '".$attr->{'Name'}."' !* '".$attr->{'Value'}."' against NAS value ".niceUndef($attrVal));
-				# Skip if value not defined
-				if (defined($attrVal)) {
-					$self->log(LOG_DEBUG,"[SMRADIUS] - Attribute '".$attr->{'Name'}."' not defined");
-					$authorized = 0;
-					next;
-				} else {
-					$self->log(LOG_DEBUG,"[SMRADIUS] - Attribute '".$attr->{'Name'}."' matches");
-				}
-
-			# Operator: =~
-			#
-			# Use: Attribute =~ Value
-			# As a check item, matches if the request contains an attribute which matches the given regular expression.
-			# This operator may only be applied to string attributes.
-			#
-			# Not allowed as a reply item.
-
-			} elsif ($attr->{'Operator'} eq '=~') {
-				# Check packet for value
-				my $attrVal = $pkt->attr($attr->{'Name'});
-				$self->log(LOG_DEBUG,"[SMRADIUS] Processing '".$attr->{'Name'}."' =~ '".$attr->{'Value'}."' against NAS value ".niceUndef($attrVal));
-				# Skip if value not defined
-				if (!defined($attrVal)) {
-					$self->log(LOG_DEBUG,"[SMRADIUS] - Attribute '".$attr->{'Name'}."' not defined");
-					next;
-				}
-				# Check for correct value
-				my $regex = $attr->{'Value'};
-				if ($attrVal =~ /$regex/) {
-					$self->log(LOG_DEBUG,"[SMRADIUS] - Attribute '".$attr->{'Name'}."' matches");
-				} else {
-					$self->log(LOG_DEBUG,"[SMRADIUS] - Attribute '".$attr->{'Name'}."' does not match");
-					$authorized = 0;
-					last;
-				}
-
-			# Operator: !~
-			#
-			# Use: Attribute !~ Value
-			# As a check item, matches if the request does not contain the named attribute, no matter
-			# what the value is.
-			#
-			# Not allowed as a reply item.
-
-			} elsif ($attr->{'Operator'} eq '!~') {
-				# Check packet for value
-				my $attrVal = $pkt->attr($attr->{'Name'});
-				$self->log(LOG_DEBUG,"[SMRADIUS] Processing '".$attr->{'Name'}."' !~ '".$attr->{'Value'}."' against NAS value ".niceUndef($attrVal));
-				# Skip if value not defined
-				if (!defined($attrVal)) {
-					$self->log(LOG_DEBUG,"[SMRADIUS] - Attribute '".$attr->{'Name'}."' not defined");
-					next;
-				}
-				# Check for correct value
-				my $regex = $attr->{'Value'};
-				if (!($attrVal =~ /$regex/)) {
-					$self->log(LOG_DEBUG,"[SMRADIUS] - Attribute '".$attr->{'Name'}."' with value $attrVal does not match");
-				} else {
-					$self->log(LOG_DEBUG,"[SMRADIUS] - Attribute '".$attr->{'Name'}."' with value $attrVal matches");
-					$authorized = 0;
-					last;
-				}
+			# Check attribute against authorization attributes
+			my $res = checkAttributeAuth($server,$authAttributes,$attr);
+			if ($res != 0) {
+				$authorized = 0;
+				last;
 			}
-
-			# FIXME
-			# Operator: +=
-			#
-			# Use: Attribute += Value
-			# Always matches as a check item, and adds the current
-			# attribute with value to the list of configuration items.
-			#
-			# As a reply item, it has an itendtical meaning, but the
-			# attribute is added to the reply items.
-
-			#if ($attr->{'Operator'} eq '+=') {
-			#	# Check packet for value
-			#	my $attrVal = $pkt->attr($attr->{'Name'});
-			#	$self->log(LOG_DEBUG,"[SMRADIUS] Processing '".$attr->{'Name'}."' !~ '".$attr->{'Value'}."' against NAS value ".niceUndef($attrVal));
-			#	# Skip if value not defined
-			#	if (!defined($attrVal)) {
-			#		$self->log(LOG_DEBUG,"[SMRADIUS] - Attribute '".$attr->{'Name'}."' not defined");
-			#		next;
-			#	}
-			#	# Check for correct value
-			#	if ($attrVal == $attr->{'Value'}) {
-			#	# FIXME - Add to config items
-			#		#add to config item list
-			#		$self->log(LOG_DEBUG,"[SMRADIUS] ".$attr->{'Name'}.": $attrVal exists and is equal to ".$attr->{'Name'});
-			#	} else {
-			#		$self->log(LOG_DEBUG,"[SMRADIUS] ".$attr->{'Name'}.": $attrVal exists and is not equal to ".$attr->{'Name'});
-			#		$authorized = 0;
-			#		last;
-			#	}
-			#}
-
-			# FIXME
-			# Operator: :=
-			#
-			# Use: Attribute := Value
-			# Always matches as a check item, and replaces in the configuration items any attribute of the same name. 
-			# If no attribute of that name appears in the request, then this attribute is added.
-			#
-			# As a reply item, it has an itendtical meaning, but for the reply items, instead of the request items.
-
-			#if ($attr->{'Operator'} eq ':=') {
-			#	# Check packet for value
-			#	my $attrVal = $pkt->attr($attr->{'Name'});
-			#	$self->log(LOG_DEBUG,"[SMRADIUS] Processing '".$attr->{'Name'}."' !~ '".$attr->{'Value'}."' against NAS value ".niceUndef($attrVal));
-			#	# Skip if value not defined
-			#	if (!defined($attrVal)) {
-			#		$self->log(LOG_DEBUG,"[SMRADIUS] - Attribute '".$attr->{'Name'}."' not defined");
-			#		next;
-			#	}
-			#	# Check for correct value
-			#	if ($attrVal == $attr->{'Value'}) {
-			#	# FIXME - Add or replace config items
-			#		#add to config item list
-			#		$self->log(LOG_DEBUG,"[SMRADIUS] ".$attr->{'Name'}.": $attrVal exists and is equal to ".$attr->{'Name'});
-			#		} else {
-			#		$self->log(LOG_DEBUG,"[SMRADIUS] ".$attr->{'Name'}.": $attrVal exists and is not equal to ".$attr->{'Name'});
-			#		$authorized = 0;
-			#		last;
-			#	}
-			#}
 		}
 
 		# Check if we authenticated or not
@@ -1035,58 +731,13 @@ sub process_request {
 		 	$resp->set_code('Access-Accept');
 			$resp->set_identifier($pkt->identifier);
 			$resp->set_authenticator($pkt->authenticator);
+
 			# Loop with user attributes and add to radius response
+			my %replyAttributes;
 			foreach my $attr (@{$user->{'Attributes'}}) {
-
-				# Operator: =
-				#
-				# Use: Attribute = Value
-				# Not allowed as a check item for RADIUS protocol attributes. It is allowed for server
-				# configuration attributes (Auth-Type, etc), and sets the value of on attribute,
-				# only if there is no other item of the same attribute.
-				#
-				# As a reply item, it means "add the item to the reply list, but only if there is
-				# no other item of the same attribute.
-
-				if ($attr->{'Operator'} eq '=') {
-					my $attrVal = $resp->attr($attr->{'Name'});
-					if (!defined($attrVal)) {
-						$resp->set_attr($attr->{'Name'},$attr->{'Value'});
-					}
-
-				# Operator: :=
-				#
-				# Use: Attribute := Value
-				# Always matches as a check item, and replaces in the configuration items any attribute of the same name. 
-				# If no attribute of that name appears in the request, then this attribute is added.
-				#
-				# As a reply item, it has an itendtical meaning, but for the reply items, instead of the request items.
-
-				} elsif ($attr->{'Operator'} eq ':=') {
-					my $attrVal = $resp->attr($attr->{'Name'});
-					$self->log(LOG_DEBUG,"[SMRADIUS] Processing '".$attr->{'Name'}."' !~ '".$attr->{'Value'}."' against REPLY value ".niceUndef($attrVal));
-					
-					# Add attribute if attribute appears
-					if (!defined($attrVal)) {
-						$self->log(LOG_DEBUG,"[SMRADIUS] - Attribute '".$attr->{'Name'}."' not defined, adding attribute");
-						$resp->set_attr($attr->{'Name'},$attr->{'Value'});
-
-					}
-
-				# Operator: +=
-				#
-				# Use: Attribute += Value
-				# Always matches as a check item, and adds the current
-				# attribute with value to the list of configuration items.
-				#
-				# As a reply item, it has an itendtical meaning, but the
-				# attribute is added to the reply items.
-
-				} elsif ($attr->{'Operator'} eq '+=') {
-					my $attrVal = $resp->attr($attr->{'Name'});
-					$self->log(LOG_DEBUG,"[SMRADIUS] Processing '".$attr->{'Name'}."' += '".$attr->{'Value'}."' and adding to reply item");
-					
-					# Add attribute
+				# Add this to the reply attribute?
+				my $res = getReplyAttribute($server,\%replyAttributes,$attr);
+				if ($res) {
 					$resp->set_attr($attr->{'Name'},$attr->{'Value'});
 				}
 			}
