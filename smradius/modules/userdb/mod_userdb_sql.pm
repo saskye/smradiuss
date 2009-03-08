@@ -26,6 +26,7 @@ use smradius::constants;
 use smradius::logging;
 use smradius::dblayer;
 use smradius::util;
+use smradius::attributes;
 
 # Exporter stuff
 require Exporter;
@@ -65,8 +66,8 @@ sub init
 		$server->{'smradius'}->{'database'}->{'enabled'} = 1;
 	}
 
-	#Default configs...
-	$config->{'userdb_select_query'} = '
+	# Default configs...
+	$config->{'userdb_find_query'} = '
 		SELECT 
 			ID 
 		FROM 
@@ -75,13 +76,32 @@ sub init
 			UserName = %{authentication.User-Name}
 	';
 	
+	$config->{'userdb_get_group_attributes_query'} = '
+		SELECT 
+			group_attributes.Name, group_attributes.Operator, group_attributes.Value
+		FROM 
+			@TP@group_attributes, @TP@users_to_groups 
+		WHERE 
+			users_to_groups.UserID = %{user.ID}
+			AND group_attributes.GroupID = users_to_groups.GroupID
+	';
+	
+	$config->{'userdb_get_user_attributes_query'} = '
+		SELECT 
+			Name, Operator, Value
+		FROM 
+			@TP@users_attributes 
+		WHERE 
+			UserID = %{user.ID}
+	';
+	
 
 	# Setup SQL queries
 	if (defined($scfg->{'mod_userdb_sql'})) {
 		# Pull in queries
-		if (defined($scfg->{'mod_userdb_sql'}->{'userdb_select_query'}) &&
-				$scfg->{'mod_userdb_sql'}->{'userdb_select_query'} ne "") {
-			$config->{'userdb_select_query'} = $scfg->{'mod_userdb_sql'}->{'userdb_select_query'};
+		if (defined($scfg->{'mod_userdb_sql'}->{'userdb_find_query'}) &&
+				$scfg->{'mod_userdb_sql'}->{'userdb_find_query'} ne "") {
+			$config->{'userdb_find_query'} = $scfg->{'mod_userdb_sql'}->{'userdb_find_query'};
 			
 		}
 	}
@@ -101,26 +121,36 @@ sub find
 
 	# Build template
 	my $template;
-	$server->log(LOG_DEBUG,"[MOD_USERDB_SQL] Find function called");
 	foreach my $attr ($packet->attributes) {
 		$template->{'authentication'}->{$attr} = $packet->rawattr($attr)
 	}
 	$template->{'user'} = $user;
 
 	# Replace template entries
-	my @dbDoParams = templateReplace($config->{'userdb_select_query'},$template);
+	my @dbDoParams = templateReplace($config->{'userdb_find_query'},$template);
 
 	my $sth = DBSelect(@dbDoParams);
 	if (!$sth) {
-		$server->log(LOG_ERR,"Failed to find user data: ".smradius::dblayer::Error());
-		return -1;
+		$server->log(LOG_ERR,"[MOD_USERDB_SQL] Failed to find user data: ".smradius::dblayer::Error());
+		return MOD_RES_SKIP;
 	}
 
-	$server->log(LOG_NOTICE,"Number of rows : ".$sth->rows());
+	# Check if we got a result, if we did not NACK
+	my $rows = $sth->rows();
+	if ($rows > 1) {
+		$server->log(LOG_ERR,"[MOD_USERDB_SQL] More than one result returned for user '".$user->{'Username'}."'");
+		return MOD_RES_SKIP;
+	} elsif ($rows < 1) {
+		$server->log(LOG_DEBUG,"[MOD_USERDB_SQL] User '".$user->{'Username'}."' not found in database");
+		return MOD_RES_SKIP;
+	}
 
-	# TODO: Query database and see if this user exists
+	# Grab record data
+	my $row = $sth->fetchrow_hashref();
 
-	return MOD_RES_SKIP;
+	DBFreeRes($sth);
+
+	return (MOD_RES_ACK,$row);
 }
 
 
@@ -136,10 +166,51 @@ sub get
 {
 	my ($server,$user,$packet) = @_;
 
-	my $userDetails;
-	# TODO: Query user and get attributes, return in $userDetails hash
+	# Build template
+	my $template;
+	foreach my $attr ($packet->attributes) {
+		$template->{'authentication'}->{$attr} = $packet->rawattr($attr)
+	}
+	$template->{'user'}->{'Username'} = $user->{'Username'};
+	$template->{'user'}->{'ID'} = $user->{'_UserDB_Data'}->{'id'};
 
-	return $userDetails;
+
+	# Replace template entries
+	my @dbDoParams = templateReplace($config->{'userdb_get_group_attributes_query'},$template);
+	# Query database
+	my $sth = DBSelect(@dbDoParams);
+	if (!$sth) {
+		$server->log(LOG_ERR,"Failed to get group attributes: ".smradius::dblayer::Error());
+		return -1;
+	}
+	
+	# Loop with group attributes
+	while (my $row = $sth->fetchrow_hashref()) {
+		addAttribute($server,$user->{'Attributes'},$row);
+	}
+
+	$sth->DBFreeRes();
+
+
+
+	# Replace template entries again
+	@dbDoParams = templateReplace($config->{'userdb_get_user_attributes_query'},$template);
+	# Query database
+	$sth = DBSelect(@dbDoParams);
+	if (!$sth) {
+		$server->log(LOG_ERR,"Failed to get user attributes: ".smradius::dblayer::Error());
+		return -1;
+	}
+	
+	# Loop with group attributes
+	while (my $row = $sth->fetchrow_hashref()) {
+		addAttribute($server,$user->{'Attributes'},$row);
+	}
+
+	$sth->DBFreeRes();
+
+
+#	return $userDetails;
 }
 
 
