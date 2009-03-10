@@ -90,7 +90,7 @@ sub init
 		SELECT 
 			Name, Operator, Value
 		FROM 
-			@TP@users_attributes 
+			@TP@user_attributes 
 		WHERE 
 			UserID = %{user.ID}
 	';
@@ -174,6 +174,8 @@ sub get
 	$template->{'user'}->{'Username'} = $user->{'Username'};
 	$template->{'user'}->{'ID'} = $user->{'_UserDB_Data'}->{'id'};
 
+	# Attributes to return
+	my %attributes = ();
 
 	# Replace template entries
 	my @dbDoParams = templateReplace($config->{'userdb_get_group_attributes_query'},$template);
@@ -186,10 +188,10 @@ sub get
 	
 	# Loop with group attributes
 	while (my $row = $sth->fetchrow_hashref()) {
-		addAttribute($server,$user->{'Attributes'},$row);
+		addAttribute($server,\%attributes,hashifyLCtoMC($row,qw(Name Operator Value)));
 	}
 
-	$sth->DBFreeRes();
+	DBFreeRes($sth);
 
 
 
@@ -204,13 +206,12 @@ sub get
 	
 	# Loop with group attributes
 	while (my $row = $sth->fetchrow_hashref()) {
-		addAttribute($server,$user->{'Attributes'},$row);
+		addAttribute($server,\%attributes,hashifyLCtoMC($row,qw(Name Operator Value)));
 	}
 
-	$sth->DBFreeRes();
+	DBFreeRes($sth);
 
-
-#	return $userDetails;
+	return \%attributes;
 }
 
 
