@@ -26,9 +26,8 @@ use warnings;
 
 # Modules we need
 use smradius::constants;
+use smradius::logging;
 use Digest::MD5;
-
-use Data::Dumper; 
 
 
 
@@ -82,21 +81,31 @@ sub authenticate
 	# Check if this is PAP authentication
 	return MOD_RES_SKIP if (!defined($encPassword));
 
-	print(STDERR "RECEIVED\n");
-	print(STDERR "User-Pass: len = ".length($encPassword).", hex = ".unpack("H*",$encPassword)."\n");
-	print(STDERR "\n\n");
+#	print(STDERR "RECEIVED\n");
+#	print(STDERR "User-Pass: len = ".length($encPassword).", hex = ".unpack("H*",$encPassword)."\n");
+#	print(STDERR "\n\n");
 
+	# FIXME - test is the radius secret, must pull it from the configuration attributes??
 	my $clearPassword = $packet->password("test","User-Password");
 
-	print(STDERR "CALC\n");
-	print(STDERR "Result   : len = ".length($clearPassword).", hex = ".unpack("H*",$clearPassword).", password = $clearPassword\n");
+#	print(STDERR "CALC\n");
+#	print(STDERR "Result   : len = ".length($clearPassword).", hex = ".unpack("H*",$clearPassword).", password = $clearPassword\n");
 
 
 	# Compare passwords
-	if ($user->{'ClearPassword'} eq $clearPassword) {
-		return MOD_RES_ACK;
+	if (defined($user->{'Attributes'}->{'User-Password'})) {
+		# Operator: ==
+		if (defined($user->{'Attributes'}->{'User-Password'}->{'=='})) {
+			# Compare
+			if ($user->{'Attributes'}->{'User-Password'}->{'=='}->{'Value'} eq $clearPassword) {
+				return MOD_RES_ACK;
+			} 
+		} else {
+			$server->log(LOG_NOTICE,"[MOD_AUTH_PAP] No valid operators for attribute 'User-Password', supported operators are: ==");
+		}
+	} else {
+		$server->log(LOG_NOTICE,"[MOD_AUTH_PAP] No 'User-Password' attribute, cannot authenticate");
 	}
-
 
 	return MOD_RES_NACK;
 }
