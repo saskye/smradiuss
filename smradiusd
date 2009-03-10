@@ -587,7 +587,7 @@ sub process_request {
 			# Check result
 			if (defined($res) && ref($res) eq "HASH") {
 				# We're only after the attributes here
-				$user->{'Attributes'} = $res->{'Attributes'};
+				$user->{'Attributes'} = $res;
 			}
 		}
 
@@ -659,8 +659,7 @@ sub process_request {
 				goto CHECK_RESULT;
 			}
 			# Setup user dataw
-			$user->{'ClearPassword'} = $res->{'ClearPassword'};
-			$user->{'Attributes'} = $res->{'Attributes'};
+			$user->{'Attributes'} = $res;
 		} else {
 			$self->log(LOG_INFO,"[SMRADIUS] GET: No 'User_get' function available for module '".$userdb->{'Name'}."'");
 
@@ -712,15 +711,21 @@ sub process_request {
 		foreach my $attr ($pkt->attributes) {
 			$authAttributes->{$attr} = $pkt->rawattr($attr);
 		}
-
 		# Loop with attributes we got from the user
-		foreach my $attr (@{$user->{'Attributes'}}) {
-			# Check attribute against authorization attributes
-			my $res = checkAttributeAuth($server,$authAttributes,$attr);
-			if ($res != 0) {
-				$authorized = 0;
-				last;
+		foreach my $attrName (keys %{$user->{'Attributes'}}) {
+			# Loop with operators
+			foreach my $attrOp (keys %{$user->{'Attributes'}->{$attrName}}) {
+				# Grab attribute
+				my $attr = $user->{'Attributes'}->{$attrName}->{$attrOp};
+				# Check attribute against authorization attributes
+				my $res = checkAttributeAuth($self,$authAttributes,$attr);
+				if ($res == 0) {
+					$authorized = 0;
+					last;
+				}
 			}
+			# We don't want to process everyting if something doesn't match
+			last if (!$authorized);
 		}
 
 		# Check if we authenticated or not
@@ -732,13 +737,23 @@ sub process_request {
 			$resp->set_identifier($pkt->identifier);
 			$resp->set_authenticator($pkt->authenticator);
 
-			# Loop with user attributes and add to radius response
-			my %replyAttributes;
-			foreach my $attr (@{$user->{'Attributes'}}) {
-				# Add this to the reply attribute?
-				my $res = getReplyAttribute($server,\%replyAttributes,$attr);
-				if ($res) {
-					$resp->set_attr($attr->{'Name'},$attr->{'Value'});
+			# Loop with attributes we got from the getReplyAttributes function, its a hash of arrays which are the values
+			my %replyAttributes = ();
+			foreach my $attrName (keys %{$user->{'Attributes'}}) {
+				# Loop with operators
+				foreach my $attrOp (keys %{$user->{'Attributes'}->{$attrName}}) {
+					# Grab attribute
+					my $attr = $user->{'Attributes'}->{$attrName}->{$attrOp};
+					# Add this to the reply attribute?
+					getReplyAttribute($self,\%replyAttributes,$attr);
+				}
+			}
+			# Loop with reply attributes
+			foreach my $attrName (keys %replyAttributes) {
+				# Loop with values
+				foreach my $value (@{$replyAttributes{$attrName}}) {
+					# Add each value
+					$resp->set_attr($attrName,$value);
 				}
 			}
 
