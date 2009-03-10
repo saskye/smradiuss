@@ -29,10 +29,20 @@ require Exporter;
 our (@ISA,@EXPORT);
 @ISA = qw(Exporter);
 @EXPORT = qw(
+	addAttribute
+	checkAttributeAuth
+	getReplyAttribute
 );
 
 
 use smradius::logging;
+use smradius::util;
+
+
+# Attributes we do not handle
+my @attributeIgnoreList = (
+	'User-Password'
+);
 
 
 ## @fn addAttribute($server,$attributes,$attribute)
@@ -45,212 +55,249 @@ sub addAttribute
 {
 	my ($server,$attributes,$attribute) = @_;
 
-	# FIXME - quick hack
-	$attributes->{$attribute->{'Name'}} = $attribute->{'Value'};
+	# Check if this is an array 
+	if ($attribute->{'Operator'} =~ s/^\|\|//) {
+		# Check if we've seen this before
+		if (defined($attributes->{$attribute->{'Name'}}->{$attribute->{'Operator'}}) && 
+				ref($attributes->{$attribute->{'Name'}}->{$attribute->{'Operator'}}->{'Value'}) eq "ARRAY" ) {
+			# Then add value to end of array
+			push(@{$attributes->{$attribute->{'Name'}}->{$attribute->{'Operator'}}->{'Value'}}, $attribute->{'Value'});
+
+		# If we have not seen it before, initialize it	
+		} else {
+			# Assign attribute
+			$attributes->{$attribute->{'Name'}}->{$attribute->{'Operator'}} = $attribute;
+			# Override type ... else we must create a custom attribute hash, this is dirty, but faster
+			$attributes->{$attribute->{'Name'}}->{$attribute->{'Operator'}}->{'Value'} = [ $attribute->{'Value'} ];
+		}
+
+	# If its not an array, just add it normally
+	} else {
+		$attributes->{$attribute->{'Name'}}->{$attribute->{'Operator'}} = $attribute;
+	}
 }
 
 
 
-## @fn checkAttributeAuth($server,$attributes,$attribute)
+## @fn checkAttributeAuth($server,$packetAttributes,$attribute)
 # Function to check an attribute in the authorization stage
 #
 # @param server Server instance
-# @param attributes Hashref of attributes provided, eg. Those from the packet
+# @param packetAttributes Hashref of attributes provided, eg. Those from the packet
 # @param attribute Attribute to check, eg. One of the ones from the database
 sub checkAttributeAuth
 {
-	my ($server,$attributes,$attribute) = @_;
+	my ($server,$packetAttributes,$attribute) = @_;
 
 
+	# Check ignore list
+	foreach my $ignoredAttr (@attributeIgnoreList) {
+		# 2 = IGNORE, so return IGNORE for all ignored items
+		return 2 if ($attribute->{'Name'} eq $ignoredAttr);
+	}
+
+	# Matched & ok?
 	my $matched = 0;
 
+	# Figure out our attr values
+	my @attrValues;
+	if (ref($attribute->{'Value'}) eq "ARRAY") {
+		@attrValues = @{$attribute->{'Value'}};
+	} else {
+		@attrValues = ( $attribute->{'Value'} );
+	}	
 
-	# Get attribute value
-	my $attrVal = $attributes->{$attribute->{'Name'}};
+	# Get packet attribute value
+	my $attrVal = $packetAttributes->{$attribute->{'Name'}};
 
-	$server->log(LOG_DEBUG,"[ATTRIBUTES] Processing CHECK attribute value ".niceUndef($attrVal)."' against: '".
-			$attribute->{'Name'}."' ".$attribute->{'Operator'}." '".$attribute->{'Value'}."'");
-
-	# Operator: ==
-	#
-	# Use: Attribute == Value
-	# As a check item, it matches if the named attribute is present in the request,
-	# AND has the given value.
-	#
-	if ($attribute->{'Operator'} eq '==' ) {
-		# Check for correct value
-		if (defined($attrVal) && $attrVal eq $attribute->{'Value'}) {
-			$matched = 1;
-		}
-
-	# Operator: >
-	#
-	# Use: Attribute > Value
-	# As a check item, it matches if the request contains an attribute
-	# with a value greater than the one given.
-	#
-	# Not allowed as a reply item.
-
-	} elsif ($attribute->{'Operator'} eq '>') {
-		if (defined($attrVal) && $attrVal =~ /^[0-9]+$/) {
+	$server->log(LOG_DEBUG,"[ATTRIBUTES] Processing CHECK attribute value ".niceUndef($attrVal)." against: '".
+			$attribute->{'Name'}."' ".$attribute->{'Operator'}." '".join("','",@attrValues)."'");
+	
+	# Loop with all the test attribute values
+	foreach my $tattrVal (@attrValues) { 	
+		# Operator: ==
+		#
+		# Use: Attribute == Value
+		# As a check item, it matches if the named attribute is present in the request,
+		# AND has the given value.
+		#
+		if ($attribute->{'Operator'} eq '==' ) {
 			# Check for correct value
-			if ($attrVal > $attribute->{'Value'}) {
+			if (defined($attrVal) && $attrVal eq $tattrVal) {
 				$matched = 1;
 			}
-		} else {
-			$server->log(LOG_WARN,"[ATTRIBUTES] - Attribute '".$attribute->{'Name'}."' is NOT a number!");
-		}
-
-	# Operator: <
-	#
-	# Use: Attribute < Value
-	# As a check item, it matches if the request contains an attribute
-	# with a value less than the one given.
-	#
-	# Not allowed as a reply item.
-
-	} elsif ($attribute->{'Operator'} eq '<') {
-		# Check for correct value
-		if (defined($attrVal) && $attrVal < $attribute->{'Value'}) {
-			$matched = 1;
-		}
-
-	# Operator: <=
-	#
-	# Use: Attribute <= Value
-	# As a check item, it matches if the request contains an attribute
-	# with a value less than, or equal to the one given.
-	#
-	# Not allowed as a reply item.
-
-	} elsif ($attribute->{'Operator'} eq '<=') {
-		# Check for correct value
-		if (defined($attrVal) && $attrVal <= $attribute->{'Value'}) {
-			$matched = 1;
-		}
-
-	# Operator: >=
-	#
-	# Use: Attribute >= Value
-	# As a check item, it matches if the request contains an attribute
-	# with a value greater than, or equal to the one given.
-	#
-	# Not allowed as a reply item.
-
-	} elsif ($attribute->{'Operator'} eq '>=') {
-		# Check for correct value
-		if (defined($attrVal) && $attrVal >= $attribute->{'Value'}) {
-			$matched = 1;
-		}
-
-	# Operator: =*
-	#
-	# Use: Attribute =* Value
-	# As a check item, it matches if the request contains the named attribute,
-	# no matter what the value is.
-	#
-	# Not allowed as a reply item.
-
-	} elsif ($attribute->{'Operator'} eq '=*') {
-		# Check for matching value
-		if (defined($attrVal)) {
-			$matched = 1;
-		}
-
-	# Operator !=
-	#
-	# Use: Attribute != Value
-	# As a check item, matches if the given attribute is in the
-	# request, AND does not have the given value.
-	#
-	# Not allowed as a reply item.
-
-	} elsif ($attribute->{'Operator'} eq '!=') {
-		# Check for correct value
-		if (defined($attrVal) && $attrVal ne $attribute->{'Value'}) {
-			$matched = 1;
-		}
-
-	# Operator: !*
-	#
-	# Use: Attribute !* Value
-	# As a check item, matches if the request does not contain the named attribute, no matter
-	# what the value is.
-	#
-	# Not allowed as a reply item.
-
-	} elsif ($attribute->{'Operator'} eq '!*') {
-		# Skip if value not defined
-		if (!defined($attrVal)) {
-			$matched = 1;
-		}
-
-	# Operator: =~
-	#
-	# Use: Attribute =~ Value
-	# As a check item, matches if the request contains an attribute which matches the given regular expression.
-	# This operator may only be applied to string attributes.
-	#
-	# Not allowed as a reply item.
-
-	} elsif ($attribute->{'Operator'} eq '=~') {
-		# Check for correct value
-		my $regex = $attribute->{'Value'};
-		if (defined($attrVal) && $attrVal =~ /$regex/) {
-			$matched = 1;
-		}
-
-	# Operator: !~
-	#
-	# Use: Attribute !~ Value
-	# As a check item, matches if the request does not contain the named attribute, no matter
-	# what the value is.
-	#
-	# Not allowed as a reply item.
-# FIXME: WRONG description
-	} elsif ($attribute->{'Operator'} eq '!~') {
-		# Check for correct value
-		my $regex = $attribute->{'Value'};
-		if (defined($attrVal) && !($attrVal =~ /$regex/)) {
-			$matched = 1;
-		}
-
-	# Operator: +=
-	#
-	# Use: Attribute += Value
-	# Always matches as a check item, and adds the current
-	# attribute with value to the list of configuration items.
-	#
-	# As a reply item, it has an itendtical meaning, but the
-	# attribute is added to the reply items.
-
-	} elsif ($attribute->{'Operator'} eq '+=') {
-		# Check for correct value
-		if (defined($attrVal) && $attrVal eq $attribute->{'Value'}) {
+	
+		# Operator: >
+		#
+		# Use: Attribute > Value
+		# As a check item, it matches if the request contains an attribute
+		# with a value greater than the one given.
+		#
+		# Not allowed as a reply item.
+	
+		} elsif ($attribute->{'Operator'} eq '>') {
+			if (defined($attrVal) && $attrVal =~ /^[0-9]+$/) {
+				# Check for correct value
+				if ($attrVal > $tattrVal) {
+					$matched = 1;
+				}
+			} else {
+				$server->log(LOG_WARN,"[ATTRIBUTES] - Attribute '".$attribute->{'Name'}."' is NOT a number!");
+			}
+	
+		# Operator: <
+		#
+		# Use: Attribute < Value
+		# As a check item, it matches if the request contains an attribute
+		# with a value less than the one given.
+		#
+		# Not allowed as a reply item.
+	
+		} elsif ($attribute->{'Operator'} eq '<') {
+			# Check for correct value
+			if (defined($attrVal) && $attrVal < $tattrVal) {
+				$matched = 1;
+			}
+	
+		# Operator: <=
+		#
+		# Use: Attribute <= Value
+		# As a check item, it matches if the request contains an attribute
+		# with a value less than, or equal to the one given.
+		#
+		# Not allowed as a reply item.
+	
+		} elsif ($attribute->{'Operator'} eq '<=') {
+			# Check for correct value
+			if (defined($attrVal) && $attrVal <= $tattrVal) {
+				$matched = 1;
+			}
+	
+		# Operator: >=
+		#
+		# Use: Attribute >= Value
+		# As a check item, it matches if the request contains an attribute
+		# with a value greater than, or equal to the one given.
+		#
+		# Not allowed as a reply item.
+	
+		} elsif ($attribute->{'Operator'} eq '>=') {
+			# Check for correct value
+			if (defined($attrVal) && $attrVal >= $tattrVal) {
+				$matched = 1;
+			}
+	
+		# Operator: =*
+		#
+		# Use: Attribute =* Value
+		# As a check item, it matches if the request contains the named attribute,
+		# no matter what the value is.
+		#
+		# Not allowed as a reply item.
+	
+		} elsif ($attribute->{'Operator'} eq '=*') {
+			# Check for matching value
+			if (defined($attrVal)) {
+				$matched = 1;
+			}
+	
+		# Operator !=
+		#
+		# Use: Attribute != Value
+		# As a check item, matches if the given attribute is in the
+		# request, AND does not have the given value.
+		#
+		# Not allowed as a reply item.
+	
+		} elsif ($attribute->{'Operator'} eq '!=') {
+			# Check for correct value
+			if (defined($attrVal) && $attrVal ne $tattrVal) {
+				$matched = 1;
+			}
+	
+		# Operator: !*
+		#
+		# Use: Attribute !* Value
+		# As a check item, matches if the request does not contain the named attribute, no matter
+		# what the value is.
+		#
+		# Not allowed as a reply item.
+	
+		} elsif ($attribute->{'Operator'} eq '!*') {
+			# Skip if value not defined
+			if (!defined($attrVal)) {
+				$matched = 1;
+			}
+	
+		# Operator: =~
+		#
+		# Use: Attribute =~ Value
+		# As a check item, matches if the request contains an attribute which matches the given regular expression.
+		# This operator may only be applied to string packetAttributes.
+		#
+		# Not allowed as a reply item.
+	
+		} elsif ($attribute->{'Operator'} eq '=~') {
+			# Check for correct value
+			if (defined($attrVal) && $attrVal =~ /$tattrVal/) {
+				$matched = 1;
+			}
+	
+		# Operator: !~
+		#
+		# Use: Attribute !~ Value
+		# As a check item, matches if the request does not match the given regular expression. This Operator may only
+		# be applied to string packetAttributes.
+		# what the value is.
+		#
+		# Not allowed as a reply item.
+	
+		} elsif ($attribute->{'Operator'} eq '!~') {
+			# Check for correct value
+			if (defined($attrVal) && !($attrVal =~ /$tattrVal/)) {
+				$matched = 1;
+			}
+	
+		# Operator: +=
+		#
+		# Use: Attribute += Value
+		# Always matches as a check item, and adds the current
+		# attribute with value to the list of configuration items.
+		#
+		# As a reply item, it has an itendtical meaning, but the
+		# attribute is added to the reply items.
+	
+		} elsif ($attribute->{'Operator'} eq '+=') {
 			# FIXME - Add to config items
 			$matched = 1;
-		}
-
-	# FIXME
-	# Operator: :=
-	#
-	# Use: Attribute := Value
-	# Always matches as a check item, and replaces in the configuration items any attribute of the same name. 
-	# If no attribute of that name appears in the request, then this attribute is added.
-	#
-	# As a reply item, it has an itendtical meaning, but for the reply items, instead of the request items.
-
-	} elsif ($attribute->{'Operator'} eq ':=') {
-		# Check for correct value
-		if (defined($attrVal) && $attrVal eq $attribute->{'Value'}) {
+	
+		# FIXME
+		# Operator: :=
+		#
+		# Use: Attribute := Value
+		# Always matches as a check item, and replaces in the configuration items any attribute of the same name. 
+		# If no attribute of that name appears in the request, then this attribute is added.
+		#
+		# As a reply item, it has an itendtical meaning, but for the reply items, instead of the request items.
+	
+		} elsif ($attribute->{'Operator'} eq ':=') {
 			# FIXME - Add or replace config items
+			# FIXME - Add attribute to request
 			$matched = 1;
+	
+		# Attributes that are not defined
+		} else {
+			# Ignore
+			$matched = 2;
+			last;
 		}
 	}
 
 	# Some debugging info	
-	if ($matched) {
+	if ($matched == 1) {
 		$server->log(LOG_DEBUG,"[ATTRIBUTES] - Attribute '".$attribute->{'Name'}."' matched");
+	} elsif ($matched == 2) {
+		$server->log(LOG_DEBUG,"[ATTRIBUTES] - Attribute '".$attribute->{'Name'}."' ignored");
 	} else {
 		$server->log(LOG_DEBUG,"[ATTRIBUTES] - Attribute '".$attribute->{'Name'}."' not matched");
 	}
@@ -265,71 +312,97 @@ sub checkAttributeAuth
 # Function which sees if we must reply with this attribute
 #
 # @param server Server instance
-# @param attributes Hashref of attributes provided
+# @param attributes Hashref of reply attributes
 # @param attribute Attribute to check
 sub getReplyAttribute
 {
 	my ($server,$attributes,$attribute) = @_;
 
+	
+	# Check ignore list
+	foreach my $ignoredAttr (@attributeIgnoreList) {
+		# 2 = IGNORE, so return IGNORE for all ignored items
+		return 2 if ($attribute->{'Name'} eq $ignoredAttr);
+	}
 
+	# Did we find a match
 	my $matched = 0;
 
-	# Grab attribute value
-	my $attrVal = $attributes->{$attribute->{'Name'}};
+	# Figure out our attr values
+	my @attrValues;
+	if (ref($attribute->{'Value'}) eq "ARRAY") {
+		@attrValues = @{$attribute->{'Value'}};
+	} else {
+		@attrValues = ( $attribute->{'Value'} );
+	}	
 
-	$server->log(LOG_DEBUG,"[ATTRIBUTES] Processing REPLY attribute value ".niceUndef($attrVal)."' against: '".
-			$attribute->{'Name'}."' ".$attribute->{'Operator'}." '".$attribute->{'Value'}."'");
+	$server->log(LOG_DEBUG,"[ATTRIBUTES] Processing REPLY attribute: '".
+			$attribute->{'Name'}."' ".$attribute->{'Operator'}." '".join("','",@attrValues)."'");
+	
 
-	# Operator: =
-	#
-	# Use: Attribute = Value
-	# Not allowed as a check item for RADIUS protocol attributes. It is allowed for server
-	# configuration attributes (Auth-Type, etc), and sets the value of on attribute,
-	# only if there is no other item of the same attribute.
-	#
-	# As a reply item, it means "add the item to the reply list, but only if there is
-	# no other item of the same attribute.
-
-	if ($attribute->{'Operator'} eq '=') {
-		if (!defined($attrVal)) {
+	# Loop with all values
+	foreach my $attrVal (@attrValues) { 	
+		# Operator: =
+		#
+		# Use: Attribute = Value
+		# Not allowed as a check item for RADIUS protocol attributes. It is allowed for server
+		# configuration attributes (Auth-Type, etc), and sets the value of on attribute,
+		# only if there is no other item of the same attribute.
+		#
+		# As a reply item, it means "add the item to the reply list, but only if there is
+		# no other item of the same attribute.
+	
+		if ($attribute->{'Operator'} eq '=') {
+			if (!defined($attrVal)) {
+				$matched = 1;
+			}
+	
+		# Operator: :=
+		#
+		# Use: Attribute := Value
+		# Always matches as a check item, and replaces in the configuration items any attribute of the same name. 
+		# If no attribute of that name appears in the request, then this attribute is added.
+		#
+		# As a reply item, it has an itendtical meaning, but for the reply items, instead of the request items.
+	
+		} elsif ($attribute->{'Operator'} eq ':=') {
+			# Add attribute if attribute appears
+			if (!defined($attrVal)) {
+				$matched = 1;
+			}
+	
+		# Operator: +=
+		#
+		# Use: Attribute += Value
+		# Always matches as a check item, and adds the current
+		# attribute with value to the list of configuration items.
+		#
+		# As a reply item, it has an itendtical meaning, but the
+		# attribute is added to the reply items.
+	
+		} elsif ($attribute->{'Operator'} eq '+=') {
 			$matched = 1;
+		
+		# Attributes that are not defined
+		} else {
+			# Ignore and b0rk out
+			$matched = 2;
+			last;
 		}
-
-	# Operator: :=
-	#
-	# Use: Attribute := Value
-	# Always matches as a check item, and replaces in the configuration items any attribute of the same name. 
-	# If no attribute of that name appears in the request, then this attribute is added.
-	#
-	# As a reply item, it has an itendtical meaning, but for the reply items, instead of the request items.
-
-	} elsif ($attribute->{'Operator'} eq ':=') {
-		# Add attribute if attribute appears
-		if (!defined($attrVal)) {
-			$matched = 1;
-		}
-
-	# Operator: +=
-	#
-	# Use: Attribute += Value
-	# Always matches as a check item, and adds the current
-	# attribute with value to the list of configuration items.
-	#
-	# As a reply item, it has an itendtical meaning, but the
-	# attribute is added to the reply items.
-
-	} elsif ($attribute->{'Operator'} eq '+=') {
-		$matched = 1;
 	}
 
 	# Some debugging info	
-	if ($matched) {
+	if ($matched == 1) {
 		$server->log(LOG_DEBUG,"[ATTRIBUTES] - Attribute '".$attribute->{'Name'}."' matched");
+		push(@{$attributes->{$attribute->{'Name'}}},@attrValues);
+	} elsif ($matched == 2) {
+		$server->log(LOG_DEBUG,"[ATTRIBUTES] - Attribute '".$attribute->{'Name'}."' ignored");
 	} else {
 		$server->log(LOG_DEBUG,"[ATTRIBUTES] - Attribute '".$attribute->{'Name'}."' not matched");
 	}
 
 	return $matched;
+
 }
 
 
