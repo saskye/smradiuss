@@ -27,6 +27,8 @@ use smradius::dblayer;
 use smradius::logging;
 use smradius::util;
 
+use POSIX qw(ceil);
+
 use Data::Dumper;
 
 # Exporter stuff
@@ -47,6 +49,7 @@ our $pluginInfo = {
 	
 	# Accounting database
 	Accounting_log => \&acct_log,
+	Accounting_getUsage => \&getUsage
 };
 
 
@@ -146,6 +149,18 @@ sub init
 					AND NASIPAddress = %{accounting.NAS-IP-Address}
 	';
 
+	$config->{'get_usage_query'} = '
+			SELECT 
+					SUM(AcctInputOctets) AS InputOctets, 
+					SUM(AcctOutputOctets) AS OutputOctets,
+					SUM(AcctInputGigawords) AS InputGigawords,
+					SUM(AcctOutputGigawords) AS OutputGigawords,
+					SUM(AcctSessionTime) AS SessionTime
+			FROM 
+					@TP@accounting 
+			WHERE 
+					Username = %{accounting.User-Name}
+	';
 
 	# Setup SQL queries
 	if (defined($scfg->{'mod_accounting_sql'})) {
@@ -162,7 +177,76 @@ sub init
 				$scfg->{'mod_accounting_sql'}->{'accounting_stop_query'} ne "") {
 			$config->{'accounting_stop_query'} = $scfg->{'mod_accounting_sql'}->{'accounting_stop_query'};
 		}
+		if (defined($scfg->{'mod_accounting_sql'}->{'get_usage_query'}) &&
+				$scfg->{'mod_accounting_sql'}->{'get_usage_query'} ne "") {
+			$config->{'get_usage_query'} = $scfg->{'mod_accounting_sql'}->{'get_usage_query'};
+		}
 	}
+}
+
+
+# Function to get radius user data usage
+sub getUsage
+{
+	my ($server,$user,$packet) = @_;
+
+
+	# Build template
+	my $template;
+	foreach my $attr ($packet->attributes) {
+		$template->{'accounting'}->{$attr} = $packet->rawattr($attr)
+	}
+	$template->{'user'} = $user;
+
+	# Replace template entries
+	my @dbDoParams = templateReplace($config->{'get_usage_query'},$template);
+
+	# Fetch data
+	my $sth = DBSelect(@dbDoParams);
+	if (!$sth) {
+		$server->log(LOG_ERR,"[MOD_ACCOUNTING_SQL] Database query failed: ".smradius::dblayer::Error());
+		return;
+	}
+
+	# Check rows
+	if ($sth->rows != 1) {
+		$server->log(LOG_ERR,"[MOD_ACCOUNTING_SQL] Database: No accounting data returned for user");
+		return;
+	}
+
+	# Pull data
+	my $usageData = $sth->fetchrow_hashref();
+
+	DBFreeRes($sth);
+
+	# FIXME, as its a custom query, check we have all the fields we need
+
+	# Total up input
+	my $totalData = 0; 
+	if (defined($usageData->{'inputoctets'}) && $usageData->{'inputoctets'} > 0) {
+		$totalData += $usageData->{'inputoctets'} / 1024 / 1024;
+	}
+	if (defined($usageData->{'inputgigawords'}) && $usageData->{'inputgigawords'} > 0) {
+		$totalData += $usageData->{'InputGigawords'} * 4096;
+	}
+	# Add up output
+	if (defined($usageData->{'outputoctets'}) && $usageData->{'outputoctets'} > 0) {
+		$totalData += $usageData->{'outputoctets'} / 1024 / 1024;
+	}
+	if (defined($usageData->{'outputGigawords'}) && $usageData->{'outputgigawords'} > 0) {
+		$totalData += $usageData->{'outputgigawords'} * 4096;
+	}
+
+	my $totalTime = 0; 
+	if (defined($usageData->{'sessiontime'}) && $usageData->{'sessiontime'} > 0) {
+		$totalTime = $usageData->{'sessiontime'} / 60;
+	}
+
+	my %res;
+	$res{'TotalDataUsage'} = ceil($totalData);
+	$res{'TotalTimeUsage'} = ceil($totalTime);
+
+	return \%res;
 }
 
 
