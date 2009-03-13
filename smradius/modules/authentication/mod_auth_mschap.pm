@@ -75,7 +75,7 @@ our $pluginInfo = {
 	Init => \&init,
 
 	# Authentication
-	Auth_try => \&authenticate,
+	Authentication_try => \&authenticate,
 };
 
 
