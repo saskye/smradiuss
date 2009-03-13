@@ -27,6 +27,7 @@ use lib qw(
 	smradius/modules/authentication
 	smradius/modules/userdb
 	smradius/modules/accounting
+	smradius/modules/features
 );
 
 package radiusd;
@@ -193,11 +194,6 @@ sub configure {
 		exit 1;
 	}
 
-	# Split off plugins
-	foreach my $plugin (@{$auth->{'mechanisms'}},@{$auth->{'users'}}) {
-		$plugin =~ s/\s+//g;
-	}
-
 	#
 	# Accounting plugins
 	#
@@ -214,10 +210,12 @@ sub configure {
 		exit 1;
 	}
 
-	# Split off plugins
-	foreach my $plugin (@{$auth->{'plugins'}}) {
-		$plugin =~ s/\s+//g;
-	}
+	#
+	# Feature plugins
+	#
+	my $features;
+	$features->{'plugins'} = [ ];
+	$features->{'plugins'} = $config{'features'}{'plugins'} if (defined($config{'features'}{'plugins'}));
 
 	#
 	# Dictionary configuration
@@ -245,8 +243,14 @@ sub configure {
 	$cfg->{'plugins'} = [ 
 		@{$auth->{'mechanisms'}},
 		@{$auth->{'users'}},
-		@{$acct->{'plugins'}} 
+		@{$acct->{'plugins'}},
+		@{$features->{'plugins'}} 
 	];
+
+	# Clean up plugins
+	foreach my $plugin (@{$cfg->{'plugins'}}) {
+		$plugin =~ s/\s+//g;
+	}
 
 	# Save our config and stuff
 	$self->{'config'} = $cfg;
@@ -595,24 +599,24 @@ sub process_request {
 		foreach my $module (@{$self->{'plugins'}}) {
 			# Try find user
 			if ($module->{'Accounting_log'}) {
-				$self->log(LOG_INFO,"[SMRADIUS] ACCOUNTING: Trying plugin '".$module->{'Name'}."'");
+				$self->log(LOG_INFO,"[SMRADIUS] ACCT: Trying plugin '".$module->{'Name'}."'");
 				my $res = $module->{'Accounting_log'}($self,$user,$pkt);
 
 				# Check result
 				if (!defined($res)) {
-					$self->log(LOG_DEBUG,"[SMRADIUS] ACCOUNTING: Error with plugin '".$module->{'Name'}."'");
+					$self->log(LOG_DEBUG,"[SMRADIUS] ACCT: Error with plugin '".$module->{'Name'}."'");
 
 				# Check if we skipping this plugin
 				} elsif ($res == MOD_RES_SKIP) {
-					$self->log(LOG_DEBUG,"[SMRADIUS] ACCOUNTING: Skipping '".$module->{'Name'}."'");
+					$self->log(LOG_DEBUG,"[SMRADIUS] ACCT: Skipping '".$module->{'Name'}."'");
 
 				# Check if we got a positive result back
 				} elsif ($res == MOD_RES_ACK) {
-					$self->log(LOG_NOTICE,"[SMRADIUS] ACCOUNTING: Accounting logged using '".$module->{'Name'}."'");
+					$self->log(LOG_NOTICE,"[SMRADIUS] ACCT: Accounting logged using '".$module->{'Name'}."'");
 
 				# Check if we got a negative result back
 				} elsif ($res == MOD_RES_NACK) {
-					$self->log(LOG_NOTICE,"[SMRADIUS] ACCOUNTING: Accounting NOT LOGGED using '".$module->{'Name'}."'");
+					$self->log(LOG_NOTICE,"[SMRADIUS] ACCT: Accounting NOT LOGGED using '".$module->{'Name'}."'");
 				}
 			}
 		}
@@ -623,6 +627,35 @@ sub process_request {
 		$resp->set_authenticator($pkt->authenticator);
 		$udp_packet = auth_resp($resp->pack, "test");
 		$server->{'client'}->send($udp_packet);
+
+		# Loop with features that have post-authentication hooks
+		foreach my $module (@{$self->{'plugins'}}) {
+			# Try authenticate
+			if ($module->{'Feature_Post-Accounting_hook'}) {
+				$self->log(LOG_INFO,"[SMRADIUS] POST-ACCT: Trying plugin '".$module->{'Name'}."' for '".$user->{'Username'}."'");
+				my $res = $module->{'Feature_Post-Accounting_hook'}($self,$user,$pkt);
+
+				# Check result
+				if (!defined($res)) {
+					$self->log(LOG_DEBUG,"[SMRADIUS] POST-ACCT: Error with plugin '".$module->{'Name'}."'");
+
+				# Check if we skipping this plugin
+				} elsif ($res == MOD_RES_SKIP) {
+					$self->log(LOG_DEBUG,"[SMRADIUS] POST-ACCT: Skipping '".$module->{'Name'}."'");
+
+				# Check if we got a positive result back
+				} elsif ($res == MOD_RES_ACK) {
+					$self->log(LOG_NOTICE,"[SMRADIUS] POST-ACCT: Passed authenticated by '".$module->{'Name'}."'");
+
+				# Or a negative result
+				} elsif ($res == MOD_RES_NACK) {
+					$self->log(LOG_NOTICE,"[SMRADIUS] POST-ACCT: Failed authentication by '".$module->{'Name'}."'");
+					#$authenticated = 0;
+					# Do we want to run the other features ??
+					#last;
+				}
+			}
+		}
 
 
 	# Or maybe a access request
@@ -670,12 +703,12 @@ sub process_request {
 		# AUTHENTICATE USER
 		#
 
-		# Loop with modules
+		# Loop with authentication modules
 		foreach my $module (@{$self->{'plugins'}}) {
 			# Try authenticate
-			if ($module->{'Auth_try'}) {
+			if ($module->{'Authentication_try'}) {
 				$self->log(LOG_INFO,"[SMRADIUS] AUTH: Trying plugin '".$module->{'Name'}."' for '".$user->{'Username'}."'");
-				my $res = $module->{'Auth_try'}($self,$user,$pkt);
+				my $res = $module->{'Authentication_try'}($self,$user,$pkt);
 
 				# Check result
 				if (!defined($res)) {
@@ -698,6 +731,37 @@ sub process_request {
 					$mechanism = $module;
 					last;
 
+				}
+			}
+		}
+
+		# Loop with features that have post-authentication hooks
+		if ($authenticated) {
+			foreach my $module (@{$self->{'plugins'}}) {
+				# Try authenticate
+				if ($module->{'Feature_Post-Authentication_hook'}) {
+					$self->log(LOG_INFO,"[SMRADIUS] POST-AUTH: Trying plugin '".$module->{'Name'}."' for '".$user->{'Username'}."'");
+					my $res = $module->{'Feature_Post-Authentication_hook'}($self,$user,$pkt);
+
+					# Check result
+					if (!defined($res)) {
+						$self->log(LOG_DEBUG,"[SMRADIUS] POST-AUTH: Error with plugin '".$module->{'Name'}."'");
+
+					# Check if we skipping this plugin
+					} elsif ($res == MOD_RES_SKIP) {
+						$self->log(LOG_DEBUG,"[SMRADIUS] POST-AUTH: Skipping '".$module->{'Name'}."'");
+
+					# Check if we got a positive result back
+					} elsif ($res == MOD_RES_ACK) {
+						$self->log(LOG_NOTICE,"[SMRADIUS] POST-AUTH: Passed authenticated by '".$module->{'Name'}."'");
+
+					# Or a negative result
+					} elsif ($res == MOD_RES_NACK) {
+						$self->log(LOG_NOTICE,"[SMRADIUS] POST-AUTH: Failed authentication by '".$module->{'Name'}."'");
+						$authenticated = 0;
+						# Do we want to run the other features ??
+						last;
+					}
 				}
 			}
 		}
