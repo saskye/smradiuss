@@ -190,7 +190,6 @@ sub getUsage
 {
 	my ($server,$user,$packet) = @_;
 
-
 	# Build template
 	my $template;
 	foreach my $attr ($packet->attributes) {
@@ -237,18 +236,19 @@ sub getUsage
 		$totalData += $usageData->{'outputgigawords'} * 4096;
 	}
 
+	# Add up time
 	my $totalTime = 0; 
 	if (defined($usageData->{'sessiontime'}) && $usageData->{'sessiontime'} > 0) {
 		$totalTime = $usageData->{'sessiontime'} / 60;
 	}
-
+	
+	# Rounding up
 	my %res;
 	$res{'TotalDataUsage'} = ceil($totalData);
 	$res{'TotalTimeUsage'} = ceil($totalTime);
 
 	return \%res;
 }
-
 
 
 ## @log
