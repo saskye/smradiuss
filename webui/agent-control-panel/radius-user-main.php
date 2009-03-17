@@ -72,32 +72,6 @@ function displaySearch() {
 					?> />
 				</td>
 			</tr>
-			<tr>
-				<td class="title">Service</td>
-				<td class="entry"></td>
-				<td align="center"><input type="radio" name="searchOrderBy" value="Service" <?php
-						if (isset($_SESSION['radiusUser_searchOrderBy']) && $_SESSION['radiusUser_searchOrderBy'] == "Service") {
-							echo "checked";
-						}
-					?> />
-				</td>
-			</tr>
-			<tr>
-				<td class="title">Agent Ref</td>
-				<td class="entry">
-					<input type="text" name="searchAgentRef" value="<?php
-						if (isset($_SESSION['radiusUser_searchAgentRef'])) {
-							echo $_SESSION['radiusUser_searchAgentRef'];
-						}
-					?>" />
-				</td>
-				<td align="center"><input type="radio" name="searchOrderBy" value="AgentRef" <?php
-						if (isset($_SESSION['radiusUser_searchOrderBy']) && $_SESSION['radiusUser_searchOrderBy'] == "AgentRef") {
-							echo "checked";
-						}
-					?> />
-				</td>
-			</tr>
 		</table>
 		<div class="text-center">
 			<input type="submit" />
@@ -123,111 +97,80 @@ function displaySearchResults($searchOptions)
 	global $userID;
 
 ?>
-		<div class="sectiontitle">Radius User Search Results</div>
-		<p />
+	<div class="sectiontitle">Radius User Search Results</div>
+	<p />
 
-		<form id="main_form" action="radius-user-main.php" method="post">
-			<div class="text-center">
-				Action
-				<select id="main_form_action" name="frmaction" 
-						onchange="
-							var myform = document.getElementById('main_form');
-							var myobj = document.getElementById('main_form_action');
+	<form id="main_form" action="radius-user-main.php" method="post">
+		<div class="text-center">
+			Action
+			<select id="main_form_action" name="frmaction" 
+					onchange="
+						var myform = document.getElementById('main_form');
+						var myobj = document.getElementById('main_form_action');
 
-							if (myobj.selectedIndex == 2) {
-								myform.action = 'radius-user-change.php';
-							} else if (myobj.selectedIndex == 3) {
-								myform.action = 'radius-user-delete.php';
-							} else if (myobj.selectedIndex == 4) {
-								myform.action = 'radius-user-info.php';
-							} else if (myobj.selectedIndex == 5) {
-								myform.action = 'radius-user-logs.php';
-							} else if (myobj.selectedIndex == 6) {
-								myform.action = 'radius-user-topup-add.php';
-							} else if (myobj.selectedIndex == 7) {
-								myform.action = 'radius-user-topup-main.php';
-							} else if (myobj.selectedIndex == 8) {
-								myform.action = 'radius-user-portlock-main.php';
-							} else if (myobj.selectedIndex == 10) {
-								myform.action = 'radius-user-add.php';
-							}
+						if (myobj.selectedIndex == 2) {
+							myform.action = 'radius-user-change.php';
+						} else if (myobj.selectedIndex == 3) {
+							myform.action = 'radius-user-delete.php';
+						} else if (myobj.selectedIndex == 4) {
+							myform.action = 'radius-user-info.php';
+						} else if (myobj.selectedIndex == 5) {
+							myform.action = 'radius-user-logs.php';
+						} else if (myobj.selectedIndex == 6) {
+							myform.action = 'radius-user-topup-add.php';
+						} else if (myobj.selectedIndex == 7) {
+							myform.action = 'radius-user-topup-main.php';
+						} else if (myobj.selectedIndex == 8) {
+							myform.action = 'radius-user-portlock-main.php';
+						} else if (myobj.selectedIndex == 10) {
+							myform.action = 'radius-user-add.php';
+						}
 
-							myform.submit();
-				">
-					<option selected="selected">select action</option>
-					<option disabled="disabled"> - T H I S - U S E R - </option>
-					<option value="change_main">Change</option>
-					<option value="delete_main">Delete</option>
-					<option value="info_main">Info</option>
-					<option value="logs_main">Logs</option>
-					<option value="topups_add_main">Topups: Add</option>
-					<option value="topups_main">Topups: Search</option>
-					<option value="portlocks_main">Port Locking</option>
-					<option disabled="disabled"> - - - - - - - - - - - </option>
-					<option value="add_main">Add User</option>
-				</select>
-			</div>
+						myform.submit();
+			">
+				<option selected="selected">select action</option>
+				<option disabled="disabled"> - T H I S - U S E R - </option>
+				<option value="change_main">Change</option>
+				<option value="delete_main">Delete</option>
+				<option value="info_main">Info</option>
+				<option value="logs_main">Logs</option>
+				<option value="topups_add_main">Topups: Add</option>
+				<option value="topups_main">Topups: Search</option>
+				<option value="portlocks_main">Port Locking</option>
+				<option disabled="disabled"> - - - - - - - - - - - </option>
+				<option value="add_main">Add User</option>
+			</select>
+		</div>
 
-			<table class="resulttable">
+		<table class="resulttable">
+			<tr>
+				<td></td>
+				<td class="title">Username</td>
+				<td class="title">Service Class</td>
+				<td class="title">UsageCap</td>
+				<td class="title">AgentRef</td>
+				<td class="title">Disabled</td>
+			</tr>
+<?php
+			$sql = "SELECT ID, Username, Disabled FROM ${DB_TABLE_PREFIX}users ORDER BY ID ASC";
+			$res = $db->query($sql);
+
+			while ($row = $res->fetchObject()) {
+?>
 				<tr>
-					<td></td>
-					<td class="title">Username</td>
-					<td class="title">Service Class</td>
-					<td class="title">UsageCap</td>
-					<td class="title">AgentRef</td>
-					<td class="title">Disabled</td>
+					<td><input type="radio" name="user_id" value="<?php echo $row->id; ?>" /></td>
+					<td><?php echo $row->username;  ?></td>
+					<td align="center"><?php echo $row->disabled ? "yes" : "no"; ?></td>
 				</tr>
 <?php
-				foreach ($userList as $user) {
-			
+			}
+			$res->closeCursor();
 ?>
-					<tr>
-						<td><input type="radio" name="user_id" value="<?php echo $user->ID ?>" /></td>
-						<td><?php echo $user->Username;  ?></td>
-						<td><?php echo $user->Service; ?></td>
-						<td class="text-right"><?php echo $usageCap; ?></td>
-						<td><?php echo $user->AgentRef; ?></td>
-						<td align="center"><?php echo $user->AgentDisabled ? "yes" : "no"; ?></td>
-					</tr>
+		</table>
+	</form>
 <?php
-				}
-?>
-			</table>
-		</form>
-<?php
-	} else {
-		displayError("getRadiusUsers: ".strSoapError($userList));
-	}
 }
 
-
-
-
-# Check if we have an action
-if (!isset($_REQUEST['frmaction'])) {
-	displaySearch();
-
-
-} elseif ($_REQUEST['frmaction'] == "search_main") {
-	# Process search options
-	if (isset($_REQUEST['searchUsername'])) {
-		$_SESSION['radiusUser_searchUsername'] = $_REQUEST['searchUsername'];
-	}
-	if (isset($_REQUEST['searchAgentRef'])) {
-		$_SESSION['radiusUser_searchAgentRef'] = $_REQUEST['searchAgentRef'];
-	}
-	if (isset($_REQUEST['searchOrderBy'])) {
-		$_SESSION['radiusUser_searchOrderBy'] = $_REQUEST['searchOrderBy'];
-	}
-
-	# Setup search
-	$searchOptions->searchUsername = isset($_SESSION['radiusUser_searchUsername']) ? $_SESSION['radiusUser_searchUsername'] : NULL;
-	$searchOptions->searchAgentRef = isset($_SESSION['radiusUser_searchAgentRef']) ? $_SESSION['radiusUser_searchAgentRef'] : NULL;
-	$searchOptions->searchOrderBy = isset($_SESSION['radiusUser_searchOrderBy']) ? $_SESSION['radiusUser_searchOrderBy'] : NULL;
-
-
-	displaySearchResults($searchOptions);
-}
 
 
 # Menu footer
