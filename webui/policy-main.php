@@ -52,7 +52,7 @@ if (!isset($_POST['frmaction']))
 						} else if (myobj.selectedIndex == 5) {
 							myform.action = 'user-delete.php';
 						} else if (myobj.selectedIndex == 6) {
-							myform.action = 'user-member-main.php';
+							myform.action = 'user-attributes.php';
 						}
 
 						myform.submit();
