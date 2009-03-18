@@ -15,7 +15,7 @@ function printFooter()
 		</tr>
 
 		<tr>
-			<td id="footer">Policyd - Copyright &copy; 2008, LinuxRulz - <a href="http://www.policyd.org/v2/">http://www.policyd.org/v2/</a></td>
+			<td id="footer">SMRadiusd - Copyright &copy; 2008-2009, LinuxRulz - <a href="http://www.policyd.org/v2/">http://www.policyd.org/v2/</a></td>
 		</tr>
 		<tr>
 			<td>
