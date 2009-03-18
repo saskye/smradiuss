@@ -31,27 +31,25 @@ $db = connect_db();
 
 printHeader(array(
 		"Tabs" => array(
-			"Back to policies" => "policy-main.php",
-			"Back to members" => "policy-member-main.php?policy_id=".$_REQUEST['policy_id'],
+			"Back to members" => "policy-member-main.php",
 		),
 ));
-
 
 
 # Display change screen
 if ($_POST['frmaction'] == "change") {
 
 	# Check a policy member was selected
-	if (isset($_POST['policy_member_id'])) {
+	if (isset($_POST['attr_id'])) {
 		# Prepare statement
 		$stmt = $db->prepare("SELECT ID, Source, Destination, Comment, Disabled FROM ${DB_TABLE_PREFIX}policy_members WHERE ID = ?");
 		$res = $stmt->execute(array($_POST['policy_member_id']));
 		$row = $stmt->fetchObject();
 		$stmt->closeCursor();
 ?>
-		<p class="pageheader">Update Policy Member</p>
+		<p class="pageheader">Update User</p>
 
-		<form action="policy-member-change.php" method="post">
+		<form action="user-change.php" method="post">
 			<div>
 				<input type="hidden" name="frmaction" value="change2" />
 				<input type="hidden" name="policy_id" value="<?php echo $_POST['policy_id']; ?>" />
