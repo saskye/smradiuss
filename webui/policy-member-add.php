@@ -31,40 +31,29 @@ $db = connect_db();
 printHeader(array(
 		"Tabs" => array(
 			"Back to policies" => "policy-main.php",
-			"Back to members" => "policy-member-main.php?policy_id=".$_REQUEST['policy_id'],
+			"Back to members" => "policy-member-main.php?policy_id=".$_REQUEST['username'],
 		),
 ));
 
 
 if ($_POST['frmaction'] == "add")  {
 ?>
-	<p class="pageheader">Add Policy Member</p>
+	<p class="pageheader">Add user</p>
 <?php
-	if (!empty($_POST['policy_id'])) {
+	if (!empty($_POST['username'])) {
 ?>
 		<form method="post" action="policy-member-add.php">
 			<div>
 				<input type="hidden" name="frmaction" value="add2" />
-				<input type="hidden" name="policy_id" value="<?php echo $_POST['policy_id'] ?>" />
+				<input type="hidden" name="policy_id" value="<?php echo $_POST['username'] ?>" />
 			</div>
 			<table class="entry">
 				<tr>
 					<td class="entrytitle texttop">
-						Source
-						<?php tooltip('policy_member_source'); ?>
+						Username
+						<?php tooltip('Username'); ?>
 					</td>
 					<td><textarea name="member_source" cols="40" rows="5"/></textarea></td>
-				</tr>
-				<tr>
-					<td class="entrytitle texttop">
-						Destination
-						<?php tooltip('policy_member_destination'); ?>
-					</td>
-					<td><textarea name="member_destination" cols="40" rows="5"/></textarea></td>
-				</tr>
-				<tr>
-					<td class="entrytitle">Comment</td>
-					<td><textarea name="member_comment"></textarea></td>
 				</tr>
 				<tr>
 					<td colspan="2">
@@ -76,7 +65,7 @@ if ($_POST['frmaction'] == "add")  {
 <?php
 	} else {
 ?>
-		<div class="warning">No policy ID, invalid invocation?</div>
+		<div class="warning">Invalid user name</div>
 <?php
 	}
 	
@@ -89,28 +78,25 @@ if ($_POST['frmaction'] == "add")  {
 
 <?php
 	# Check source and dest are not blank
-	if (empty($_POST['member_source']) && empty($_POST['member_destination'])) {
+	if (empty($_POST['username'])) {
 ?>
 		<div class="warning">A blank member is useless?</div>
 <?php
 
 
 	} else {
-		$stmt = $db->prepare("INSERT INTO ${DB_TABLE_PREFIX}policy_members (PolicyID,Source,Destination,Comment,Disabled) VALUES (?,?,?,?,1)");
+		$stmt = $db->prepare("INSERT INTO ${DB_TABLE_PREFIX}users (Username) VALUES (?)");
 		
 		$res = $stmt->execute(array(
-			$_POST['policy_id'],
-			$_POST['member_source'],
-			$_POST['member_destination'],
-			$_POST['member_comment']
+			$_POST['username'],
 		));
 		if ($res) {
 ?>
-			<div class="notice">Policy member created</div>
+			<div class="notice">User added</div>
 <?php
 		} else {
 ?>
-			<div class="warning">Failed to create policy member</div>
+			<div class="warning">Failed to add user</div>
 			<div class="warning"><?php print_r($stmt->errorInfo()) ?></div>
 <?php
 		}
