@@ -31,7 +31,7 @@ $db = connect_db();
 
 printHeader(array(
 		"Tabs" => array(
-			"Back to members" => "policy-member-main.php",
+			"Back to members" => "policy-main.php",
 		),
 ));
 
@@ -42,18 +42,17 @@ if ($_POST['frmaction'] == "change") {
 	# Check a policy member was selected
 	if (isset($_POST['attr_id'])) {
 		# Prepare statement
-		$stmt = $db->prepare("SELECT ID, Source, Destination, Comment, Disabled FROM ${DB_TABLE_PREFIX}policy_members WHERE ID = ?");
-		$res = $stmt->execute(array($_POST['policy_member_id']));
-		$row = $stmt->fetchObject();
-		$stmt->closeCursor();
+		$temp = $_POST['attr_id'];
+		$sql = "SELECT ID, Name, Operator, Value, Disabled FROM ${DB_TABLE_PREFIX}user_attributes WHERE ID = $temp";
+		$res = $db->query($sql); 
+		$row = $res->fetchObject();
 ?>
 		<p class="pageheader">Update User</p>
 
 		<form action="user-change.php" method="post">
 			<div>
 				<input type="hidden" name="frmaction" value="change2" />
-				<input type="hidden" name="policy_id" value="<?php echo $_POST['policy_id']; ?>" />
-				<input type="hidden" name="policy_member_id" value="<?php echo $_POST['policy_member_id']; ?>" />
+				<input type="hidden" name="attr_id" value="<?php echo $_POST['attr_id']; ?>" />
 			</div>
 			<table class="entry" style="width: 75%;">
 				<tr>
@@ -63,30 +62,30 @@ if ($_POST['frmaction'] == "change") {
 				</tr>
 				<tr>
 					<td class="entrytitle texttop">
-						Source
-						<?php tooltip('policy_member_source'); ?>
+						Name
+						<?php tooltip('user_attributes_name'); ?>
 					</td>
-					<td class="oldval texttop"><?php echo $row->source ?></td>
-					<td><textarea name="policy_member_source" cols="40" rows="5"></textarea></td>
+					<td class="oldval texttop"><?php echo $row->name ?></td>
+					<td><textarea name="user_attributes_name" cols="40" rows="5"></textarea></td>
 				</tr>
 				<tr>
 					<td class="entrytitle texttop">
-						Destination
-						<?php tooltip('policy_member_destination'); ?>
+						Operator
+						<?php tooltip('user_attributes_operator'); ?>
 					</td>
-					<td class="oldval texttop"><?php echo $row->destination ?></td>
-					<td><textarea name="policy_member_destination" cols="40" rows="5"></textarea></td>
+					<td class="oldval texttop"><?php echo $row->operator ?></td>
+					<td><textarea name="user_attributes_operator" cols="40" rows="1"></textarea></td>
 				</tr>
 				<tr>
-					<td class="entrytitle texttop">Comment</td>
-					<td class="oldval texttop"><?php echo $row->comment ?></td>
-					<td><textarea name="policy_member_comment" cols="40" rows="5"></textarea></td>
+					<td class="entrytitle texttop">Value</td>
+					<td class="oldval texttop"><?php echo $row->value ?></td>
+					<td><textarea name="user_attributes_value" cols="40" rows="5"></textarea></td>
 				</tr>
 				<tr>
 					<td class="entrytitle">Disabled</td>
 					<td class="oldval"><?php echo $row->disabled ? 'yes' : 'no' ?></td>
 					<td>
-						<select name="policy_member_disabled" />
+						<select name="user_attributes_disabled" />
 							<option value="">--</option>
 							<option value="0">No</option>
 							<option value="1">Yes</option>
@@ -102,9 +101,10 @@ if ($_POST['frmaction'] == "change") {
 			</div>
 		</form>
 <?php
+	$res->closeCursor();
 	} else {
 ?>
-		<div class="warning">No policy selected</div>
+		<div class="warning">No attribute selected</div>
 <?php
 	}
 	
@@ -113,38 +113,38 @@ if ($_POST['frmaction'] == "change") {
 # SQL Updates
 } elseif ($_POST['frmaction'] == "change2") {
 ?>
-	<p class="pageheader">Policy Update Results</p>
+	<p class="pageheader">Attribute Update Results</p>
 <?php
 	# Check a policy was selected
-	if (isset($_POST['policy_member_id'])) {
+	if (isset($_POST['attr_id'])) {
 		
 		$updates = array();
 
-		if (!empty($_POST['policy_member_source'])) {
-			array_push($updates,"Source = ".$db->quote($_POST['policy_member_source']));
+		if (!empty($_POST['user_attributes_name'])) {
+			array_push($updates,"Name = ".$db->quote($_POST['user_attributes_name']));
 		}
-		if (isset($_POST['policy_member_destination']) && $_POST['policy_member_destination'] != "") {
-			array_push($updates,"Destination = ".$db->quote($_POST['policy_member_destination']));
+		if (isset($_POST['user_attributes_operator']) && $_POST['user_attributes_operator'] != "") {
+			array_push($updates,"Operator = ".$db->quote($_POST['user_attributes_operator']));
 		}
-		if (!empty($_POST['policy_member_comment'])) {
-			array_push($updates,"Comment = ".$db->quote($_POST['policy_member_comment']));
+		if (!empty($_POST['user_attributes_value'])) {
+			array_push($updates,"Value = ".$db->quote($_POST['user_attributes_value']));
 		}
-		if (isset($_POST['policy_member_disabled']) && $_POST['policy_member_disabled'] != "") {
-			array_push($updates ,"Disabled = ".$db->quote($_POST['policy_member_disabled']));
+		if (isset($_POST['user_attributes_disabled']) && $_POST['user_attributes_disabled'] != "") {
+			array_push($updates ,"Disabled = ".$db->quote($_POST['user_attributes_disabled']));
 		}
 
 		# Check if we have updates
 		if (sizeof($updates) > 0) {
 			$updateStr = implode(', ',$updates);
 	
-			$res = $db->exec("UPDATE ${DB_TABLE_PREFIX}policy_members SET $updateStr WHERE ID = ".$db->quote($_POST['policy_member_id']));
+			$res = $db->exec("UPDATE ${DB_TABLE_PREFIX}user_attributes SET $updateStr WHERE ID = ".$db->quote($_POST['attr_id']));
 			if ($res) {
 ?>
-				<div class="notice">Policy member updated</div>
+				<div class="notice">Attribute updated</div>
 <?php
 			} else {
 ?>
-				<div class="warning">Error updating policy member!</div>
+				<div class="warning">Error updating attribute</div>
 				<div class="warning"><?php print_r($db->errorInfo()) ?></div>
 <?php
 			}
@@ -152,14 +152,14 @@ if ($_POST['frmaction'] == "change") {
 		# Warn
 		} else {
 ?>
-			<div class="warning">No policy member updates</div>
+			<div class="warning">No attribute updates</div>
 <?php
 		}
 
 	# Warn
 	} else {
 ?>
-		<div class="error">No policy member data available</div>
+		<div class="error">No attribute data available</div>
 <?php
 	}
 
