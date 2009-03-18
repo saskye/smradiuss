@@ -42,7 +42,7 @@ function printHeader($params = NULL)
 
 	<table id="maintable">
 		<tr>
-			<td id="header">Policyd Web Administration</td>
+			<td id="header">SMRadiusd Web Administration</td>
 		</tr>
 
 		<tr>
@@ -53,64 +53,12 @@ function printHeader($params = NULL)
 	    					<img style="margin-top:-1px; margin-left:-1px;" src="images/top2.jpg" alt="" />
 	    					<p><a href=".">Home</a></p>
 
-							<p>Policies</p>
+							<p>Control Panel</p>
 							<ul>
-								<li><a href="policy-main.php">Main</a></li>
+								<li><a href="policy-main.php">Users</a></li>
 								<li><a href="policy-group-main.php">Groups</a></li>
 							</ul>
 
-							<p>Access Control</p>
-							<ul>
-				   				<li><a href="accesscontrol-main.php">Configure</a></li>
-							</ul>
-					
-							<p>HELO/EHLO Checks</p>
-							<ul>
-		    					<li><a href="checkhelo-main.php">Configure</a></li>
-		    					<li><a href="checkhelo-blacklist-main.php">Blacklist</a></li>
-		    					<li><a href="checkhelo-whitelist-main.php">Whitelist</a></li>
-							</ul>
-					
-							<p>SPF Checks</p>
-							<ul>
-		    					<li><a href="checkspf-main.php">Configure</a></li>
-							</ul>
-					
-							<p>Greylisting</p>
-							<ul>
-		    					<li><a href="greylisting-main.php">Configure</a></li>
-		    					<li><a href="greylisting-whitelist-main.php">Whitelist</a></li>
-							</ul>
-					
-							<p>Quotas</p>
-							<ul>
-		    					<li><a href="quotas-main.php">Configure</a></li>
-							</ul>
-					
-							<p>Accounting</p>
-							<ul>
-		    					<li><a href="accounting-main.php">Configure</a></li>
-							</ul>
-					
-							<p>Amavis Integration</p>
-							<ul>
-		    					<li><a href="amavis-main.php">Configure</a></li>
-							</ul>
-<?php
-							# Check if postfix DSN is set
-							if (isset($DB_POSTFIX_DSN) && !empty($DB_POSTFIX_DSN)) 
-							{
-?>
-								<p>Postfix Integration</p>
-								<ul>
-		    						<li><a href="postfix-transports-main.php">Transports</a></li>
-		    						<li><a href="postfix-mailboxes-main.php">Mailboxes</a></li>
-		    						<li><a href="postfix-aliases-main.php">Aliases</a></li>
-		    						<li><a href="postfix-distgroups-main.php">Distribution Groups</a></li>
-								</ul>
-<?php
-							}
-?>					
 	    					<img style="margin-left:-1px; margin-bottom: -6px" src="images/specs_bottom.jpg" alt="" />
 						</td>
 
