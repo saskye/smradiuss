@@ -32,7 +32,7 @@ printHeader(array(
 ));
 
 ?>
-	<p class="pageheader">Policy Groups</p>
+	<p class="pageheader">User Groups</p>
 
 	<form id="main_form" action="policy-group-main.php" method="post">
 
@@ -72,10 +72,12 @@ printHeader(array(
 			<tr class="resultstitle">
 				<td id="noborder"></td>
 				<td class="textcenter">Name</td>
+				<td class="textcenter">Priority</td>
 				<td class="textcenter">Disabled</td>
+				<td class="textcenter">Comment</td>
 			</tr>
 <?php
-			$sql = "SELECT ID, Name, Disabled FROM ${DB_TABLE_PREFIX}policy_groups ORDER BY Name";
+			$sql = "SELECT ID, Name, Priority, Disabled, Comment FROM ${DB_TABLE_PREFIX}groups ORDER BY Name";
 			$res = $db->query($sql);
 
 			while ($row = $res->fetchObject()) {
@@ -83,7 +85,9 @@ printHeader(array(
 				<tr class="resultsitem">
 					<td><input type="radio" name="policy_group_id" value="<?php echo $row->id ?>" /></td>
 					<td><?php echo $row->name ?></td>
+					<td><?php echo $row->priority ?></td>
 					<td class="textcenter"><?php echo $row->disabled ? 'yes' : 'no' ?></td>
+					<td><?php echo $row->comment ?></td>
 				</tr>
 <?php
 			}
