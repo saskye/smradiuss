@@ -1,6 +1,6 @@
 <?php
-# Policy main screen
-# Copyright (C) 2008, LinuxRulz
+# Radius User List
+# Copyright (C) 2008-2009, AllWorldIT
 # 
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -34,9 +34,9 @@ printHeader(array(
 if (!isset($_POST['frmaction']))
 {
 ?>
-	<p class="pageheader">Policy List</p>
+	<p class="pageheader">User List</p>
 
-	<form id="main_form" action="policy-main.php" method="post">
+	<form id="main_form" action="user-main.php" method="post">
 
 		<div class="textcenter">
 			Action
@@ -46,13 +46,13 @@ if (!isset($_POST['frmaction']))
 						var myobj = document.getElementById('main_form_action');
 
 						if (myobj.selectedIndex == 2) {
-							myform.action = 'policy-add.php';
+							myform.action = 'user-add.php';
 						} else if (myobj.selectedIndex == 4) {
-							myform.action = 'policy-change.php';
+							myform.action = 'user-change.php';
 						} else if (myobj.selectedIndex == 5) {
-							myform.action = 'policy-delete.php';
+							myform.action = 'user-delete.php';
 						} else if (myobj.selectedIndex == 6) {
-							myform.action = 'policy-member-main.php';
+							myform.action = 'user-member-main.php';
 						}
 
 						myform.submit();
@@ -64,7 +64,7 @@ if (!isset($_POST['frmaction']))
 				<option disabled="disabled"> - - - - - - - - - - - </option>
 				<option value="change">Change</option>
 				<option value="delete">Delete</option>
-				<option value="members">Members</option>
+				<option value="members">Attributes</option>
 			</select> 
 		</div>
 
@@ -72,23 +72,19 @@ if (!isset($_POST['frmaction']))
 
 		<table class="results" style="width: 75%;">
 			<tr class="resultstitle">
-				<td id="noborder"></td>
-				<td class="textcenter">Name</td>
-				<td class="textcenter">Priority</td>
-				<td class="textcenter">Description</td>
+				<td class="textcenter">ID</td>
+				<td class="textcenter">Username</td>
 				<td class="textcenter">Disabled</td>
 			</tr>
 <?php
-			$sql = "SELECT ID, Name, Priority, Description, Disabled FROM ${DB_TABLE_PREFIX}policies ORDER BY Priority ASC";
+			$sql = "SELECT ID, Username, Disabled FROM ${DB_TABLE_PREFIX}users ORDER BY Username ASC";
 			$res = $db->query($sql);
 
 			while ($row = $res->fetchObject()) {
 ?>
 				<tr class="resultsitem">
-					<td><input type="radio" name="policy_id" value="<?php echo $row->id ?>" /></td>
-					<td><?php echo $row->name ?></td>
-					<td class="textcenter"><?php echo $row->priority ?></td>
-					<td><?php echo $row->description ?></td>
+					<td><input type="radio" name="user_id" value="<?php echo $row->id ?>"/><?php echo $row->id ?></td>
+					<td><?php echo $row->username ?></td>
 					<td class="textcenter"><?php echo $row->disabled ? 'yes' : 'no' ?></td>
 				</tr>
 <?php
