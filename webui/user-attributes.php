@@ -17,6 +17,7 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 
+session_start();
 
 include_once("includes/header.php");
 include_once("includes/footer.php");
@@ -35,7 +36,7 @@ printHeader(array(
 ));
 
 ?>
-<p class="pageheader">User List</p>
+<p class="pageheader">Attribute List</p>
 
 <form id="main_form" action="user-main.php" method="post">
 
@@ -77,8 +78,10 @@ printHeader(array(
 			<td class="textcenter">Disabled</td>
 		</tr>
 <?php
-if (isset($_POST['user_id'])) {
-	$temp = $_POST['user_id'];
+$_SESSION['attr_user_id'] = $_POST['user_id']; 
+if (isset($_SESSION['attr_user_id'])) {
+	
+	$temp = $_SESSION['attr_user_id'];
 	$sql = "SELECT ID, Name, Operator, Value, Disabled FROM ${DB_TABLE_PREFIX}user_attributes WHERE UserID = $temp ORDER BY ID";
 	$res = $db->query($sql);
 
