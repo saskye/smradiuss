@@ -38,8 +38,7 @@ printHeader(array(
 
 # Display change screen
 if ($_POST['frmaction'] == "change") {
-
-	# Check a policy member was selected
+	# Check an attribute was selected
 	if (isset($_POST['attr_id'])) {
 		# Prepare statement
 		$temp = $_POST['attr_id'];
@@ -133,7 +132,7 @@ if ($_POST['frmaction'] == "change") {
 ?>
 	<p class="pageheader">Attribute Update Results</p>
 <?php
-	# Check a policy was selected
+	# Check an attribute was selected
 	if (isset($_POST['attr_id'])) {
 		
 		$updates = array();
