@@ -21,11 +21,7 @@ include_once("includes/footer.php");
 include_once("includes/db.php");
 include_once("includes/tooltips.php");
 
-
-
 $db = connect_db();
-
-
 
 printHeader(array(
 		"Tabs" => array(
@@ -34,11 +30,9 @@ printHeader(array(
 ));
 
 
-
 if ($_POST['frmaction'] == "add") {
 ?>
 	<p class="pageheader">Add user</p>
-
 	<form method="post" action="user-add.php">
 		<div>
 			<input type="hidden" name="frmaction" value="add2" />
@@ -55,27 +49,25 @@ if ($_POST['frmaction'] == "add") {
 			</tr>
 		</table>
 	</form>
-
 <?php
 
 # Check we have all params
 } elseif ($_POST['frmaction'] == "add2") {
 ?>
 	<p class="pageheader">User Add Results</p>
-
 <?php
 	# Check name
 	if (empty($_POST['user_name'])) {
 ?>
 		<div class="warning">Username cannot be empty</div>
 <?php
-
+	# Add to database
 	} else {
 		$stmt = $db->prepare("INSERT INTO ${DB_TABLE_PREFIX}users (Username) VALUES (?)");
-
 		$res = $stmt->execute(array(
-			$_POST['user_name'],
-		));
+				$_POST['user_name'],
+				));
+		# Was it successful?
 		if ($res) {
 ?>
 			<div class="notice">User added</div>
@@ -94,7 +86,6 @@ if ($_POST['frmaction'] == "add") {
 }
 
 printFooter();
-
 
 # vim: ts=4
 ?>
