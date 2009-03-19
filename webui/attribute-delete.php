@@ -38,7 +38,6 @@ printHeader(array(
 
 # Display delete confirm screen
 if ($_POST['frmaction'] == "delete") {
-
 	# Check a user was selected
 	if (isset($_POST['attr_id'])) {
 ?>
@@ -49,7 +48,6 @@ if ($_POST['frmaction'] == "delete") {
 				<input type="hidden" name="frmaction" value="delete2" />
 				<input type="hidden" name="attr_id" value="<?php echo $_POST['attr_id']; ?>" />
 			</div>
-			
 			<div class="textcenter">
 				Are you very sure? <br />
 				<input type="submit" name="confirm" value="yes" />
@@ -62,7 +60,6 @@ if ($_POST['frmaction'] == "delete") {
 		<div class="warning">No attribute selected</div>
 <?php
 	}
-	
 	
 	
 # SQL Updates
