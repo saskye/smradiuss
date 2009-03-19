@@ -29,7 +29,7 @@ $db = connect_db();
 
 printHeader(array(
 		"Tabs" => array(
-			"Back to policies" => "policy-main.php"
+			"Back to user list" => "policy-main.php"
 		),
 ));
 
@@ -86,10 +86,7 @@ if ($_POST['frmaction'] == "add") {
 			<div class="warning"><?php print_r($stmt->errorInfo()) ?></div>
 <?php
 		}
-
 	}
-
-
 } else {
 ?>
 	<div class="warning">Invalid invocation</div>
