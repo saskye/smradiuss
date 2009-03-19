@@ -47,13 +47,11 @@ printHeader(array(
 					var myobj = document.getElementById('main_form_action');
 
 					if (myobj.selectedIndex == 2) {
-						myform.action = 'user-add.php';
-					} else if (myobj.selectedIndex == 4) {
-						myform.action = 'user-change.php';
+						myform.action = 'attribute-add.php';
 					} else if (myobj.selectedIndex == 5) {
-						myform.action = 'user-delete.php';
-					} else if (myobj.selectedIndex == 6) {
-						myform.action = 'user-member-main.php';
+						myform.action = 'attribute-change.php';
+					} else if (myobj.selectedIndex == 3) {
+						myform.action = 'attribute-delete.php';
 					}
 
 					myform.submit();
@@ -62,10 +60,9 @@ printHeader(array(
 			<option selected="selected">select action</option>
 			<option disabled="disabled"> - - - - - - - - - - - </option>
 			<option value="add">Add</option>
+			<option value="delete">Delete</option>
 			<option disabled="disabled"> - - - - - - - - - - - </option>
 			<option value="change">Change</option>
-			<option value="delete">Delete</option>
-			<option value="members">Attributes</option>
 		</select> 
 	</div>
 
