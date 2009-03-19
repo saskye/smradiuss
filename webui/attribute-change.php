@@ -49,7 +49,7 @@ if ($_POST['frmaction'] == "change") {
 ?>
 		<p class="pageheader">Update User</p>
 
-		<form action="user-change.php" method="post">
+		<form action="attribute-change.php" method="post">
 			<div>
 				<input type="hidden" name="frmaction" value="change2" />
 				<input type="hidden" name="attr_id" value="<?php echo $_POST['attr_id']; ?>" />
@@ -66,7 +66,7 @@ if ($_POST['frmaction'] == "change") {
 						<?php tooltip('user_attributes_name'); ?>
 					</td>
 					<td class="oldval texttop"><?php echo $row->name ?></td>
-					<td><textarea name="user_attributes_name" cols="40" rows="5"></textarea></td>
+					<td><textarea name="user_attributes_name" cols="40" rows="1"></textarea></td>
 				</tr>
 				<tr>
 					<td class="entrytitle texttop">
@@ -74,7 +74,25 @@ if ($_POST['frmaction'] == "change") {
 						<?php tooltip('user_attributes_operator'); ?>
 					</td>
 					<td class="oldval texttop"><?php echo $row->operator ?></td>
-					<td><textarea name="user_attributes_operator" cols="40" rows="1"></textarea></td>
+					<td>
+						<select name="user_attributes_operator">
+							<option value="=">=</option>
+							<option value="==">==</option>
+							<option value=":=">:=</option>
+							<option value="+=">+=</option>
+							<option value="!=">!=</option>
+							<option value=">">&gt</option>
+							<option value="<">&lt</option>
+							<option value=">=">&gt=</option>
+							<option value="<=">&lt=</option>
+							<option value="=~">=~</option>
+							<option value="!~">!~</option>
+							<option value="=*">=*</option>
+							<option value="!*">!*</option>
+							<option value="||=">||=</option>
+							<option value="||==">||==</option>
+						</select>		
+					</td>
 				</tr>
 				<tr>
 					<td class="entrytitle texttop">Value</td>
