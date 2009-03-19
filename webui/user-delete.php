@@ -38,7 +38,6 @@ printHeader(array(
 
 # Display delete confirm screen
 if ($_POST['frmaction'] == "delete") {
-
 	# Check a user was selected
 	if (isset($_POST['user_id'])) {
 ?>
@@ -49,7 +48,6 @@ if ($_POST['frmaction'] == "delete") {
 				<input type="hidden" name="frmaction" value="delete2" />
 				<input type="hidden" name="user_id" value="<?php echo $_POST['user_id']; ?>" />
 			</div>
-			
 			<div class="textcenter">
 				Are you very sure? <br />
 				<input type="submit" name="confirm" value="yes" />
@@ -62,9 +60,6 @@ if ($_POST['frmaction'] == "delete") {
 		<div class="warning">No user selected</div>
 <?php
 	}
-	
-	
-	
 # SQL Updates
 } elseif ($_POST['frmaction'] == "delete2") {
 ?>
@@ -89,9 +84,7 @@ if ($_POST['frmaction'] == "delete") {
 					<div class="warning"><?php print_r($db->errorInfo()) ?></div>
 <?php
 				}
-?>
 
-<?php
 			} else {
 ?>
 			<div class="warning">Delete user aborted</div>
@@ -107,7 +100,6 @@ if ($_POST['frmaction'] == "delete") {
 		<div class="warning">Invocation error, no user ID selected</div>
 <?php
 	}
-
 }
 printFooter();
 
