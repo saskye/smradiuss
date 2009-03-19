@@ -71,31 +71,37 @@ if ($_POST['frmaction'] == "delete") {
 	<p class="pageheader">User Delete Results</p>
 <?php
 	if (isset($_POST['user_id'])) {
-		
+		# Check to see if user's attributes are empty
+		$temp = $_POST['user_id'];
+		$sql = "SELECT * FROM ${DB_TABLE_PREFIX}user_attributes WHERE UserID = $temp";
+		$check = $db->query($sql);
 
-		if ($_POST['confirm'] == "yes") {	
-			$res = $db->exec("DELETE FROM ${DB_TABLE_PREFIX}users WHERE ID = ".$_POST['user_id']);
-			if ($res !== FALSE) {
+		if (empty($check)) {
+			if ($_POST['confirm'] == "yes") {	
+				$res = $db->exec("DELETE FROM ${DB_TABLE_PREFIX}users WHERE ID = ".$_POST['user_id']);
+				if ($res !== FALSE) {
 ?>
-				<div class="notice">User with ID: <?php print_r($_POST['user_id']);?> deleted</div>
+					<div class="notice">User with ID: <?php print_r($_POST['user_id']);?> deleted</div>
+<?php
+				} else {
+?>
+					<div class="warning">Error deleting user</div>
+					<div class="warning"><?php print_r($db->errorInfo()) ?></div>
+<?php
+				}
+?>
+
 <?php
 			} else {
 ?>
-				<div class="warning">Error deleting user</div>
-				<div class="warning"><?php print_r($db->errorInfo()) ?></div>
+			<div class="warning">Delete user aborted</div>
 <?php
 			}
-?>
-
-<?php
-		# Warn
 		} else {
 ?>
-		<div class="warning">Delete user aborted</div>
+			<div class="warning">Attribute list is not empty!</div>
 <?php
 		}
-?>
-<?php
 	} else {
 ?>
 		<div class="warning">Invocation error, no user ID selected</div>
