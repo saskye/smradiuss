@@ -47,11 +47,9 @@ if (!isset($_POST['frmaction']))
 
 						if (myobj.selectedIndex == 2) {
 							myform.action = 'user-add.php';
-						} else if (myobj.selectedIndex == 4) {
-							myform.action = 'user-change.php';
-						} else if (myobj.selectedIndex == 5) {
+						} else if (myobj.selectedIndex == 3) {
 							myform.action = 'user-delete.php';
-						} else if (myobj.selectedIndex == 6) {
+						} else if (myobj.selectedIndex == 5) {
 							myform.action = 'user-attributes.php';
 						}
 
@@ -61,10 +59,9 @@ if (!isset($_POST['frmaction']))
 				<option selected="selected">select action</option>
 				<option disabled="disabled"> - - - - - - - - - - - </option>
 				<option value="add">Add</option>
-				<option disabled="disabled"> - - - - - - - - - - - </option>
-				<option value="change">Change</option>
 				<option value="delete">Delete</option>
-				<option value="members">Attributes</option>
+				<option disabled="disabled"> - - - - - - - - - - - </option>
+				<option value="members">List Attributes</option>
 			</select> 
 		</div>
 
