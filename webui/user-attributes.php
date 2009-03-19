@@ -24,9 +24,7 @@ include_once("includes/footer.php");
 include_once("includes/db.php");
 
 
-
 $db = connect_db();
-
 
 
 printHeader(array(
@@ -39,7 +37,6 @@ printHeader(array(
 <p class="pageheader">Attribute List</p>
 
 <form id="main_form" action="user-main.php" method="post">
-
 	<div class="textcenter">
 		Action
 		<select id="main_form_action" name="frmaction" 
@@ -57,7 +54,6 @@ printHeader(array(
 
 					myform.submit();
 				">
-			 
 			<option selected="selected">select action</option>
 			<option disabled="disabled"> - - - - - - - - - - - </option>
 			<option value="add">Add</option>
@@ -78,25 +74,26 @@ printHeader(array(
 			<td class="textcenter">Disabled</td>
 		</tr>
 <?php
-$_SESSION['attr_user_id'] = $_POST['user_id']; 
-if (isset($_SESSION['attr_user_id'])) {
+	$_SESSION['attr_user_id'] = $_POST['user_id']; 
+	if (isset($_SESSION['attr_user_id'])) {
 	
-	$temp = $_SESSION['attr_user_id'];
-	$sql = "SELECT ID, Name, Operator, Value, Disabled FROM ${DB_TABLE_PREFIX}user_attributes WHERE UserID = $temp ORDER BY ID";
-	$res = $db->query($sql);
+		$temp = $_SESSION['attr_user_id'];
+		$sql = "SELECT ID, Name, Operator, Value, Disabled FROM ${DB_TABLE_PREFIX}user_attributes WHERE UserID = $temp ORDER BY ID";
+		$res = $db->query($sql);
 
-	while ($row = $res->fetchObject()) {
+		while ($row = $res->fetchObject()) {
 ?>
-		<tr class="resultsitem">
-			<td><input type="radio" name="attr_id" value="<?php echo $row->id ?>"/><?php echo $row->id ?></td>
-			<td><?php echo $row->name ?></td>
-			<td><?php echo $row->operator ?></td>
-			<td><?php echo $row->value ?></td>
-			<td class="textcenter"><?php echo $row->disabled ? 'yes' : 'no' ?></td>
-		</tr>
+			<tr class="resultsitem">
+				<td><input type="radio" name="attr_id" value="<?php echo $row->id ?>"/><?php echo $row->id ?></td>
+				<td><?php echo $row->name ?></td>
+				<td><?php echo $row->operator ?></td>
+				<td><?php echo $row->value ?></td>
+				<td class="textcenter"><?php echo $row->disabled ? 'yes' : 'no' ?></td>
+			</tr>
 <?php
-	}
+		}
 ?>
+	}
 	</table>
 </form>
 <?php
