@@ -83,7 +83,6 @@ if ($_POST['frmaction'] == "add") {
 			</tr>
 		</table>
 	</form>
-
 <?php
 
 # Check we have all params
@@ -92,17 +91,15 @@ if ($_POST['frmaction'] == "add") {
 	<p class="pageheader">Attribute Add Results</p>
 
 <?php
-	# Check name
+	# Check for empty values
 	if (empty($_POST['attr_name']) || empty($_POST['attr_operator']) || empty($_POST['attr_value'])) {
 ?>
 		<div class="warning">Submission cannot have empty value</div>
 <?php
-
 	} else {
 		$stmt = $db->prepare("INSERT INTO ${DB_TABLE_PREFIX}user_attributes (UserID,Name,Operator,Value) VALUES (?,?,?,?)");
-
+		# Which user am I working with?
 		$attr_user_id = $_SESSION['attr_user_id']; 
-		
 
 		$res = $stmt->execute(array(
 			$attr_user_id,
