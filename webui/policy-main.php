@@ -21,11 +21,7 @@ include_once("includes/header.php");
 include_once("includes/footer.php");
 include_once("includes/db.php");
 
-
-
 $db = connect_db();
-
-
 
 printHeader(array(
 ));
@@ -37,7 +33,6 @@ if (!isset($_POST['frmaction']))
 	<p class="pageheader">User List</p>
 
 	<form id="main_form" action="user-main.php" method="post">
-
 		<div class="textcenter">
 			Action
 			<select id="main_form_action" name="frmaction" 
@@ -55,7 +50,6 @@ if (!isset($_POST['frmaction']))
 
 						myform.submit();
 					">
-			 
 				<option selected="selected">select action</option>
 				<option disabled="disabled"> - - - - - - - - - - - </option>
 				<option value="add">Add</option>
@@ -77,6 +71,7 @@ if (!isset($_POST['frmaction']))
 			$sql = "SELECT ID, Username, Disabled FROM ${DB_TABLE_PREFIX}users ORDER BY ID ASC";
 			$res = $db->query($sql);
 
+			# List users
 			while ($row = $res->fetchObject()) {
 ?>
 				<tr class="resultsitem">
@@ -91,14 +86,8 @@ if (!isset($_POST['frmaction']))
 		</table>
 	</form>
 <?php
-
-
-
 }
-
-
 printFooter();
-
 
 # vim: ts=4
 ?>
