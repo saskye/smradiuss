@@ -6,8 +6,6 @@ CREATE TABLE @PREFIX@users (
 
 	Username		VARCHAR(255) NOT NULL,
 
-	Description		TEXT,
-
 	Disabled		SMALLINT NOT NULL DEFAULT '0',
 
 	UNIQUE (Username)
