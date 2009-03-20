@@ -71,7 +71,7 @@ if ($_POST['frmaction'] == "delete") {
 		$sql = "SELECT * FROM ${DB_TABLE_PREFIX}user_attributes WHERE UserID = $temp";
 		$check = $db->query($sql);
 
-		if (empty($check)) {
+		if ($check->num_rows == 0) {
 			if ($_POST['confirm'] == "yes") {	
 				$res = $db->exec("DELETE FROM ${DB_TABLE_PREFIX}users WHERE ID = ".$_POST['user_id']);
 				if ($res !== FALSE) {
@@ -84,7 +84,6 @@ if ($_POST['frmaction'] == "delete") {
 					<div class="warning"><?php print_r($db->errorInfo()) ?></div>
 <?php
 				}
-
 			} else {
 ?>
 			<div class="warning">Delete user aborted</div>
