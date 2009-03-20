@@ -61,6 +61,11 @@ if ($_POST['frmaction'] == "add") {
 ?>
 		<div class="warning">Username cannot be empty</div>
 <?php
+	}
+	else if (!preg_match('/^[a-z0-9]+$/i', $_POST['user_name'])) {
+?>
+		<div class="warning">Username invalid: must be alphanumeric</div>
+<?php
 	# Add to database
 	} else {
 		$stmt = $db->prepare("INSERT INTO ${DB_TABLE_PREFIX}users (Username) VALUES (?)");
