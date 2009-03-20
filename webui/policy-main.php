@@ -52,10 +52,10 @@ if (!isset($_POST['frmaction']))
 					">
 				<option selected="selected">select action</option>
 				<option disabled="disabled"> - - - - - - - - - - - </option>
-				<option value="add">Add</option>
-				<option value="delete">Delete</option>
+				<option value="add">Add User</option>
+				<option value="delete">Delete User</option>
 				<option disabled="disabled"> - - - - - - - - - - - </option>
-				<option value="members">List Attributes</option>
+				<option value="members">List User Attributes</option>
 			</select> 
 		</div>
 
