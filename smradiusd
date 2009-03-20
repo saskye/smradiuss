@@ -49,6 +49,8 @@ use smradius::attributes;
 
 use Radius::Packet;
 
+use Socket;
+
 use Data::Dumper;
 
 
@@ -628,6 +630,8 @@ sub process_request {
 		$udp_packet = auth_resp($resp->pack, "test");
 		$server->{'client'}->send($udp_packet);
 
+		my $killConnection = 0;
+				
 		# Loop with features that have post-authentication hooks
 		foreach my $module (@{$self->{'plugins'}}) {
 			# Try authenticate
@@ -645,18 +649,60 @@ sub process_request {
 
 				# Check if we got a positive result back
 				} elsif ($res == MOD_RES_ACK) {
-					$self->log(LOG_NOTICE,"[SMRADIUS] POST-ACCT: Passed authenticated by '".$module->{'Name'}."'");
+					$self->log(LOG_NOTICE,"[SMRADIUS] POST-ACCT: Passed post accounting hook by '".$module->{'Name'}."'");
 
 				# Or a negative result
 				} elsif ($res == MOD_RES_NACK) {
-					$self->log(LOG_NOTICE,"[SMRADIUS] POST-ACCT: Failed authentication by '".$module->{'Name'}."'");
+					$self->log(LOG_NOTICE,"[SMRADIUS] POST-ACCT: Failed post accounting hook by '".$module->{'Name'}."'");
 					#$authenticated = 0;
 					# Do we want to run the other features ??
 					#last;
+
+					$killConnection = 1;
 				}
 			}
 		}
 
+	if ($killConnection == 1) {
+
+		$self->log(LOG_DEBUG,"[SMRADIUS] POST-ACCT: Trying to disconnect user...");
+
+		my $resp = Radius::Packet->new($self->{'radius'}->{'dictionary'});
+		#	my $classData = { 'PODServers' => "10.254.254.239/test:1700"};
+
+	 	$resp->set_code('Disconnect-Request');
+		my $id = $$ & 0xff;
+		$resp->set_identifier( $id );
+
+		$resp->set_attr('User-Name',$pkt->attr('User-Name'));
+		$resp->set_attr('Framed-IP-Address',$pkt->attr('Framed-IP-Address'));
+		$resp->set_attr('NAS-IP-Address',$pkt->attr('NAS-IP-Address'));
+
+		$udp_packet = auth_resp($resp->pack, "test");
+
+		# Create socket to send packet out on
+		my $podServer = "10.254.254.239";
+		my $podServerPort = "1700";
+		my $podServerTimeout = "10";  # 10 second timeout	
+		my $podSock = new IO::Socket::INET(
+				PeerAddr => $podServer,
+				PeerPort => $podServerPort,
+				Type => SOCK_DGRAM,
+				Proto => 'udp',
+				TimeOut => $podServerTimeout,
+		) or return $self->log(LOG_ERR,"[SMRADIUS] POST-ACCT: Failed to create socket to send POD on: $!");
+		$podSock->send ($udp_packet) || return $self->log(LOG_ERR,"[SMRADIUS] POST-ACCT: Failed to send data on socket: $!");
+
+		# Once sent, we need to get a response back
+		my $sh = new IO::Select($podSock) or return $self->log(LOG_ERR,"[SMRADIUS] POST-ACCT: Failed to select data on socket: $!");
+		$sh->can_read($podServerTimeout) or return $self->log(LOG_ERR,"[SMRADIUS] POST-ACCT: Failed to receive data on socket: $!");
+
+		my $data;
+		$podSock->recv($data, 65536) or return $self->log(LOG_ERR,"[SMRADIUS] POST-ACCT: Receive data failed: $!");
+		my @stuff = unpack('C C n a16 a*', $data);
+		$self->log(LOG_DEBUG,"STUFF: ".Dumper(\@stuff));
+
+	}
 
 	# Or maybe a access request
 	} elsif ($pkt->code eq "Access-Request") {
@@ -983,7 +1029,6 @@ return;
 #
 
 }
-
 
 
 # Initialize child
