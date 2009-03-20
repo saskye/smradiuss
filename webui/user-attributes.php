@@ -56,10 +56,10 @@ printHeader(array(
 				">
 			<option selected="selected">select action</option>
 			<option disabled="disabled"> - - - - - - - - - - - </option>
-			<option value="add">Add</option>
-			<option value="delete">Delete</option>
+			<option value="add">Add Attribute</option>
+			<option value="delete">Delete Attribute</option>
 			<option disabled="disabled"> - - - - - - - - - - - </option>
-			<option value="change">Change</option>
+			<option value="change">Change Attribute</option>
 		</select> 
 	</div>
 
@@ -93,7 +93,6 @@ printHeader(array(
 <?php
 		}
 ?>
-	}
 	</table>
 </form>
 <?php
