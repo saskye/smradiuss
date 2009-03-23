@@ -34,7 +34,7 @@ printHeader(array(
 ?>
 	<p class="pageheader">User Groups</p>
 
-	<form id="main_form" action="policy-group-main.php" method="post">
+	<form id="main_form" action="group-main.php" method="post">
 
 		<div class="textcenter">
 			Action
@@ -44,13 +44,11 @@ printHeader(array(
 						var myobj = document.getElementById('main_form_action');
 
 						if (myobj.selectedIndex == 2) {
-							myform.action = 'policy-group-add.php';
-						} else if (myobj.selectedIndex == 4) {
-							myform.action = 'policy-group-change.php';
+							myform.action = 'group-add.php';
+						} else if (myobj.selectedIndex == 3) {
+							myform.action = 'group-delete.php';
 						} else if (myobj.selectedIndex == 5) {
-							myform.action = 'policy-group-delete.php';
-						} else if (myobj.selectedIndex == 6) {
-							myform.action = 'policy-group-member-main.php';
+							myform.action = 'group-member-main.php';
 						}
 
 						myform.submit();
@@ -58,11 +56,10 @@ printHeader(array(
 			 
 				<option selected="selected">select action</option>
 				<option disabled="disabled"> - - - - - - - - - - - </option>
-				<option value="add">Add</option>
+				<option value="add">Add Group</option>
+				<option value="delete">Delete Group</option>
 				<option disabled="disabled"> - - - - - - - - - - - </option>
-				<option value="change">Change</option>
-				<option value="delete">Delete</option>
-				<option value="members">Members</option>
+				<option value="members">List Members</option>
 			</select> 
 		</div>
 
@@ -70,20 +67,20 @@ printHeader(array(
 
 		<table class="results" style="width: 75%;">
 			<tr class="resultstitle">
-				<td id="noborder"></td>
+				<td class="textcenter">ID</td>
 				<td class="textcenter">Name</td>
 				<td class="textcenter">Priority</td>
 				<td class="textcenter">Disabled</td>
 				<td class="textcenter">Comment</td>
 			</tr>
 <?php
-			$sql = "SELECT ID, Name, Priority, Disabled, Comment FROM ${DB_TABLE_PREFIX}groups ORDER BY Name";
+			$sql = "SELECT ID, Name, Priority, Disabled, Comment FROM ${DB_TABLE_PREFIX}groups ORDER BY ID";
 			$res = $db->query($sql);
 
 			while ($row = $res->fetchObject()) {
 ?>
 				<tr class="resultsitem">
-					<td><input type="radio" name="policy_group_id" value="<?php echo $row->id ?>" /></td>
+					<td><input type="radio" name="group_id" value="<?php echo $row->id ?>" /></td>
 					<td><?php echo $row->name ?></td>
 					<td><?php echo $row->priority ?></td>
 					<td class="textcenter"><?php echo $row->disabled ? 'yes' : 'no' ?></td>
