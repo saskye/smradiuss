@@ -55,8 +55,8 @@ function printHeader($params = NULL)
 
 							<p>Control Panel</p>
 							<ul>
-								<li><a href="policy-main.php">Users</a></li>
-								<li><a href="policy-group-main.php">Groups</a></li>
+								<li><a href="user-main.php">Users</a></li>
+								<li><a href="group-main.php">Groups</a></li>
 							</ul>
 
 	    					<img style="margin-left:-1px; margin-bottom: -6px" src="images/specs_bottom.jpg" alt="" />
