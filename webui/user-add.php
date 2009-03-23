@@ -25,7 +25,7 @@ $db = connect_db();
 
 printHeader(array(
 		"Tabs" => array(
-			"Back to user list" => "policy-main.php"
+			"Back to user list" => "user-main.php"
 		),
 ));
 
