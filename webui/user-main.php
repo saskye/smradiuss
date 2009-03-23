@@ -46,6 +46,8 @@ if (!isset($_POST['frmaction']))
 							myform.action = 'user-delete.php';
 						} else if (myobj.selectedIndex == 5) {
 							myform.action = 'user-attributes.php';
+						} else if (myobj.selectedIndex == 6) {
+							myform.action = 'user-groups.php';
 						}
 
 						myform.submit();
@@ -56,6 +58,7 @@ if (!isset($_POST['frmaction']))
 				<option value="delete">Delete User</option>
 				<option disabled="disabled"> - - - - - - - - - - - </option>
 				<option value="members">List User Attributes</option>
+				<option value="members">List User Groups</option>
 			</select> 
 		</div>
 
