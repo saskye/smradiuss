@@ -41,18 +41,17 @@ if (isset($_SESSION['groups_user_id'])) {
 			<input type="hidden" name="frmaction" value="add2" />
 			<table class="entry">
 				<tr>
-					<td class="entrytitle">Users to Groups Comment</td>
-					<td><input type="text" name="users_to_groups_comment" /></td>
+					<td class="entrytitle">Comment</td>
+					<td class="entrytitle">Disabled</td>
 				</tr>
 				<tr>
+					<td><input type="text" name="users_to_groups_comment" /></td>
 					<td>
 						<select name="users_group_disabled">
 							<option value="0">No</option>
 							<option value="1">Yes</option>
 						</select>
 					</td>
-				</tr>
-				<tr>
 					<td>
 						<input type="submit" value="Submit" />
 					</td>
