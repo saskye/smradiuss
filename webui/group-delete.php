@@ -16,7 +16,7 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-
+#FIXME
 
 include_once("includes/header.php");
 include_once("includes/footer.php");
@@ -30,7 +30,7 @@ $db = connect_db();
 
 printHeader(array(
 		"Tabs" => array(
-			"Back to groups" => "policy-group-main.php",
+			"Back to groups" => "group-main.php",
 		),
 ));
 
@@ -40,14 +40,14 @@ printHeader(array(
 if ($_POST['frmaction'] == "delete") {
 
 	# Check a policy group was selected
-	if (isset($_POST['policy_group_id'])) {
+	if (isset($_POST['group_id'])) {
 ?>
-		<p class="pageheader">Delete Policy Group</p>
+		<p class="pageheader">Delete Group</p>
 
-		<form action="policy-group-delete.php" method="post">
+		<form action="group-delete.php" method="post">
 			<div>
 				<input type="hidden" name="frmaction" value="delete2" />
-				<input type="hidden" name="policy_group_id" value="<?php echo $_POST['policy_group_id']; ?>" />
+				<input type="hidden" name="group_id" value="<?php echo $_POST['group_id']; ?>" />
 			</div>
 			
 			<div class="textcenter">
@@ -59,7 +59,7 @@ if ($_POST['frmaction'] == "delete") {
 <?php
 	} else {
 ?>
-		<div class="warning">No policy group selected</div>
+		<div class="warning">No group selected</div>
 <?php
 	}
 	
@@ -68,9 +68,9 @@ if ($_POST['frmaction'] == "delete") {
 # SQL Updates
 } elseif ($_POST['frmaction'] == "delete2") {
 ?>
-	<p class="pageheader">Policy Group Delete Results</p>
+	<p class="pageheader">Group Delete Results</p>
 <?php
-	if (isset($_POST['policy_group_id'])) {
+	if (isset($_POST['group_id'])) {
 
 		if ($_POST['confirm'] == "yes") {	
 			$db->beginTransaction();
