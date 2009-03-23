@@ -36,7 +36,7 @@ printHeader(array(
 ?>
 <p class="pageheader">Groups List</p>
 
-<form id="main_form" action="user-main.php" method="post">
+<form id="main_form" action="user-groups.php" method="post">
 	<div class="textcenter">
 		Action
 		<select id="main_form_action" name="frmaction" 
@@ -45,7 +45,7 @@ printHeader(array(
 					var myobj = document.getElementById('main_form_action');
 
 					if (myobj.selectedIndex == 2) {
-						myform.action = 'user-group-add.php';
+						myform.action = 'user-groups-add.php';
 					} else if (myobj.selectedIndex == 3) {
 						myform.action = 'user-groups-delete.php';
 					}
@@ -59,7 +59,7 @@ printHeader(array(
 		</select> 
 	</div>
 
-<p />
+	<p />
 
 	<table class="results" style="width: 75%;">
 		<tr class="resultstitle">
@@ -71,8 +71,6 @@ printHeader(array(
 		</tr>
 <?php
 	if (isset($_POST['user_id'])) {
-	$_SESSION['groups_user_id'] = $_POST['user_id']; 
-	
 		$sql = "SELECT GroupID FROM ${DB_TABLE_PREFIX}users_to_groups WHERE UserID = ".$_POST['user_id'];
 		$res = $db->query($sql);
 
@@ -106,6 +104,8 @@ printHeader(array(
 ?>
 <?php
 
+$_SESSION['groups_user_id'] = $_POST['user_id'];
+ 
 printFooter();
 
 
