@@ -29,29 +29,41 @@ $db = connect_db();
 
 printHeader(array(
 		"Tabs" => array(
-			"Back to groups" => "policy-group-main.php",
+			"Back to groups" => "group-main.php",
 		),
 ));
 
 
 if ($_POST['frmaction'] == "add")  {
 ?>
-	<p class="pageheader">Add Policy Group</p>
+	<p class="pageheader">Add Group</p>
 <?php
 ?>
-		<form method="post" action="policy-group-add.php">
+		<form method="post" action="group-add.php">
 			<div>
 				<input type="hidden" name="frmaction" value="add2" />
-				<input type="hidden" name="policy_group_id" value="<?php echo $_POST['policy_group_id'] ?>" />
 			</div>
 			<table class="entry">
 				<tr>
 					<td class="entrytitle">Name</td>
-					<td><input type="text" name="policy_group_name" /></td>
+					<td><input type="text" name="group_name" /></td>
+				</tr>
+				<tr>
+					<td class="entrytitle">Priority</td>
+					<td><input type="text" name="group_priority" /></td>
+				</tr>
+				<tr>
+					<td class="entrytitle">Disabled</td>
+					<td>
+						<select name="group_disabled">
+							<option value="0">No</option>
+							<option value="1">Yes</option>
+						</select>		
+					</td>
 				</tr>
 				<tr>
 					<td class="entrytitle texttop">Comment</td>
-					<td><textarea name="policy_group_comment" cols="40" rows="5"></textarea></td>
+					<td><textarea name="group_comment" cols="40" rows="5"></textarea></td>
 				</tr>
 				<tr>
 					<td colspan="2">
@@ -67,23 +79,25 @@ if ($_POST['frmaction'] == "add")  {
 # Check we have all params
 } elseif ($_POST['frmaction'] == "add2") {
 ?>
-	<p class="pageheader">Policy Group Add Results</p>
+	<p class="pageheader">Group Add Results</p>
 
 <?php
 
-	$stmt = $db->prepare("INSERT INTO ${DB_TABLE_PREFIX}policy_groups (Name,Comment,Disabled) VALUES (?,?,1)");
+	$stmt = $db->prepare("INSERT INTO ${DB_TABLE_PREFIX}groups (Name,Priority,Disabled,Comment) VALUES (?,?,?,?)");
 	
 	$res = $stmt->execute(array(
-		$_POST['policy_group_name'],
-		$_POST['policy_group_comment']
+		$_POST['group_name'],
+		$_POST['group_priority'],
+		$_POST['group_disabled'],
+		$_POST['group_comment'],
 	));
 	if ($res) {
 ?>
-		<div class="notice">Policy group created</div>
+		<div class="notice">Group created</div>
 <?php
 	} else {
 ?>
-		<div class="warning">Failed to create policy group</div>
+		<div class="warning">Failed to create group</div>
 		<div class="warning"><?php print_r($stmt->errorInfo()) ?></div>
 <?php
 	}
