@@ -34,7 +34,7 @@ printHeader(array(
 ));
 
 ?>
-<p class="pageheader">Attribute List</p>
+<p class="pageheader">Groups List</p>
 
 <form id="main_form" action="user-main.php" method="post">
 	<div class="textcenter">
@@ -45,21 +45,17 @@ printHeader(array(
 					var myobj = document.getElementById('main_form_action');
 
 					if (myobj.selectedIndex == 2) {
-						myform.action = 'attribute-add.php';
-					} else if (myobj.selectedIndex == 5) {
-						myform.action = 'attribute-change.php';
+						myform.action = 'user-group-add.php';
 					} else if (myobj.selectedIndex == 3) {
-						myform.action = 'attribute-delete.php';
+						myform.action = 'user-groups-delete.php';
 					}
 
 					myform.submit();
 				">
 			<option selected="selected">select action</option>
 			<option disabled="disabled"> - - - - - - - - - - - </option>
-			<option value="add">Add Attribute</option>
-			<option value="delete">Delete Attribute</option>
-			<option disabled="disabled"> - - - - - - - - - - - </option>
-			<option value="change">Change Attribute</option>
+			<option value="add">Assign Group</option>
+			<option value="delete">Remove Group Assignment</option>
 		</select> 
 	</div>
 
@@ -69,42 +65,44 @@ printHeader(array(
 		<tr class="resultstitle">
 			<td class="textcenter">ID</td>
 			<td class="textcenter">Name</td>
-			<td class="textcenter">Operator</td>
-			<td class="textcenter">Value</td>
+			<td class="textcenter">Priority</td>
 			<td class="textcenter">Disabled</td>
+			<td class="textcenter">Comment</td>
 		</tr>
 <?php
-	$_SESSION['attr_user_id'] = $_POST['user_id']; 
-	if (isset($_SESSION['attr_user_id'])) {
+	if (isset($_POST['user_id'])) {
+	$_SESSION['groups_user_id'] = $_POST['user_id']; 
 	
-		$temp = $_SESSION['attr_user_id'];
-		$sql = "SELECT ID, Name, Operator, Value, Disabled FROM ${DB_TABLE_PREFIX}user_attributes WHERE UserID = $temp ORDER BY ID";
+		$sql = "SELECT GroupID FROM ${DB_TABLE_PREFIX}users_to_groups WHERE UserID = ".$_POST['user_id'];
 		$res = $db->query($sql);
 
 		while ($row = $res->fetchObject()) {
+			$sql = "SELECT ID, Name, Priority, Disabled, Comment FROM ${DB_TABLE_PREFIX}groups WHERE ID = ".$row->groupid;
+			$result = $db->query($sql);
+
+			while ($row = $result->fetchObject()) {
 ?>
-			<tr class="resultsitem">
-				<td><input type="radio" name="attr_id" value="<?php echo $row->id ?>"/><?php echo $row->id ?></td>
-				<td><?php echo $row->name ?></td>
-				<td><?php echo $row->operator ?></td>
-				<td><?php echo $row->value ?></td>
-				<td class="textcenter"><?php echo $row->disabled ? 'yes' : 'no' ?></td>
-			</tr>
+				<tr class="resultsitem">
+					<td><input type="radio" name="group_id" value="<?php echo $row->id ?>"/><?php echo $row->id ?></td>
+					<td><?php echo $row->name ?></td>
+					<td><?php echo $row->priority ?></td>
+					<td class="textcenter"><?php echo $row->disabled ? 'yes' : 'no' ?></td>
+					<td><?php echo $row->comment ?></td>
+				</tr>
 <?php
+			}
+		$result->closeCursor();
 		}
+		$res->closeCursor();
 ?>
 	</table>
 </form>
 <?php
-	$res->closeCursor();
+	} else {
 ?>
+		<div class="warning">Invocation error, no user ID selected</div>
 <?php
-} else {
-?>
-	<div class="warning">Invocation error, no user ID selected</div>
-<?php
-}
-
+	}
 ?>
 <?php
 
