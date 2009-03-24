@@ -38,8 +38,8 @@ if (isset($_POST['group_id'])) {
 
 ?>
 	<p class="pageheader">Group Members</p>
-	
-<?php		
+
+<?php
 
 	$group_stmt = $db->prepare("SELECT Name FROM ${DB_TABLE_PREFIX}groups WHERE ID = ?");
 	$group_stmt->execute(array($_POST['group_id']));
