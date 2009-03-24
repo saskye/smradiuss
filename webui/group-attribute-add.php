@@ -69,7 +69,7 @@ if ($_POST['frmaction'] == "add") {
 						<option value="!*">!*</option>
 						<option value="||=">||=</option>
 						<option value="||==">||==</option>
-					</select>		
+					</select>
 				</td>
 			</tr>
 			<tr>
