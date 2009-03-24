@@ -16,7 +16,7 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-#FIXME
+#FIXME -> delete groups
 
 include_once("includes/header.php");
 include_once("includes/footer.php");
@@ -75,28 +75,28 @@ if ($_POST['frmaction'] == "delete") {
 		if ($_POST['confirm'] == "yes") {	
 			$db->beginTransaction();
 
-			$res = $db->exec("DELETE FROM ${DB_TABLE_PREFIX}policy_group_members WHERE PolicyGroupID = ".$db->quote($_POST['policy_group_id']));
+			$res = $db->exec("DELETE FROM ${DB_TABLE_PREFIX}users_to_groups WHERE GroupID = ".$db->quote($_POST['group_id']));
 			if ($res !== FALSE) {
 ?>
-				<div class="notice">Policy group members deleted</div>
+				<div class="notice">Users removed</div>
 <?php
 			} else {
 ?>
-				<div class="warning">Error deleting policy group members!</div>
+				<div class="warning">Error removing users</div>
 				<div class="warning"><?php print_r($db->errorInfo()) ?></div>
 <?php
 				$db->rollback();
 			}
 
 			if ($res !== FALSE) {
-				$res = $db->exec("DELETE FROM ${DB_TABLE_PREFIX}policy_groups WHERE ID = ".$db->quote($_POST['policy_group_id']));
+				$res = $db->exec("DELETE FROM ${DB_TABLE_PREFIX}groups WHERE ID = ".$db->quote($_POST['group_id']));
 				if ($res) {
 ?>
-					<div class="notice">Policy group deleted</div>
+					<div class="notice">Group deleted</div>
 <?php
 				} else {
 ?>
-					<div class="warning">Error deleting policy group!</div>
+					<div class="warning">Error deleting group!</div>
 					<div class="warning"><?php print_r($db->errorInfo()) ?></div>
 <?php
 					$db->rollback();
@@ -108,14 +108,14 @@ if ($_POST['frmaction'] == "delete") {
 			}
 		} else {
 ?>
-			<div class="notice">Policy group not deleted, aborted by user</div>
+			<div class="notice">Group not deleted, aborted by user</div>
 <?php
 		}
 
 	# Warn
 	} else {
 ?>
-		<div class="warning">Invocation error, no policy group ID</div>
+		<div class="warning">Invocation error, no group ID</div>
 <?php
 	}
 
@@ -133,4 +133,3 @@ printFooter();
 
 # vim: ts=4
 ?>
-
