@@ -108,7 +108,7 @@ if (isset($_SESSION['groups_user_id'])) {
 			if ($res) {
 ?>
 				<div class="notice">Group assignment successful</div>
-<?php	
+<?php
 			} else {
 ?>
 				<div class="warning">Failed to assign group to user</div>
