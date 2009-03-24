@@ -25,22 +25,8 @@ printHeader();
 ?>
 	<p class="pageheader">Features Supported</p>
 	<ul>
-		<li>Protocols
-			<ul>
-				<li>Bizanga 
-					<a title="Help on Bizanga protocol" href="http://www.policyd.org/tiki-index.php?page=Bizanga&structure=Documentation" class="help">
-						<img src="images/help.gif" alt="Help" />
-					</a>
-				</li>
-				<li>Postfix
-					<a title="Help on Postfix protocol" href="http://www.policyd.org/tiki-index.php?page=Postfix&structure=Documentation" class="help">
-						<img src="images/help.gif" alt="Help" />
-					</a>
-				</li>
-			</ul>
-		</li>
 
-		<li>Policies &amp; Policy Groups
+		<li>Users &amp; Groups
 			<a title="Help on policies and groups" href="http://www.policyd.org/tiki-index.php?page=Policies%20%26%20Groups&structure=Documentation" class="help">
 				<img src="images/help.gif" alt="Help" />
 			</a>
