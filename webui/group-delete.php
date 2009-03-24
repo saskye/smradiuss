@@ -16,7 +16,6 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-#FIXME -> delete groups
 
 include_once("includes/header.php");
 include_once("includes/footer.php");
@@ -49,7 +48,7 @@ if ($_POST['frmaction'] == "delete") {
 				<input type="hidden" name="frmaction" value="delete2" />
 				<input type="hidden" name="group_id" value="<?php echo $_POST['group_id']; ?>" />
 			</div>
-			
+
 			<div class="textcenter">
 				Are you very sure? <br />
 				<input type="submit" name="confirm" value="yes" />
@@ -62,9 +61,9 @@ if ($_POST['frmaction'] == "delete") {
 		<div class="warning">No group selected</div>
 <?php
 	}
-	
-	
-	
+
+
+
 # SQL Updates
 } elseif ($_POST['frmaction'] == "delete2") {
 ?>
@@ -72,7 +71,7 @@ if ($_POST['frmaction'] == "delete") {
 <?php
 	if (isset($_POST['group_id'])) {
 
-		if ($_POST['confirm'] == "yes") {	
+		if ($_POST['confirm'] == "yes") {
 			$db->beginTransaction();
 
 			$res = $db->exec("DELETE FROM ${DB_TABLE_PREFIX}users_to_groups WHERE GroupID = ".$db->quote($_POST['group_id']));
@@ -83,6 +82,19 @@ if ($_POST['frmaction'] == "delete") {
 			} else {
 ?>
 				<div class="warning">Error removing users</div>
+				<div class="warning"><?php print_r($db->errorInfo()) ?></div>
+<?php
+				$db->rollback();
+			}
+
+			$res = $db->exec("DELETE FROM ${DB_TABLE_PREFIX}group_attributes WHERE GroupID = ".$db->quote($_POST['group_id']));
+			if ($res !== FALSE) {
+?>
+				<div class="notice">Attributes removed</div>
+<?php
+			} else {
+?>
+				<div class="warning">Error removing attributes</div>
 				<div class="warning"><?php print_r($db->errorInfo()) ?></div>
 <?php
 				$db->rollback();
