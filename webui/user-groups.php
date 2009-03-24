@@ -81,7 +81,7 @@ printHeader(array(
 			while ($row = $result->fetchObject()) {
 ?>
 				<tr class="resultsitem">
-					<td><input type="radio" name="group_id" value="<?php echo $row->id ?>"/><?php echo $row->id ?></td>
+					<td><input type="radio" name="group_id" value="<?php echo $row->id ?>"/></td>
 					<td><?php echo $row->name ?></td>
 					<td><?php echo $row->priority ?></td>
 					<td class="textcenter"><?php echo $row->disabled ? 'yes' : 'no' ?></td>
