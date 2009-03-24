@@ -72,7 +72,7 @@ if ($_POST['frmaction'] == "delete") {
 		$check = $db->query($sql);
 
 		if ($check->num_rows == 0) {
-			if ($_POST['confirm'] == "yes") {	
+			if ($_POST['confirm'] == "yes") {
 				$res = $db->exec("DELETE FROM ${DB_TABLE_PREFIX}users WHERE ID = ".$_POST['user_id']);
 				if ($res !== FALSE) {
 ?>

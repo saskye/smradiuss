@@ -34,7 +34,7 @@ printHeader(array(
 ));
 
 
-if ($_POST['frmaction'] == "add")  {
+if ($_POST['frmaction'] == "add") {
 ?>
 	<p class="pageheader">Add Group</p>
 <?php
@@ -58,7 +58,7 @@ if ($_POST['frmaction'] == "add")  {
 						<select name="group_disabled">
 							<option value="0">No</option>
 							<option value="1">Yes</option>
-						</select>		
+						</select>
 					</td>
 				</tr>
 				<tr>
@@ -73,9 +73,9 @@ if ($_POST['frmaction'] == "add")  {
 			</table>
 		</form>
 <?php
-	
-	
-	
+
+
+
 # Check we have all params
 } elseif ($_POST['frmaction'] == "add2") {
 ?>
@@ -84,7 +84,7 @@ if ($_POST['frmaction'] == "add")  {
 <?php
 
 	$stmt = $db->prepare("INSERT INTO ${DB_TABLE_PREFIX}groups (Name,Priority,Disabled,Comment) VALUES (?,?,?,?)");
-	
+
 	$res = $stmt->execute(array(
 		$_POST['group_name'],
 		$_POST['group_priority'],

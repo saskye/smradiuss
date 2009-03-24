@@ -90,7 +90,7 @@ if ($_POST['frmaction'] == "change") {
 							<option value="!*">!*</option>
 							<option value="||=">||=</option>
 							<option value="||==">||==</option>
-						</select>		
+						</select>
 					</td>
 				</tr>
 				<tr>
@@ -106,13 +106,13 @@ if ($_POST['frmaction'] == "change") {
 							<option value="">--</option>
 							<option value="0">No</option>
 							<option value="1">Yes</option>
-						</select>		
+						</select>
 					</td>
 				</tr>
 			</table>
-	
+
 			<p />
-			
+
 			<div class="textcenter">
 				<input type="submit" />
 			</div>
@@ -124,9 +124,9 @@ if ($_POST['frmaction'] == "change") {
 		<div class="warning">No attribute selected</div>
 <?php
 	}
-	
-	
-	
+
+
+
 # SQL Updates
 } elseif ($_POST['frmaction'] == "change2") {
 ?>
@@ -134,7 +134,7 @@ if ($_POST['frmaction'] == "change") {
 <?php
 	# Check an attribute was selected
 	if (isset($_POST['attr_id'])) {
-		
+
 		$updates = array();
 
 		if (!empty($_POST['user_attributes_name'])) {
@@ -153,7 +153,7 @@ if ($_POST['frmaction'] == "change") {
 		# Check if we have updates
 		if (sizeof($updates) > 0) {
 			$updateStr = implode(', ',$updates);
-	
+
 			$res = $db->exec("UPDATE ${DB_TABLE_PREFIX}user_attributes SET $updateStr WHERE ID = ".$db->quote($_POST['attr_id']));
 			if ($res) {
 ?>
@@ -193,4 +193,3 @@ printFooter();
 
 # vim: ts=4
 ?>
-

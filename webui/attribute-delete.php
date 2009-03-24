@@ -60,17 +60,17 @@ if ($_POST['frmaction'] == "delete") {
 		<div class="warning">No attribute selected</div>
 <?php
 	}
-	
-	
+
+
 # SQL Updates
 } elseif ($_POST['frmaction'] == "delete2") {
 ?>
 	<p class="pageheader">Attribute Delete Results</p>
 <?php
 	if (isset($_POST['attr_id'])) {
-		
 
-		if ($_POST['confirm'] == "yes") {	
+
+		if ($_POST['confirm'] == "yes") {
 			$res = $db->exec("DELETE FROM ${DB_TABLE_PREFIX}user_attributes WHERE ID = ".$_POST['attr_id']);
 			if ($res !== FALSE) {
 ?>

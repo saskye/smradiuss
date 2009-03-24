@@ -61,20 +61,20 @@ if ($_POST['frmaction'] == "delete") {
 		<div class="warning">No group assignment selected</div>
 <?php
 	}
-	
-	
+
+
 # SQL Updates
 } elseif ($_POST['frmaction'] == "delete2") {
 ?>
 	<p class="pageheader">Group Assignment Removal Results</p>
 <?php
 	if (isset($_POST['group_id'])) {
-		if ($_POST['confirm'] == "yes") {	
+		if ($_POST['confirm'] == "yes") {
 			$res = $db->exec("DELETE FROM ${DB_TABLE_PREFIX}users_to_groups WHERE UserID = ".$_SESSION['groups_user_id']." AND GroupID = ".$_POST['group_id']);
 			if ($res !== FALSE) {
 ?>
 				<div class="notice">Group with ID: <?php print_r($_POST['group_id']);?> deleted from user with ID: <?php print_r($_SESSION['groups_user_id']);?></div>
-<?php		
+<?php
 				session_destroy();
 			} else {
 ?>
