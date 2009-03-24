@@ -55,7 +55,7 @@ printHeader(array(
 
 						myform.submit();
 					">
-			 
+
 				<option selected="selected">select action</option>
 				<option disabled="disabled"> - - - - - - - - - - - </option>
 				<option value="add">Add Group</option>
