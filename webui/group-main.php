@@ -49,6 +49,8 @@ printHeader(array(
 							myform.action = 'group-delete.php';
 						} else if (myobj.selectedIndex == 5) {
 							myform.action = 'group-member-main.php';
+						} else if (myobj.selectedIndex == 6) {
+							myform.action = 'group-attributes.php';
 						}
 
 						myform.submit();
@@ -60,6 +62,7 @@ printHeader(array(
 				<option value="delete">Delete Group</option>
 				<option disabled="disabled"> - - - - - - - - - - - </option>
 				<option value="members">List Members</option>
+				<option value="members">List Attributes</option>
 			</select> 
 		</div>
 
