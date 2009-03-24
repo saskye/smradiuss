@@ -36,7 +36,7 @@ printHeader(array(
 ?>
 <p class="pageheader">Attribute List</p>
 
-<form id="main_form" action="user-main.php" method="post">
+<form id="main_form" action="user-attributes.php" method="post">
 	<div class="textcenter">
 		Action
 		<select id="main_form_action" name="frmaction" 
@@ -81,23 +81,23 @@ printHeader(array(
 		$sql = "SELECT ID, Name, Operator, Value, Disabled FROM ${DB_TABLE_PREFIX}user_attributes WHERE UserID = $temp ORDER BY ID";
 		$res = $db->query($sql);
 
-		while ($row = $res->fetchObject()) {
+		if ($res) {
+			while ($row = $res->fetchObject()) {
 ?>
-			<tr class="resultsitem">
-				<td><input type="radio" name="attr_id" value="<?php echo $row->id ?>"/><?php echo $row->id ?></td>
-				<td><?php echo $row->name ?></td>
-				<td><?php echo $row->operator ?></td>
-				<td><?php echo $row->value ?></td>
-				<td class="textcenter"><?php echo $row->disabled ? 'yes' : 'no' ?></td>
-			</tr>
+				<tr class="resultsitem">
+					<td><input type="radio" name="attr_id" value="<?php echo $row->id ?>"/><?php echo $row->id ?></td>
+					<td><?php echo $row->name ?></td>
+					<td><?php echo $row->operator ?></td>
+					<td><?php echo $row->value ?></td>
+					<td class="textcenter"><?php echo $row->disabled ? 'yes' : 'no' ?></td>
+				</tr>
 <?php
+			}
+		$res->closeCursor();
 		}
 ?>
 	</table>
 </form>
-<?php
-	$res->closeCursor();
-?>
 <?php
 } else {
 ?>
