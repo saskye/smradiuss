@@ -93,8 +93,9 @@ if (!isset($_POST['frmaction']))
 			$res->closeCursor();
 			if ($rownums <= 0) {
 ?>
+				<p />
 				<tr>
-					<td class="textcenter">Group list is empty</td>
+					<td colspan="3" class="textcenter">Group list is empty</td>
 				</tr>
 <?php
 			}
