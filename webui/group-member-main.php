@@ -58,8 +58,14 @@ if (isset($_POST['group_id'])) {
 			$stmt = $db->prepare("SELECT UserID FROM ${DB_TABLE_PREFIX}users_to_groups WHERE GroupID = ?");
 			$res = $stmt->execute(array($_REQUEST['group_id']));
 
+			$rownums = 0;
 			# Loop with rows
 			while ($row = $stmt->fetchObject()) {
+				if ($row->userid != NULL) {
+					$rownums = $rownums + 1;
+				} else {
+					$rownums = $rownums - 1;
+				}
 
 				$sql = "SELECT ID, Username, Disabled FROM ${DB_TABLE_PREFIX}users WHERE ID = ".$row->userid;
 				$res = $db->query($sql);
@@ -77,6 +83,15 @@ if (isset($_POST['group_id'])) {
 				$res->closeCursor();
 			}
 			$stmt->closeCursor();
+			if ($rownums <= 0) {
+?>
+				<p />
+				<tr>
+					<td colspan="3" class="textcenter">Group has no users</td>
+				</tr>
+<?php
+			}
+			unset($rownums);
 ?>
 		</table>
 	</form>
