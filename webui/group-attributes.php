@@ -75,37 +75,49 @@ printHeader(array(
 		</tr>
 <?php
 	$_SESSION['attr_group_id'] = $_POST['group_id']; 
-	if (isset($_SESSION['attr_group_id'])) {
+	if (isset($_POST['group_id'])) {
 	
 		$temp = $_SESSION['attr_group_id'];
 		$sql = "SELECT ID, Name, Operator, Value, Disabled FROM ${DB_TABLE_PREFIX}group_attributes WHERE GroupID = $temp ORDER BY ID";
 		$res = $db->query($sql);
 
-		if ($res) {
-			while ($row = $res->fetchObject()) {
-?>
-				<tr class="resultsitem">
-					<td><input type="radio" name="attr_id" value="<?php echo $row->id ?>"/><?php echo $row->id ?></td>
-					<td><?php echo $row->name ?></td>
-					<td><?php echo $row->operator ?></td>
-					<td><?php echo $row->value ?></td>
-					<td class="textcenter"><?php echo $row->disabled ? 'yes' : 'no' ?></td>
-				</tr>
-<?php
+		$rownums = 0;
+		while ($row = $res->fetchObject()) {
+			if ($row->id != NULL) {
+				$rownums = $rownums + 1;
+			} else {
+				$rownums = $rownums - 1;
 			}
-		$res->closeCursor();
+?>
+			<tr class="resultsitem">
+				<td><input type="radio" name="attr_id" value="<?php echo $row->id ?>"/><?php echo $row->id ?></td>
+				<td><?php echo $row->name ?></td>
+				<td><?php echo $row->operator ?></td>
+				<td><?php echo $row->value ?></td>
+				<td class="textcenter"><?php echo $row->disabled ? 'yes' : 'no' ?></td>
+			</tr>
+<?php
 		}
+		$res->closeCursor();
+		if ($rownums <= 0) {
+?>
+			<p />
+			<tr>
+				<td colspan="5" class="textcenter">Group attribute list is empty</td>
+			</tr>
+<?php
+		}
+		unset($rownums);
+	} else {
+?>
+		<tr class="resultitem">
+			<td colspan="5" class="textcenter">No Group ID selected</td>
+		</tr>
+<?php
+	}
 ?>
 	</table>
 </form>
-<?php
-} else {
-?>
-	<div class="warning">Invocation error, no group ID selected</div>
-<?php
-}
-
-?>
 <?php
 
 printFooter();
