@@ -74,7 +74,13 @@ printHeader(array(
 		$sql = "SELECT GroupID FROM ${DB_TABLE_PREFIX}users_to_groups WHERE UserID = ".$_POST['user_id'];
 		$res = $db->query($sql);
 
+		$rownums = 0;
 		while ($row = $res->fetchObject()) {
+			if ($row->groupid != NULL) {
+				$rownums = $rownums + 1;
+			} else {
+				$rownums = $rownums - 1;
+			}
 			$sql = "SELECT ID, Name, Priority, Disabled, Comment FROM ${DB_TABLE_PREFIX}groups WHERE ID = ".$row->groupid;
 			$result = $db->query($sql);
 
@@ -92,6 +98,15 @@ printHeader(array(
 		$result->closeCursor();
 		}
 		$res->closeCursor();
+		if ($rownums <= 0) {
+?>
+			<p />
+			<tr>
+				<td colspan="5" class="textcenter">User doesn't belong to any groups</td>
+			</tr>
+<?php
+		}
+		unset($rownums);
 ?>
 	</table>
 </form>
