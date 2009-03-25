@@ -45,11 +45,11 @@ printHeader(array(
 					var myobj = document.getElementById('main_form_action');
 
 					if (myobj.selectedIndex == 2) {
-						myform.action = 'attribute-add.php';
+						myform.action = 'user-attribute-add.php';
 					} else if (myobj.selectedIndex == 5) {
-						myform.action = 'attribute-change.php';
+						myform.action = 'user-attribute-change.php';
 					} else if (myobj.selectedIndex == 3) {
-						myform.action = 'attribute-delete.php';
+						myform.action = 'user-attribute-delete.php';
 					}
 
 					myform.submit();
