@@ -27,7 +27,7 @@ function printHeader($params = NULL)
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 
     <head>
-	<title>Policyd Web Administration</title>
+	<title>SMRadiusd Web Administration</title>
 	<link rel="stylesheet" type="text/css" href="stylesheet.css" />
 	
 	<script type="text/javascript" src="tooltips/BubbleTooltips.js"></script>
