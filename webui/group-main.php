@@ -48,7 +48,7 @@ printHeader(array(
 						} else if (myobj.selectedIndex == 3) {
 							myform.action = 'group-delete.php';
 						} else if (myobj.selectedIndex == 5) {
-							myform.action = 'group-member-main.php';
+							myform.action = 'group-users.php';
 						} else if (myobj.selectedIndex == 6) {
 							myform.action = 'group-attributes.php';
 						}
@@ -61,7 +61,7 @@ printHeader(array(
 				<option value="add">Add Group</option>
 				<option value="delete">Delete Group</option>
 				<option disabled="disabled"> - - - - - - - - - - - </option>
-				<option value="members">List Members</option>
+				<option value="members">List Users</option>
 				<option value="members">List Attributes</option>
 			</select> 
 		</div>

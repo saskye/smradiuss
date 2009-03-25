@@ -70,7 +70,6 @@ if ($_POST['frmaction'] == "change") {
 				<tr>
 					<td class="entrytitle texttop">
 						Operator
-						<?php tooltip('user_attributes_operator'); ?>
 					</td>
 					<td class="oldval texttop"><?php echo $row->operator ?></td>
 					<td>
