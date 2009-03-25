@@ -80,7 +80,13 @@ printHeader(array(
 			$sql = "SELECT ID, Name, Priority, Disabled, Comment FROM ${DB_TABLE_PREFIX}groups ORDER BY ID";
 			$res = $db->query($sql);
 
+			$rownums = 0;
 			while ($row = $res->fetchObject()) {
+				if ($row->id != NULL) {
+					$rownums = $rownums + 1;
+				} else {
+					$rownums = $rownums - 1;
+				}
 ?>
 				<tr class="resultsitem">
 					<td><input type="radio" name="group_id" value="<?php echo $row->id ?>" /></td>
@@ -92,12 +98,18 @@ printHeader(array(
 <?php
 			}
 			$res->closeCursor();
+			if ($rownums <= 0) {
+?>
+				<tr>
+					<td class="textcenter">Group list is empty</td>
+				</tr>
+<?php
+			}
+			unset($rownums);
 ?>
 		</table>
 	</form>
 <?php
-
-
 
 printFooter();
 
