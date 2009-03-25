@@ -48,6 +48,8 @@ if (!isset($_POST['frmaction']))
 							myform.action = 'user-attributes.php';
 						} else if (myobj.selectedIndex == 6) {
 							myform.action = 'user-groups.php';
+						} else if (myobj.selectedIndex == 7) {
+							myform.action = 'user-logs.php';
 						}
 
 						myform.submit();
@@ -57,8 +59,9 @@ if (!isset($_POST['frmaction']))
 				<option value="add">Add User</option>
 				<option value="delete">Delete User</option>
 				<option disabled="disabled"> - - - - - - - - - - - </option>
-				<option value="members">List User Attributes</option>
-				<option value="members">List User Groups</option>
+				<option value="useratts">List User Attributes</option>
+				<option value="usergroups">List User Groups</option>
+				<option value="userlog">User Log</option>
 			</select> 
 		</div>
 
