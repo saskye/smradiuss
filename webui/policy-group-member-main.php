@@ -28,30 +28,30 @@ $db = connect_db();
 
 printHeader(array(
 		"Tabs" => array(
-			"Back to groups" => "policy-group-main.php"
+			"Back to groups" => "group-main.php"
 		),
 ));
 
 
 # Check a policy group was selected
-if (isset($_REQUEST['policy_group_id'])) {
+if (isset($_POST['group_id'])) {
 
 ?>
-	<p class="pageheader">Policy Group Members</p>
+	<p class="pageheader">Group Members</p>
 	
 <?php		
 
-	$policy_group_stmt = $db->prepare("SELECT Name FROM ${DB_TABLE_PREFIX}policy_groups WHERE ID = ?");
-	$policy_group_stmt->execute(array($_REQUEST['policy_group_id']));
-	$row = $policy_group_stmt->fetchObject();
-	$policy_group_stmt->closeCursor();
+	$group_stmt = $db->prepare("SELECT Name FROM ${DB_TABLE_PREFIX}groups WHERE ID = ?");
+	$group_stmt->execute(array($_POST['group_id']));
+	$row = $group_stmt->fetchObject();
+	$group_stmt->closeCursor();
 ?>
-	<form id="main_form" action="policy-group-member-main.php" method="post">
+	<form id="main_form" action="group-member-main.php" method="post">
 		<div>
-			<input type="hidden" name="policy_group_id" value="<?php echo $_REQUEST['policy_group_id'] ?>" />
+			<input type="hidden" name="group_id" value="<?php echo $_POST['group_id'] ?>" />
 		</div>
 		<div class="textcenter">
-			<div class="notice">Policy Group: <?php echo $row->name ?></div>
+			<div class="notice">Group: <?php echo $row->name ?></div>
 
 			Action
 			<select id="main_form_action" name="frmaction" 
@@ -60,13 +60,13 @@ if (isset($_REQUEST['policy_group_id'])) {
 						var myobj = document.getElementById('main_form_action');
 
 						if (myobj.selectedIndex == 2) {
-							myform.action = 'policy-group-member-add.php';
+							myform.action = 'group-member-add.php';
 							myform.submit();
 						} else if (myobj.selectedIndex == 4) {
-							myform.action = 'policy-group-member-change.php';
+							myform.action = 'group-member-change.php';
 							myform.submit();
 						} else if (myobj.selectedIndex == 5) {
-							myform.action = 'policy-group-member-delete.php';
+							myform.action = 'group-member-delete.php';
 							myform.submit();
 						}
 ">
@@ -90,22 +90,28 @@ if (isset($_REQUEST['policy_group_id'])) {
 			</tr>
 <?php
 
-			$stmt = $db->prepare("SELECT ID, Member, Disabled FROM ${DB_TABLE_PREFIX}policy_group_members WHERE PolicyGroupID = ?");
-			$res = $stmt->execute(array($_REQUEST['policy_group_id']));
-
-			$i = 0;
+			$stmt = $db->prepare("SELECT UserID FROM ${DB_TABLE_PREFIX}users_to_groups WHERE GroupID = ?");
+			$res = $stmt->execute(array($_REQUEST['group_id']));
 
 			# Loop with rows
 			while ($row = $stmt->fetchObject()) {
+
+				$sql = "SELECT ID, Username, Disabled FROM ${DB_TABLE_PREFIX}users WHERE ID = ".$row->userid;
+				$res = $db->query($sql);
+
+				# List users
+				while ($row = $res->fetchObject()) {
 ?>
-				<tr class="resultsitem">
-					<td><input type="radio" name="policy_group_member_id" value="<?php echo $row->id ?>" /></td>
-					<td class="textcenter"><?php echo $row->member ?></td>
-					<td class="textcenter"><?php echo $row->disabled ? 'yes' : 'no' ?></td>
-				</tr>
+					<tr class="resultsitem">
+						<td><input type="radio" name="user_id" value="<?php echo $row->id ?>"/><?php echo $row->id ?></td>
+						<td><?php echo $row->username ?></td>
+						<td class="textcenter"><?php echo $row->disabled ? 'yes' : 'no' ?></td>
+					</tr>
 <?php
 				}
-				$stmt->closeCursor();
+				$res->closeCursor();
+			}
+			$stmt->closeCursor();
 ?>
 		</table>
 	</form>
