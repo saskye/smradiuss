@@ -31,7 +31,7 @@ $db = connect_db();
 
 printHeader(array(
 		"Tabs" => array(
-			"Back to members" => "user-main.php",
+			"Back to user list" => "user-main.php",
 		),
 ));
 
