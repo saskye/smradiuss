@@ -21,7 +21,7 @@
 include_once("includes/header.php");
 include_once("includes/footer.php");
 include_once("includes/db.php");
-
+include("includes/radiuscodes.php");
 
 $db = connect_db();
 
@@ -48,7 +48,7 @@ if (isset($_POST['user_id'])) {
 
 ?>
 		<form id="main_form" action="user-logs.php" method="post">
-			<!-- Search things -->
+			<!-- User input from and to dates -->
 			<div>
 				<table>
 					<tr>
@@ -156,6 +156,9 @@ if (isset($_POST['user_id'])) {
 				$res = $db->prepare($sql);
 				$res->execute($extraSQLVals);
 
+				$totalInputData = 0;
+				$totalOutputData =0;
+				$totalSessionTime = 0;
 				$rownums = 0;
 				while ($row = $res->fetchObject()) {
 
@@ -169,60 +172,69 @@ if (isset($_POST['user_id'])) {
 					# ==========
 
 					# Input
-					$inputData = 0;
+					$inputDataItem = 0;
 
 					if (!empty($row->acctinputoctets) && $row->acctinputoctets > 0) {
-						$inputData = ($row->accinputoctets / 1024 / 1024);
+						$inputDataItem = ($row->accinputoctets / 1024 / 1024);
 					}
 					if (!empty($row->acctinputgigawords) && $row->inputgigawords > 0) {
-						$inputData = ($row->acctinputgigawords * 4096);
+						$inputDataItem = ($row->acctinputgigawords * 4096);
 					}
-					if ($inputData != 0) {
-						$inputDataDisplay = ceil($inputData * 100)/100;
+					if ($inputDataItem != 0) {
+						$inputDataItemDisplay = ceil($inputDataItem * 100)/100;
 					} else {
-						$inputDataDisplay = 0;
+						$inputDataItemDisplay = 0;
 					}
 
-					$totalInputData = $totalInputData + $inputData;
+					$totalInputData = $totalInputData + $inputDataItem;
 
 					# Output
-					$outputData = 0;
+					$outputDataItem = 0;
 
 					if (!empty($row->acctoutputoctets) && $row->acctoutputoctets > 0) {
-						$outputData = ($row->acctoutputoctets / 1024 / 1024);
+						$outputDataItem = ($row->acctoutputoctets / 1024 / 1024);
 					}
 					if (!empty($row->acctoutputgigawords) && $row->acctoutputgigawords > 0) {
-						$outputData = ($row->acctoutputgigawords * 4096);
+						$outputDataItem = ($row->acctoutputgigawords * 4096);
 					}
-					if ($outputData != 0) {
-						$outputDataDisplay = ceil($outputData * 100)/100;
+					if ($outputDataItem != 0) {
+						$outputDataItem = ceil($outputDataItem * 100)/100;
 					} else {
-						$outputDataDisplay = 0;
+						$outputDataItem = 0;
 					}
 
-					$totalOutputData = $totalOutputData + $outputData;
+					$totalOutputData = $totalOutputData + $outputDataItem;
+
+					# Add up time
+					if (!empty($row->acctsessiontime) && $row->acctsessiontime > 0) {
+						$sessionTimeItem = $row->acctsessiontime / 60;
+						$sessionTimeItem = ceil($sessionTimeItem * 100)/100;
+					}
+
+					$totalSessionTime = $totalSessionTime + $sessionTimeItem;
+					$totalSessionTime = ceil($totalSessionTime * 100)/100;
 
 ?>
 			<tr class="resultsitem">
-				<td class="textcenter"><?php echo $row->eventtimestamp ?></td>
-				<td class="textcenter"><?php echo $row->servicetype ?></td>
-				<td class="textcenter"><?php echo $row->framedprotocol ?></td>
-				<td class="textcenter"><?php echo $row->nasport ?></td>
-				<td class="textcenter"><?php echo $row->nasporttype ?></td>
-				<td class="textcenter"><?php echo $row->callingstationid ?></td>
-				<td class="textcenter"><?php echo $row->calledstationid ?></td>
-				<td class="textcenter"><?php echo $row->nasportid ?></td>
-				<td class="textcenter"><?php echo $row->acctsessionid ?></td>
-				<td class="textcenter"><?php echo $row->framedipaddress ?></td>
-				<td class="textcenter"><?php echo $row->acctauthentic ?></td>
-				<td class="textcenter"><?php echo $row->nasidentifier ?></td>
-				<td class="textcenter"><?php echo $row->nasipaddress ?></td>
-				<td class="textcenter"><?php echo $row->acctdelaytime ?></td>
-				<td class="textcenter"><?php echo $row->acctsessiontime ?></td>
-				<td class="textcenter"><?php echo $inputDataDisplay ?> Mbytes</td>
-				<td class="textcenter"><?php echo $outputDataDisplay ?> Mbytes</td>
-				<td class="textcenter"><?php echo $row->acctstatustype ?></td>
-				<td class="textcenter"><?php echo $row->acctterminatecause ?></td>
+				<td class="textcenter"><?php echo $row->eventtimestamp; ?></td>
+				<td class="textcenter"><?php echo $row->servicetype; ?></td>
+				<td class="textcenter"><?php echo $row->framedprotocol; ?></td>
+				<td class="textcenter"><?php echo $row->nasport; ?></td>
+				<td class="textcenter"><?php echo $row->nasporttype; ?></td>
+				<td class="textcenter"><?php echo $row->callingstationid; ?></td>
+				<td class="textcenter"><?php echo $row->calledstationid; ?></td>
+				<td class="textcenter"><?php echo $row->nasportid; ?></td>
+				<td class="textcenter"><?php echo $row->acctsessionid; ?></td>
+				<td class="textcenter"><?php echo $row->framedipaddress; ?></td>
+				<td class="textcenter"><?php echo $row->acctauthentic; ?></td>
+				<td class="textcenter"><?php echo $row->nasidentifier; ?></td>
+				<td class="textcenter"><?php echo $row->nasipaddress; ?></td>
+				<td class="textcenter"><?php echo $row->acctdelaytime; ?></td>
+				<td class="textcenter"><?php echo $sessionTimeItem; ?> Min</td>
+				<td class="textcenter"><?php echo $inputDataItem; ?> MB</td>
+				<td class="textcenter"><?php echo $outputDataItem; ?> MB</td>
+				<td class="textcenter"><?php echo $row->acctstatustype; ?></td>
+				<td class="textcenter"><?php echo strRadiusTermCode($row->acctterminatecause); ?></td>
 			</tr>
 <?php
 			}
@@ -234,9 +246,31 @@ if (isset($_POST['user_id'])) {
 				<td colspan="23" class="textcenter">No logs found for user: <?php echo $getuser ?></td>
 			</tr>
 <?php
+			} else {
+?>
+			<tr class="resultsitem">
+				<td class="textcenter"></td>
+				<td class="textcenter"></td>
+				<td class="textcenter"></td>
+				<td class="textcenter"></td>
+				<td class="textcenter"></td>
+				<td class="textcenter"></td>
+				<td class="textcenter"></td>
+				<td class="textcenter"></td>
+				<td class="textcenter"></td>
+				<td class="textcenter"></td>
+				<td class="textcenter"></td>
+				<td class="textcenter"></td>
+				<td class="textcenter"></td>
+				<td class="textcenter"></td>
+				<td class="textcenter" style="font-weight: bold;"><? echo $totalSessionTime ?> Min</td>
+				<td class="textcenter" style="font-weight: bold;"><? echo $totalInputData ?> MB</td>
+				<td class="textcenter" style="font-weight: bold;"><? echo $totalOutputData ?> MB</td>
+				<td class="textcenter"></td>
+				<td class="textcenter"></td>
+			</tr>
+<?php
 			}
-				unset($rownums);
-
 
 } else {
 ?>
