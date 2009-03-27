@@ -27,6 +27,7 @@ use smradius::dblayer;
 use smradius::logging;
 use smradius::util;
 
+use DateTime;
 use POSIX qw(ceil);
 
 use Data::Dumper;
@@ -269,6 +270,12 @@ sub acct_log
 	foreach my $attr ($packet->attributes) {
 		$template->{'accounting'}->{$attr} = $packet->rawattr($attr)
 	}
+
+	# Fix up timestamp a bit
+	$template->{'accounting'}->{'Event-Timestamp-Unix'} = $template->{'accounting'}->{'Event-Timestamp'};
+	my $dt = DateTime->from_epoch( epoch => $template->{'accounting'}->{'Event-Timestamp'} );
+	
+	$template->{'accounting'}->{'Event-Timestamp'} = $dt->strftime('%Y-%m-%d %H:%M:%S');
 	$template->{'user'} = $user;
 
 
