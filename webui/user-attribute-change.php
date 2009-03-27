@@ -101,7 +101,7 @@ if ($_POST['frmaction'] == "change") {
 					<td class="entrytitle">Disabled</td>
 					<td class="oldval"><?php echo $row->disabled ? 'yes' : 'no' ?></td>
 					<td>
-						<select name="user_attributes_disabled" />
+						<select name="user_attributes_disabled">
 							<option value="">--</option>
 							<option value="0">No</option>
 							<option value="1">Yes</option>
