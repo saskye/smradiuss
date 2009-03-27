@@ -104,7 +104,7 @@ CREATE TABLE @PREFIX@accounting (
 
 	AcctAuthentic		INT UNSIGNED NOT NULL,
 
-	EventTimestamp		INT UNSIGNED NOT NULL,
+	EventTimestamp		DATETIME NOT NULL,
 
 	NASIdentifier		VARCHAR(255) NOT NULL,	
 
