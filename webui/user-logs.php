@@ -35,186 +35,194 @@ printHeader(array(
 
 
 ?>
+
 <p class="pageheader">User Log</p>
+
 <?php
+
 if (isset($_POST['user_id'])) {
 
-		# Which user in the accounting table should we look for?
-		$stmt = $db->prepare("SELECT Username FROM ${DB_TABLE_PREFIX}users WHERE ID = ?");
-		$stmt->execute(array($_POST['user_id']));
-		$row = $stmt->fetchObject();
-		$stmt->closeCursor();
-		$getuser = $row->username;
+	# Which user in the accounting table should we look for?
+	$stmt = $db->prepare("SELECT Username FROM ${DB_TABLE_PREFIX}users WHERE ID = ?");
+	$stmt->execute(array($_POST['user_id']));
+	$row = $stmt->fetchObject();
+	$stmt->closeCursor();
+	$getuser = $row->username;
 
 ?>
-		<form id="main_form" action="user-logs.php" method="post">
-			<!-- User input from and to dates -->
-			<div>
-				<table>
-					<tr>
-						<td>From (yyyy-mm-dd)</td>
-					</tr>
-					<tr>
-						<td><input type="text" name="date_from" /></td>
-					</tr>
-					<tr>
-						<td>To (yyyy-mm-dd)</td>
-					</tr>
-					<tr>
-						<td><input type="text" name="date_to" /></td>
-					</tr>
-					<tr>
-						<input type="hidden" name="user_id" value=<?php echo $_POST['user_id']; ?> />
-						<td><input type="submit" value="Get results" /></td>
-					</tr>
-				</table>
-			</div>
-		</form>
 
-		<p />
+	<form id="main_form" action="user-logs.php" method="post">
+		<!-- User input from and to dates -->
+		<div>
+			<table>
+				<tr>
+					<td>From (yyyy-mm-dd)</td>
+				</tr>
+				<tr>
+					<td><input type="text" name="date_from" /></td>
+				</tr>
+				<tr>
+					<td>To (yyyy-mm-dd)</td>
+				</tr>
+				<tr>
+					<td><input type="text" name="date_to" /></td>
+				</tr>
+				<tr>
+					<input type="hidden" name="user_id" value=<?php echo $_POST['user_id']; ?> />
+					<td><input type="submit" value="Get results" /></td>
+				</tr>
+			</table>
+		</div>
+	</form>
 
-		<!-- Tables headings -->
-		<table class="results" style="width: 75%;">
-			<tr class="resultstitle">
-				<td class="textcenter">EventTimestamp</td>
-				<td class="textcenter">ServiceType</td>
-				<td class="textcenter">FramedProtocol</td>
-				<td class="textcenter">NASPort</td>
-				<td class="textcenter">NASPortType</td>
-				<td class="textcenter">CallingSationID</td>
-				<td class="textcenter">CalledStationID</td>
-				<td class="textcenter">NASPortID</td>
-				<td class="textcenter">AcctSessionID</td>
-				<td class="textcenter">FramedIPAddress</td>
-				<td class="textcenter">AcctAuthentic</td>
-				<td class="textcenter">NASIdentifier</td>
-				<td class="textcenter">NASIPAddress</td>
-				<td class="textcenter">AcctDelayTime</td>
-				<td class="textcenter">AcctSessionTime</td>
-				<td class="textcenter">Data-Input</td>
-				<td class="textcenter">Data-Output</td>
-				<td class="textcenter">AcctStatusType</td>
-				<td class="textcenter">AcctTerminateCause</td>
-			</tr>
+	<p />
+
+	<!-- Tables headings -->
+	<table class="results" style="width: 75%;">
+		<tr class="resultstitle">
+			<td class="textcenter">EventTimestamp</td>
+			<td class="textcenter">ServiceType</td>
+			<td class="textcenter">FramedProtocol</td>
+			<td class="textcenter">NASPort</td>
+			<td class="textcenter">NASPortType</td>
+			<td class="textcenter">CallingSationID</td>
+			<td class="textcenter">CalledStationID</td>
+			<td class="textcenter">NASPortID</td>
+			<td class="textcenter">AcctSessionID</td>
+			<td class="textcenter">FramedIPAddress</td>
+			<td class="textcenter">AcctAuthentic</td>
+			<td class="textcenter">NASIdentifier</td>
+			<td class="textcenter">NASIPAddress</td>
+			<td class="textcenter">AcctDelayTime</td>
+			<td class="textcenter">AcctSessionTime</td>
+			<td class="textcenter">Data-Input</td>
+			<td class="textcenter">Data-Output</td>
+			<td class="textcenter">AcctStatusType</td>
+			<td class="textcenter">AcctTerminateCause</td>
+		</tr>
+
 <?php
-			# Extra SQL
-			$extraSQL = "";
-			$extraSQLVals = array();
-			$limitSQL = "";
 
-			# Do we have a from date?, if so add it to our query
-			if (isset($_POST['date_from'])) {
-				$extraSQL .= " AND EventTimestamp >= ?";
-				array_push($extraSQLVals,$_POST['date_from']);
+		# Extra SQL
+		$extraSQL = "";
+		$extraSQLVals = array();
+		$limitSQL = "";
+
+		# Do we have a from date?, if so add it to our query
+		if (isset($_POST['date_from'])) {
+			$extraSQL .= " AND EventTimestamp >= ?";
+			array_push($extraSQLVals,$_POST['date_from']);
+		}
+		# Do we have a from date?, if so add it to our query
+		if (isset($_POST['date_to'])) {
+			$extraSQL .= " AND EventTimestamp <= ?";
+			array_push($extraSQLVals,$_POST['date_to']);
+		}
+
+		# Modify if we had a partial search or no search
+		if (count($extraSQLVals) < 2) {
+			$limitSQL = "LIMIT 50";
+		}
+
+		# Query to get all default data
+		$sql = "
+			SELECT
+					EventTimestamp, 
+					ServiceType,
+					FramedProtocol,
+					NASPort,
+					NASPortType, 
+					CallingStationID, 
+					CalledStationID, 
+					NASPortID, 
+					AcctSessionID, 
+					FramedIPAddress, 
+					AcctAuthentic, 
+					NASIdentifier, 
+					NASIPAddress, 
+					AcctDelayTime, 
+					AcctSessionTime, 
+					AcctInputOctets, 
+					AcctInputGigawords, 
+					AcctOutputOctets, 
+					AcctOutputGigawords, 
+					AcctStatusType, 
+					AcctTerminateCause 
+			FROM 
+					${DB_TABLE_PREFIX}accounting 
+			WHERE 
+					Username = '$getuser'
+					$extraSQL
+			ORDER BY
+					EventTimestamp
+			DESC
+				$limitSQL
+			";
+
+		$res = $db->prepare($sql);
+		$res->execute($extraSQLVals);
+
+		$totalInputData = 0;
+		$totalOutputData =0;
+		$totalSessionTime = 0;
+		$rownums = 0;
+
+		while ($row = $res->fetchObject()) {
+
+			if ($row->eventtimestamp != NULL) {
+				$rownums = $rownums + 1;
+			} else {
+				$rownums = $rownums - 1;
 			}
-			# Do we have a from date?, if so add it to our query
-			if (isset($_POST['date_to'])) {
-				$extraSQL .= " AND EventTimestamp <= ?";
-				array_push($extraSQLVals,$_POST['date_to']);
+
+			# Data usage
+			# ==========
+
+			# Input
+			$inputDataItem = 0;
+
+			if (!empty($row->acctinputoctets) && $row->acctinputoctets > 0) {
+				$inputDataItem = ($row->accinputoctets / 1024 / 1024);
+			}
+			if (!empty($row->acctinputgigawords) && $row->inputgigawords > 0) {
+				$inputDataItem = ($row->acctinputgigawords * 4096);
+			}
+			if ($inputDataItem != 0) {
+				$inputDataItemDisplay = ceil($inputDataItem * 100)/100;
+			} else {
+				$inputDataItemDisplay = 0;
 			}
 
-			# Modify if we had a partial search or no search
-			if (count($extraSQLVals) < 2) {
-				$limitSQL = "LIMIT 50";
+			$totalInputData = $totalInputData + $inputDataItem;
+
+			# Output
+			$outputDataItem = 0;
+
+			if (!empty($row->acctoutputoctets) && $row->acctoutputoctets > 0) {
+				$outputDataItem = ($row->acctoutputoctets / 1024 / 1024);
+			}
+			if (!empty($row->acctoutputgigawords) && $row->acctoutputgigawords > 0) {
+				$outputDataItem = ($row->acctoutputgigawords * 4096);
+			}
+			if ($outputDataItem != 0) {
+				$outputDataItem = ceil($outputDataItem * 100)/100;
+			} else {
+				$outputDataItem = 0;
 			}
 
-				# Query to get all default data
-				$sql = "
-					SELECT
-							EventTimestamp, 
-							ServiceType,
-							FramedProtocol,
-							NASPort,
-							NASPortType, 
-							CallingStationID, 
-							CalledStationID, 
-							NASPortID, 
-							AcctSessionID, 
-							FramedIPAddress, 
-							AcctAuthentic, 
-							NASIdentifier, 
-							NASIPAddress, 
-							AcctDelayTime, 
-							AcctSessionTime, 
-							AcctInputOctets, 
-							AcctInputGigawords, 
-							AcctOutputOctets, 
-							AcctOutputGigawords, 
-							AcctStatusType, 
-							AcctTerminateCause 
-					FROM 
-							${DB_TABLE_PREFIX}accounting 
-					WHERE 
-							Username = '$getuser'
-							$extraSQL
-					ORDER BY
-							EventTimestamp
-					DESC
-						$limitSQL
-				";
+			$totalOutputData = $totalOutputData + $outputDataItem;
 
-				$res = $db->prepare($sql);
-				$res->execute($extraSQLVals);
+			# Add up time
+			if (!empty($row->acctsessiontime) && $row->acctsessiontime > 0) {
+				$sessionTimeItem = $row->acctsessiontime / 60;
+				$sessionTimeItem = ceil($sessionTimeItem * 100)/100;
+			}
 
-				$totalInputData = 0;
-				$totalOutputData =0;
-				$totalSessionTime = 0;
-				$rownums = 0;
-				while ($row = $res->fetchObject()) {
-
-					if ($row->eventtimestamp != NULL) {
-						$rownums = $rownums + 1;
-					} else {
-						$rownums = $rownums - 1;
-					}
-
-					# Data usage
-					# ==========
-
-					# Input
-					$inputDataItem = 0;
-
-					if (!empty($row->acctinputoctets) && $row->acctinputoctets > 0) {
-						$inputDataItem = ($row->accinputoctets / 1024 / 1024);
-					}
-					if (!empty($row->acctinputgigawords) && $row->inputgigawords > 0) {
-						$inputDataItem = ($row->acctinputgigawords * 4096);
-					}
-					if ($inputDataItem != 0) {
-						$inputDataItemDisplay = ceil($inputDataItem * 100)/100;
-					} else {
-						$inputDataItemDisplay = 0;
-					}
-
-					$totalInputData = $totalInputData + $inputDataItem;
-
-					# Output
-					$outputDataItem = 0;
-
-					if (!empty($row->acctoutputoctets) && $row->acctoutputoctets > 0) {
-						$outputDataItem = ($row->acctoutputoctets / 1024 / 1024);
-					}
-					if (!empty($row->acctoutputgigawords) && $row->acctoutputgigawords > 0) {
-						$outputDataItem = ($row->acctoutputgigawords * 4096);
-					}
-					if ($outputDataItem != 0) {
-						$outputDataItem = ceil($outputDataItem * 100)/100;
-					} else {
-						$outputDataItem = 0;
-					}
-
-					$totalOutputData = $totalOutputData + $outputDataItem;
-
-					# Add up time
-					if (!empty($row->acctsessiontime) && $row->acctsessiontime > 0) {
-						$sessionTimeItem = $row->acctsessiontime / 60;
-						$sessionTimeItem = ceil($sessionTimeItem * 100)/100;
-					}
-
-					$totalSessionTime = $totalSessionTime + $sessionTimeItem;
-					$totalSessionTime = ceil($totalSessionTime * 100)/100;
+			$totalSessionTime = $totalSessionTime + $sessionTimeItem;
+			$totalSessionTime = ceil($totalSessionTime * 100)/100;
 
 ?>
+
 			<tr class="resultsitem">
 				<td class="textcenter"><?php echo $row->eventtimestamp; ?></td>
 				<td class="textcenter"><?php echo $row->servicetype; ?></td>
@@ -236,18 +244,26 @@ if (isset($_POST['user_id'])) {
 				<td class="textcenter"><?php echo $row->acctstatustype; ?></td>
 				<td class="textcenter"><?php echo strRadiusTermCode($row->acctterminatecause); ?></td>
 			</tr>
-<?php
-			}
-			$res->closeCursor();
 
-			if ($rownums <= 0) {
+<?php
+
+		}
+		$res->closeCursor();
+
+		if ($rownums <= 0) {
+
 ?>
+
 			<tr>
 				<td colspan="23" class="textcenter">No logs found for user: <?php echo $getuser ?></td>
 			</tr>
+
 <?php
-			} else {
+
+		} else {
+
 ?>
+
 			<tr class="resultsitem">
 				<td class="textcenter"></td>
 				<td class="textcenter"></td>
@@ -269,21 +285,27 @@ if (isset($_POST['user_id'])) {
 				<td class="textcenter"></td>
 				<td class="textcenter"></td>
 			</tr>
+
 <?php
-			}
 
-} else {
-?>
-			<tr>
-				<td class="warning">No user ID selected</td>
-			</tr>
-<?php
-}
-
-
+		}
 ?>
 		</table>
 <?php
+
+} else {
+
+?>
+	<div class="warning">No user selected</div>
+<?php
+
+}
+
+?>
+
+
+<?php
+
 printFooter();
 
 

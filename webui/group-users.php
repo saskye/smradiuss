@@ -37,14 +37,17 @@ printHeader(array(
 if (isset($_POST['group_id'])) {
 
 ?>
+
 	<p class="pageheader">Group Members</p>
 
 <?php
 
+	# Get group name
 	$group_stmt = $db->prepare("SELECT Name FROM ${DB_TABLE_PREFIX}groups WHERE ID = ?");
 	$group_stmt->execute(array($_POST['group_id']));
 	$row = $group_stmt->fetchObject();
 	$group_stmt->closeCursor();
+
 ?>
 
 		<table class="results" style="width: 75%;">
@@ -53,8 +56,10 @@ if (isset($_POST['group_id'])) {
 				<td class="textcenter">Member</td>
 				<td class="textcenter">Disabled</td>
 			</tr>
+
 <?php
 
+			# Get list of members belonging to this group
 			$stmt = $db->prepare("SELECT UserID FROM ${DB_TABLE_PREFIX}users_to_groups WHERE GroupID = ?");
 			$res = $stmt->execute(array($_REQUEST['group_id']));
 
@@ -72,37 +77,52 @@ if (isset($_POST['group_id'])) {
 
 				# List users
 				while ($row = $res->fetchObject()) {
+
 ?>
+
 					<tr class="resultsitem">
 						<td><?php echo $row->id ?></td>
 						<td><?php echo $row->username ?></td>
 						<td class="textcenter"><?php echo $row->disabled ? 'yes' : 'no' ?></td>
 					</tr>
+
 <?php
+
 				}
 				$res->closeCursor();
 			}
 			$stmt->closeCursor();
+
+			# Did we get any results?
 			if ($rownums <= 0) {
+
 ?>
+
 				<p />
 				<tr>
 					<td colspan="3" class="textcenter">Group has no users</td>
 				</tr>
+
 <?php
+
 			}
 			unset($rownums);
+
 ?>
+
 		</table>
-	</form>
+
 <?php
+
 } else {
+
 ?>
+
 	<div class="warning">Invalid invocation</div>
+
 <?php
+
 }
-
-
 printFooter();
 
 

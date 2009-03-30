@@ -88,7 +88,7 @@ if ($_POST['frmaction'] == "delete") {
 		# Warn
 		} else {
 ?>
-		<div class="warning">Delete attribute aborted</div>
+			<div class="warning">Delete attribute aborted</div>
 <?php
 		}
 ?>

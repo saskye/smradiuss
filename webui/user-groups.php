@@ -19,6 +19,7 @@
 
 session_start();
 
+
 include_once("includes/header.php");
 include_once("includes/footer.php");
 include_once("includes/db.php");
@@ -33,7 +34,9 @@ printHeader(array(
 		),
 ));
 
+
 ?>
+
 <p class="pageheader">Groups List</p>
 
 <form id="main_form" action="user-groups.php" method="post">
@@ -69,54 +72,70 @@ printHeader(array(
 			<td class="textcenter">Disabled</td>
 			<td class="textcenter">Comment</td>
 		</tr>
+
 <?php
-	if (isset($_POST['user_id'])) {
-		$sql = "SELECT GroupID FROM ${DB_TABLE_PREFIX}users_to_groups WHERE UserID = ".$_POST['user_id'];
-		$res = $db->query($sql);
 
-		$rownums = 0;
-		while ($row = $res->fetchObject()) {
-			if ($row->groupid != NULL) {
-				$rownums = $rownums + 1;
-			} else {
-				$rownums = $rownums - 1;
-			}
-			$sql = "SELECT ID, Name, Priority, Disabled, Comment FROM ${DB_TABLE_PREFIX}groups WHERE ID = ".$row->groupid;
-			$result = $db->query($sql);
+		if (isset($_POST['user_id'])) {
+			$sql = "SELECT GroupID FROM ${DB_TABLE_PREFIX}users_to_groups WHERE UserID = ".$_POST['user_id'];
+			$res = $db->query($sql);
 
-			while ($row = $result->fetchObject()) {
+			$rownums = 0;
+			while ($row = $res->fetchObject()) {
+				if ($row->groupid != NULL) {
+					$rownums = $rownums + 1;
+				} else {
+					$rownums = $rownums - 1;
+				}
+				$sql = "SELECT ID, Name, Priority, Disabled, Comment FROM ${DB_TABLE_PREFIX}groups WHERE ID = ".$row->groupid;
+				$result = $db->query($sql);
+
+				while ($row = $result->fetchObject()) {
+
 ?>
-				<tr class="resultsitem">
-					<td><input type="radio" name="group_id" value="<?php echo $row->id ?>"/></td>
-					<td><?php echo $row->name ?></td>
-					<td><?php echo $row->priority ?></td>
-					<td class="textcenter"><?php echo $row->disabled ? 'yes' : 'no' ?></td>
-					<td><?php echo $row->comment ?></td>
+
+					<tr class="resultsitem">
+						<td><input type="radio" name="group_id" value="<?php echo $row->id ?>"/></td>
+						<td><?php echo $row->name ?></td>
+						<td><?php echo $row->priority ?></td>
+						<td class="textcenter"><?php echo $row->disabled ? 'yes' : 'no' ?></td>
+						<td><?php echo $row->comment ?></td>
+					</tr>
+
+<?php
+
+				}
+				$result->closeCursor();
+			}
+
+			$res->closeCursor();
+			if ($rownums <= 0) {
+
+?>
+
+				<p />
+				<tr>
+					<td colspan="5" class="textcenter">User doesn't belong to any groups</td>
 				</tr>
+
 <?php
+
 			}
-		$result->closeCursor();
-		}
-		$res->closeCursor();
-		if ($rownums <= 0) {
+			unset($rownums);
+		} else {
+
 ?>
-			<p />
-			<tr>
-				<td colspan="5" class="textcenter">User doesn't belong to any groups</td>
-			</tr>
+
+			<div class="warning">Invocation error, no user ID selected</div>
+
 <?php
+
 		}
-		unset($rownums);
+
 ?>
+
 	</table>
 </form>
-<?php
-	} else {
-?>
-		<div class="warning">Invocation error, no user ID selected</div>
-<?php
-	}
-?>
+
 <?php
 
 $_SESSION['groups_user_id'] = $_POST['user_id'];

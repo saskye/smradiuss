@@ -88,7 +88,7 @@ if ($_POST['frmaction'] == "delete") {
 		# Warn
 		} else {
 ?>
-		<div class="warning">Remove Group Assignment aborted</div>
+			<div class="warning">Remove Group Assignment aborted</div>
 <?php
 		}
 ?>
