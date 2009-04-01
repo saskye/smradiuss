@@ -40,7 +40,9 @@ printHeader(array(
 if ($_POST['frmaction'] == "delete") {
 	# Check a user was selected
 	if (isset($_POST['user_id'])) {
+
 ?>
+
 		<p class="pageheader">Delete User</p>
 
 		<form action="user-delete.php" method="post">
@@ -54,50 +56,79 @@ if ($_POST['frmaction'] == "delete") {
 				<input type="submit" name="confirm" value="no" />
 			</div>
 		</form>
+
 <?php
+
 	} else {
+
 ?>
+
 		<div class="warning">No user selected</div>
+
 <?php
+
 	}
 # SQL Updates
 } elseif ($_POST['frmaction'] == "delete2") {
+
 ?>
+
 	<p class="pageheader">User Delete Results</p>
+
 <?php
+
 	if (isset($_POST['user_id'])) {
 		# Check to see if user's attributes are empty
-		$temp = $_POST['user_id'];
-		$sql = "SELECT * FROM ${DB_TABLE_PREFIX}user_attributes WHERE UserID = $temp";
-		$check = $db->query($sql);
+		$userID = $_POST['user_id'];
+		$sql = "SELECT * FROM ${DB_TABLE_PREFIX}user_attributes WHERE UserID = $userID";
+		$res = $db->query($sql);
 
-		if ($check->num_rows == 0) {
-			if ($_POST['confirm'] == "yes") {
-				$res = $db->exec("DELETE FROM ${DB_TABLE_PREFIX}users WHERE ID = ".$_POST['user_id']);
-				if ($res !== FALSE) {
+		if ($_POST['confirm'] == "yes") {
+			$res = $db->exec("DELETE FROM ${DB_TABLE_PREFIX}users WHERE ID = ".$_POST['user_id']);
+			if ($res !== FALSE) {
+
 ?>
-					<div class="notice">User with ID: <?php print_r($_POST['user_id']);?> deleted</div>
+
+				<div class="notice">User with ID: <?php print_r($_POST['user_id']);?> deleted</div>
+
 <?php
-				} else {
-?>
-					<div class="warning">Error deleting user</div>
-					<div class="warning"><?php print_r($db->errorInfo()) ?></div>
-<?php
-				}
+
 			} else {
+
 ?>
-			<div class="warning">Delete user aborted</div>
+
+				<div class="warning">Error deleting user</div>
+				<div class="warning"><?php print_r($db->errorInfo()) ?></div>
+
 <?php
+
 			}
 		} else {
+
 ?>
-			<div class="warning">Attribute list is not empty!</div>
+
+			<div class="warning">Delete user aborted</div>
+
 <?php
+
 		}
 	} else {
+
 ?>
-		<div class="warning">Invocation error, no user ID selected</div>
+
+		<div class="warning">Attribute list is not empty!</div>
+
 <?php
+
+	}
+} else {
+
+?>
+
+		<div class="warning">Invocation error, no user ID selected</div>
+
+<?php
+
 	}
 }
 printFooter();
