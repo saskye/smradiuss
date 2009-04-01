@@ -163,7 +163,7 @@ if (isset($_POST['user_id'])) {
 		$res->execute($extraSQLVals);
 
 		$totalInputData = 0;
-		$totalOutputData =0;
+		$totalOutputData = 0;
 		$totalSessionTime = 0;
 		$rownums = 0;
 
