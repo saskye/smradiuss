@@ -55,11 +55,18 @@ function printHeader($params = NULL)
 
 							<p>Control Panel</p>
 							<ul>
-								<li><a href="user-main.php">Users</a></li>
+								<li><a href="user-main.php">User List</a></li>
 								<li><a href="group-main.php">Groups</a></li>
 							</ul>
 
-	    					<img style="margin-left:-1px; margin-bottom: -6px" src="images/specs_bottom.jpg" alt="" />
+							<p>WiSP</p>
+							<ul>
+								<li><a href="wisp-user-list.php">User List</a></li>
+								<li><a href="wisp-user-add.php">Add User</a></li>
+							</ul>
+								
+
+	    			<!--		<img style="margin-left:-1px; margin-bottom: -6px" src="images/specs_bottom.jpg" alt="" />-->
 						</td>
 
 						<td class="content">
