@@ -129,7 +129,6 @@ if ($_POST['frmaction'] == "delete") {
 
 <?php
 
-	}
 }
 printFooter();
 
