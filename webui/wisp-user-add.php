@@ -33,7 +33,7 @@ if (!isset($_POST['frmaction'])) {
 
 ?>
 
-	<p class="pageheader">Add user</p>
+	<p class="pageheader">Add WiSP User</p>
 
 	<!-- Add user input fields -->
 	<form method="post" action="wisp-user-add.php">
@@ -88,13 +88,21 @@ if (!isset($_POST['frmaction'])) {
 				<td class="entrytitle">IP Address</td>
 				<td><input type="text" name="user_ip_address" /></td>
 			</tr>
-			<tr>
+			<!--<tr>
 				<td class="entrytitle">Pool Name</td>
 				<td><input type="text" name="pool_name" /></td>
 			</tr>
 			<tr>
 				<td class="entrytitle">Group Name</td>
 				<td><input type="text" name="group_name" /></td>
+			</tr>-->
+			<tr>
+				<td class="entrytitle">Data Usage Limit (MB)</td>
+				<td><input type="text" name="user_data_limit" /></td>
+			</tr>
+			<tr>
+				<td class="entrytitle">Time Limit (Min)</td>
+				<td><input type="text" name="user_time_limit" /></td>
 			</tr>
 			<tr>
 				<td class="entrytitle">Address List</td>
@@ -136,60 +144,97 @@ if ($_POST['frmaction'] == "insert") {
 
 	} else {
 
-		$stmt = $db->prepare("
-							INSERT INTO ${DB_TABLE_PREFIX}wispusers 
+		$db->beginTransaction();
 
-								(		
-									Username, 
-									Password, 
-									FirstName, 
-									LastName, 
-									Location, 
-									Email,
-									Phone, 
-									IPAddress, 
-									PoolName, 
-									GroupName, 
-									AddressList, 
-								)
-
-							VALUES 
-
-								(?,?,?,?,?,?,?,?,?,?,?)
-							");
-
-		$res = $stmt->execute(array(
+		# Insert into users table
+		$usersStatement = $db->prepare("INSERT INTO ${DB_TABLE_PREFIX}users (Username) VALUES (?)");
+		$userResult = $usersStatement->execute(array(
 				$_POST['user_name'],
-				$_POST['user_password'],
-				$_POST['user_first_name'],
-				$_POST['user_last_name'],
-				$_POST['user_location'],
-				$_POST['user_email'],
-				$_POST['user_phone'],
-				$_POST['user_ip_address'],
-				$_POST['pool_name'],
-				$_POST['group_name'],
-				$_POST['address_list'],
 				));
+		
+
+		# Get user ID to insert into other tables
+		$getUserID = $db->query("SELECT ID FROM ${DB_TABLE_PREFIX}users WHERE Username = ".$db->quote($_POST['user_name']));
+		$resultRow = $getUserID->fetchObject();
+		$userID = $resultRow->id;
+
+
+		# Insert IP Address
+		$userIPAddressStatement = $db->prepare("INSERT INTO 
+															${DB_TABLE_PREFIX}user_attributes (UserID,Name,Operator,Value) 
+												VALUES 
+															($userID,'Framed-IP-Address','+=',?)
+												");
+
+		$userIPAddressResult = $userIPAddressStatement->execute(array(
+												$_POST['user_ip_address'],
+												));
+
+
+		# Insert data limit
+		$dataInBytes = $_POST['user_data_limit'] * 1024;
+		$userDataStatement = $db->prepare("	INSERT INTO 
+														${DB_TABLE_PREFIX}user_attributes (UserID,Name,Operator,Value) 
+											VALUES 
+														($userID,'SMRadius-Capping-Traffic-Limit',':=',?)
+											");
+
+		$userDataResult = $userDataStatement->execute(array(
+												$dataInBytes,
+											));
+
+
+		# Insert time limit
+		$timeInSeconds = $_POST['user_time_limit'] * 60;
+		$userTimeStatement = $db->prepare("	INSERT INTO 
+														${DB_TABLE_PREFIX}user_attributes (UserID,Name,Operator,Value) 
+											VALUES 
+														($userID,'SMRadius-Capping-Time-Limit',':=',?)
+											");
+
+		$userTimeResult = $userTimeStatement->execute(array(
+												$timeInSeconds,
+											));
+
+
+		# Insert user data
+		$userDataStatement = $db->prepare("	INSERT INTO 
+														${DB_TABLE_PREFIX}userdata (UserID, Password, FirstName, LastName, Location, Email, Phone, AddressList) 
+											VALUES 
+														($userID,?,?,?,?,?,?,?)
+											");
+
+		$userDataResult = $userDataStatement->execute(array(
+															$_POST['user_password'],
+															$_POST['user_first_name'],
+															$_POST['user_last_name'],
+															$_POST['user_location'],
+															$_POST['user_email'],
+															$_POST['user_phone'],
+															$_POST['address_list'],
+															));
+												
+
 
 		# Was it successful?
-		if ($res) {
+		if ($userDataResult && $userResult && $userIPAddressResult && $userDataResult && $userTimeResult) {
 
 ?>
 
 			<div class="notice">User added</div>
 
 <?php
+			$db->commit();			
 
 		} else {
 
 ?>
 
 			<div class="warning">Failed to add user</div>
-			<div class="warning"><?php print_r($stmt->errorInfo()) ?></div>
+			<div class="warning"><?php print_r($db->errorInfo()) ?></div>
 
 <?php
-
+			$db->rollback();
 		}
 	}
 }

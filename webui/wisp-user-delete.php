@@ -79,15 +79,47 @@ if ($_POST['frmaction'] == "delete") {
 
 	if (isset($_POST['user_id'])) {
 		if ($_POST['confirm'] == "yes") {
-			$res = $db->exec("DELETE FROM wispusers WHERE ID = ".$_POST['user_id']);
-			if ($res !== FALSE) {
+			$failTotDeleteAll = 0;
+			$db->beginTransaction();
+			# Delete user data
+			$userDataDeleteResult = $db->exec("DELETE FROM userdata WHERE UserID = ".$_POST['user_id']);
+			if ($userDataDeleteresult !== FALSE) {
+				# Delete user attributes
+				$attrDeleteResult = $db->exec("DELETE FROM user_attributes WHERE UserID = ".$_POST['user_id']);
+				if ($attrDeleteResult !== FALSE) {
+					# Delete from users
+					$userDeleteResult = $db->exec("DELETE FROM users WHERE ID = ".$_POST['user_id']);
+					if ($userDeleteResult !== FALSE) {
 
 ?>
 
-				<div class="notice">User with ID: <?php print_r($_POST['user_id']);?> deleted</div>
+						<div class="notice">User with ID: <?php print_r($_POST['user_id']);?> deleted</div>
 
 <?php
 
+						$db->commit();
+					} else {
+
+?>
+
+						<div class="warning">Error deleting user</div>
+						<div class="warning"><?php print_r($db->errorInfo()) ?></div>
+
+<?php
+
+						$failToDeleteAll = 1;
+					}
+				} else {
+
+?>
+
+					<div class="warning">Error deleting user</div>
+					<div class="warning"><?php print_r($db->errorInfo()) ?></div>
+
+<?php
+
+					$failToDeleteAll = 1;
+				}
 			} else {
 
 ?>
@@ -97,6 +129,11 @@ if ($_POST['frmaction'] == "delete") {
 
 <?php
 
+				$failToDeleteAll = 1;
+			}
+			# If we failed at all, rollback
+			if ($failToDeleteAll == 1) {
+				$db->rollback();
 			}
 		} else {
 
@@ -111,7 +148,7 @@ if ($_POST['frmaction'] == "delete") {
 
 ?>
 
-			<div class="warning">Attribute list is not empty!</div>
+		<div class="warning">No user selected</div>
 
 <?php
 
@@ -120,7 +157,7 @@ if ($_POST['frmaction'] == "delete") {
 
 ?>
 
-	<div class="warning">Invocation error, no user ID selected</div>
+	<div class="warning">Invocation error</div>
 
 <?php
 

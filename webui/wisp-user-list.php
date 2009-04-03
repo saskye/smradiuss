@@ -109,16 +109,18 @@ if ($_POST['frmaction'] == "dofilter") {
 
 		<p />
 
-		<table class="results" style="width: 75%;">
+		<table class="results">
 			<tr class="resultstitle">
 				<td class="textcenter">ID</td>
 				<td class="textcenter">Username</td>
 				<td class="textcenter">FirstName</td>
 				<td class="textcenter">LastName</td>
-				<td class="textcenter">Data</td>
-				<td class="textcenter">Time</td>
 				<td class="textcenter">Email</td>
 				<td class="textcenter">Phone</td>
+				<td class="textcenter">Location</td>
+				<td class="textcenter">Data Cap</td>
+				<td class="textcenter">Time Cap</td>
+				<td class="textcenter">IP Address</td>
 			</tr>
 
 <?php
@@ -130,69 +132,61 @@ if ($_POST['frmaction'] == "dofilter") {
 
 			# What searches are we going to do?
 			if ($_POST['username']) {
-				$extraSQL = " AND Username LIKE ?";
+				$extraSQL = " AND users.Username LIKE ?";
 				array_push($extraSQLVals,"%".$_POST['username']."%");
 			}
 			if ($_POST['firstname']) {
-				$extraSQL = " AND FirstName LIKE ?";
+				$extraSQL = " AND userdata.FirstName LIKE ?";
 				array_push($extraSQLVals,"%".$_POST['firstname']."%");
 			}
 			if ($_POST['lastname']) {
-				$extraSQL = " AND LastName LIKE ?";
+				$extraSQL = " AND userdata.LastName LIKE ?";
 				array_push($extraSQLVals,"%".$_POST['lastname']."%");
 			}
 			if ($_POST['phone']) {
-				$extraSQL = " AND Phone LIKE ?";
+				$extraSQL = " AND userdata.Phone LIKE ?";
 				array_push($extraSQLVals,"%".$_POST['phone']."%");
 			}
 			if ($_POST['location']) {
-				$extraSQL = " AND Location LIKE ?";
+				$extraSQL = " AND userdata.Location LIKE ?";
 				array_push($extraSQLVals,"%".$_POST['location']."%");
 			}
 			if ($_POST['email']) {
-				$extraSQL = " AND Email LIKE ?";
+				$extraSQL = " AND userdata.Email LIKE ?";
 				array_push($extraSQLVals,"%".$_POST['email']."%");
-			}
-			if ($_POST['poolname']) {
-				$extraSQL = " AND PoolName LIKE ?";
-				array_push($extraSQLVals,"%".$_POST['poolname']."%");
-			}
-			if ($_POST['group']) {
-				$extraSQL = " AND GroupName LIKE ?";
-				array_push($extraSQLVals,"%".$_POST['group']."%");
 			}
 
 			# How are we sorting the results?
 			switch ($_POST['sortby']) {
 				case "id":
-					$sortSQL = " ORDER BY ID";
+					$sortSQL = " ORDER BY users.ID";
 					break;
 				case "fname":
-					$sortSQL = " ORDER BY FirstName";
+					$sortSQL = " ORDER BY userdata.FirstName";
 					break;
 				case "lname":
-					$sortSQL = " ORDER BY LastName";
+					$sortSQL = " ORDER BY userdata.LastName";
 					break;
 				case "uname":
-					$sortSQL = " ORDER BY Username";
+					$sortSQL = " ORDER BY users.Username";
 					break;
 			}
 
 			# Query based on user input
 			$sql = "
 				SELECT
-						ID, 
-						Username,
-						FirstName,
-						LastName,
-						Data, 
-						Time, 
-						Email, 
-						Phone 
+						users.ID, 
+						users.Username,
+						userdata.UserID,
+						userdata.FirstName,
+						userdata.LastName,
+						userdata.Email, 
+						userdata.Phone,
+						userdata.Location
 				FROM 
-						wispusers 
+						users, userdata
 				WHERE 
-						1 = 1
+						users.ID = userdata.UserID
 						$extraSQL
 						$sortSQL
 				";
@@ -200,14 +194,10 @@ if ($_POST['frmaction'] == "dofilter") {
 			$res = $db->prepare($sql);
 			$res->execute($extraSQLVals);
 
-			#$totalInputData = 0;
-			#$totalOutputData = 0;
-			#$totalSessionTime = 0;
-
 			# List users
 			$rownums = 0;
 			while ($row = $res->fetchObject()) {
-
+				
 				# If there was nothing returned we want to know about it
 				if ($row->id != NULL) {
 					$rownums = $rownums + 1;
@@ -215,51 +205,38 @@ if ($_POST['frmaction'] == "dofilter") {
 					$rownums = $rownums - 1;
 				}
 
-				# Data usage
-				# ==========
 
-				# Input
-				#$inputDataItem = 0;
-				#
-				#if (!empty($row->acctinputoctets) && $row->acctinputoctets > 0) {
-				#	$inputDataItem = ($row->accinputoctets / 1024 / 1024);
-				#}
-				#if (!empty($row->acctinputgigawords) && $row->inputgigawords > 0) {
-				#	$inputDataItem = ($row->acctinputgigawords * 4096);
-				#}
-				#if ($inputDataItem != 0) {
-				#	$inputDataItemDisplay = ceil($inputDataItem * 100)/100;
-				#} else {
-				#	$inputDataItemDisplay = 0;
-				#}
-				#
-				#$totalInputData = $totalInputData + $inputDataItem;
-				#
-				# Output
-				#$outputDataItem = 0;
-				#
-				#if (!empty($row->acctoutputoctets) && $row->acctoutputoctets > 0) {
-				#	$outputDataItem = ($row->acctoutputoctets / 1024 / 1024);
-				#}
-				#if (!empty($row->acctoutputgigawords) && $row->acctoutputgigawords > 0) {
-				#	$outputDataItem = ($row->acctoutputgigawords * 4096);
-				#}
-				#if ($outputDataItem != 0) {
-				#	$outputDataItem = ceil($outputDataItem * 100)/100;
-				#} else {
-				#	$outputDataItem = 0;
-				#}
-				#
-				#$totalOutputData = $totalOutputData + $outputDataItem;
-				#
-				# Add up time
-				#if (!empty($row->acctsessiontime) && $row->acctsessiontime > 0) {
-				#	$sessionTimeItem = $row->acctsessiontime / 60;
-				#	$sessionTimeItem = ceil($sessionTimeItem * 100)/100;
-				#}
-				#
-				#$totalSessionTime = $totalSessionTime + $sessionTimeItem;
-				#$totalSessionTime = ceil($totalSessionTime * 100)/100;
+				# Second dirty query to get user's attributes
+				$tempUserID = $row->id;
+				$attrQuery = "
+						SELECT
+								Name,
+								Value
+						FROM
+								user_attributes
+						WHERE
+								UserID = $tempUserID
+						";
+				
+				$dataCap = NULL;
+				$timeCap = NULL;
+				$userIP = NULL;
+				$attrResult = $db->query($attrQuery);
+				while ($attrRow = $attrResult->fetchObject()) {
+					# Is it the data cap attribute
+					if ($attrRow->name == "SMRadius-Capping-Traffic-Limit") {
+						$dataCap = $attrRow->value;
+					}
+					# Or the time cap attribute
+					if ($attrRow->name == "SMRadius-Capping-Time-Limit") {
+						$timeCap = $attrRow->value;
+					}
+					# Or the user IP attribute
+					if ($attrRow->name == "Framed-IP-Address") {
+						$userIP = $attrRow->value;
+					}
+				}
+				$attrResult->closeCursor();
 
 ?>		
 
@@ -268,10 +245,12 @@ if ($_POST['frmaction'] == "dofilter") {
 					<td><?php echo $row->username ?></td>
 					<td><?php echo $row->firstname ?></td>
 					<td><?php echo $row->lastname ?></td>
-					<td><?php echo $row->data ?></td>
-					<td><?php echo $row->time ?></td>
 					<td><?php echo $row->email ?></td>
 					<td><?php echo $row->phone ?></td>
+					<td><?php echo $row->location ?></td>
+					<td><?php echo $dataCap ?></td>
+					<td><?php echo $timeCap ?></td>
+					<td><?php echo $userIP ?></td>
 				</tr>
 
 <?php

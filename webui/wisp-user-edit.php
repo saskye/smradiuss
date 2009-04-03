@@ -34,11 +34,76 @@ printHeader(array(
 if ($_POST['frmaction'] == "edit") {
 	# Check a user was selected
 	if (isset($_POST['user_id'])) {
-		# Prepare statement
+
+		# Prepare statements
 		$userID = $_POST['user_id'];
-		$sql = "SELECT Password, FirstName, LastName, Location, Email, Phone, IPAddress, PoolName, GroupName, AddressList FROM wispusers WHERE ID = $userID";
-		$res = $db->query($sql); 
-		$row = $res->fetchObject();
+		$sql = "SELECT 
+					Password, 
+					FirstName, 
+					LastName, 
+					Location, 
+					Email, 
+					Phone, 
+					AddressList 
+				FROM 
+					userdata 
+				WHERE 
+					UserID = $userID
+				";
+
+		$userDataResult = $db->query($sql); 
+		$userDataRow = $userDataResult->fetchObject();
+
+		$sql = "SELECT
+					UserID,
+					Name,
+					Operator,
+					Value,
+					Disabled
+				FROM
+					user_attributes
+				WHERE
+					UserID = $userID
+				AND
+					Name = 'Framed-IP-Address'
+				";
+
+		$framedIPResult = $db->query($sql);
+		$framedIPRow = $framedIPResult->fetchObject();
+
+		$sql = "SELECT
+					UserID,
+					Name,
+					Operator,
+					Value,
+					Disabled
+				FROM
+					user_attributes
+				WHERE
+					UserID = $userID
+				AND
+					Name = 'SMRadius-Capping-Traffic-Limit'
+				";
+
+		$dataLimitResult = $db->query($sql);
+		$dataLimitRow = $dataLimitResult->fetchObject();
+
+		$sql = "SELECT
+					UserID,
+					Name,
+					Operator,
+					Value,
+					Disabled
+				FROM
+					user_attributes
+				WHERE
+					UserID = $userID
+				AND
+					Name = 'SMRadius-Capping-Time-Limit'
+				";
+
+		$timeLimitResult = $db->query($sql);
+		$timeLimitRow = $timeLimitResult->fetchObject();
 
 ?>
 
@@ -49,7 +114,7 @@ if ($_POST['frmaction'] == "edit") {
 			<input type="hidden" name="user_id" value="<?php echo $_POST['user_id']; ?>" />
 			<table class="entry">
 				<tr>
-					<td class="entrytitle textcenter" colspan="3">Account Information</td>
+					<td class="entrytitle" colspan="3">Account Information</td>
 				</tr>
 				<tr>
 					<td><div></div></td>
@@ -58,11 +123,26 @@ if ($_POST['frmaction'] == "edit") {
 				</tr>
 				<tr>
 					<td class="entrytitle texttop">Password</td>
-					<td class="oldval texttop"><?php echo $row->password ?></td>
+					<td class="oldval texttop"><?php echo $userDataRow->password ?></td>
 					<td><input type="password" name="new_password" /></td>
 				</tr>
 				<tr>
-					<td class="entrytitle textcenter" colspan="3">Private Information</td>
+					<td class="entrytitle texttop">Data Limit</td>
+					<td class="oldval texttop"><?php echo $dataLimitRow->value ?></td>
+					<td><input type="text" name="new_data_limit" /></td>
+				</tr>
+				<tr>
+					<td class="entrytitle texttop">Time Limit</td>
+					<td class="oldval texttop"><?php echo $timeLimitRow->value ?></td>
+					<td><input type="text" name="new_time_limit" /></td>
+				</tr>
+				<tr>
+					<td class="entrytitle texttop">IP Address</td>
+					<td class="oldval texttop"><?php echo $framedIPRow->value ?></td>
+					<td><input type="text" name="new_ip_address" /></td>
+				</tr>
+				<tr>
+					<td class="entrytitle" colspan="3">Private Information</td>
 				</tr>
 				<tr>
 					<td><div></div></td>
@@ -71,47 +151,32 @@ if ($_POST['frmaction'] == "edit") {
 				</tr>
 				<tr>
 					<td class="entrytitle texttop">First Name</td>
-					<td class="oldval texttop"><?php echo $row->firstname ?></td>
+					<td class="oldval texttop"><?php echo $userDataRow->firstname ?></td>
 					<td><input type="text" name="new_firstname" /></td>
 				</tr>
 				<tr>
 					<td class="entrytitle texttop">Last Name</td>
-					<td class="oldval texttop"><?php echo $row->lastname ?></td>
+					<td class="oldval texttop"><?php echo $userDataRow->lastname ?></td>
 					<td><input type="text" name="new_lastname" /></td>
 				</tr>
 				<tr>
 					<td class="entrytitle texttop">Location</td>
-					<td class="oldval texttop"><?php echo $row->location ?></td>
+					<td class="oldval texttop"><?php echo $userDataRow->location ?></td>
 					<td><input type="text" name="new_location" /></td>
 				</tr>
 				<tr>
 					<td class="entrytitle texttop">Email</td>
-					<td class="oldval texttop"><?php echo $row->email ?></td>
+					<td class="oldval texttop"><?php echo $userDataRow->email ?></td>
 					<td><input type="text" name="new_email" /></td>
 				</tr>
 				<tr>
 					<td class="entrytitle texttop">Phone</td>
-					<td class="oldval texttop"><?php echo $row->phone ?></td>
+					<td class="oldval texttop"><?php echo $userDataRow->phone ?></td>
 					<td><input type="text" name="new_phone" /></td>
 				</tr>
 				<tr>
-					<td class="entrytitle texttop">IPAddress</td>
-					<td class="oldval texttop"><?php echo $row->ipaddress ?></td>
-					<td><input type="text" name="new_ipaddress" /></td>
-				</tr>
-				<tr>
-					<td class="entrytitle texttop">Pool Name</td>
-					<td class="oldval texttop"><?php echo $row->poolname ?></td>
-					<td><input type="text" name="new_poolname" /></td>
-				</tr>
-				<tr>
-					<td class="entrytitle texttop">Group Name</td>
-					<td class="oldval texttop"><?php echo $row->groupname ?></td>
-					<td><input type="text" name="new_groupname" /></td>
-				</tr>
-				<tr>
 					<td class="entrytitle texttop">Address List</td>
-					<td class="oldval texttop"><?php echo $row->addresslist ?></td>
+					<td class="oldval texttop"><?php echo $userDataRow->addresslist ?></td>
 					<td><input type="text" name="new_addresslist" /></td>
 				</tr>
 			</table>
@@ -125,7 +190,6 @@ if ($_POST['frmaction'] == "edit") {
 
 <?php
 
-	$res->closeCursor();
 	} else {
 
 ?>
@@ -135,6 +199,12 @@ if ($_POST['frmaction'] == "edit") {
 <?php
 
 	}
+
+	$userDataResult->closeCursor();
+	$framedIPResult->closeCursor();
+	$dataLimitResult->closeCursor();
+	$timeLimitResult->closeCursor();
+
 # SQL Updates
 } elseif ($_POST['frmaction'] == "edit2") {
 
@@ -147,49 +217,72 @@ if ($_POST['frmaction'] == "edit") {
 	# Check a user was selected
 	if (isset($_POST['user_id'])) {
 
-		$updates = array();
+		$userDataUpdates = array();
 
 		if (!empty($_POST['new_password'])) {
-			array_push($updates,"Password = ".$db->quote($_POST['new_password']));
+			array_push($userDataUpdates,"Password = ".$db->quote($_POST['new_password']));
 		}
 		if (!empty($_POST['new_firstname'])) {
-			array_push($updates,"FirstName = ".$db->quote($_POST['new_firstname']));
+			array_push($userDataUpdates,"FirstName = ".$db->quote($_POST['new_firstname']));
 		}
 		if (!empty($_POST['new_lastname'])) {
-			array_push($updates,"LastName = ".$db->quote($_POST['new_lastname']));
+			array_push($userDataUpdates,"LastName = ".$db->quote($_POST['new_lastname']));
 		}
 		if (!empty($_POST['new_location'])) {
-			array_push($updates,"Location = ".$db->quote($_POST['new_location']));
+			array_push($userDataUpdates,"Location = ".$db->quote($_POST['new_location']));
 		}
 		if (!empty($_POST['new_email'])) {
-			array_push($updates,"Email = ".$db->quote($_POST['new_email']));
+			array_push($userDataUpdates,"Email = ".$db->quote($_POST['new_email']));
 		}
 		if (!empty($_POST['new_phone'])) {
-			array_push($updates,"Phone = ".$db->quote($_POST['new_phone']));
-		}
-		if (!empty($_POST['new_ipaddress'])) {
-			array_push($updates,"IPAddress = ".$db->quote($_POST['new_ipaddress']));
-		}
-		if (!empty($_POST['new_poolname'])) {
-			array_push($updates,"PoolName = ".$db->quote($_POST['new_poolname']));
-		}
-		if (!empty($_POST['new_groupname'])) {
-			array_push($updates,"GroupName = ".$db->quote($_POST['new_groupname']));
+			array_push($userDataUpdates,"Phone = ".$db->quote($_POST['new_phone']));
 		}
 		if (!empty($_POST['new_addresslist'])) {
-			array_push($updates,"AddressList = ".$db->quote($_POST['new_addresslist']));
+			array_push($userDataUpdates,"AddressList = ".$db->quote($_POST['new_addresslist']));
 		}
 
-		# Check if we have updates
-		if (sizeof($updates) > 0) {
-			$updateStr = implode(', ',$updates);
+		$numUserAttributesUpdates = 0;
+		if (!empty($_POST['new_data_limit'])) {
+			$dataLimitResult = $db->exec("	UPDATE 
+												user_attributes 
+											SET 
+												SMRadius-Capping-Traffic-Limit = ".$db->quote($_POST['new_data_limit'])." 
+											WHERE 
+												UserID = ".$db->quote($_POST['user_id'])
+										);
+			$numUserAttributesUpdates++;
+		}
+		if (!empty($_POST['new_time_limit'])) {
+			$timeLimitResult = $db->exec("	UPDATE 
+												user_attributes 
+											SET 
+												SMRadius-Capping-Traffic-Limit = ".$db->quote($_POST['new_time_limit'])." 
+											WHERE 
+												UserID = ".$db->quote($_POST['user_id'])
+										);
+			$numUserAttributesUpdates++;
+		}
+		if (!empty($_POST['new_ip_address'])) {
+			$ipAddressResult = $db->exec("	UPDATE 
+												user_attributes 
+											SET 
+												Framed-IP-Address = ".$db->quote($_POST['new_ip_address'])." 
+											WHERE 
+												UserID = ".$db->quote($_POST['user_id'])
+										);
+			$numUserAttributesUpdates++;
+		}
 
-			$res = $db->exec("UPDATE wispusers SET $updateStr WHERE ID = ".$db->quote($_POST['user_id']));
+		# Check if we have userdata table updates
+		if (sizeof($userDataUpdates) > 0) {
+			$userDataUpdateString = implode(', ',$userDataUpdates);
+
+			$res = $db->exec("UPDATE userdata SET $userDataUpdateString WHERE UserID = ".$db->quote($_POST['user_id']));
 			if ($res) {
 
 ?>
 
-				<div class="notice">User updated</div>
+				<div class="notice">User private data updated</div>
 
 <?php
 
@@ -197,7 +290,7 @@ if ($_POST['frmaction'] == "edit") {
 
 ?>
 
-				<div class="warning">Error updating user</div>
+				<div class="warning">Error updating user private data</div>
 				<div class="warning"><?php print_r($db->errorInfo()) ?></div>
 
 <?php
@@ -209,7 +302,23 @@ if ($_POST['frmaction'] == "edit") {
 
 ?>
 
-			<div class="warning">No user updates</div>
+			<div class="warning">User private data not updated</div>
+
+<?php
+
+		}
+		if ($numUserAttributesUpdates > 0) {
+
+?>
+			<div class="notice">User account data updated</div>
+
+<?php
+
+		} else {
+
+?>
+
+			<div class="warning"><?php print_r($db->errorInfo()) ?></div>
 
 <?php
 
