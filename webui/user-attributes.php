@@ -111,7 +111,7 @@ printHeader(array(
 
 				<p />
 				<tr>
-					<td colspan="5" class="textcenter">Group attribute list is empty</td>
+					<td colspan="5" class="textcenter">Attribute list is empty</td>
 				</tr>
 
 <?php
