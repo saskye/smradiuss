@@ -38,13 +38,11 @@ if ($_POST['frmaction'] == "edit") {
 		# Prepare statements
 		$userID = $_POST['user_id'];
 		$sql = "SELECT 
-					Password, 
 					FirstName, 
 					LastName, 
 					Location, 
 					Email, 
-					Phone, 
-					AddressList 
+					Phone 
 				FROM 
 					userdata 
 				WHERE 
@@ -55,11 +53,7 @@ if ($_POST['frmaction'] == "edit") {
 		$userDataRow = $userDataResult->fetchObject();
 
 		$sql = "SELECT
-					UserID,
-					Name,
-					Operator,
-					Value,
-					Disabled
+					Value
 				FROM
 					user_attributes
 				WHERE
@@ -72,11 +66,35 @@ if ($_POST['frmaction'] == "edit") {
 		$framedIPRow = $framedIPResult->fetchObject();
 
 		$sql = "SELECT
-					UserID,
-					Name,
-					Operator,
-					Value,
-					Disabled
+					Value
+				FROM
+					user_attributes
+				WHERE
+					UserID = $userID
+				AND
+					Name = 'Calling-Station-Id'
+				";
+
+		$callingStationResult = $db->query($sql);
+		$callingStationRow = $callingStationResult->fetchObject();
+
+
+		$sql = "SELECT
+					Value
+				FROM
+					user_attributes
+				WHERE
+					UserID = $userID
+				AND
+					Name = 'User-Password'
+				";
+
+		$userPasswordResult = $db->query($sql);
+		$userPasswordRow = $userPasswordResult->fetchObject();
+
+
+		$sql = "SELECT
+					Value
 				FROM
 					user_attributes
 				WHERE
@@ -87,13 +105,10 @@ if ($_POST['frmaction'] == "edit") {
 
 		$dataLimitResult = $db->query($sql);
 		$dataLimitRow = $dataLimitResult->fetchObject();
+		$dataLimit = $dataLimitRow->value;
 
 		$sql = "SELECT
-					UserID,
-					Name,
-					Operator,
-					Value,
-					Disabled
+					Value
 				FROM
 					user_attributes
 				WHERE
@@ -104,6 +119,7 @@ if ($_POST['frmaction'] == "edit") {
 
 		$timeLimitResult = $db->query($sql);
 		$timeLimitRow = $timeLimitResult->fetchObject();
+		$timeLimit = $timeLimitRow->value;
 
 ?>
 
@@ -114,7 +130,7 @@ if ($_POST['frmaction'] == "edit") {
 			<input type="hidden" name="user_id" value="<?php echo $_POST['user_id']; ?>" />
 			<table class="entry">
 				<tr>
-					<td class="entrytitle" colspan="3">Account Information</td>
+					<td class="entrytitle textcenter" colspan="3">Account Information</td>
 				</tr>
 				<tr>
 					<td><div></div></td>
@@ -123,18 +139,23 @@ if ($_POST['frmaction'] == "edit") {
 				</tr>
 				<tr>
 					<td class="entrytitle texttop">Password</td>
-					<td class="oldval texttop"><?php echo $userDataRow->password ?></td>
+					<td class="oldval texttop"><?php echo $userPasswordRow->value ?></td>
 					<td><input type="password" name="new_password" /></td>
 				</tr>
 				<tr>
 					<td class="entrytitle texttop">Data Limit</td>
-					<td class="oldval texttop"><?php echo $dataLimitRow->value ?></td>
+					<td class="oldval texttop"><?php echo $dataLimit ?> MB</td>
 					<td><input type="text" name="new_data_limit" /></td>
 				</tr>
 				<tr>
 					<td class="entrytitle texttop">Time Limit</td>
-					<td class="oldval texttop"><?php echo $timeLimitRow->value ?></td>
+					<td class="oldval texttop"><?php echo $timeLimit ?> Min</td>
 					<td><input type="text" name="new_time_limit" /></td>
+				</tr>
+				<tr>
+					<td class="entrytitle texttop">MAC Address</td>
+					<td class="oldval texttop"><?php echo $callingStationRow->value ?></td>
+					<td><input type="text" name="new_mac_address" /></td>
 				</tr>
 				<tr>
 					<td class="entrytitle texttop">IP Address</td>
@@ -142,7 +163,7 @@ if ($_POST['frmaction'] == "edit") {
 					<td><input type="text" name="new_ip_address" /></td>
 				</tr>
 				<tr>
-					<td class="entrytitle" colspan="3">Private Information</td>
+					<td class="entrytitle textcenter" colspan="3">Private Information</td>
 				</tr>
 				<tr>
 					<td><div></div></td>
@@ -174,11 +195,6 @@ if ($_POST['frmaction'] == "edit") {
 					<td class="oldval texttop"><?php echo $userDataRow->phone ?></td>
 					<td><input type="text" name="new_phone" /></td>
 				</tr>
-				<tr>
-					<td class="entrytitle texttop">Address List</td>
-					<td class="oldval texttop"><?php echo $userDataRow->addresslist ?></td>
-					<td><input type="text" name="new_addresslist" /></td>
-				</tr>
 			</table>
 
 			<p />
@@ -204,6 +220,7 @@ if ($_POST['frmaction'] == "edit") {
 	$framedIPResult->closeCursor();
 	$dataLimitResult->closeCursor();
 	$timeLimitResult->closeCursor();
+	$callingStationResult->closeCursor();
 
 # SQL Updates
 } elseif ($_POST['frmaction'] == "edit2") {
@@ -219,9 +236,6 @@ if ($_POST['frmaction'] == "edit") {
 
 		$userDataUpdates = array();
 
-		if (!empty($_POST['new_password'])) {
-			array_push($userDataUpdates,"Password = ".$db->quote($_POST['new_password']));
-		}
 		if (!empty($_POST['new_firstname'])) {
 			array_push($userDataUpdates,"FirstName = ".$db->quote($_POST['new_firstname']));
 		}
@@ -237,39 +251,66 @@ if ($_POST['frmaction'] == "edit") {
 		if (!empty($_POST['new_phone'])) {
 			array_push($userDataUpdates,"Phone = ".$db->quote($_POST['new_phone']));
 		}
-		if (!empty($_POST['new_addresslist'])) {
-			array_push($userDataUpdates,"AddressList = ".$db->quote($_POST['new_addresslist']));
-		}
 
 		$numUserAttributesUpdates = 0;
 		if (!empty($_POST['new_data_limit'])) {
 			$dataLimitResult = $db->exec("	UPDATE 
 												user_attributes 
 											SET 
-												SMRadius-Capping-Traffic-Limit = ".$db->quote($_POST['new_data_limit'])." 
+												Value = ".$db->quote($_POST['new_data_limit'])." 
 											WHERE 
-												UserID = ".$db->quote($_POST['user_id'])
-										);
+												UserID = ".$db->quote($_POST['user_id'])."
+											AND
+												Name = 'SMRadius-Capping-Traffic-Limit'
+										");
 			$numUserAttributesUpdates++;
 		}
 		if (!empty($_POST['new_time_limit'])) {
 			$timeLimitResult = $db->exec("	UPDATE 
 												user_attributes 
 											SET 
-												SMRadius-Capping-Traffic-Limit = ".$db->quote($_POST['new_time_limit'])." 
+												Value = ".$db->quote($_POST['new_time_limit'])." 
 											WHERE 
-												UserID = ".$db->quote($_POST['user_id'])
-										);
+												UserID = ".$db->quote($_POST['user_id'])."
+											AND
+												Name = 'SMRadius-Capping-Traffic-Limit'
+										");
+			$numUserAttributesUpdates++;
+		}
+		if (!empty($_POST['new_password'])) {
+			$setUserPasswordResult = $db->exec("	UPDATE 
+														user_attributes 
+													SET 
+														Value = ".$db->quote($_POST['new_password'])." 
+													WHERE 
+														UserID = ".$db->quote($_POST['user_id'])."
+													AND
+														Name = 'User-Password'
+													");
 			$numUserAttributesUpdates++;
 		}
 		if (!empty($_POST['new_ip_address'])) {
 			$ipAddressResult = $db->exec("	UPDATE 
 												user_attributes 
 											SET 
-												Framed-IP-Address = ".$db->quote($_POST['new_ip_address'])." 
+												Value = ".$db->quote($_POST['new_ip_address'])." 
 											WHERE 
-												UserID = ".$db->quote($_POST['user_id'])
-										);
+												UserID = ".$db->quote($_POST['user_id'])."
+											AND
+												Name = 'Framed-IP-Address'
+										");
+			$numUserAttributesUpdates++;
+		}
+		if (!empty($_POST['new_mac_address'])) {
+			$macAddressResult = $db->exec("	UPDATE 
+												user_attributes 
+											SET 
+												Value = ".$db->quote($_POST['new_mac_address'])." 
+											WHERE 
+												UserID = ".$db->quote($_POST['user_id'])."
+											AND
+												Name = 'Calling-Station-Id'
+										");
 			$numUserAttributesUpdates++;
 		}
 
