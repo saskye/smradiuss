@@ -64,12 +64,6 @@ if (!isset($_POST['frmaction'])) {
 				<td><input type="text" name="email" /></td>
 			</tr>
 			<tr>
-				<td>Pool Name:</td>
-				<td><input type="text" name="poolname" /></td>
-				<td>Group:</td>
-				<td><input type="text" name="group" /></td>
-			</tr>
-			<tr>
 				<td class="textcenter" colspan="5"><input type="submit" value="Submit" /></td>
 			</tr>
 		</table>
@@ -96,6 +90,8 @@ if ($_POST['frmaction'] == "dofilter") {
 							myform.action = 'wisp-user-edit.php';
 						} else if (myobj.selectedIndex == 3) {
 							myform.action = 'wisp-user-delete.php';
+						} else if (myobj.selectedIndex == 5) {
+							myform.action = 'wisp-user-logs.php';
 						}
 
 						myform.submit();
@@ -104,6 +100,8 @@ if ($_POST['frmaction'] == "dofilter") {
 				<option disabled="disabled"> - - - - - - - - - - - </option>
 				<option value="edit">Edit User</option>
 				<option value="delete">Remove User</option>
+				<option disabled="disabled"> - - - - - - - - - - - </option>
+				<option value="viewlogs">View User Logs</option>
 			</select> 
 		</div>
 
@@ -248,8 +246,8 @@ if ($_POST['frmaction'] == "dofilter") {
 					<td><?php echo $row->email ?></td>
 					<td><?php echo $row->phone ?></td>
 					<td><?php echo $row->location ?></td>
-					<td><?php echo $dataCap ?></td>
-					<td><?php echo $timeCap ?></td>
+					<td><?php echo $dataCap ?> MB</td>
+					<td><?php echo $timeCap ?> Min</td>
 					<td><?php echo $userIP ?></td>
 				</tr>
 
