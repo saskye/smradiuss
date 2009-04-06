@@ -85,6 +85,10 @@ if (!isset($_POST['frmaction'])) {
 				<td><input type="text" name="user_email" /></td>
 			</tr>
 			<tr>
+				<td class="entrytitle">MAC Address</td>
+				<td><input type="text" name="user_mac_address" /></td>
+			</tr>
+			<tr>
 				<td class="entrytitle">IP Address</td>
 				<td><input type="text" name="user_ip_address" /></td>
 			</tr>
@@ -103,10 +107,6 @@ if (!isset($_POST['frmaction'])) {
 			<tr>
 				<td class="entrytitle">Time Limit (Min)</td>
 				<td><input type="text" name="user_time_limit" /></td>
-			</tr>
-			<tr>
-				<td class="entrytitle">Address List</td>
-				<td><input type="text" name="address_list" /></td>
 			</tr>
 			<tr>
 				<td class="textcenter" colspan="2"><input type="submit" value="Submit" /></td>
@@ -159,6 +159,18 @@ if ($_POST['frmaction'] == "insert") {
 		$userID = $resultRow->id;
 
 
+		# Insert MAC Address
+		$userMACAddressStatement = $db->prepare("INSERT INTO 
+															${DB_TABLE_PREFIX}user_attributes (UserID,Name,Operator,Value) 
+												VALUES 
+															($userID,'Calling-Station-Id','||==',?)
+												");
+
+		$userMACAddressResult = $userMACAddressStatement->execute(array(
+												$_POST['user_mac_address'],
+												));
+
+
 		# Insert IP Address
 		$userIPAddressStatement = $db->prepare("INSERT INTO 
 															${DB_TABLE_PREFIX}user_attributes (UserID,Name,Operator,Value) 
@@ -172,7 +184,6 @@ if ($_POST['frmaction'] == "insert") {
 
 
 		# Insert data limit
-		$dataInBytes = $_POST['user_data_limit'] * 1024;
 		$userDataStatement = $db->prepare("	INSERT INTO 
 														${DB_TABLE_PREFIX}user_attributes (UserID,Name,Operator,Value) 
 											VALUES 
@@ -180,12 +191,11 @@ if ($_POST['frmaction'] == "insert") {
 											");
 
 		$userDataResult = $userDataStatement->execute(array(
-												$dataInBytes,
+												$_POST['user_data_limit'],
 											));
 
 
 		# Insert time limit
-		$timeInSeconds = $_POST['user_time_limit'] * 60;
 		$userTimeStatement = $db->prepare("	INSERT INTO 
 														${DB_TABLE_PREFIX}user_attributes (UserID,Name,Operator,Value) 
 											VALUES 
@@ -193,31 +203,41 @@ if ($_POST['frmaction'] == "insert") {
 											");
 
 		$userTimeResult = $userTimeStatement->execute(array(
-												$timeInSeconds,
+												$_POST['user_time_limit'],
+											));
+
+
+		# Insert password 
+		$userPasswordStatement = $db->prepare("	INSERT INTO 
+														${DB_TABLE_PREFIX}user_attributes (UserID,Name,Operator,Value) 
+											VALUES 
+														($userID,'User-Password','==',?)
+											");
+
+		$userPasswordResult = $userPasswordStatement->execute(array(
+												$_POST['user_password'],
 											));
 
 
 		# Insert user data
 		$userDataStatement = $db->prepare("	INSERT INTO 
-														${DB_TABLE_PREFIX}userdata (UserID, Password, FirstName, LastName, Location, Email, Phone, AddressList) 
+														${DB_TABLE_PREFIX}userdata (UserID, FirstName, LastName, Location, Email, Phone) 
 											VALUES 
-														($userID,?,?,?,?,?,?,?)
+														($userID,?,?,?,?,?)
 											");
 
 		$userDataResult = $userDataStatement->execute(array(
-															$_POST['user_password'],
 															$_POST['user_first_name'],
 															$_POST['user_last_name'],
 															$_POST['user_location'],
 															$_POST['user_email'],
 															$_POST['user_phone'],
-															$_POST['address_list'],
 															));
 												
 
 
 		# Was it successful?
-		if ($userDataResult && $userResult && $userIPAddressResult && $userDataResult && $userTimeResult) {
+		if ($userDataResult && $userResult && $userIPAddressResult && $userDataResult && $userTimeResult && $userPasswordResult) {
 
 ?>
 
