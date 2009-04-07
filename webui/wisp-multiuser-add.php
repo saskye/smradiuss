@@ -76,7 +76,7 @@ if (!isset($_POST['frmaction'])) {
 <?php
 
 }
-	
+
 if ($_POST['frmaction'] == "insert") {
 
 ?>
@@ -188,27 +188,27 @@ if ($_POST['frmaction'] == "insert") {
 				$userPasswordResult = $userPasswordStatement->execute(array($userPassword));
 				
 				# Insert data limit into user_attributes table
-				$userDataStatement = $db->prepare("	INSERT INTO 
-																${DB_TABLE_PREFIX}user_attributes (UserID,Name,Operator,Value) 
-													VALUES 
+				$userDataStatement = $db->prepare("	INSERT INTO
+																${DB_TABLE_PREFIX}user_attributes (UserID,Name,Operator,Value)
+													VALUES
 																($userID,'SMRadius-Capping-Traffic-Limit',':=',?)
 													");
 
 				$userDataResult = $userDataStatement->execute(array($dataLimit,));
 				
 				# Insert time limit into user_attributes table
-				$userTimeStatement = $db->prepare("	INSERT INTO 
-																${DB_TABLE_PREFIX}user_attributes (UserID,Name,Operator,Value) 
-													VALUES 
+				$userTimeStatement = $db->prepare("	INSERT INTO
+																${DB_TABLE_PREFIX}user_attributes (UserID,Name,Operator,Value)
+													VALUES
 																($userID,'SMRadius-Capping-Time-Limit',':=',?)
 													");
 
 				$userTimeResult = $userTimeStatement->execute(array($timeLimit,));
 
 				# Insert timeout into user_attributes table
-				$userTimeOutStatement = $db->prepare("	INSERT INTO 
-																	${DB_TABLE_PREFIX}user_attributes (UserID,Name,Operator,Value) 
-														VALUES 
+				$userTimeOutStatement = $db->prepare("	INSERT INTO
+																	${DB_TABLE_PREFIX}user_attributes (UserID,Name,Operator,Value)
+														VALUES
 																	($userID,'Session-Timeout','+=',?)
 													");
 
