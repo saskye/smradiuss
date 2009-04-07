@@ -359,7 +359,7 @@ if ($_POST['frmaction'] == "edit") {
 
 ?>
 
-			<div class="warning"><?php print_r($db->errorInfo()) ?></div>
+			<div class="notice">User account data not updated</div>
 
 <?php
 
