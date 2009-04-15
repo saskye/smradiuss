@@ -73,7 +73,7 @@ if (!isset($_POST['frmaction'])) {
 
 }
 
-if ($_POST['frmaction'] == "dofilter") {
+if (isset($_POST['frmaction']) && $_POST['frmaction'] == "dofilter") {
 
 ?>
 
@@ -154,20 +154,23 @@ if ($_POST['frmaction'] == "dofilter") {
 				array_push($extraSQLVals,"%".$_POST['email']."%");
 			}
 
-			# How are we sorting the results?
-			switch ($_POST['sortby']) {
-				case "id":
-					$sortSQL = " ORDER BY users.ID";
-					break;
-				case "fname":
-					$sortSQL = " ORDER BY userdata.FirstName";
-					break;
-				case "lname":
-					$sortSQL = " ORDER BY userdata.LastName";
-					break;
-				case "uname":
-					$sortSQL = " ORDER BY users.Username";
-					break;
+			$sortSQL = "";
+			if (isset($_POST['sortby'])) {
+				# How are we sorting the results?
+				switch ($_POST['sortby']) {
+					case "id":
+						$sortSQL = " ORDER BY users.ID";
+						break;
+					case "fname":
+						$sortSQL = " ORDER BY userdata.FirstName";
+						break;
+					case "lname":
+						$sortSQL = " ORDER BY userdata.LastName";
+						break;
+					case "uname":
+						$sortSQL = " ORDER BY users.Username";
+						break;
+				}
 			}
 
 			# Query based on user input
