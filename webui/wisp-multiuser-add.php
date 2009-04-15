@@ -188,13 +188,13 @@ if (isset($_POST['frmaction']) && $_POST['frmaction'] == "insert") {
 				$userPasswordResult = $userPasswordStatement->execute(array($userPassword));
 				
 				# Insert data limit into user_attributes table
-				$userDataStatement = $db->prepare("	INSERT INTO
-																${DB_TABLE_PREFIX}user_attributes (UserID,Name,Operator,Value)
-													VALUES
-																($userID,'SMRadius-Capping-Traffic-Limit',':=',?)
-													");
+				$userDataLimitStatement = $db->prepare("INSERT INTO
+																	${DB_TABLE_PREFIX}user_attributes (UserID,Name,Operator,Value)
+														VALUES
+																	($userID,'SMRadius-Capping-Traffic-Limit',':=',?)
+														");
 
-				$userDataResult = $userDataStatement->execute(array($dataLimit,));
+				$userDataLimitResult = $userDataLimitStatement->execute(array($dataLimit,));
 				
 				# Insert time limit into user_attributes table
 				$userTimeStatement = $db->prepare("	INSERT INTO
@@ -214,10 +214,15 @@ if (isset($_POST['frmaction']) && $_POST['frmaction'] == "insert") {
 
 				$userTimeOutResult = $userTimeOutStatement->execute(array($sessionTimeout,));
 
+				if ($userTimeOutResult && $userTimeResult && $userDataResult && $userPasswordResult && $userDataLimitResult) {
+					$failed = 0;
+				} else {
+					$failed = 1;
+				}
 			# If one was not successful, rollback
 			} else {
-				$db->rollback;
 				print_r($db->errorInfo());
+				$db->rollback;
 				$failed = 1;
 				break;
 			}

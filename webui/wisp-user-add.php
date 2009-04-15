@@ -92,14 +92,6 @@ if (!isset($_POST['frmaction'])) {
 				<td class="entrytitle">IP Address</td>
 				<td><input type="text" name="user_ip_address" /></td>
 			</tr>
-			<!--<tr>
-				<td class="entrytitle">Pool Name</td>
-				<td><input type="text" name="pool_name" /></td>
-			</tr>
-			<tr>
-				<td class="entrytitle">Group Name</td>
-				<td><input type="text" name="group_name" /></td>
-			</tr>-->
 			<tr>
 				<td class="entrytitle">Data Usage Limit (MB)</td>
 				<td><input type="text" name="user_data_limit" /></td>

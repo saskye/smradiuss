@@ -77,24 +77,17 @@ if (!isset($_POST['frmaction']))
 			$sql = "SELECT ID, Username, Disabled FROM ${DB_TABLE_PREFIX}users ORDER BY ID ASC";
 			$res = $db->query($sql);
 
-			$rownums = 0;
 			# List users
 			while ($row = $res->fetchObject()) {
-				if ($row->id != NULL) {
-					$rownums = $rownums + 1;
-				} else {
-					$rownums = $rownums - 1;
-				}
 ?>
 					<tr class="resultsitem">
-						<td><input type="radio" name="user_id" value="<?php echo $row->id ?>"/><?php echo $row->id ?></td>
-						<td><?php echo $row->username ?></td>
-						<td class="textcenter"><?php echo $row->disabled ? 'yes' : 'no' ?></td>
+						<td><input type="radio" name="user_id" value="<?php echo $row->id; ?>"/><?php echo $row->id; ?></td>
+						<td><?php echo $row->username; ?></td>
+						<td class="textcenter"><?php echo $row->disabled ? 'yes' : 'no'; ?></td>
 					</tr>
 <?php
 			}
-			$res->closeCursor();
-			if ($rownums <= 0) {
+			if ($res->rowCount() == 0) {
 ?>
 				<p />
 				<tr>
@@ -102,7 +95,7 @@ if (!isset($_POST['frmaction']))
 				</tr>
 <?php
 			}
-			unset($rownums);
+			$res->closeCursor();
 ?>
 		</table>
 	</form>

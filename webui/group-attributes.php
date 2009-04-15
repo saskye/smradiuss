@@ -81,13 +81,7 @@ printHeader(array(
 		$sql = "SELECT ID, Name, Operator, Value, Disabled FROM ${DB_TABLE_PREFIX}group_attributes WHERE GroupID = $temp ORDER BY ID";
 		$res = $db->query($sql);
 
-		$rownums = 0;
 		while ($row = $res->fetchObject()) {
-			if ($row->id != NULL) {
-				$rownums = $rownums + 1;
-			} else {
-				$rownums = $rownums - 1;
-			}
 ?>
 			<tr class="resultsitem">
 				<td><input type="radio" name="attr_id" value="<?php echo $row->id ?>"/><?php echo $row->id ?></td>
@@ -99,7 +93,7 @@ printHeader(array(
 <?php
 		}
 		$res->closeCursor();
-		if ($rownums <= 0) {
+		if ($res->rowCount() == 0) {
 ?>
 			<p />
 			<tr>
@@ -107,7 +101,6 @@ printHeader(array(
 			</tr>
 <?php
 		}
-		unset($rownums);
 	} else {
 ?>
 		<tr class="resultitem">

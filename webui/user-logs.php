@@ -33,7 +33,6 @@ printHeader(array(
 ));
 
 
-
 ?>
 
 <p class="pageheader">User Log</p>
@@ -165,51 +164,41 @@ if (isset($_POST['user_id'])) {
 		$totalInputData = 0;
 		$totalOutputData = 0;
 		$totalSessionTime = 0;
-		$rownums = 0;
 
 		while ($row = $res->fetchObject()) {
-
-			# Data usage
-			# ==========
 
 			# Input
 			$inputDataItem = 0;
 
 			if (!empty($row->acctinputoctets) && $row->acctinputoctets > 0) {
-				$inputDataItem = ($row->acctinputoctets / 1024 / 1024);
+				$inputDataItem += ($row->acctinputoctets / 1024) / 1024;
 			}
 			if (!empty($row->acctinputgigawords) && $row->inputgigawords > 0) {
-				$inputDataItem = ($row->acctinputgigawords * 4096);
-			}
-			if ($inputDataItem != 0) {
-			} else {
-				$inputDataItemDisplay = 0;
+				$inputDataItem += ($row->acctinputgigawords * 4096);
 			}
 
-			$totalInputData = $totalInputData + $inputDataItem;
+			$totalInputData += $inputDataItem;
 
 			# Output
 			$outputDataItem = 0;
 
 			if (!empty($row->acctoutputoctets) && $row->acctoutputoctets > 0) {
-				$outputDataItem = ($row->acctoutputoctets / 1024 / 1024);
+				$outputDataItem += ($row->acctoutputoctets / 1024) / 1024;
 			}
 			if (!empty($row->acctoutputgigawords) && $row->acctoutputgigawords > 0) {
-				$outputDataItem = ($row->acctoutputgigawords * 4096);
-			}
-			if ($outputDataItem != 0) {
-			} else {
-				$outputDataItem = 0;
+				$outputDataItem += ($row->acctoutputgigawords * 4096);
 			}
 
 			$totalOutputData = $totalOutputData + $outputDataItem;
 
 			# Add up time
+			$sessionTimeItem = 0;
+
 			if (!empty($row->acctsessiontime) && $row->acctsessiontime > 0) {
-				$sessionTimeItem = $row->acctsessiontime / 60;
+				$sessionTimeItem += $row->acctsessiontime / 60;
 			}
 
-			$totalSessionTime = $totalSessionTime + $sessionTimeItem;
+			$totalSessionTime += $sessionTimeItem;
 
 ?>
 

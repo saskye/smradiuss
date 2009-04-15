@@ -31,7 +31,7 @@ printHeader(array(
 
 
 # Display edit screen
-if ($_POST['frmaction'] == "edit") {
+if (isset($_POST['frmaction']) && $_POST['frmaction'] == "edit") {
 	# Check a user was selected
 	if (isset($_POST['user_id'])) {
 
@@ -46,7 +46,7 @@ if ($_POST['frmaction'] == "edit") {
 				FROM 
 					userdata 
 				WHERE 
-					UserID = $userID
+					UserID = '$userID'
 				";
 
 		$userDataResult = $db->query($sql); 
@@ -57,7 +57,7 @@ if ($_POST['frmaction'] == "edit") {
 				FROM
 					user_attributes
 				WHERE
-					UserID = $userID
+					UserID = '$userID'
 				AND
 					Name = 'Framed-IP-Address'
 				";
@@ -70,7 +70,7 @@ if ($_POST['frmaction'] == "edit") {
 				FROM
 					user_attributes
 				WHERE
-					UserID = $userID
+					UserID = '$userID'
 				AND
 					Name = 'Calling-Station-Id'
 				";
@@ -84,7 +84,7 @@ if ($_POST['frmaction'] == "edit") {
 				FROM
 					user_attributes
 				WHERE
-					UserID = $userID
+					UserID = '$userID'
 				AND
 					Name = 'User-Password'
 				";
@@ -98,7 +98,7 @@ if ($_POST['frmaction'] == "edit") {
 				FROM
 					user_attributes
 				WHERE
-					UserID = $userID
+					UserID = '$userID'
 				AND
 					Name = 'SMRadius-Capping-Traffic-Limit'
 				";
@@ -112,7 +112,7 @@ if ($_POST['frmaction'] == "edit") {
 				FROM
 					user_attributes
 				WHERE
-					UserID = $userID
+					UserID = '$userID'
 				AND
 					Name = 'SMRadius-Capping-Time-Limit'
 				";
@@ -139,27 +139,27 @@ if ($_POST['frmaction'] == "edit") {
 				</tr>
 				<tr>
 					<td class="entrytitle texttop">Password</td>
-					<td class="oldval texttop"><?php echo $userPasswordRow->value ?></td>
+					<td class="oldval texttop"><?php echo $userPasswordRow->value; ?></td>
 					<td><input type="password" name="new_password" /></td>
 				</tr>
 				<tr>
 					<td class="entrytitle texttop">Data Limit</td>
-					<td class="oldval texttop"><?php echo $dataLimit ?> MB</td>
+					<td class="oldval texttop"><?php echo $dataLimit; ?> MB</td>
 					<td><input type="text" name="new_data_limit" /></td>
 				</tr>
 				<tr>
 					<td class="entrytitle texttop">Time Limit</td>
-					<td class="oldval texttop"><?php echo $timeLimit ?> Min</td>
+					<td class="oldval texttop"><?php echo $timeLimit; ?> Min</td>
 					<td><input type="text" name="new_time_limit" /></td>
 				</tr>
 				<tr>
 					<td class="entrytitle texttop">MAC Address</td>
-					<td class="oldval texttop"><?php echo $callingStationRow->value ?></td>
+					<td class="oldval texttop"><?php echo $callingStationRow->value; ?></td>
 					<td><input type="text" name="new_mac_address" /></td>
 				</tr>
 				<tr>
 					<td class="entrytitle texttop">IP Address</td>
-					<td class="oldval texttop"><?php echo $framedIPRow->value ?></td>
+					<td class="oldval texttop"><?php echo $framedIPRow->value; ?></td>
 					<td><input type="text" name="new_ip_address" /></td>
 				</tr>
 				<tr>
@@ -172,27 +172,27 @@ if ($_POST['frmaction'] == "edit") {
 				</tr>
 				<tr>
 					<td class="entrytitle texttop">First Name</td>
-					<td class="oldval texttop"><?php echo $userDataRow->firstname ?></td>
+					<td class="oldval texttop"><?php echo $userDataRow->firstname; ?></td>
 					<td><input type="text" name="new_firstname" /></td>
 				</tr>
 				<tr>
 					<td class="entrytitle texttop">Last Name</td>
-					<td class="oldval texttop"><?php echo $userDataRow->lastname ?></td>
+					<td class="oldval texttop"><?php echo $userDataRow->lastname; ?></td>
 					<td><input type="text" name="new_lastname" /></td>
 				</tr>
 				<tr>
 					<td class="entrytitle texttop">Location</td>
-					<td class="oldval texttop"><?php echo $userDataRow->location ?></td>
+					<td class="oldval texttop"><?php echo $userDataRow->location; ?></td>
 					<td><input type="text" name="new_location" /></td>
 				</tr>
 				<tr>
 					<td class="entrytitle texttop">Email</td>
-					<td class="oldval texttop"><?php echo $userDataRow->email ?></td>
+					<td class="oldval texttop"><?php echo $userDataRow->email; ?></td>
 					<td><input type="text" name="new_email" /></td>
 				</tr>
 				<tr>
 					<td class="entrytitle texttop">Phone</td>
-					<td class="oldval texttop"><?php echo $userDataRow->phone ?></td>
+					<td class="oldval texttop"><?php echo $userDataRow->phone; ?></td>
 					<td><input type="text" name="new_phone" /></td>
 				</tr>
 			</table>
@@ -223,7 +223,7 @@ if ($_POST['frmaction'] == "edit") {
 	$callingStationResult->closeCursor();
 
 # SQL Updates
-} elseif ($_POST['frmaction'] == "edit2") {
+} elseif (isset($_POST['frmaction']) && $_POST['frmaction'] == "edit2") {
 
 ?>
 

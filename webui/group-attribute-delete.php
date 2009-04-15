@@ -37,7 +37,7 @@ printHeader(array(
 
 
 # Display delete confirm screen
-if ($_POST['frmaction'] == "delete") {
+if (isset($_POST['frmaction'] && $_POST['frmaction'] == "delete") {
 	# Check a user was selected
 	if (isset($_POST['attr_id'])) {
 ?>
@@ -63,7 +63,7 @@ if ($_POST['frmaction'] == "delete") {
 
 
 # SQL Updates
-} elseif ($_POST['frmaction'] == "delete2") {
+} elseif (isset($_POST['frmaction']) && $_POST['frmaction'] == "delete2") {
 ?>
 	<p class="pageheader">Attribute Delete Results</p>
 <?php

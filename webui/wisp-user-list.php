@@ -196,16 +196,7 @@ if (isset($_POST['frmaction']) && $_POST['frmaction'] == "dofilter") {
 			$res->execute($extraSQLVals);
 
 			# List users
-			$rownums = 0;
 			while ($row = $res->fetchObject()) {
-				
-				# If there was nothing returned we want to know about it
-				if ($row->id != NULL) {
-					$rownums = $rownums + 1;
-				} else {
-					$rownums = $rownums - 1;
-				}
-
 
 				# Second dirty query to get user's attributes
 				$tempUserID = $row->id;
@@ -257,10 +248,8 @@ if (isset($_POST['frmaction']) && $_POST['frmaction'] == "dofilter") {
 <?php
 
 			}
-			$res->closeCursor();
-
 			# If there were no rows, complain
-			if ($rownums <= 0) {
+			if ($res->rowCount() == 0) {
 
 ?>
 
@@ -272,6 +261,7 @@ if (isset($_POST['frmaction']) && $_POST['frmaction'] == "dofilter") {
 <?php
 
 			}
+			$res->closeCursor();
 
 ?>
 

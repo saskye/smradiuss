@@ -35,9 +35,8 @@ printHeader(array(
 ));
 
 
-
 # Display delete confirm screen
-if ($_POST['frmaction'] == "delete") {
+if (isset($_POST['frmaction']) && $_POST['frmaction'] == "delete") {
 	# Check a user was selected
 	if (isset($_POST['user_id'])) {
 
@@ -69,7 +68,7 @@ if ($_POST['frmaction'] == "delete") {
 
 	}
 # SQL Updates
-} elseif ($_POST['frmaction'] == "delete2") {
+} elseif (isset($_POST['frmaction']) && $_POST['frmaction'] == "delete2") {
 
 ?>
 
@@ -79,47 +78,22 @@ if ($_POST['frmaction'] == "delete") {
 
 	if (isset($_POST['user_id'])) {
 		if ($_POST['confirm'] == "yes") {
-			$failTotDeleteAll = 0;
 			$db->beginTransaction();
 			# Delete user data
 			$userDataDeleteResult = $db->exec("DELETE FROM userdata WHERE UserID = ".$_POST['user_id']);
-			if ($userDataDeleteresult !== FALSE) {
-				# Delete user attributes
-				$attrDeleteResult = $db->exec("DELETE FROM user_attributes WHERE UserID = ".$_POST['user_id']);
-				if ($attrDeleteResult !== FALSE) {
-					# Delete from users
-					$userDeleteResult = $db->exec("DELETE FROM users WHERE ID = ".$_POST['user_id']);
-					if ($userDeleteResult !== FALSE) {
+			# Delete user attributes
+			$attrDeleteResult = $db->exec("DELETE FROM user_attributes WHERE UserID = ".$_POST['user_id']);
+			# Delete from users
+			$userDeleteResult = $db->exec("DELETE FROM users WHERE ID = ".$_POST['user_id']);
 
+			if ($userDataDeleteResult && $attrDeleteResult && $userDeleteResult) {
 ?>
 
-						<div class="notice">User with ID: <?php print_r($_POST['user_id']);?> deleted</div>
+				<div class="notice">User with ID: <?php print_r($_POST['user_id']);?> deleted</div>
 
 <?php
 
-						$db->commit();
-					} else {
-
-?>
-
-						<div class="warning">Error deleting user</div>
-						<div class="warning"><?php print_r($db->errorInfo()) ?></div>
-
-<?php
-
-						$failToDeleteAll = 1;
-					}
-				} else {
-
-?>
-
-					<div class="warning">Error deleting user</div>
-					<div class="warning"><?php print_r($db->errorInfo()) ?></div>
-
-<?php
-
-					$failToDeleteAll = 1;
-				}
+				$db->commit();
 			} else {
 
 ?>
@@ -129,10 +103,6 @@ if ($_POST['frmaction'] == "delete") {
 
 <?php
 
-				$failToDeleteAll = 1;
-			}
-			# If we failed at all, rollback
-			if ($failToDeleteAll == 1) {
 				$db->rollback();
 			}
 		} else {

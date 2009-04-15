@@ -35,17 +35,18 @@ printHeader(array(
 		),
 ));
 
-
 # Display change screen
-if ($_POST['frmaction'] == "change") {
+if (isset($_POST['frmaction'] && $_POST['frmaction'] == "change") {
 	# Check an attribute was selected
 	if (isset($_POST['attr_id'])) {
 		# Prepare statement
 		$temp = $_POST['attr_id'];
-		$sql = "SELECT ID, Name, Operator, Value, Disabled FROM ${DB_TABLE_PREFIX}group_attributes WHERE ID = $temp";
+		$sql = "SELECT ID, Name, Operator, Value, Disabled FROM ${DB_TABLE_PREFIX}group_attributes WHERE ID = '$temp'";
 		$res = $db->query($sql); 
 		$row = $res->fetchObject();
+
 ?>
+
 		<p class="pageheader">Update Group Attribute</p>
 
 		<form action="group-attribute-change.php" method="post">
@@ -63,14 +64,14 @@ if ($_POST['frmaction'] == "change") {
 					<td class="entrytitle texttop">
 						Name
 					</td>
-					<td class="oldval texttop"><?php echo $row->name ?></td>
+					<td class="oldval texttop"><?php echo $row->name; ?></td>
 					<td><textarea name="group_attributes_name" cols="40" rows="1"></textarea></td>
 				</tr>
 				<tr>
 					<td class="entrytitle texttop">
 						Operator
 					</td>
-					<td class="oldval texttop"><?php echo $row->operator ?></td>
+					<td class="oldval texttop"><?php echo $row->operator; ?></td>
 					<td>
 						<select name="group_attributes_operator">
 							<option value="=">=</option>
@@ -78,10 +79,10 @@ if ($_POST['frmaction'] == "change") {
 							<option value=":=">:=</option>
 							<option value="+=">+=</option>
 							<option value="!=">!=</option>
-							<option value=">">&gt</option>
-							<option value="<">&lt</option>
-							<option value=">=">&gt=</option>
-							<option value="<=">&lt=</option>
+							<option value=">">&gt;</option>
+							<option value="<">&lt;</option>
+							<option value=">=">&gt;=</option>
+							<option value="<=">&lt;=</option>
 							<option value="=~">=~</option>
 							<option value="!~">!~</option>
 							<option value="=*">=*</option>
@@ -93,12 +94,12 @@ if ($_POST['frmaction'] == "change") {
 				</tr>
 				<tr>
 					<td class="entrytitle texttop">Value</td>
-					<td class="oldval texttop"><?php echo $row->value ?></td>
+					<td class="oldval texttop"><?php echo $row->value; ?></td>
 					<td><textarea name="group_attributes_value" cols="40" rows="5"></textarea></td>
 				</tr>
 				<tr>
 					<td class="entrytitle">Disabled</td>
-					<td class="oldval"><?php echo $row->disabled ? 'yes' : 'no' ?></td>
+					<td class="oldval"><?php echo $row->disabled ? 'yes' : 'no'; ?></td>
 					<td>
 						<select name="group_attributes_disabled" />
 							<option value="">--</option>
@@ -115,21 +116,28 @@ if ($_POST['frmaction'] == "change") {
 				<input type="submit" />
 			</div>
 		</form>
+
 <?php
-	$res->closeCursor();
+
+		$res->closeCursor();
 	} else {
+
 ?>
+
 		<div class="warning">No attribute selected</div>
+
 <?php
+
 	}
-
-
-
 # SQL Updates
-} elseif ($_POST['frmaction'] == "change2") {
+} elseif (isset($_POST['frmaction']) && $_POST['frmaction'] == "change2") {
+
 ?>
+
 	<p class="pageheader">Attribute Update Results</p>
+
 <?php
+
 	# Check an attribute was selected
 	if (isset($_POST['attr_id'])) {
 
@@ -154,35 +162,51 @@ if ($_POST['frmaction'] == "change") {
 
 			$res = $db->exec("UPDATE ${DB_TABLE_PREFIX}group_attributes SET $updateStr WHERE ID = ".$db->quote($_POST['attr_id']));
 			if ($res) {
+
 ?>
+
 				<div class="notice">Attribute updated</div>
+
 <?php
+
 			} else {
+
 ?>
+
 				<div class="warning">Error updating attribute</div>
 				<div class="warning"><?php print_r($db->errorInfo()) ?></div>
-<?php
-			}
 
+<?php
+
+			}
 		# Warn
 		} else {
-?>
-			<div class="warning">No attribute updates</div>
-<?php
-		}
 
+?>
+
+			<div class="warning">No attribute updates</div>
+
+<?php
+
+		}
 	# Warn
 	} else {
+
 ?>
+
 		<div class="error">No attribute data available</div>
+
 <?php
+
 	}
-
-
 } else {
+
 ?>
+
 	<div class="warning">Invalid invocation</div>
+
 <?php
+
 }
 
 
