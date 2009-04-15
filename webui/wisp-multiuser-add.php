@@ -77,7 +77,7 @@ if (!isset($_POST['frmaction'])) {
 
 }
 
-if ($_POST['frmaction'] == "insert") {
+if (isset($_POST['frmaction']) && $_POST['frmaction'] == "insert") {
 
 ?>
 
