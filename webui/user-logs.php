@@ -169,12 +169,6 @@ if (isset($_POST['user_id'])) {
 
 		while ($row = $res->fetchObject()) {
 
-			if ($row->eventtimestamp != NULL) {
-				$rownums = $rownums + 1;
-			} else {
-				$rownums = $rownums - 1;
-			}
-
 			# Data usage
 			# ==========
 
@@ -182,13 +176,12 @@ if (isset($_POST['user_id'])) {
 			$inputDataItem = 0;
 
 			if (!empty($row->acctinputoctets) && $row->acctinputoctets > 0) {
-				$inputDataItem = ($row->accinputoctets / 1024 / 1024);
+				$inputDataItem = ($row->acctinputoctets / 1024 / 1024);
 			}
 			if (!empty($row->acctinputgigawords) && $row->inputgigawords > 0) {
 				$inputDataItem = ($row->acctinputgigawords * 4096);
 			}
 			if ($inputDataItem != 0) {
-				$inputDataItemDisplay = ceil($inputDataItem * 100)/100;
 			} else {
 				$inputDataItemDisplay = 0;
 			}
@@ -205,7 +198,6 @@ if (isset($_POST['user_id'])) {
 				$outputDataItem = ($row->acctoutputgigawords * 4096);
 			}
 			if ($outputDataItem != 0) {
-				$outputDataItem = ceil($outputDataItem * 100)/100;
 			} else {
 				$outputDataItem = 0;
 			}
@@ -215,11 +207,9 @@ if (isset($_POST['user_id'])) {
 			# Add up time
 			if (!empty($row->acctsessiontime) && $row->acctsessiontime > 0) {
 				$sessionTimeItem = $row->acctsessiontime / 60;
-				$sessionTimeItem = ceil($sessionTimeItem * 100)/100;
 			}
 
 			$totalSessionTime = $totalSessionTime + $sessionTimeItem;
-			$totalSessionTime = ceil($totalSessionTime * 100)/100;
 
 ?>
 
@@ -238,9 +228,9 @@ if (isset($_POST['user_id'])) {
 				<td class="textcenter"><?php echo $row->nasidentifier; ?></td>
 				<td class="textcenter"><?php echo $row->nasipaddress; ?></td>
 				<td class="textcenter"><?php echo $row->acctdelaytime; ?></td>
-				<td class="textcenter"><?php echo $sessionTimeItem; ?> Min</td>
-				<td class="textcenter"><?php echo $inputDataItem; ?> MB</td>
-				<td class="textcenter"><?php echo $outputDataItem; ?> MB</td>
+				<td class="textcenter"><?php printf('%.2f',$sessionTimeItem); ?> Min</td>
+				<td class="textcenter"><?php printf('%.2f',$inputDataItem); ?> MB</td>
+				<td class="textcenter"><?php printf('%.2f',$outputDataItem); ?> MB</td>
 				<td class="textcenter"><?php echo $row->acctstatustype; ?></td>
 				<td class="textcenter"><?php echo strRadiusTermCode($row->acctterminatecause); ?></td>
 			</tr>
@@ -248,9 +238,8 @@ if (isset($_POST['user_id'])) {
 <?php
 
 		}
-		$res->closeCursor();
 
-		if ($rownums <= 0) {
+		if ($res->rowCount() == 0) {
 
 ?>
 
@@ -279,9 +268,9 @@ if (isset($_POST['user_id'])) {
 				<td class="textcenter"></td>
 				<td class="textcenter"></td>
 				<td class="textcenter"></td>
-				<td class="textcenter" style="font-weight: bold;"><? echo $totalSessionTime ?> Min</td>
-				<td class="textcenter" style="font-weight: bold;"><? echo $totalInputData ?> MB</td>
-				<td class="textcenter" style="font-weight: bold;"><? echo $totalOutputData ?> MB</td>
+				<td class="textcenter" style="font-weight: bold;"><? printf('%.2f',$totalSessionTime); ?> Min</td>
+				<td class="textcenter" style="font-weight: bold;"><? printf('%.2f',$totalInputData); ?> MB</td>
+				<td class="textcenter" style="font-weight: bold;"><? printf('%.2f',$totalOutputData); ?> MB</td>
 				<td class="textcenter"></td>
 				<td class="textcenter"></td>
 			</tr>
@@ -289,6 +278,7 @@ if (isset($_POST['user_id'])) {
 <?php
 
 		}
+		$res->closeCursor();
 ?>
 		</table>
 <?php
