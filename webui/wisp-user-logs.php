@@ -33,7 +33,6 @@ printHeader(array(
 ));
 
 
-
 ?>
 
 <p class="pageheader">WiSP User Log</p>
@@ -233,7 +232,7 @@ if (isset($_POST['user_id'])) {
 ?>
 
 			<tr>
-				<td colspan="23" class="textcenter">No logs found for user: <?php echo $getuser ?></td>
+				<td colspan="23" class="textcenter">No logs found for user: <?php echo $getuser; ?></td>
 			</tr>
 
 <?php

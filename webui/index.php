@@ -25,14 +25,18 @@ printHeader();
 ?>
 	<p class="pageheader">Features Supported</p>
 	<ul>
-
-		<li>Users &amp; Groups
-			<a title="Help on policies and groups" href="http://www.policyd.org/tiki-index.php?page=Policies%20%26%20Groups&structure=Documentation" class="help">
-				<img src="images/help.gif" alt="Help" />
-			</a>
+		<li>Users
 			<ul>
-				<li>Define policy groups made up of various combinations of tags.</li>
-				<li>Define and manage policies comprising of ACL's which can include groups.</li>
+				<li>Add, remove and edit users</li>
+				<li>Add, remove and edit user attributes</li>
+				<li>Add groups, remove groups and edit group attributes</li>
+			</ul>
+		</li>
+		<li>Groups
+			<ul>
+				<li>Add and remove groups</li>
+				<li>Add, remove and edit group attributes</li>
+				<li>Assign users to groups</li>
 			</ul>
 		</li>
 	</ul>

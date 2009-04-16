@@ -34,16 +34,14 @@ printHeader(array(
 ));
 
 
-if ($_POST['frmaction'] == "add") {
+if (isset($_POST['frmaction']) && $_POST['frmaction'] == "add") {
 
 ?>
 
 	<p class="pageheader">Add Group</p>
 
 	<form method="post" action="group-add.php">
-		<div>
-			<input type="hidden" name="frmaction" value="add2" />
-		</div>
+		<input type="hidden" name="frmaction" value="add2" />
 		<table class="entry">
 			<tr>
 				<td class="entrytitle">Name</td>
@@ -76,7 +74,7 @@ if ($_POST['frmaction'] == "add") {
 <?php
 
 # Check we have all params
-} elseif ($_POST['frmaction'] == "add2") {
+} elseif (isset($_POST['frmaction'] && $_POST['frmaction'] == "add2") {
 
 ?>
 

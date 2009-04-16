@@ -84,7 +84,7 @@ if (isset($_POST['frmaction']) && $_POST['frmaction'] == "insert") {
 	<p class="pageheader">Add WiSP Users</p>
 
 <?php
-
+	#FIXME
 	# Perform checks on input
 	if (isset($_POST['num_users']) && isset($_POST['session_timeout']) && isset($_POST['data_limit']) && isset($_POST['time_limit'])) {
 		$db->beginTransaction();
@@ -116,10 +116,9 @@ if (isset($_POST['frmaction']) && $_POST['frmaction'] == "insert") {
 					$userName = $randomString;
 
 					$lookForUser = $db->query("SELECT ID FROM ${DB_TABLE_PREFIX}users WHERE Username LIKE '%$userName%'");
-					$lookForUserRow = $lookForUser->fetchObject();
 
 					# If the user was found
-					if ($lookForUserRow) {
+					if ($lookForUser->rowCount() > 0) {
 						$checkUsernameDuplicates = 1;
 					} else {
 						$checkUsernameDuplicates = 0;
@@ -130,15 +129,13 @@ if (isset($_POST['frmaction']) && $_POST['frmaction'] == "insert") {
 					$userName = $loginNamePrefix."_".$randomString;
 
 					$lookForUser = $db->query("SELECT ID FROM ${DB_TABLE_PREFIX}users WHERE Username LIKE '%$userName%'");
-					$lookForUserRow = $lookForUser->fetchObject();
 
 					# If the user was found
-					if ($lookForUserRow) {
+					if ($lookForUser->rowCount() > 0) {
 						$checkUsernameDuplicates = 1;
 					} else {
 						$checkUsernameDuplicates = 0;
 					}
-
 				}
 			} while ($checkUsernameDuplicates > 0);
 

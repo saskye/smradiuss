@@ -40,8 +40,7 @@ if (isset($_POST['frmaction'] && $_POST['frmaction'] == "change") {
 	# Check an attribute was selected
 	if (isset($_POST['attr_id'])) {
 		# Prepare statement
-		$temp = $_POST['attr_id'];
-		$sql = "SELECT ID, Name, Operator, Value, Disabled FROM ${DB_TABLE_PREFIX}group_attributes WHERE ID = '$temp'";
+		$sql = "SELECT ID, Name, Operator, Value, Disabled FROM ${DB_TABLE_PREFIX}group_attributes WHERE ID = ".$db->quote($_POST['attr_id']);
 		$res = $db->query($sql); 
 		$row = $res->fetchObject();
 
@@ -50,10 +49,8 @@ if (isset($_POST['frmaction'] && $_POST['frmaction'] == "change") {
 		<p class="pageheader">Update Group Attribute</p>
 
 		<form action="group-attribute-change.php" method="post">
-			<div>
-				<input type="hidden" name="frmaction" value="change2" />
-				<input type="hidden" name="attr_id" value="<?php echo $_POST['attr_id']; ?>" />
-			</div>
+			<input type="hidden" name="frmaction" value="change2" />
+			<input type="hidden" name="attr_id" value="<?php echo $_POST['attr_id']; ?>" />
 			<table class="entry" style="width: 75%;">
 				<tr>
 					<td></td>

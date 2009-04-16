@@ -29,9 +29,10 @@ printHeader(array(
 		),
 ));
 
+if (isset($_POST['frmaction']) && $_POST['frmaction'] == "add") {
 
-if ($_POST['frmaction'] == "add") {
 ?>
+
 	<p class="pageheader">Add user</p>
 	<form method="post" action="user-add.php">
 		<div>
@@ -49,23 +50,36 @@ if ($_POST['frmaction'] == "add") {
 			</tr>
 		</table>
 	</form>
+
 <?php
 
 # Check we have all params
-} elseif ($_POST['frmaction'] == "add2") {
+} elseif (isset($_POST['frmaction']) && $_POST['frmaction'] == "add2") {
+
 ?>
+
 	<p class="pageheader">User Add Results</p>
+
 <?php
+
 	# Check name
 	if (empty($_POST['user_name'])) {
+
 ?>
+
 		<div class="warning">Username cannot be empty</div>
+
 <?php
+
 	}
 	else if (!preg_match('/^[a-z0-9]+$/i', $_POST['user_name'])) {
+
 ?>
+
 		<div class="warning">Username invalid: must be alphanumeric</div>
+
 <?php
+
 	# Add to database
 	} else {
 		$stmt = $db->prepare("INSERT INTO ${DB_TABLE_PREFIX}users (Username) VALUES (?)");
@@ -74,20 +88,32 @@ if ($_POST['frmaction'] == "add") {
 				));
 		# Was it successful?
 		if ($res) {
+
 ?>
+
 			<div class="notice">User added</div>
+
 <?php
+
 		} else {
+
 ?>
+
 			<div class="warning">Failed to add user</div>
 			<div class="warning"><?php print_r($stmt->errorInfo()) ?></div>
+
 <?php
+
 		}
 	}
 } else {
+
 ?>
+
 	<div class="warning">Invalid invocation</div>
+
 <?php
+
 }
 
 printFooter();

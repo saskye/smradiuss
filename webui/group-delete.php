@@ -36,109 +36,101 @@ printHeader(array(
 
 
 # Display delete confirm screen
-if ($_POST['frmaction'] == "delete") {
-
+if (isset($_POST['frmaction']) && $_POST['frmaction'] == "delete") {
 	# Check a policy group was selected
 	if (isset($_POST['group_id'])) {
+
 ?>
+
 		<p class="pageheader">Delete Group</p>
 
 		<form action="group-delete.php" method="post">
-			<div>
-				<input type="hidden" name="frmaction" value="delete2" />
-				<input type="hidden" name="group_id" value="<?php echo $_POST['group_id']; ?>" />
-			</div>
-
+			<input type="hidden" name="frmaction" value="delete2" />
+			<input type="hidden" name="group_id" value="<?php echo $_POST['group_id']; ?>" />
 			<div class="textcenter">
 				Are you very sure? <br />
 				<input type="submit" name="confirm" value="yes" />
 				<input type="submit" name="confirm" value="no" />
 			</div>
 		</form>
+
 <?php
+
 	} else {
+
 ?>
+
 		<div class="warning">No group selected</div>
+
 <?php
+
 	}
-
-
-
 # SQL Updates
-} elseif ($_POST['frmaction'] == "delete2") {
-?>
-	<p class="pageheader">Group Delete Results</p>
-<?php
-	if (isset($_POST['group_id'])) {
+} elseif (isset($_POST['frmaction']) && $_POST['frmaction'] == "delete2") {
 
-		if ($_POST['confirm'] == "yes") {
+?>
+
+	<p class="pageheader">Group Delete Results</p>
+
+<?php
+
+	if (isset($_POST['group_id'])) {
+		if (isset($_POST['confirm']) && $_POST['confirm'] == "yes") {
+
 			$db->beginTransaction();
 
-			$res = $db->exec("DELETE FROM ${DB_TABLE_PREFIX}users_to_groups WHERE GroupID = ".$db->quote($_POST['group_id']));
-			if ($res !== FALSE) {
-?>
-				<div class="notice">Users removed</div>
-<?php
-			} else {
-?>
-				<div class="warning">Error removing users</div>
-				<div class="warning"><?php print_r($db->errorInfo()) ?></div>
-<?php
-				$db->rollback();
-			}
+			$resultRemoveMembers = $db->exec("DELETE FROM ${DB_TABLE_PREFIX}users_to_groups WHERE GroupID = ".$db->quote($_POST['group_id']));
+			$resultRemoveAttributes = $db->exec("DELETE FROM ${DB_TABLE_PREFIX}group_attributes WHERE GroupID = ".$db->quote($_POST['group_id']));
+			$resultRemoveGroup = $db->exec("DELETE FROM ${DB_TABLE_PREFIX}groups WHERE ID = ".$db->quote($_POST['group_id']));
 
-			$res = $db->exec("DELETE FROM ${DB_TABLE_PREFIX}group_attributes WHERE GroupID = ".$db->quote($_POST['group_id']));
-			if ($res !== FALSE) {
-?>
-				<div class="notice">Attributes removed</div>
-<?php
-			} else {
-?>
-				<div class="warning">Error removing attributes</div>
-				<div class="warning"><?php print_r($db->errorInfo()) ?></div>
-<?php
-				$db->rollback();
-			}
+			if ($resultRemoveMembers && $resultRemoveAttributes && $resultRemoveGroup) {
 
-			if ($res !== FALSE) {
-				$res = $db->exec("DELETE FROM ${DB_TABLE_PREFIX}groups WHERE ID = ".$db->quote($_POST['group_id']));
-				if ($res) {
 ?>
-					<div class="notice">Group deleted</div>
-<?php
-				} else {
-?>
-					<div class="warning">Error deleting group!</div>
-					<div class="warning"><?php print_r($db->errorInfo()) ?></div>
-<?php
-					$db->rollback();
-				}
-			}
 
-			if ($res) {
+				<div class="notice">Group deleted</div>
+
+<?php
+
 				$db->commit();
+			} else {
+
+?>
+
+				<div class="warning">Error deleting group</div>
+				<div class="warning"><?php print_r($db->errorInfo()) ?></div>
+
+<?php
+
+				$db->rollback();
 			}
 		} else {
-?>
-			<div class="notice">Group not deleted, aborted by user</div>
-<?php
-		}
 
+?>
+
+			<div class="notice">Group not deleted, aborted by user</div>
+
+<?php
+
+		}
 	# Warn
 	} else {
+
 ?>
+
 		<div class="warning">Invocation error, no group ID</div>
+
 <?php
+
 	}
-
-
-
 } else {
-?>
-	<div class="warning">Invalid invocation</div>
-<?php
-}
 
+?>
+
+	<div class="warning">Invalid invocation</div>
+
+<?php
+
+}
 
 printFooter();
 

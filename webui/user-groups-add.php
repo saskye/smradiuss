@@ -33,7 +33,7 @@ printHeader(array(
 
 
 if (isset($_SESSION['groups_user_id'])) {
-	if ($_POST['frmaction'] == "add") {
+	if (isset($_POST['frmaction']) && $_POST['frmaction'] == "add") {
 
 ?>
 		<p class="pageheader">Available Groups</p>
@@ -83,11 +83,11 @@ if (isset($_SESSION['groups_user_id'])) {
 ?>
 
 					<tr class="resultsitem">
-						<td><input type="radio" name="group_id" value="<?php echo $row->id ?>" /></td>
-						<td><?php echo $row->name ?></td>
-						<td><?php echo $row->priority ?></td>
-						<td class="textcenter"><?php echo $row->disabled ? 'yes' : 'no' ?></td>
-						<td><?php echo $row->comment ?></td>
+						<td><input type="radio" name="group_id" value="<?php echo $row->id; ?>" /></td>
+						<td><?php echo $row->name; ?></td>
+						<td><?php echo $row->priority; ?></td>
+						<td class="textcenter"><?php echo $row->disabled ? 'yes' : 'no'; ?></td>
+						<td><?php echo $row->comment; ?></td>
 					</tr>
 
 <?php
@@ -102,7 +102,7 @@ if (isset($_SESSION['groups_user_id'])) {
 
 <?php
 
-	} elseif ($_POST['frmaction'] == "add2") {
+	} elseif (isset($_POST['frmaction']) && $_POST['frmaction'] == "add2") {
 
 ?>
 
@@ -112,11 +112,9 @@ if (isset($_SESSION['groups_user_id'])) {
 
 		if (isset($_POST['group_id']) && !empty($_POST['users_to_groups_comment'])) {
 			$stmt = $db->prepare("INSERT INTO ${DB_TABLE_PREFIX}users_to_groups (UserID,GroupID,Comment,Disabled) VALUES (?,?,?,?)");
-			# Which user am I working with?
-			$groups_user_id = $_SESSION['groups_user_id']; 
 
 			$res = $stmt->execute(array(
-						$groups_user_id,
+						$_SESSION['groups_user_id'],
 						$_POST['group_id'],
 						$_POST['users_group_comment'],
 						$_POST['users_group_disabled'],

@@ -34,6 +34,7 @@ printHeader(array(
 ));
 
 ?>
+
 <p class="pageheader">Attribute List</p>
 
 <form id="main_form" action="group-attributes.php" method="post">
@@ -63,7 +64,7 @@ printHeader(array(
 		</select> 
 	</div>
 
-<p />
+	<p />
 
 	<table class="results" style="width: 75%;">
 		<tr class="resultstitle">
@@ -73,44 +74,73 @@ printHeader(array(
 			<td class="textcenter">Value</td>
 			<td class="textcenter">Disabled</td>
 		</tr>
-<?php
-	$_SESSION['attr_group_id'] = $_POST['group_id']; 
-	if (isset($_POST['group_id'])) {
-	
-		$temp = $_SESSION['attr_group_id'];
-		$sql = "SELECT ID, Name, Operator, Value, Disabled FROM ${DB_TABLE_PREFIX}group_attributes WHERE GroupID = $temp ORDER BY ID";
-		$res = $db->query($sql);
 
-		while ($row = $res->fetchObject()) {
+<?php
+
+		$_SESSION['attr_group_id'] = $_POST['group_id']; 
+		if (isset($_POST['group_id'])) {
+	
+			$sql = "SELECT 
+							ID, 
+							Name, 
+							Operator, 
+							Value, 
+							Disabled 
+					FROM 
+							${DB_TABLE_PREFIX}group_attributes 
+					WHERE 
+							GroupID = ".$db->quote($_POST['group_id'])." 
+					ORDER BY 
+							ID
+					";
+
+			$res = $db->query($sql);
+
+			while ($row = $res->fetchObject()) {
+
 ?>
-			<tr class="resultsitem">
-				<td><input type="radio" name="attr_id" value="<?php echo $row->id ?>"/><?php echo $row->id ?></td>
-				<td><?php echo $row->name ?></td>
-				<td><?php echo $row->operator ?></td>
-				<td><?php echo $row->value ?></td>
-				<td class="textcenter"><?php echo $row->disabled ? 'yes' : 'no' ?></td>
+
+				<tr class="resultsitem">
+					<td><input type="radio" name="attr_id" value="<?php echo $row->id; ?>"/><?php echo $row->id; ?></td>
+					<td><?php echo $row->name; ?></td>
+					<td><?php echo $row->operator; ?></td>
+					<td><?php echo $row->value; ?></td>
+					<td class="textcenter"><?php echo $row->disabled ? 'yes' : 'no'; ?></td>
+				</tr>
+
+<?php
+
+			}
+			$res->closeCursor();
+			if ($res->rowCount() == 0) {
+
+?>
+
+				<p />
+				<tr>
+					<td colspan="5" class="textcenter">Group attribute list is empty</td>
+				</tr>
+
+<?php
+
+			}
+		} else {
+
+?>
+
+			<tr class="resultitem">
+				<td colspan="5" class="textcenter">No Group ID selected</td>
 			</tr>
+
 <?php
+
 		}
-		$res->closeCursor();
-		if ($res->rowCount() == 0) {
+
 ?>
-			<p />
-			<tr>
-				<td colspan="5" class="textcenter">Group attribute list is empty</td>
-			</tr>
-<?php
-		}
-	} else {
-?>
-		<tr class="resultitem">
-			<td colspan="5" class="textcenter">No Group ID selected</td>
-		</tr>
-<?php
-	}
-?>
+
 	</table>
 </form>
+
 <?php
 
 printFooter();

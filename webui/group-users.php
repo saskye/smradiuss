@@ -50,67 +50,60 @@ if (isset($_POST['group_id'])) {
 
 ?>
 
-		<table class="results" style="width: 75%;">
-			<tr class="resultstitle">
-				<td class="textcenter">ID</td>
-				<td class="textcenter">Member</td>
-				<td class="textcenter">Disabled</td>
-			</tr>
+	<table class="results" style="width: 75%;">
+		<tr class="resultstitle">
+			<td class="textcenter">ID</td>
+			<td class="textcenter">Member</td>
+			<td class="textcenter">Disabled</td>
+		</tr>
 
 <?php
 
-			# Get list of members belonging to this group
-			$stmt = $db->prepare("SELECT UserID FROM ${DB_TABLE_PREFIX}users_to_groups WHERE GroupID = ?");
-			$res = $stmt->execute(array($_REQUEST['group_id']));
+		# Get list of members belonging to this group
+		$stmt = $db->prepare("SELECT UserID FROM ${DB_TABLE_PREFIX}users_to_groups WHERE GroupID = ?");
+		$stmtResult = $stmt->execute(array($_REQUEST['group_id']));
 
-			$rownums = 0;
-			# Loop with rows
-			while ($row = $stmt->fetchObject()) {
-				if ($row->userid != NULL) {
-					$rownums = $rownums + 1;
-				} else {
-					$rownums = $rownums - 1;
-				}
+		# Loop with rows
+		while ($row = $stmt->fetchObject()) {
 
-				$sql = "SELECT ID, Username, Disabled FROM ${DB_TABLE_PREFIX}users WHERE ID = ".$row->userid;
-				$res = $db->query($sql);
+			$sql = "SELECT ID, Username, Disabled FROM ${DB_TABLE_PREFIX}users WHERE ID = ".$db->quote($row->userid);
+			$res = $db->query($sql);
 
-				# List users
-				while ($row = $res->fetchObject()) {
+			# List users
+			while ($row = $res->fetchObject()) {
 
 ?>
 
-					<tr class="resultsitem">
-						<td><?php echo $row->id ?></td>
-						<td><?php echo $row->username ?></td>
-						<td class="textcenter"><?php echo $row->disabled ? 'yes' : 'no' ?></td>
-					</tr>
-
-<?php
-
-				}
-				$res->closeCursor();
-			}
-			$stmt->closeCursor();
-
-			# Did we get any results?
-			if ($rownums <= 0) {
-
-?>
-
-				<p />
-				<tr>
-					<td colspan="3" class="textcenter">Group has no users</td>
+				<tr class="resultsitem">
+					<td><?php echo $row->id; ?></td>
+					<td><?php echo $row->username; ?></td>
+					<td class="textcenter"><?php echo $row->disabled ? 'yes' : 'no'; ?></td>
 				</tr>
 
 <?php
 
 			}
-			unset($rownums);
+			$res->closeCursor();
+		}
+
+		# Did we get any results?
+		if ($stmt->rowCount() == 0) {
 
 ?>
 
-		</table>
+			<p />
+			<tr>
+				<td colspan="3" class="textcenter">Group has no users</td>
+			</tr>
+
+<?php
+
+		}
+		$stmt->closeCursor();
+
+?>
+
+	</table>
 
 <?php
 

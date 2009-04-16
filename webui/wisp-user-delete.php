@@ -77,14 +77,14 @@ if (isset($_POST['frmaction']) && $_POST['frmaction'] == "delete") {
 <?php
 
 	if (isset($_POST['user_id'])) {
-		if ($_POST['confirm'] == "yes") {
+		if (isset($_POST['confirm']) && $_POST['confirm'] == "yes") {
 			$db->beginTransaction();
 			# Delete user data
-			$userDataDeleteResult = $db->exec("DELETE FROM userdata WHERE UserID = ".$_POST['user_id']);
+			$userDataDeleteResult = $db->exec("DELETE FROM userdata WHERE UserID = ".$db->quote($_POST['user_id']));
 			# Delete user attributes
-			$attrDeleteResult = $db->exec("DELETE FROM user_attributes WHERE UserID = ".$_POST['user_id']);
+			$attrDeleteResult = $db->exec("DELETE FROM user_attributes WHERE UserID = ".$db->quote($_POST['user_id']));
 			# Delete from users
-			$userDeleteResult = $db->exec("DELETE FROM users WHERE ID = ".$_POST['user_id']);
+			$userDeleteResult = $db->exec("DELETE FROM users WHERE ID = ".$db->quote($_POST['user_id']));
 
 			if ($userDataDeleteResult && $attrDeleteResult && $userDeleteResult) {
 ?>

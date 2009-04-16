@@ -76,17 +76,15 @@ printHeader(array(
 <?php
 
 		if (isset($_POST['user_id'])) {
-			$sql = "SELECT GroupID FROM ${DB_TABLE_PREFIX}users_to_groups WHERE UserID = ".$_POST['user_id'];
+
+			# Store user_id for later use
+			$_SESSION['groups_user_id'] = $_POST['user_id'];
+
+			$sql = "SELECT GroupID FROM ${DB_TABLE_PREFIX}users_to_groups WHERE UserID = ".$db->quote($_POST['user_id']);
 			$res = $db->query($sql);
 
-			$rownums = 0;
 			while ($row = $res->fetchObject()) {
-				if ($row->groupid != NULL) {
-					$rownums = $rownums + 1;
-				} else {
-					$rownums = $rownums - 1;
-				}
-				$sql = "SELECT ID, Name, Priority, Disabled, Comment FROM ${DB_TABLE_PREFIX}groups WHERE ID = ".$row->groupid;
+				$sql = "SELECT ID, Name, Priority, Disabled, Comment FROM ${DB_TABLE_PREFIX}groups WHERE ID = ".$db->quote($row->groupid);
 				$result = $db->query($sql);
 
 				while ($row = $result->fetchObject()) {
@@ -94,11 +92,11 @@ printHeader(array(
 ?>
 
 					<tr class="resultsitem">
-						<td><input type="radio" name="group_id" value="<?php echo $row->id ?>"/></td>
-						<td><?php echo $row->name ?></td>
-						<td><?php echo $row->priority ?></td>
-						<td class="textcenter"><?php echo $row->disabled ? 'yes' : 'no' ?></td>
-						<td><?php echo $row->comment ?></td>
+						<td><input type="radio" name="group_id" value="<?php echo $row->id; ?>"/></td>
+						<td><?php echo $row->name; ?></td>
+						<td><?php echo $row->priority; ?></td>
+						<td class="textcenter"><?php echo $row->disabled ? 'yes' : 'no'; ?></td>
+						<td><?php echo $row->comment; ?></td>
 					</tr>
 
 <?php
@@ -107,8 +105,7 @@ printHeader(array(
 				$result->closeCursor();
 			}
 
-			$res->closeCursor();
-			if ($rownums <= 0) {
+			if ($res->rowCount() == 0) {
 
 ?>
 
@@ -120,7 +117,7 @@ printHeader(array(
 <?php
 
 			}
-			unset($rownums);
+			$res->closeCursor();
 		} else {
 
 ?>
@@ -138,7 +135,6 @@ printHeader(array(
 
 <?php
 
-$_SESSION['groups_user_id'] = $_POST['user_id'];
  
 printFooter();
 

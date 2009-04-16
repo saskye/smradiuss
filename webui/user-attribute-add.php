@@ -37,8 +37,10 @@ printHeader(array(
 
 
 
-if ($_POST['frmaction'] == "add") {
+if (isset($_POST['frmaction']) && $_POST['frmaction'] == "add") {
+
 ?>
+
 	<p class="pageheader">Add attribute</p>
 
 	<form method="post" action="attribute-add.php">
@@ -59,10 +61,10 @@ if ($_POST['frmaction'] == "add") {
 						<option value=":=">:=</option>
 						<option value="+=">+=</option>
 						<option value="!=">!=</option>
-						<option value=">">&gt</option>
-						<option value="<">&lt</option>
-						<option value=">=">&gt=</option>
-						<option value="<=">&lt=</option>
+						<option value=">">&gt;</option>
+						<option value="<">&lt;</option>
+						<option value=">=">&gt;=</option>
+						<option value="<=">&lt;=</option>
 						<option value="=~">=~</option>
 						<option value="!~">!~</option>
 						<option value="=*">=*</option>
@@ -83,19 +85,27 @@ if ($_POST['frmaction'] == "add") {
 			</tr>
 		</table>
 	</form>
+
 <?php
 
 # Check we have all params
-} elseif ($_POST['frmaction'] == "add2") {
+} elseif (isset($_POST['frmaction']) && $_POST['frmaction'] == "add2") {
+
 ?>
+
 	<p class="pageheader">Attribute Add Results</p>
 
 <?php
+
 	# Check for empty values
 	if (empty($_POST['attr_name']) || empty($_POST['attr_operator']) || empty($_POST['attr_value'])) {
+
 ?>
+
 		<div class="warning">Submission cannot have empty value</div>
+
 <?php
+
 	} else {
 		$stmt = $db->prepare("INSERT INTO ${DB_TABLE_PREFIX}user_attributes (UserID,Name,Operator,Value) VALUES (?,?,?,?)");
 		# Which user am I working with?
@@ -108,22 +118,34 @@ if ($_POST['frmaction'] == "add") {
 			$_POST['attr_value'],
 		));
 		if ($res) {
+
 ?>
+
 			<div class="notice">Attribute added</div>
+
 <?php
+
 			session_destroy();
 
 		} else {
+
 ?>
+
 			<div class="warning">Failed to add attribute</div>
 			<div class="warning"><?php print_r($stmt->errorInfo()) ?></div>
+
 <?php
+
 		}
 	}
 } else {
+
 ?>
+
 	<div class="warning">Invalid invocation</div>
+
 <?php
+
 }
 printFooter();
 

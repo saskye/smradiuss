@@ -37,7 +37,7 @@ printHeader(array(
 
 
 # Display delete confirm screen
-if ($_POST['frmaction'] == "delete") {
+if (isset($_POST['frmaction']) && $_POST['frmaction'] == "delete") {
 	# Check a user was selected
 	if (isset($_POST['user_id'])) {
 
@@ -46,10 +46,8 @@ if ($_POST['frmaction'] == "delete") {
 		<p class="pageheader">Delete User</p>
 
 		<form action="user-delete.php" method="post">
-			<div>
-				<input type="hidden" name="frmaction" value="delete2" />
-				<input type="hidden" name="user_id" value="<?php echo $_POST['user_id']; ?>" />
-			</div>
+			<input type="hidden" name="frmaction" value="delete2" />
+			<input type="hidden" name="user_id" value="<?php echo $_POST['user_id']; ?>" />
 			<div class="textcenter">
 				Are you very sure? <br />
 				<input type="submit" name="confirm" value="yes" />
@@ -69,7 +67,7 @@ if ($_POST['frmaction'] == "delete") {
 
 	}
 # SQL Updates
-} elseif ($_POST['frmaction'] == "delete2") {
+} elseif (isset($_POST['frmaction']) && $_POST['frmaction'] == "delete2") {
 
 ?>
 
@@ -79,17 +77,16 @@ if ($_POST['frmaction'] == "delete") {
 
 	if (isset($_POST['user_id'])) {
 		# Check to see if user's attributes are empty
-		$userID = $_POST['user_id'];
-		$sql = "SELECT * FROM ${DB_TABLE_PREFIX}user_attributes WHERE UserID = $userID";
+		$sql = "SELECT * FROM ${DB_TABLE_PREFIX}user_attributes WHERE UserID = ".$db->quote($_POST['user_id']);
 		$res = $db->query($sql);
 
-		if ($_POST['confirm'] == "yes") {
-			$res = $db->exec("DELETE FROM ${DB_TABLE_PREFIX}users WHERE ID = ".$_POST['user_id']);
-			if ($res !== FALSE) {
+		if (isset($_POST['confirm']) && $_POST['confirm'] == "yes") {
+			$res = $db->exec("DELETE FROM ${DB_TABLE_PREFIX}users WHERE ID = ".$db->quote($_POST['user_id']);
+			if ($res) {
 
 ?>
 
-				<div class="notice">User with ID: <?php print_r($_POST['user_id']);?> deleted</div>
+				<div class="notice">User with ID: <?php echo $_POST['user_id']; ?> deleted</div>
 
 <?php
 
@@ -98,7 +95,7 @@ if ($_POST['frmaction'] == "delete") {
 ?>
 
 				<div class="warning">Error deleting user</div>
-				<div class="warning"><?php print_r($db->errorInfo()) ?></div>
+				<div class="warning"><?php print_r($db->errorInfo()); ?></div>
 
 <?php
 

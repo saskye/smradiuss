@@ -73,13 +73,17 @@ if (!isset($_POST['frmaction']))
 				<td class="textcenter">Username</td>
 				<td class="textcenter">Disabled</td>
 			</tr>
+
 <?php
+
 			$sql = "SELECT ID, Username, Disabled FROM ${DB_TABLE_PREFIX}users ORDER BY ID ASC";
 			$res = $db->query($sql);
 
 			# List users
 			while ($row = $res->fetchObject()) {
+
 ?>
+
 					<tr class="resultsitem">
 						<td><input type="radio" name="user_id" value="<?php echo $row->id; ?>"/><?php echo $row->id; ?></td>
 						<td><?php echo $row->username; ?></td>

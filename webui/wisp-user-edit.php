@@ -35,7 +35,6 @@ if (isset($_POST['frmaction']) && $_POST['frmaction'] == "edit") {
 	# Check a user was selected
 	if (isset($_POST['user_id'])) {
 
-		# Prepare statements
 		$userID = $_POST['user_id'];
 		$sql = "SELECT 
 					FirstName, 
@@ -46,7 +45,7 @@ if (isset($_POST['frmaction']) && $_POST['frmaction'] == "edit") {
 				FROM 
 					userdata 
 				WHERE 
-					UserID = '$userID'
+					UserID = ".$db->quote($userID)."
 				";
 
 		$userDataResult = $db->query($sql); 
@@ -57,7 +56,7 @@ if (isset($_POST['frmaction']) && $_POST['frmaction'] == "edit") {
 				FROM
 					user_attributes
 				WHERE
-					UserID = '$userID'
+					UserID = ".$db->quote($userID)."
 				AND
 					Name = 'Framed-IP-Address'
 				";
@@ -70,7 +69,7 @@ if (isset($_POST['frmaction']) && $_POST['frmaction'] == "edit") {
 				FROM
 					user_attributes
 				WHERE
-					UserID = '$userID'
+					UserID = ".$db->quote($userID)."
 				AND
 					Name = 'Calling-Station-Id'
 				";
@@ -84,7 +83,7 @@ if (isset($_POST['frmaction']) && $_POST['frmaction'] == "edit") {
 				FROM
 					user_attributes
 				WHERE
-					UserID = '$userID'
+					UserID = ".$db->quote($userID)."
 				AND
 					Name = 'User-Password'
 				";
@@ -98,7 +97,7 @@ if (isset($_POST['frmaction']) && $_POST['frmaction'] == "edit") {
 				FROM
 					user_attributes
 				WHERE
-					UserID = '$userID'
+					UserID = ".$db->quote($userID)."
 				AND
 					Name = 'SMRadius-Capping-Traffic-Limit'
 				";
@@ -112,7 +111,7 @@ if (isset($_POST['frmaction']) && $_POST['frmaction'] == "edit") {
 				FROM
 					user_attributes
 				WHERE
-					UserID = '$userID'
+					UserID = ".$db->quote($userID)."
 				AND
 					Name = 'SMRadius-Capping-Time-Limit'
 				";

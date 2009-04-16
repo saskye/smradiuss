@@ -150,7 +150,7 @@ if (isset($_POST['user_id'])) {
 			FROM 
 					${DB_TABLE_PREFIX}accounting 
 			WHERE 
-					Username = '$getuser'
+					Username = ".$db->quote($getuser)."
 					$extraSQL
 			ORDER BY
 					EventTimestamp
@@ -269,7 +269,7 @@ if (isset($_POST['user_id'])) {
 		}
 		$res->closeCursor();
 ?>
-		</table>
+	</table>
 <?php
 
 } else {
@@ -279,11 +279,6 @@ if (isset($_POST['user_id'])) {
 <?php
 
 }
-
-?>
-
-
-<?php
 
 printFooter();
 

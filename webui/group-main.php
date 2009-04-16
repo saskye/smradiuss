@@ -32,6 +32,7 @@ printHeader(array(
 ));
 
 ?>
+
 	<p class="pageheader">User Groups</p>
 
 	<form id="main_form" action="group-main.php" method="post">
@@ -76,40 +77,46 @@ printHeader(array(
 				<td class="textcenter">Disabled</td>
 				<td class="textcenter">Comment</td>
 			</tr>
+
 <?php
+
 			$sql = "SELECT ID, Name, Priority, Disabled, Comment FROM ${DB_TABLE_PREFIX}groups ORDER BY ID";
 			$res = $db->query($sql);
 
 			$rownums = 0;
 			while ($row = $res->fetchObject()) {
-				if ($row->id != NULL) {
-					$rownums = $rownums + 1;
-				} else {
-					$rownums = $rownums - 1;
-				}
+
 ?>
 				<tr class="resultsitem">
-					<td><input type="radio" name="group_id" value="<?php echo $row->id ?>" /></td>
-					<td><?php echo $row->name ?></td>
-					<td><?php echo $row->priority ?></td>
-					<td class="textcenter"><?php echo $row->disabled ? 'yes' : 'no' ?></td>
-					<td><?php echo $row->comment ?></td>
+					<td><input type="radio" name="group_id" value="<?php echo $row->id; ?>" /></td>
+					<td><?php echo $row->name; ?></td>
+					<td><?php echo $row->priority; ?></td>
+					<td class="textcenter"><?php echo $row->disabled ? 'yes' : 'no'; ?></td>
+					<td><?php echo $row->comment; ?></td>
 				</tr>
+
 <?php
+
 			}
-			$res->closeCursor();
-			if ($rownums <= 0) {
+			if ($res->rowCount() == 0) {
+
 ?>
+
 				<p />
 				<tr>
 					<td colspan="5" class="textcenter">Group list is empty</td>
 				</tr>
+
 <?php
+
 			}
-			unset($rownums);
+			$res->closeCursor();
+
 ?>
+
 		</table>
 	</form>
+
 <?php
 
 printFooter();

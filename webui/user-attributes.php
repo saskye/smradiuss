@@ -80,32 +80,25 @@ printHeader(array(
 		$_SESSION['attr_user_id'] = $_POST['user_id']; 
 		if (isset($_POST['user_id'])) {
 
-			$temp = $_SESSION['attr_user_id'];
-			$sql = "SELECT ID, Name, Operator, Value, Disabled FROM ${DB_TABLE_PREFIX}user_attributes WHERE UserID = $temp ORDER BY ID";
+			$sql = "SELECT ID, Name, Operator, Value, Disabled FROM ${DB_TABLE_PREFIX}user_attributes WHERE UserID = ".$db->quote($_POST['user_id'])." ORDER BY ID";
 			$res = $db->query($sql);
 
-			$rownums = 0;
 			while ($row = $res->fetchObject()) {
-				if ($row->id != NULL) {
-					$rownums = $rownums + 1;
-				} else {
-					$rownums = $rownums - 1;
-				}
 
 ?>
+
 				<tr class="resultsitem">
-					<td><input type="radio" name="attr_id" value="<?php echo $row->id ?>"/><?php echo $row->id ?></td>
-					<td><?php echo $row->name ?></td>
-					<td><?php echo $row->operator ?></td>
-					<td><?php echo $row->value ?></td>
-					<td class="textcenter"><?php echo $row->disabled ? 'yes' : 'no' ?></td>
+					<td><input type="radio" name="attr_id" value="<?php echo $row->id; ?>"/><?php echo $row->id; ?></td>
+					<td><?php echo $row->name; ?></td>
+					<td><?php echo $row->operator; ?></td>
+					<td><?php echo $row->value; ?></td>
+					<td class="textcenter"><?php echo $row->disabled ? 'yes' : 'no'; ?></td>
 				</tr>
 
 <?php
 
 			}
-			$res->closeCursor();
-			if ($rownums <= 0) {
+			if ($res->rowCount() == 0) {
 
 ?>
 
@@ -117,7 +110,7 @@ printHeader(array(
 <?php
 
 			}
-			unset($rownums);
+			$res->closeCursor();
 		} else {
 
 ?>

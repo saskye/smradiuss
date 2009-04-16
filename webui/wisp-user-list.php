@@ -233,16 +233,16 @@ if (isset($_POST['frmaction']) && $_POST['frmaction'] == "dofilter") {
 ?>		
 
 				<tr class="resultsitem">
-					<td><input type="radio" name="user_id" value="<?php echo $row->id ?>"/><?php echo $row->id ?></td>
-					<td><?php echo $row->username ?></td>
-					<td><?php echo $row->firstname ?></td>
-					<td><?php echo $row->lastname ?></td>
-					<td><?php echo $row->email ?></td>
-					<td><?php echo $row->phone ?></td>
-					<td><?php echo $row->location ?></td>
-					<td><?php echo $dataCap ?> MB</td>
-					<td><?php echo $timeCap ?> Min</td>
-					<td><?php echo $userIP ?></td>
+					<td><input type="radio" name="user_id" value="<?php echo $row->id; ?>"/><?php echo $row->id; ?></td>
+					<td><?php echo $row->username; ?></td>
+					<td><?php echo $row->firstname; ?></td>
+					<td><?php echo $row->lastname; ?></td>
+					<td><?php echo $row->email; ?></td>
+					<td><?php echo $row->phone; ?></td>
+					<td><?php echo $row->location; ?></td>
+					<td><?php echo $dataCap; ?> MB</td>
+					<td><?php echo $timeCap; ?> Min</td>
+					<td><?php echo $userIP; ?></td>
 				</tr>
 
 <?php
