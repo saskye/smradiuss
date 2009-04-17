@@ -1,26 +1,26 @@
-@PRELOAD@
+SET FOREIGN_KEY_CHECKS=0;
 
 
 
 /* Users */
-CREATE TABLE @PREFIX@users (
-	ID			@SERIAL_TYPE@,
+CREATE TABLE users (
+	ID			SERIAL,
 
 	Username		VARCHAR(255) NOT NULL,
 
 	Disabled		SMALLINT NOT NULL DEFAULT '0',
 
 	UNIQUE (Username)
-) @CREATE_TABLE_SUFFIX@;
-CREATE INDEX @PREFIX@users_idx1 ON @PREFIX@users (Username);
+) TYPE=InnoDB CHARACTER SET latin1 COLLATE latin1_bin;
+CREATE INDEX users_idx1 ON users (Username);
 
 
 
 /* User attributes */
-CREATE TABLE @PREFIX@user_attributes (
-	ID			@SERIAL_TYPE@,
+CREATE TABLE user_attributes (
+	ID			SERIAL,
 
-	UserID			@SERIAL_REF_TYPE@ NOT NULL,
+	UserID			BIGINT UNSIGNED NOT NULL,
 
 	Name			VARCHAR(255) NOT NULL,
 	Operator		VARCHAR(4) NOT NULL,
@@ -28,14 +28,14 @@ CREATE TABLE @PREFIX@user_attributes (
 
 	Disabled		SMALLINT NOT NULL DEFAULT '0',
 
-	FOREIGN KEY (UserID) REFERENCES @PREFIX@users(ID)
-) @CREATE_TABLE_SUFFIX@;
+	FOREIGN KEY (UserID) REFERENCES users(ID)
+) TYPE=InnoDB CHARACTER SET latin1 COLLATE latin1_bin;
 
 
 
 /* Groups */
-CREATE TABLE @PREFIX@groups (
-	ID			@SERIAL_TYPE@,
+CREATE TABLE groups (
+	ID			SERIAL,
 
 	Name			VARCHAR(255) NOT NULL,
 
@@ -45,16 +45,16 @@ CREATE TABLE @PREFIX@groups (
 
 	Comment			VARCHAR(1024)
 
-)  @CREATE_TABLE_SUFFIX@;
-CREATE INDEX @PREFIX@groups_idx1 ON @PREFIX@groups (Name);
+)  TYPE=InnoDB CHARACTER SET latin1 COLLATE latin1_bin;
+CREATE INDEX groups_idx1 ON groups (Name);
 
 
 
 /* Group attributes */
-CREATE TABLE @PREFIX@group_attributes (
-	ID			@SERIAL_TYPE@,
+CREATE TABLE group_attributes (
+	ID			SERIAL,
 
-	GroupID			@SERIAL_REF_TYPE@ NOT NULL,
+	GroupID			BIGINT UNSIGNED NOT NULL,
 
 	Name			VARCHAR(255) NOT NULL,
 	Operator		VARCHAR(4) NOT NULL,
@@ -62,47 +62,47 @@ CREATE TABLE @PREFIX@group_attributes (
 
 	Disabled		SMALLINT NOT NULL DEFAULT '0',
 
-	FOREIGN KEY (GroupID) REFERENCES @PREFIX@groups(ID)
-) @CREATE_TABLE_SUFFIX@;
+	FOREIGN KEY (GroupID) REFERENCES groups(ID)
+) TYPE=InnoDB CHARACTER SET latin1 COLLATE latin1_bin;
 
 
 
 /* User to group mapping */
-CREATE TABLE @PREFIX@users_to_groups (
-	ID			@SERIAL_TYPE@,
+CREATE TABLE users_to_groups (
+	ID			SERIAL,
 
-	UserID			@SERIAL_REF_TYPE@ NOT NULL,
-	GroupID			@SERIAL_REF_TYPE@ NOT NULL,
+	UserID			BIGINT UNSIGNED NOT NULL,
+	GroupID			BIGINT UNSIGNED NOT NULL,
 
 	Disabled		SMALLINT NOT NULL DEFAULT '0',
 	Comment			VARCHAR(1024),
 
 	UNIQUE (UserID,GroupID),
-	FOREIGN KEY (UserID) REFERENCES @PREFIX@users(ID),
-	FOREIGN KEY (GroupID) REFERENCES @PREFIX@groups(ID)
-)  @CREATE_TABLE_SUFFIX@;
-CREATE INDEX @PREFIX@users_to_groups_idx1 ON @PREFIX@users_to_groups (UserID,GroupID);
+	FOREIGN KEY (UserID) REFERENCES users(ID),
+	FOREIGN KEY (GroupID) REFERENCES groups(ID)
+)  TYPE=InnoDB CHARACTER SET latin1 COLLATE latin1_bin;
+CREATE INDEX users_to_groups_idx1 ON users_to_groups (UserID,GroupID);
 
 
 
 /* Realms */
-CREATE TABLE @PREFIX@realms (
-	ID			@SERIAL_TYPE@,
+CREATE TABLE realms (
+	ID			SERIAL,
 
 	Name			VARCHAR(255) NOT NULL,
 
-	Disabled		SMALLINT NOT NULL DEFAULT '0',
+	Disabled		SMALLINT NOT NULL DEFAULT '0'
 
-)  @CREATE_TABLE_SUFFIX@;
-CREATE INDEX @PREFIX@realms_idx1 ON @PREFIX@realms (Name);
+)  TYPE=InnoDB CHARACTER SET latin1 COLLATE latin1_bin;
+CREATE INDEX realms_idx1 ON realms (Name);
 
 
 
 /* Realm attributes */
-CREATE TABLE @PREFIX@realm_attributes (
-	ID			@SERIAL_TYPE@,
+CREATE TABLE realm_attributes (
+	ID			SERIAL,
 
-	RealmID			@SERIAL_REF_TYPE@ NOT NULL,
+	RealmID			BIGINT UNSIGNED NOT NULL,
 
 	Name			VARCHAR(255) NOT NULL,
 	Operator		VARCHAR(4) NOT NULL,
@@ -110,14 +110,14 @@ CREATE TABLE @PREFIX@realm_attributes (
 
 	Disabled		SMALLINT NOT NULL DEFAULT '0',
 
-	FOREIGN KEY (RealmID) REFERENCES @PREFIX@realms(ID)
-) @CREATE_TABLE_SUFFIX@;
+	FOREIGN KEY (RealmID) REFERENCES realms(ID)
+) TYPE=InnoDB CHARACTER SET latin1 COLLATE latin1_bin;
 
 
 
 /* Accounting */
-CREATE TABLE @PREFIX@accounting (
-	ID			@SERIAL_TYPE@,
+CREATE TABLE accounting (
+	ID			SERIAL,
 
 	Username		VARCHAR(255) NOT NULL,
 
@@ -166,5 +166,5 @@ CREATE TABLE @PREFIX@accounting (
 	AcctStatusType		INT UNSIGNED NOT NULL,
 
 	AcctTerminateCause	INT UNSIGNED NOT NULL
-) @CREATE_TABLE_SUFFIX@;
-CREATE INDEX @PREFIX@accounting_idx1 ON @PREFIX@accounting (Username);
+) TYPE=InnoDB CHARACTER SET latin1 COLLATE latin1_bin;
+CREATE INDEX accounting_idx1 ON accounting (Username);

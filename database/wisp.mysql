@@ -1,0 +1,19 @@
+SET FOREIGN_KEY_CHECKS=0;
+
+/* User Data */
+CREATE TABLE userdata (
+	ID			SERIAL,
+
+	UserID			BIGINT UNSIGNED NOT NULL,
+
+	FirstName		VARCHAR(255) NOT NULL,
+	LastName		VARCHAR(255) NOT NULL,
+
+	Email			VARCHAR(255) NOT NULL,
+	Phone			VARCHAR(20) NOT NULL,
+	Location		VARCHAR(255) NOT NULL,
+	
+	UNIQUE (UserID),
+	FOREIGN KEY (UserID) REFERENCES users(ID)
+)  TYPE=InnoDB CHARACTER SET latin1 COLLATE latin1_bin;
+CREATE INDEX userdata_idx1 ON userdata (UserID);
