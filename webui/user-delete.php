@@ -76,56 +76,89 @@ if (isset($_POST['frmaction']) && $_POST['frmaction'] == "delete") {
 <?php
 
 	if (isset($_POST['user_id'])) {
-		# Check to see if user's attributes are empty
-		$sql = "SELECT * FROM ${DB_TABLE_PREFIX}user_attributes WHERE UserID = ".$db->quote($_POST['user_id']);
-		$res = $db->query($sql);
-
 		if (isset($_POST['confirm']) && $_POST['confirm'] == "yes") {
-			$res = $db->exec("DELETE FROM ${DB_TABLE_PREFIX}users WHERE ID = ".$db->quote($_POST['user_id']);
-			if ($res) {
+			$db->beginTransaction();
 
+			$res = $db->exec("DELETE FROM ${DB_TABLE_PREFIX}users_to_groups WHERE UserID = ".$db->quote($_POST['user_id']));
+			if ($res !== FALSE) {
 ?>
-
-				<div class="notice">User with ID: <?php echo $_POST['user_id']; ?> deleted</div>
-
+				<div class="notice">User groups deleted</div>
 <?php
-
 			} else {
-
 ?>
-
 				<div class="warning">Error deleting user</div>
 				<div class="warning"><?php print_r($db->errorInfo()); ?></div>
-
 <?php
+				$db->rollback();
+			}
 
+			if ($res !== FALSE) {
+				$res = $db->exec("DELETE FROM ${DB_TABLE_PREFIX}userdata WHERE UserID = ".$db->quote($_POST['user_id']));
+				if ($res !== FALSE) {
+?>
+					<div class="notice">Userdata deleted</div>
+<?php
+				} else {
+?>
+					<div class="warning">Error deleting user</div>
+					<div class="warning"><?php print_r($db->errorInfo()); ?></div>
+<?php
+					$db->rollback();
+				}
+			}
+
+			if ($res !== FALSE) {
+				$res = $db->exec("DELETE FROM ${DB_TABLE_PREFIX}user_attributes WHERE UserID = ".$db->quote($_POST['user_id']));
+				if ($res !== FALSE) {
+?>
+					<div class="notice">User attributes deleted</div>
+<?php
+				} else {
+?>
+					<div class="warning">Error deleting user</div>
+					<div class="warning"><?php print_r($db->errorInfo()); ?></div>
+<?php
+					$db->rollback();
+				}
+			}
+
+			if ($res !== FALSE) {
+				$res = $db->exec("DELETE FROM ${DB_TABLE_PREFIX}users WHERE ID = ".$db->quote($_POST['user_id']));
+				if ($res !== FALSE) {
+?>
+					<div class="notice">User deleted</div>
+<?php
+				} else {
+?>
+					<div class="warning">Error deleting user</div>
+					<div class="warning"><?php print_r($db->errorInfo()); ?></div>
+<?php
+					$db->rollback();
+				}
+			}
+			if ($res) {
+?>
+				<div class="notice">User with ID: <?php echo $_POST['user_id']; ?> deleted</div>
+<?php
+				$db->commit();
 			}
 		} else {
-
 ?>
-
 			<div class="warning">Delete user aborted</div>
-
 <?php
-
 		}
 	} else {
-
-?>
-
-		<div class="warning">Attribute list is not empty!</div>
-
-<?php
-
-	}
-} else {
-
 ?>
 
 		<div class="warning">Invocation error, no user ID selected</div>
 
 <?php
 
+	}
+} else {
+?>
+	<div class="warning">Invocation error</div>
+<?php
 }
 printFooter();
 
