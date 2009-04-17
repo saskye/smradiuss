@@ -195,7 +195,7 @@ if (isset($_POST['user_id'])) {
 			$sessionTimeItem = 0;
 
 			if (!empty($row->acctsessiontime) && $row->acctsessiontime > 0) {
-				$sessionTimeItem += $row->acctsessiontime / 60;
+				$sessionTimeItem += ($row->acctsessiontime - ($row->acctsessiontime % 60)) / 60;
 			}
 
 			$totalSessionTime += $sessionTimeItem;
@@ -217,7 +217,7 @@ if (isset($_POST['user_id'])) {
 				<td class="textcenter"><?php echo $row->nasidentifier; ?></td>
 				<td class="textcenter"><?php echo $row->nasipaddress; ?></td>
 				<td class="textcenter"><?php echo $row->acctdelaytime; ?></td>
-				<td class="textcenter"><?php printf('%.2f',$sessionTimeItem); ?> Min</td>
+				<td class="textcenter"><?php echo $sessionTimeItem; ?> Min</td>
 				<td class="textcenter"><?php printf('%.2f',$inputDataItem); ?> MB</td>
 				<td class="textcenter"><?php printf('%.2f',$outputDataItem); ?> MB</td>
 				<td class="textcenter"><?php echo $row->acctstatustype; ?></td>
@@ -257,7 +257,7 @@ if (isset($_POST['user_id'])) {
 				<td class="textcenter"></td>
 				<td class="textcenter"></td>
 				<td class="textcenter"></td>
-				<td class="textcenter" style="font-weight: bold;"><? printf('%.2f',$totalSessionTime); ?> Min</td>
+				<td class="textcenter" style="font-weight: bold;"><? echo $totalSessionTime; ?> Min</td>
 				<td class="textcenter" style="font-weight: bold;"><? printf('%.2f',$totalInputData); ?> MB</td>
 				<td class="textcenter" style="font-weight: bold;"><? printf('%.2f',$totalOutputData); ?> MB</td>
 				<td class="textcenter"></td>
