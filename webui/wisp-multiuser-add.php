@@ -86,7 +86,7 @@ if (isset($_POST['frmaction']) && $_POST['frmaction'] == "insert") {
 <?php
 	#FIXME
 	# Perform checks on input
-	if (isset($_POST['num_users']) && isset($_POST['session_timeout']) && isset($_POST['data_limit']) && isset($_POST['time_limit'])) {
+	if (!empty($_POST['num_users']) && !empty($_POST['session_timeout']) && !empty($_POST['data_limit']) && !empty($_POST['time_limit'])) {
 		$db->beginTransaction();
 
 		$numberOfUsers = (int)$_POST['num_users'];

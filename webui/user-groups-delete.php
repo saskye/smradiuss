@@ -88,7 +88,7 @@ if (isset($_POST['frmaction']) && $_POST['frmaction'] == "delete") {
 										GroupID = ".$db->quote($_POST['group_id'])
 							);
 
-			if ($res) {
+			if ($res !== FALSE) {
 
 ?>
 

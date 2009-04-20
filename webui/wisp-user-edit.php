@@ -205,6 +205,12 @@ if (isset($_POST['frmaction']) && $_POST['frmaction'] == "edit") {
 
 <?php
 
+	$userDataResult->closeCursor();
+	$framedIPResult->closeCursor();
+	$dataLimitResult->closeCursor();
+	$timeLimitResult->closeCursor();
+	$callingStationResult->closeCursor();
+
 	} else {
 
 ?>
@@ -215,11 +221,6 @@ if (isset($_POST['frmaction']) && $_POST['frmaction'] == "edit") {
 
 	}
 
-	$userDataResult->closeCursor();
-	$framedIPResult->closeCursor();
-	$dataLimitResult->closeCursor();
-	$timeLimitResult->closeCursor();
-	$callingStationResult->closeCursor();
 
 # SQL Updates
 } elseif (isset($_POST['frmaction']) && $_POST['frmaction'] == "edit2") {

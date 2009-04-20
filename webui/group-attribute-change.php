@@ -158,7 +158,7 @@ if (isset($_POST['frmaction']) && $_POST['frmaction'] == "change") {
 			$updateStr = implode(', ',$updates);
 
 			$res = $db->exec("UPDATE ${DB_TABLE_PREFIX}group_attributes SET $updateStr WHERE ID = ".$db->quote($_POST['attr_id']));
-			if ($res) {
+			if ($res !== FALSE) {
 
 ?>
 

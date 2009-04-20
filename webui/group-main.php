@@ -83,7 +83,6 @@ printHeader(array(
 			$sql = "SELECT ID, Name, Priority, Disabled, Comment FROM ${DB_TABLE_PREFIX}groups ORDER BY ID";
 			$res = $db->query($sql);
 
-			$rownums = 0;
 			while ($row = $res->fetchObject()) {
 
 ?>

@@ -65,72 +65,64 @@ if (isset($_POST['frmaction']) && $_POST['frmaction'] == "delete") {
 		<div class="warning">No user selected</div>
 
 <?php
-
 	}
 # SQL Updates
 } elseif (isset($_POST['frmaction']) && $_POST['frmaction'] == "delete2") {
-
 ?>
-
 	<p class="pageheader">User Remove Results</p>
-
 <?php
-
 	if (isset($_POST['user_id'])) {
 		if (isset($_POST['confirm']) && $_POST['confirm'] == "yes") {
 			$db->beginTransaction();
 			# Delete user data
-			$userDataDeleteResult = $db->exec("DELETE FROM userdata WHERE UserID = ".$db->quote($_POST['user_id']));
-			# Delete user attributes
-			$attrDeleteResult = $db->exec("DELETE FROM user_attributes WHERE UserID = ".$db->quote($_POST['user_id']));
-			# Delete from users
-			$userDeleteResult = $db->exec("DELETE FROM users WHERE ID = ".$db->quote($_POST['user_id']));
-
-			if ($userDataDeleteResult && $attrDeleteResult && $userDeleteResult) {
+			$res = $db->exec("DELETE FROM userdata WHERE UserID = ".$db->quote($_POST['user_id']));
+			if ($res !== FALSE) {
+				# Delete user attributes
+				$res = $db->exec("DELETE FROM user_attributes WHERE UserID = ".$db->quote($_POST['user_id']));
+				if ($res !== FALSE) {
+					# Delete from users
+					$res = $db->exec("DELETE FROM users WHERE ID = ".$db->quote($_POST['user_id']));
+					if ($res !== FALSE) {
 ?>
-
-				<div class="notice">User with ID: <?php print_r($_POST['user_id']);?> deleted</div>
-
+						<div class="notice">User with ID: <?php print_r($_POST['user_id']); ?> deleted!</div>
 <?php
-
-				$db->commit();
+						$db->commit();
+					} else {
+?>
+						<div class="warning">Failed to delete user!</div>
+						<div class="warning"><?php print_r($db->errorInfo()); ?></div>
+<?php
+						$db->rollback();
+					}
+				} else {
+?>
+					<div class="warning">Failed to delete user!</div>
+					<div class="warning"><?php print_r($db->errorInfo()); ?></div>
+<?php
+					$db->rollback();
+				}
 			} else {
-
 ?>
-
-				<div class="warning">Error deleting user</div>
-				<div class="warning"><?php print_r($db->errorInfo()) ?></div>
-
+				<div class="warning">Failed to delete user!</div>
+				<div class="warning"><?php print_r($db->errorInfo()); ?></div>
 <?php
-
 				$db->rollback();
 			}
 		} else {
-
 ?>
-
 			<div class="warning">Delete user aborted</div>
-
 <?php
-
 		}
 	} else {
-
 ?>
-
 		<div class="warning">No user selected</div>
-
 <?php
-
 	}
 } else {
 
 ?>
-
 	<div class="warning">Invocation error</div>
-
 <?php
-
 }
 printFooter();
 

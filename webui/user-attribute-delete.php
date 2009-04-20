@@ -80,7 +80,7 @@ if (isset($_POST['frmaction']) && $_POST['frmaction'] == "delete") {
 	if (isset($_POST['attr_id'])) {
 		if (isset($_POST['confirm']) && $_POST['confirm'] == "yes") {
 			$res = $db->exec("DELETE FROM ${DB_TABLE_PREFIX}user_attributes WHERE ID = ".$db->quote($_POST['attr_id']));
-			if ($res) {
+			if ($res !== FALSE) {
 
 ?>
 

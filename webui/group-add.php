@@ -82,28 +82,39 @@ if (isset($_POST['frmaction']) && $_POST['frmaction'] == "add") {
 
 <?php
 
-	$stmt = $db->prepare("INSERT INTO ${DB_TABLE_PREFIX}groups (Name,Priority,Disabled,Comment) VALUES (?,?,?,?)");
+	if (!empty($_POST['group_name'])) {
 
-	$res = $stmt->execute(array(
-		$_POST['group_name'],
-		$_POST['group_priority'],
-		$_POST['group_disabled'],
-		$_POST['group_comment'],
-	));
-	if ($res) {
+		$stmt = $db->prepare("INSERT INTO ${DB_TABLE_PREFIX}groups (Name,Priority,Disabled,Comment) VALUES (?,?,?,?)");
+
+		$res = $stmt->execute(array(
+			$_POST['group_name'],
+			$_POST['group_priority'],
+			$_POST['group_disabled'],
+			$_POST['group_comment'],
+		));
+		if ($res) {
 
 ?>
 
-		<div class="notice">Group created</div>
+			<div class="notice">Group created</div>
 
 <?php
 
+		} else {
+
+?>
+
+			<div class="warning">Failed to create group</div>
+			<div class="warning"><?php print_r($stmt->errorInfo()) ?></div>
+
+<?php
+
+		}
 	} else {
 
 ?>
 
-		<div class="warning">Failed to create group</div>
-		<div class="warning"><?php print_r($stmt->errorInfo()) ?></div>
+		<div class="warning">Group name cannot be empty!</div>
 
 <?php
 
