@@ -69,7 +69,7 @@ if (isset($_POST['frmaction']) && $_POST['frmaction'] == "delete") {
 
 	}
 # SQL Updates
-} elseif (isset($_POST['frmaction'] && $_POST['frmaction'] == "delete2") {
+} elseif (isset($_POST['frmaction']) && $_POST['frmaction'] == "delete2") {
 
 ?>
 

@@ -74,7 +74,7 @@ if (isset($_POST['frmaction']) && $_POST['frmaction'] == "add") {
 <?php
 
 # Check we have all params
-} elseif (isset($_POST['frmaction'] && $_POST['frmaction'] == "add2") {
+} elseif (isset($_POST['frmaction']) && $_POST['frmaction'] == "add2") {
 
 ?>
 

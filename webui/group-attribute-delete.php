@@ -36,7 +36,7 @@ printHeader(array(
 
 
 # Display delete confirm screen
-if (isset($_POST['frmaction'] && $_POST['frmaction'] == "delete") {
+if (isset($_POST['frmaction']) && $_POST['frmaction'] == "delete") {
 	# Check a user was selected
 	if (isset($_POST['attr_id'])) {
 

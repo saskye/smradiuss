@@ -36,7 +36,7 @@ printHeader(array(
 ));
 
 # Display change screen
-if (isset($_POST['frmaction'] && $_POST['frmaction'] == "change") {
+if (isset($_POST['frmaction']) && $_POST['frmaction'] == "change") {
 	# Check an attribute was selected
 	if (isset($_POST['attr_id'])) {
 		# Prepare statement
