@@ -49,7 +49,7 @@ if (isset($_POST['frmaction']) && $_POST['frmaction'] == "change") {
 
 		<p class="pageheader">Update User</p>
 
-		<form action="attribute-change.php" method="post">
+		<form action="user-attribute-change.php" method="post">
 			<div>
 				<input type="hidden" name="frmaction" value="change2" />
 				<input type="hidden" name="attr_id" value="<?php echo $_POST['attr_id']; ?>" />
