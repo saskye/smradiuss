@@ -77,12 +77,22 @@ printHeader(array(
 
 <?php
 
-		$_SESSION['attr_user_id'] = $_POST['user_id']; 
 		if (isset($_POST['user_id'])) {
+			# Set to session for later use
+			$_SESSION['attr_user_id'] = $_POST['user_id']; 
 
-			$sql = "SELECT ID, Name, Operator, Value, Disabled FROM ${DB_TABLE_PREFIX}user_attributes WHERE UserID = ".$db->quote($_POST['user_id'])." ORDER BY ID";
+			# Get old attributes
+			$sql = "SELECT 
+						ID, Name, Operator, Value, Disabled 
+					FROM 
+						${DB_TABLE_PREFIX}user_attributes 
+					WHERE 
+						UserID = ".$db->quote($_POST['user_id'])." 
+					ORDER BY 
+						ID
+					";
+
 			$res = $db->query($sql);
-
 			while ($row = $res->fetchObject()) {
 
 ?>

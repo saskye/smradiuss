@@ -88,9 +88,7 @@ printHeader(array(
 				$result = $db->query($sql);
 
 				while ($row = $result->fetchObject()) {
-
 ?>
-
 					<tr class="resultsitem">
 						<td><input type="radio" name="group_id" value="<?php echo $row->id; ?>"/></td>
 						<td><?php echo $row->name; ?></td>
@@ -98,43 +96,29 @@ printHeader(array(
 						<td class="textcenter"><?php echo $row->disabled ? 'yes' : 'no'; ?></td>
 						<td><?php echo $row->comment; ?></td>
 					</tr>
-
 <?php
-
 				}
 				$result->closeCursor();
 			}
-
 			if ($res->rowCount() == 0) {
-
 ?>
-
-				<p />
 				<tr>
-					<td colspan="5" class="textcenter">User doesn't belong to any groups</td>
+					<td>User does not belong to any groups</td>
 				</tr>
-
 <?php
-
 			}
 			$res->closeCursor();
 		} else {
-
 ?>
-
-			<div class="warning">Invocation error, no user ID selected</div>
-
+			<tr>
+				<td>Invocation error, no user ID selected</td>
+			</tr>
 <?php
-
 		}
-
 ?>
-
 	</table>
 </form>
-
 <?php
-
  
 printFooter();
 
