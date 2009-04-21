@@ -43,7 +43,7 @@ if (isset($_POST['frmaction']) && $_POST['frmaction'] == "add") {
 
 	<p class="pageheader">Add attribute</p>
 
-	<form method="post" action="attribute-add.php">
+	<form method="post" action="user-attribute-add.php">
 		<div>
 			<input type="hidden" name="frmaction" value="add2" />
 		</div>
