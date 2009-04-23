@@ -28,6 +28,7 @@ use lib qw(
 	smradius/modules/userdb
 	smradius/modules/accounting
 	smradius/modules/features
+	smradius/modules/config
 );
 
 package radiusd;
@@ -176,6 +177,22 @@ sub configure {
 	}
 	
 	#
+	# System plugins
+	#
+	my @system_params = (
+			'plugins',
+	);
+	my $system;
+	foreach my $param (@system_params) {
+		$system->{$param} = $config{'system'}{$param} if (defined($config{'system'}{$param}));
+	}
+
+	if (!defined($system->{'plugins'})) {
+		$self->log(LOG_ERR,"[SMRADIUS] System configuration error: System plugins not found");
+		exit 1;
+	}
+
+	#
 	# Authentication plugins
 	#
 	my @auth_params = (
@@ -187,10 +204,6 @@ sub configure {
 		$auth->{$param} = $config{'authentication'}{$param} if (defined($config{'authentication'}{$param}));
 	}
 
-	if (!defined($auth->{'mechanisms'})) {
-		$self->log(LOG_ERR,"[SMRADIUS] Authentication configuration error: Mechanism plugins not found");
-		exit 1;
-	}
 	if (!defined($auth->{'users'})) {
 		$self->log(LOG_ERR,"[SMRADIUS] Authentication configuration error: Userdb plugins not found");
 		exit 1;
@@ -246,7 +259,8 @@ sub configure {
 		@{$auth->{'mechanisms'}},
 		@{$auth->{'users'}},
 		@{$acct->{'plugins'}},
-		@{$features->{'plugins'}} 
+		@{$features->{'plugins'}}, 
+		@{$system->{'plugins'}}
 	];
 
 	# Clean up plugins
@@ -532,6 +546,31 @@ sub process_request {
 
 	# Main user hash with everything in
 	my $user;
+
+
+
+	#
+	# GRAB CONFIG FIXME
+	#
+	foreach my $module (@{$self->{'plugins'}}) {
+		# Try find config attribute
+		if ($module->{'Config_get'}) {
+
+			# Get result from config module
+			$self->log(LOG_INFO,"[SMRADIUS] FIND: Trying plugin '".$module->{'Name'}."' for incoming connection");
+			my ($configData) = $module->{'Config_get'}($self,$user,$pkt);
+
+			if ($configData) {
+				# Add what we have received to the user hash
+				$user->{'ConfigData'} = $configData;
+				$self->log(LOG_NOTICE,"[SMRADIUS] ConfigData: ".Dumper($user->{'ConfigData'}));
+				last;
+			}
+		}
+	}
+
+
+
 	# UserDB module if we using/need it
 	my $userdb;
 
