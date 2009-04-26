@@ -71,8 +71,6 @@ sub init
 			Name, Operator, Value
 		FROM 
 			@TP@realm_attributes 
-		WHERE 
-			RealmID = %{realms.ID}
 	';
 	
 

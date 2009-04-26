@@ -547,8 +547,6 @@ sub process_request {
 	# Main user hash with everything in
 	my $user;
 
-
-
 	#
 	# GRAB CONFIG FIXME
 	#
@@ -563,12 +561,34 @@ sub process_request {
 			if ($configData) {
 				# Add what we have received to the user hash
 				$user->{'ConfigData'} = $configData;
-				$self->log(LOG_NOTICE,"[SMRADIUS] ConfigData: ".Dumper($user->{'ConfigData'}));
 				last;
 			}
 		}
 	}
 
+
+	#
+	# FIXME USER
+	#
+
+	# Build a list of our attributes in the packet
+	my $configAttributes;
+	foreach my $attr ($pkt->attributes) {
+		$configAttributes->{$attr} = $pkt->rawattr($attr);
+	}
+	# Loop with attributes we got from the user
+	foreach my $attribute (@{$user->{'ConfigData'}->{'ConfigAttributes'}}) {
+		# Check attribute against authorization attributes
+		my $res = checkAttributeConfig($self,$configAttributes,$attribute);
+		if ($res == 0) {
+			$self->log(LOG_DEBUG,"[SMRADIUS] Failed checkAttributeConfig(): Do something here");
+			last;
+		}
+	}
+
+	# We don't want to process everyting if something doesn't match
+	#	last if (!$authorized);
+	#}
 
 
 	# UserDB module if we using/need it

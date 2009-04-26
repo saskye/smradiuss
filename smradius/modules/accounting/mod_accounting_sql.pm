@@ -30,7 +30,6 @@ use smradius::util;
 use DateTime;
 use POSIX qw(ceil);
 
-use Data::Dumper;
 
 # Exporter stuff
 require Exporter;
