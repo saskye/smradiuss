@@ -1,6 +1,5 @@
 # Capping support
-#
-# Copyright (C) 2008, AllWorldIT
+# Copyright (C) 2007-2009, AllWorldIT
 # 
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -243,4 +242,7 @@ sub post_acct_hook
 	return MOD_RES_ACK;
 }
 
+
+
 1;
+# vim: ts=4

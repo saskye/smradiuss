@@ -1,10 +1,9 @@
 # PAP
+# Copyright (C) 2007-2009, AllWorldIT
 #
 # References:
 #	RFC1334 - PPP Authentication Protocols
 #
-# Copyright (C) 2008, AllWorldIT
-# 
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; either version 2 of the License, or
@@ -112,3 +111,4 @@ sub authenticate
 
 
 1;
+# vim: ts=4

@@ -1,4 +1,5 @@
 # Microsoft CHAP version 1 and 2 support
+# Copyright (C) 2007-2009, AllWorldIT
 #
 # References: 
 #	RFC1994 - PPP Challenge Handshake Authentication Protocol (CHAP)
@@ -6,8 +7,6 @@
 #	RFC2759 - Microsoft PPP CHAP Extensions, Version 2
 #	RFC2548 - Microsoft Vendor-specific RADIUS Attributes
 #
-# Copyright (C) 2008, AllWorldIT
-# 
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; either version 2 of the License, or
@@ -717,3 +716,4 @@ sub NtChallengeResponse {
 
 
 1;
+# vim: ts=4

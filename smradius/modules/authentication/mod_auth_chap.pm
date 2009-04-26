@@ -1,9 +1,8 @@
 # CHAP authentication
+# Copyright (C) 2007-2009, AllWorldIT
 #
 # References:
 #	RFC1944 - PPP Challenge Handshake Authentication Protocol (CHAP)
-#
-# Copyright (C) 2008, AllWorldIT
 # 
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -131,3 +130,4 @@ sub encode_chap
 
 
 1;
+# vim: ts=4

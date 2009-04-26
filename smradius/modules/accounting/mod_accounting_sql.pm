@@ -1,6 +1,5 @@
 # SQL accounting database
-#
-# Copyright (C) 2008-2009, AllWorldIT
+# Copyright (C) 2007-2009, AllWorldIT
 # 
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -320,3 +319,4 @@ sub acct_log
 
 
 1;
+# vim: ts=4

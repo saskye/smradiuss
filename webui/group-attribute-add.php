@@ -1,6 +1,6 @@
 <?php
-# Policy add
-# Copyright (C) 2008, LinuxRulz
+# Radius Group Attribute Add
+# Copyright (C) 2007-2009, AllWorldIT
 # 
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by

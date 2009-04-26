@@ -1,7 +1,6 @@
 <?php
 # Top part of radius control panel
-#
-# Copyright (c) 2005-2008, AllWorldIT
+# Copyright (C) 2007-2009, AllWorldIT
 # 
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by

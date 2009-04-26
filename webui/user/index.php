@@ -1,7 +1,6 @@
 <?php
-# Main control panel page
-#
-# Copyright (c) 2005-2008, AllWorldIT
+# Main User Control Panel Page
+# Copyright (c) 2007-2009, AllWorldIT
 # 
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
