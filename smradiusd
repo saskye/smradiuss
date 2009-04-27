@@ -481,74 +481,16 @@ sub process_request {
 #NAS-IP-Address:      10.254.254.239
 
 
-
-#
-# User Authentication
-#
-
-# Authentication
-#a. SELECT ID, Password FROM Users WHERE Username = %u
-# Optional Items:
-# 	'Disabled' - Indicates the user is disabled
-#
-# Save the query result, so we can use it as macros....  ${user.<column name>}  below...
-
-
-#
-# Authorization: Attribute checks
-#
-
-# User attributes
-#b. SELECT Attribute, OP, Value FROM UserAttributes WHERE UserID = ${user.id}
-
-# Attribute groups
-#c. SELECT Group FROM UsersToGroups WHERE UserID = ${user.id}
-# Save the query result, so we can use it as macros... ${group.<column name>} below...
-
-# Group attributes
-#d. SELECT Attribute, OP, Value FROM GroupAttributes WHERE GroupID = ${group.id}
-# Loop with groups and do the query ...
-
-#
-# Authentication procedure
-#
-
-# On user AUTH ....
-#1. Execute query (a), set query result in 'user' hash
-#	- Check 'disabled' parameter
-#2. Run past plugins - check if we authenticate
-#	- if not reject
-#3. Pull in query (c), loop with groups for query (d)
-#4. Merge in query (b)
-#5. Check attributes that need checking
-#	- reject if fail
-#6. Return attributes that need to be returned
-
-
-# find user
-# get user
-#	- User
-#		- Password
-#			{mech}data
-#		- Data
-#			(additional columns from table)
-#		- Attributes (array)
-#			Attribute,OP,Value
-#	- Group (array)
-#		- Data
-#			(additional columns from table)
-#		- Attributes
-#			Attribute,OP,Value
-# try authenticate
-# check attribs
-
-
 	# Main user hash with everything in
 	my $user;
 
 	#
-	# GRAB CONFIG FIXME
+	# GRAB & PROCESS CONFIG 
 	#
+
+	# Build a list of our attributes in the packet
+	my $configAttributes = {};
+
 	foreach my $module (@{$self->{'plugins'}}) {
 		# Try find config attribute
 		if ($module->{'Config_get'}) {
@@ -556,39 +498,26 @@ sub process_request {
 			# Get result from config module
 			$self->log(LOG_INFO,"[SMRADIUS] FIND: Trying plugin '".$module->{'Name'}."' for incoming connection");
 			my ($configData) = $module->{'Config_get'}($self,$user,$pkt);
-
+			# If we got some config back, process it
 			if ($configData) {
-				# Add what we have received to the user hash
-				$user->{'ConfigData'} = $configData;
-				last;
+				# Loop with attributes we got from the user
+				foreach my $attrName (keys %{$configData}) {
+					# Loop with operators
+					foreach my $attrOp (keys %{$configData->{$attrName}}) {
+						# Grab attribute
+						my $attr = $configData->{$attrName}->{$attrOp};
+						# Process attribute
+						my $res = checkAttributeConfig($self,$user->{'ConfigAttributes'},$attr);
+					}
+				}
 			}
 		}
 	}
 
 
 	#
-	# FIXME USER
+	# START PROCESSING
 	#
-
-	# Build a list of our attributes in the packet
-	my $configAttributes;
-	foreach my $attr ($pkt->attributes) {
-		$configAttributes->{$attr} = $pkt->rawattr($attr);
-	}
-	# Loop with attributes we got from the user
-	foreach my $attribute (@{$user->{'ConfigData'}->{'ConfigAttributes'}}) {
-		# Check attribute against authorization attributes
-		my $res = checkAttributeConfig($self,$configAttributes,$attribute);
-		if ($res == 0) {
-			$self->log(LOG_DEBUG,"[SMRADIUS] Failed checkAttributeConfig(): Do something here");
-			last;
-		}
-	}
-
-	# We don't want to process everyting if something doesn't match
-	#	last if (!$authorized);
-	#}
-
 
 	# UserDB module if we using/need it
 	my $userdb;
