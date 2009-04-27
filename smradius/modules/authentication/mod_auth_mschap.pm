@@ -32,6 +32,7 @@ use warnings;
 
 # Modules we need
 use smradius::constants;
+use smradius::logging;
 use Crypt::DES;
 use Crypt::RC4;
 use Digest::SHA1;
@@ -109,64 +110,98 @@ sub authenticate
 	# Return if not recognized...
 	return MOD_RES_SKIP if (!defined($rawChallenge) || (!defined($rawResponse) && !defined($rawResponse2)));
 
-	print(STDERR "This is a MS-CHAP challenge....\n");
+	$server->log(LOG_DEBUG,"[MOD_AUTH_MSCHAP] This is a MSCHAP challenge");
 
+	# Grab our own version of the password
+	my $unicodePassword;
+	if (defined($user->{'Attributes'}->{'User-Password'})) {
+		# Operator: ==
+		if (defined($user->{'Attributes'}->{'User-Password'}->{'=='})) {
+			# Set password
+			$unicodePassword = $user->{'Attributes'}->{'User-Password'}->{'=='}->{'Value'};
+			$unicodePassword =~ s/(.)/$1\0/g; # convert ASCII to unicaode
+		} else {
+			$server->log(LOG_NOTICE,"[MOD_AUTH_CHAP] No valid operators for attribute 'User-Password', ".
+					"supported operators are: ==");
+		}
+	} else {
+		$server->log(LOG_NOTICE,"[MOD_AUTH_CHAP] No 'User-Password' attribute, cannot authenticate");
+		return MOD_RES_NACK;
+	}
+
+	# Grab usrename
+	my $username = $user->{'Username'};
+	if (!defined($username)) {
+		$server->log(LOG_NOTICE,"[MOD_AUTH_CHAP] No 'Username' attribute in packet, cannot authenticate");
+		return MOD_RES_NACK;
+	}
 
 	# MSCHAPv1
 	if ($rawResponse) {
+		$server->log(LOG_DEBUG,"[MOD_AUTH_MSCHAP] This is a MSCHAPv1 challenge");
+
+		# Pull off challenge & response
 		my $challenge = @{$rawChallenge}[0];
 		my $response = substr(@{$rawResponse}[0],2);
 
-		print(STDERR "RECEIVED\n");
-		print(STDERR "Challenge: len = ".length($challenge).", hex = ".unpack("H*",$challenge)."\n");
-		print(STDERR "Reponse  : len = ".length($response).", hex = ".unpack("H*",$response)."\n");
-		print(STDERR "\n\n");
+#		print(STDERR "RECEIVED\n");
+#		print(STDERR "Challenge: len = ".length($challenge).", hex = ".unpack("H*",$challenge)."\n");
+#		print(STDERR "Reponse  : len = ".length($response).", hex = ".unpack("H*",$response)."\n");
+#		print(STDERR "\n\n");
 
-
-
-		print(STDERR "CHOPPED OFFF!!\n");
+#		print(STDERR "CHOPPED OFFF!!\n");
+		# Chop off NtResponse
 		my $NtResponse = substr($response,24,24);
-		print(STDERR "NTRespons: len = ".length($NtResponse).", hex = ".unpack("H*",$NtResponse)."\n");
-		print(STDERR "\n\n");
+#		print(STDERR "NTRespons: len = ".length($NtResponse).", hex = ".unpack("H*",$NtResponse)."\n");
+#		print(STDERR "\n\n");
 
-		my $unipass = "mytest";
-		$unipass =~ s/(.)/$1\0/g; # convert ASCII to unicaode
-		my $username = "nigel";
+#		print(STDERR "TEST\n");
+		# Generate our response
+		my $ourResponse = NtChallengeResponse($challenge,$unicodePassword);
+#		print(STDERR "Calculate: len = ".length($ourResponse).", hex = ".unpack("H*",$ourResponse)."\n");
+#		print(STDERR "\n\n");
 
-		print(STDERR "TEST\n");
-		my $ourResponse = NtChallengeResponse($challenge,$unipass);
-		print(STDERR "Calculate: len = ".length($ourResponse).", hex = ".unpack("H*",$ourResponse)."\n");
-		print(STDERR "\n\n");
+		# Check responses match
+		if ($NtResponse eq $ourResponse) {
+			return MOD_RES_ACK;
+		}
 
 
 	# MSCHAPv2
 	} elsif ($rawResponse2) {
+		$server->log(LOG_DEBUG,"[MOD_AUTH_MSCHAP] This is a MSCHAPv2 challenge");
+
+		# Pull off challenge & response
 		my $challenge = @{$rawChallenge}[0];
 		my $response = substr(@{$rawResponse2}[0],2);
 
-		print(STDERR "RECEIVED\n");
-		print(STDERR "Challenge: len = ".length($challenge).", hex = ".unpack("H*",$challenge)."\n");
-		print(STDERR "Reponse  : len = ".length($response).", hex = ".unpack("H*",$response)."\n");
-		print(STDERR "\n\n");
+#		print(STDERR "RECEIVED\n");
+#		print(STDERR "Challenge: len = ".length($challenge).", hex = ".unpack("H*",$challenge)."\n");
+#		print(STDERR "Reponse  : len = ".length($response).", hex = ".unpack("H*",$response)."\n");
+#		print(STDERR "\n\n");
 
 
 
-		print(STDERR "CHOPPED OFFF!!\n");
+#		print(STDERR "CHOPPED OFFF!!\n");
+		# Grab peer challenge and response
 		my $peerChallenge = substr($response,0,16);
-		my $NtRespnse = substr($response,24,24);
-		print(STDERR "Challenge: len = ".length($peerChallenge).", hex = ".unpack("H*",$peerChallenge)."\n");
-		print(STDERR "NTRespons: len = ".length($NtRespnse).", hex = ".unpack("H*",$NtRespnse)."\n");
-		print(STDERR "\n\n");
+		my $NtResponse = substr($response,24,24);
+#		print(STDERR "Challenge: len = ".length($peerChallenge).", hex = ".unpack("H*",$peerChallenge)."\n");
+#		print(STDERR "NTRespons: len = ".length($NtResponse).", hex = ".unpack("H*",$NtResponse)."\n");
+#		print(STDERR "\n\n");
 
-		my $unipass = "mytest";
-		$unipass =~ s/(.)/$1\0/g; # convert ASCII to unicaode
-		my $username = "nigel";
-
-		print(STDERR "TEST\n");
+#		print(STDERR "TEST\n");
+		# Generate our challenge and our response
 		my $ourChallenge = ChallengeHash($peerChallenge,$challenge,$username);
-		my $ourResponse = NtChallengeResponse($ourChallenge,$unipass);
-		print(STDERR "Calculate: len = ".length($ourResponse).", hex = ".unpack("H*",$ourResponse)."\n");
-		print(STDERR "\n\n");
+		my $ourResponse = NtChallengeResponse($ourChallenge,$unicodePassword);
+#		print(STDERR "Calculate: len = ".length($ourResponse).", hex = ".unpack("H*",$ourResponse)."\n");
+#		print(STDERR "\n\n");
+
+		# Check response match
+		if ($NtResponse eq $ourResponse) {
+			return MOD_RES_ACK;
+		}
+
 	}
 
 	return MOD_RES_SKIP;

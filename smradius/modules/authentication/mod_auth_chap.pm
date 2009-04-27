@@ -87,22 +87,44 @@ sub authenticate
 	# Check if this is a CHAP auth
 	return MOD_RES_SKIP if (!defined($challenge) || !defined($password));
 
-	$server->log(LOG_DEBUG,"This is a CHAP challenge....");
+	$server->log(LOG_DEBUG,"[MOD_AUTH_CHAP] This is a CHAP challenge");
 
+	# Grab our own version of the password
+	my $ourPassword;
+	if (defined($user->{'Attributes'}->{'User-Password'})) {
+		# Operator: ==
+		if (defined($user->{'Attributes'}->{'User-Password'}->{'=='})) {
+			# Set password
+			$ourPassword = $user->{'Attributes'}->{'User-Password'}->{'=='}->{'Value'};
+		} else {
+			$server->log(LOG_NOTICE,"[MOD_AUTH_CHAP] No valid operators for attribute 'User-Password', ".
+					"supported operators are: ==");
+		}
+	} else {
+		$server->log(LOG_NOTICE,"[MOD_AUTH_CHAP] No 'User-Password' attribute, cannot authenticate");
+		return MOD_RES_NACK;
+	}
 
-	print(STDERR "RECEIVED\n");
-	print(STDERR "Challenge: len = ".length($challenge).", hex = ".unpack("H*",$challenge)."\n");
-	print(STDERR "Password : len = ".length($password).", hex = ".unpack("H*",$password)."\n");
-	print(STDERR "\n\n");
+#	print(STDERR "RECEIVED\n");
+#	print(STDERR "Challenge: len = ".length($challenge).", hex = ".unpack("H*",$challenge)."\n");
+#	print(STDERR "Password : len = ".length($password).", hex = ".unpack("H*",$password)."\n");
+#	print(STDERR "\n\n");
 
+	# Pull off the ID
 	my $id = substr($password,0,1);
-	print(STDERR "ID: ".length($id).", hex = ".unpack("H*",$id)."\n");
+#	print(STDERR "ID: ".length($id).", hex = ".unpack("H*",$id)."\n");
 
-	my $result = encode_chap($id,$challenge,"mytest");
+	# Calculate the result
+	my $result = encode_chap($id,$challenge,$ourPassword);
 	
-	print(STDERR "CALC\n");
-	print(STDERR "Result   : len = ".length($result).", hex = ".unpack("H*",$result)."\n");
-	print(STDERR "\n\n");
+#	print(STDERR "CALC\n");
+#	print(STDERR "Result   : len = ".length($result).", hex = ".unpack("H*",$result)."\n");
+#	print(STDERR "\n\n");
+
+	# Check if the password and the result match
+	if ($password eq $result) {
+		return MOD_RES_ACK;
+	}
 	
 	return MOD_RES_NACK;
 }
