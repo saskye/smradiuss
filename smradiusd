@@ -51,8 +51,6 @@ use Radius::Packet;
 
 use Socket;
 
-use Data::Dumper;
-
 
 
 # Override configuration
@@ -483,11 +481,13 @@ sub process_request {
 
 	# Main user hash with everything in
 	my $user;
+	$user->{'ConfigAttributes'} = {};
+	$user->{'ReplyAttributes'} = {};
+	$user->{'ReplyVAttributes'} = {};
 
 	#
 	# GRAB & PROCESS CONFIG 
 	#
-	$user->{'ConfigAttributes'} = {};
 
 	foreach my $module (@{$self->{'plugins'}}) {
 		# Try find config attribute
@@ -514,7 +514,6 @@ sub process_request {
 
 	# FIXME - need secret
 	# FIXME - need acl list
-use Data::Dumper; print (STDERR Dumper(getAttributeValue($user->{'ConfigAttributes'},"SMRadius-Config-Secret")));
 
 	#
 	# START PROCESSING
@@ -536,7 +535,8 @@ use Data::Dumper; print (STDERR Dumper(getAttributeValue($user->{'ConfigAttribut
 		foreach my $module (@{$self->{'plugins'}}) {
 			# Try find user
 			if ($module->{'User_find'}) {
-				$self->log(LOG_INFO,"[SMRADIUS] FIND: Trying plugin '".$module->{'Name'}."' for username '".$user->{'Username'}."'");
+				$self->log(LOG_INFO,"[SMRADIUS] FIND: Trying plugin '".$module->{'Name'}."' for username '".
+						$user->{'Username'}."'");
 				my ($res,$userdb_data) = $module->{'User_find'}($self,$user,$pkt);
 
 				# Check result
@@ -624,7 +624,8 @@ use Data::Dumper; print (STDERR Dumper(getAttributeValue($user->{'ConfigAttribut
 		foreach my $module (@{$self->{'plugins'}}) {
 			# Try authenticate
 			if ($module->{'Feature_Post-Accounting_hook'}) {
-				$self->log(LOG_INFO,"[SMRADIUS] POST-ACCT: Trying plugin '".$module->{'Name'}."' for '".$user->{'Username'}."'");
+				$self->log(LOG_INFO,"[SMRADIUS] POST-ACCT: Trying plugin '".$module->{'Name'}."' for '".
+						$user->{'Username'}."'");
 				my $res = $module->{'Feature_Post-Accounting_hook'}($self,$user,$pkt);
 
 				# Check result
@@ -687,9 +688,8 @@ use Data::Dumper; print (STDERR Dumper(getAttributeValue($user->{'ConfigAttribut
 
 		my $data;
 		$podSock->recv($data, 65536) or return $self->log(LOG_ERR,"[SMRADIUS] POST-ACCT: Receive data failed: $!");
-		my @stuff = unpack('C C n a16 a*', $data);
-		$self->log(LOG_DEBUG,"STUFF: ".Dumper(\@stuff));
-
+#		my @stuff = unpack('C C n a16 a*', $data);
+#		$self->log(LOG_DEBUG,"STUFF: ".Dumper(\@stuff));
 	}
 
 	# Or maybe a access request
@@ -836,14 +836,14 @@ use Data::Dumper; print (STDERR Dumper(getAttributeValue($user->{'ConfigAttribut
 			$resp->set_authenticator($pkt->authenticator);
 
 			# Loop with attributes we got from the getReplyAttributes function, its a hash of arrays which are the values
-			my %replyAttributes = ();
+			my %replyAttributes = %{ $user->{'ReplyAttributes'} };
 			foreach my $attrName (keys %{$user->{'Attributes'}}) {
 				# Loop with operators
 				foreach my $attrOp (keys %{$user->{'Attributes'}->{$attrName}}) {
 					# Grab attribute
 					my $attr = $user->{'Attributes'}->{$attrName}->{$attrOp};
 					# Add this to the reply attribute?
-					getReplyAttribute($self,\%replyAttributes,$attr);
+					setReplyAttribute($self,\%replyAttributes,$attr);
 				}
 			}
 			# Loop with reply attributes
@@ -855,6 +855,17 @@ use Data::Dumper; print (STDERR Dumper(getAttributeValue($user->{'ConfigAttribut
 				}
 			}
 
+			# Loop with vendor reply attributes
+			my %replyVAttributes = %{ $user->{'ReplyVAttributes'} };
+			foreach my $vendor (keys %replyVAttributes) {
+				# Loop with operators
+				foreach my $attrName (keys %{$replyVAttributes{$vendor}}) {
+					# Add each value
+					foreach my $value (@{$replyVAttributes{$vendor}->{$attrName}}) {
+						$resp->set_vsattr($vendor,$attrName,$value);
+					}
+				}
+			}
 			$udp_packet = auth_resp($resp->pack, getAttributeValue($user->{'ConfigAttributes'},"SMRadius-Config-Secret"));
 			$server->{'client'}->send($udp_packet);
 
