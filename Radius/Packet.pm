@@ -67,7 +67,12 @@ sub set_vsattr   {
 	}    
     }
 
-    push @{$attr->{$name}}, $value, $rawValue;
+    # Check if we should be adding the raw value or not
+    if (defined($rawValue)) {
+	    push @{$attr->{$name}}, $value, $rawValue;
+    } else {
+	    push @{$attr->{$name}}, $value;
+    }
 }
 
 sub unset_vsattr {
@@ -432,7 +437,7 @@ sub pack {
       foreach my $datum (@{$self->vsattr($vendor, $attr)}) {
         my $vval = &{$vsapacker{$self->{'Dict'}->vsattr_type($vid, $attr)}}
         ($datum, $self->{'Dict'}->vsattr_num($vid, $attr), $vendor);
-        
+
         if ($vid == 429) {
 
       		# As pointed out by Quan Choi,
