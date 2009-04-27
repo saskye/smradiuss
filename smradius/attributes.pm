@@ -430,57 +430,41 @@ sub checkAttributeConfig
 		@attrValues = ( $attribute->{'Value'} );
 	}	
 
-	$server->log(LOG_DEBUG,"[ATTRIBUTES] Processing CONFIG attribute value ".niceUndef($attrVal)." against: '".
-			$attribute->{'Name'}."' ".$attribute->{'Operator'}." '".join("','",@attrValues)."'");
+	$server->log(LOG_DEBUG,"[ATTRIBUTES] Processing CONFIG attribute: '".$attribute->{'Name'}."' ".
+			$attribute->{'Operator'}." '".join("','",@attrValues)."'");
 	
-	# Loop with all the test attribute values
-	foreach my $tattrVal (@attrValues) { 	
+	# FIXME
+	# Operator: +=
+	#
+	# Use: Attribute += Value
+	# Always matches as a check item, and adds the current
+	# attribute with value to the list of configuration items.
+	#
+	# As a reply item, it has an itendtical meaning, but the
+	# attribute is added to the reply items.
 
-		# FIXME
-		# Operator: +=
-		#
-		# Use: Attribute += Value
-		# Always matches as a check item, and adds the current
-		# attribute with value to the list of configuration items.
-		#
-		# As a reply item, it has an itendtical meaning, but the
-		# attribute is added to the reply items.
-	
-		if ($attribute->{'Operator'} eq '+=') {
-			$server->log(LOG_DEBUG,"[ATTRIBUTES] Operator '+=' triggered: Adding item to configuration items.");
-			$matched = 1;
-	
-		# FIXME
-		# Operator: :=
-		#
-		# Use: Attribute := Value
-		# Always matches as a check item, and replaces in the configuration items any attribute of the same name. 
-		# If no attribute of that name appears in the request, then this attribute is added.
-		#
-		# As a reply item, it has an itendtical meaning, but for the reply items, instead of the request items.
-	
-		} elsif ($attribute->{'Operator'} eq ':=') {
-			$server->log(LOG_DEBUG,"[ATTRIBUTES] Operator ':=' triggered: Adding or replacing item in configuration items.");
-			$matched = 1;
-	
-		# Attributes that are not defined
-		} else {
-			# Ignore
-			$matched = 2;
-			last;
-		}
-	}
+	if ($attribute->{'Operator'} eq '+=') {
+		$server->log(LOG_DEBUG,"[ATTRIBUTES] Operator '+=' triggered: Adding item to configuration items.");
+		push(@{$configAttributes->{$attribute->{'Name'}}},@attrValues);
 
-	# Some debugging info	
-	if ($matched == 1) {
-		$server->log(LOG_DEBUG,"[ATTRIBUTES] - Attribute '".$attribute->{'Name'}."' matched");
-	} elsif ($matched == 2) {
-		$server->log(LOG_DEBUG,"[ATTRIBUTES] - Attribute '".$attribute->{'Name'}."' ignored");
+	# FIXME
+	# Operator: :=
+	#
+	# Use: Attribute := Value
+	# Always matches as a check item, and replaces in the configuration items any attribute of the same name. 
+	# If no attribute of that name appears in the request, then this attribute is added.
+	#
+	# As a reply item, it has an itendtical meaning, but for the reply items, instead of the request items.
+
+	} elsif ($attribute->{'Operator'} eq ':=') {
+		$server->log(LOG_DEBUG,"[ATTRIBUTES] Operator ':=' triggered: Adding or replacing item in configuration items.");
+		@{$configAttributes->{$attribute->{'Name'}}} = @attrValues;
+
+	# Operators that are not defined
 	} else {
-		$server->log(LOG_DEBUG,"[ATTRIBUTES] - Attribute '".$attribute->{'Name'}."' not matched");
+		# Ignore
+		$server->log(LOG_DEBUG,"[ATTRIBUTES] - Attribute '".$attribute->{'Name'}."' ignored");
 	}
-
-	return $matched;
 }
 
 
