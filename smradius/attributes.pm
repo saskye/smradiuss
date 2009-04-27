@@ -342,69 +342,64 @@ sub getReplyAttribute
 			$attribute->{'Name'}."' ".$attribute->{'Operator'}." '".join("','",@attrValues)."'");
 	
 
-	# Loop with all values
-	foreach my $attrVal (@attrValues) { 	
-		# Operator: =
-		#
-		# Use: Attribute = Value
-		# Not allowed as a check item for RADIUS protocol attributes. It is allowed for server
-		# configuration attributes (Auth-Type, etc), and sets the value of on attribute,
-		# only if there is no other item of the same attribute.
-		#
-		# As a reply item, it means "add the item to the reply list, but only if there is
-		# no other item of the same attribute.
+	# Operator: =
+	#
+	# Use: Attribute = Value
+	# Not allowed as a check item for RADIUS protocol attributes. It is allowed for server
+	# configuration attributes (Auth-Type, etc), and sets the value of on attribute,
+	# only if there is no other item of the same attribute.
+	#
+	# As a reply item, it means "add the item to the reply list, but only if there is
+	# no other item of the same attribute.
 	
-		if ($attribute->{'Operator'} eq '=') {
-			if (!defined($attrVal)) {
-				$matched = 1;
-			}
-	
-		# Operator: :=
-		#
-		# Use: Attribute := Value
-		# Always matches as a check item, and replaces in the configuration items any attribute of the same name. 
-		# If no attribute of that name appears in the request, then this attribute is added.
-		#
-		# As a reply item, it has an itendtical meaning, but for the reply items, instead of the request items.
-	
-		} elsif ($attribute->{'Operator'} eq ':=') {
-			# Add attribute if attribute appears
-			if (!defined($attrVal)) {
-				$matched = 1;
-			}
-	
-		# Operator: +=
-		#
-		# Use: Attribute += Value
-		# Always matches as a check item, and adds the current
-		# attribute with value to the list of configuration items.
-		#
-		# As a reply item, it has an itendtical meaning, but the
-		# attribute is added to the reply items.
-	
-		} elsif ($attribute->{'Operator'} eq '+=') {
-			$matched = 1;
-		
-		# Attributes that are not defined
-		} else {
-			# Ignore and b0rk out
-			$matched = 2;
-			last;
+	if ($attribute->{'Operator'} eq '=') {
+		# If item does not exist
+		if (!defined($attributes->{$attribute->{'Name'}})) {
+			# Then add
+			$server->log(LOG_DEBUG,"[ATTRIBUTES] - Attribute '".$attribute->{'Name'}.
+					"' no value exists, setting value to '".join("','",@attrValues)."'");
+			@{$attributes->{$attribute->{'Name'}}} = @attrValues;
 		}
-	}
 
-	# Some debugging info	
-	if ($matched == 1) {
-		$server->log(LOG_DEBUG,"[ATTRIBUTES] - Attribute '".$attribute->{'Name'}."' matched");
+	
+	# Operator: :=
+	#
+	# Use: Attribute := Value
+	# Always matches as a check item, and replaces in the configuration items any attribute of the same name. 
+	# If no attribute of that name appears in the request, then this attribute is added.
+	#
+	# As a reply item, it has an itendtical meaning, but for the reply items, instead of the request items.
+	
+	} elsif ($attribute->{'Operator'} eq ':=') {
+		# Overwrite
+		$server->log(LOG_DEBUG,"[ATTRIBUTES] - Attribute '".$attribute->{'Name'}.
+					"' setting attribute value to '".join("','",@attrValues)."'");
+		@{$attributes->{$attribute->{'Name'}}} = @attrValues;
+
+	
+	# Operator: +=
+	#
+	# Use: Attribute += Value
+	# Always matches as a check item, and adds the current
+	# attribute with value to the list of configuration items.
+	#
+	# As a reply item, it has an itendtical meaning, but the
+	# attribute is added to the reply items.
+	
+	} elsif ($attribute->{'Operator'} eq '+=') {
+		# Then add
+		$server->log(LOG_DEBUG,"[ATTRIBUTES] - Attribute '".$attribute->{'Name'}.
+				"' appending values '".join("','",@attrValues)."'");
 		push(@{$attributes->{$attribute->{'Name'}}},@attrValues);
-	} elsif ($matched == 2) {
-		$server->log(LOG_DEBUG,"[ATTRIBUTES] - Attribute '".$attribute->{'Name'}."' ignored");
+	
+	# Attributes that are not defined
 	} else {
-		$server->log(LOG_DEBUG,"[ATTRIBUTES] - Attribute '".$attribute->{'Name'}."' not matched");
+		# Ignore and b0rk out
+		$server->log(LOG_NOTICE,"[ATTRIBUTES] - Attribute '".$attribute->{'Name'}."' ignored, invalid operator?");
+		last;
 	}
 
-	return $matched;
-
+	return;
 }
 
 
