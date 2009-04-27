@@ -81,6 +81,8 @@ sub authenticate
 	# Check if this is PAP authentication
 	return MOD_RES_SKIP if (!defined($encPassword));
 
+	$server->log(LOG_DEBUG,"[MOD_AUTH_PAP] This is a PAP authentication request");
+
 #	print(STDERR "RECEIVED\n");
 #	print(STDERR "User-Pass: len = ".length($encPassword).", hex = ".unpack("H*",$encPassword)."\n");
 #	print(STDERR "\n\n");
