@@ -29,9 +29,11 @@ our (@ISA,@EXPORT);
 @ISA = qw(Exporter);
 @EXPORT = qw(
 	addAttribute
-	checkAttributeAuth
+	checkAuthAttribute
 	getReplyAttribute
-	checkAttributeConfig
+	processConfigAttribute
+	
+	getAttributeValue
 );
 
 
@@ -79,13 +81,13 @@ sub addAttribute
 
 
 
-## @fn checkAttributeAuth($server,$packetAttributes,$attribute)
+## @fn checkAuthAttribute($server,$packetAttributes,$attribute)
 # Function to check an attribute in the authorization stage
 #
 # @param server Server instance
 # @param packetAttributes Hashref of attributes provided, eg. Those from the packet
 # @param attribute Attribute to check, eg. One of the ones from the database
-sub checkAttributeAuth
+sub checkAuthAttribute
 {
 	my ($server,$packetAttributes,$attribute) = @_;
 
@@ -408,13 +410,13 @@ sub getReplyAttribute
 
 
 
-## @fn checkAttributeConfig($server,$packetAttributes,$attribute)
-# Function to check an attribute in the configuration stage
+## @fn processConfigAttribute($server,$packetAttributes,$attribute)
+# Function to process a configuration attribute
 #
 # @param server Server instance
 # @param packetAttributes Hashref of attributes provided, eg. Those from the packet
-# @param attribute Attribute to check, eg. One of the ones from the database
-sub checkAttributeConfig
+# @param attribute Attribute to process, eg. One of the ones from the database
+sub processConfigAttribute
 {
 	my ($server,$configAttributes,$attribute) = @_;
 
@@ -433,7 +435,6 @@ sub checkAttributeConfig
 	$server->log(LOG_DEBUG,"[ATTRIBUTES] Processing CONFIG attribute: '".$attribute->{'Name'}."' ".
 			$attribute->{'Operator'}." '".join("','",@attrValues)."'");
 	
-	# FIXME
 	# Operator: +=
 	#
 	# Use: Attribute += Value
@@ -447,7 +448,6 @@ sub checkAttributeConfig
 		$server->log(LOG_DEBUG,"[ATTRIBUTES] Operator '+=' triggered: Adding item to configuration items.");
 		push(@{$configAttributes->{$attribute->{'Name'}}},@attrValues);
 
-	# FIXME
 	# Operator: :=
 	#
 	# Use: Attribute := Value
@@ -468,8 +468,26 @@ sub checkAttributeConfig
 }
 
 
+## @fn getAttributeValue($attributes,$attrName)
+# Function which will return an attributes value
+#
+# @param attributes Attribute hash
+# @param attrName Attribute name
+#
+# @return Attribute value
+sub getAttributeValue
+{
+	my ($attributes,$attrName) = @_;
 
+	my $value;
 
+	# Set the value to the first item in the array
+	if (defined($attributes->{$attrName})) {
+		($value) = @{$attributes->{$attrName}};
+	}
+
+	return $value;
+}
 
 
 1;

@@ -487,9 +487,7 @@ sub process_request {
 	#
 	# GRAB & PROCESS CONFIG 
 	#
-
-	# Build a list of our attributes in the packet
-	my $configAttributes = {};
+	$user->{'ConfigAttributes'} = {};
 
 	foreach my $module (@{$self->{'plugins'}}) {
 		# Try find config attribute
@@ -507,13 +505,16 @@ sub process_request {
 						# Grab attribute
 						my $attr = $configData->{$attrName}->{$attrOp};
 						# Process attribute
-						my $res = checkAttributeConfig($self,$user->{'ConfigAttributes'},$attr);
+						my $res = processConfigAttribute($self,$user->{'ConfigAttributes'},$attr);
 					}
 				}
 			}
 		}
 	}
 
+	# FIXME - need secret
+	# FIXME - need acl list
+use Data::Dumper; print (STDERR Dumper(getAttributeValue($user->{'ConfigAttributes'},"SMRadius-Config-Secret")));
 
 	#
 	# START PROCESSING
@@ -614,7 +615,7 @@ sub process_request {
 	   	$resp->set_code('Accounting-Response');
 		$resp->set_identifier($pkt->identifier);
 		$resp->set_authenticator($pkt->authenticator);
-		$udp_packet = auth_resp($resp->pack, "test");
+		$udp_packet = auth_resp($resp->pack, getAttributeValue($user->{'ConfigAttributes'},"SMRadius-Config-Secret"));
 		$server->{'client'}->send($udp_packet);
 
 		my $killConnection = 0;
@@ -665,7 +666,7 @@ sub process_request {
 		$resp->set_attr('Framed-IP-Address',$pkt->attr('Framed-IP-Address'));
 		$resp->set_attr('NAS-IP-Address',$pkt->attr('NAS-IP-Address'));
 
-		$udp_packet = auth_resp($resp->pack, "test");
+		$udp_packet = auth_resp($resp->pack, getAttributeValue($user->{'ConfigAttributes'},"SMRadius-Config-Secret"));
 
 		# Create socket to send packet out on
 		my $podServer = "10.254.254.239";
@@ -815,7 +816,7 @@ sub process_request {
 				# Grab attribute
 				my $attr = $user->{'Attributes'}->{$attrName}->{$attrOp};
 				# Check attribute against authorization attributes
-				my $res = checkAttributeAuth($self,$authAttributes,$attr);
+				my $res = checkAuthAttribute($self,$authAttributes,$attr);
 				if ($res == 0) {
 					$authorized = 0;
 					last;
@@ -854,7 +855,7 @@ sub process_request {
 				}
 			}
 
-			$udp_packet = auth_resp($resp->pack, "test");
+			$udp_packet = auth_resp($resp->pack, getAttributeValue($user->{'ConfigAttributes'},"SMRadius-Config-Secret"));
 			$server->{'client'}->send($udp_packet);
 
 		}
@@ -868,7 +869,7 @@ CHECK_RESULT:
 		 	$resp->set_code('Access-Reject');
 			$resp->set_identifier($pkt->identifier);
 			$resp->set_authenticator($pkt->authenticator);
-			$udp_packet = auth_resp($resp->pack, "test");
+			$udp_packet = auth_resp($resp->pack, getAttributeValue($user->{'ConfigAttributes'},"SMRadius-Config-Secret"));
 			$server->{'client'}->send($udp_packet);
 		}
 
@@ -877,144 +878,7 @@ CHECK_RESULT:
 		$self->log(LOG_WARN,"[SMRADIUS] We cannot handle code: '".$pkt->code."'");
 	}
 
-return;
-#	$pkt->dump;
-#
-#	# PAP
-#	if ((my $rawPassword = $pkt->attr('User-Password'))) {
-#
-#
-#		print(STDERR "RECEIVED\n");
-#		print(STDERR "User-Pass: len = ".length($rawPassword).", hex = ".unpack("H*",$rawPassword)."\n");
-#		print(STDERR "\n\n");
-#
-#		my $result = $pkt->password("test","User-Password");
-#	
-#		print(STDERR "CALC\n");
-#		print(STDERR "Result   : len = ".length($result).", hex = ".unpack("H*",$result).", password = $result\n");
-#
-#	}
-#
-#	# CHAP
-#	if ((my $rawChallenge = $pkt->attr('CHAP-Challenge')) && (my $rawPassword = $pkt->attr('CHAP-Password'))) {
-#		print(STDERR "This is a CHAP challenge....\n");
-#	
-#		print(STDERR "RECEIVED\n");
-#		print(STDERR "Challenge: len = ".length($rawChallenge).", hex = ".unpack("H*",$rawChallenge)."\n");
-#		print(STDERR "Password : len = ".length($rawPassword).", hex = ".unpack("H*",$rawPassword)."\n");
-#		print(STDERR "\n\n");
-#
-#		my $id = substr($rawPassword,0,1);
-#		print(STDERR "ID: ".length($id).", hex = ".unpack("H*",$id)."\n");
-#
-#		my $result = encode_chap($id,$rawChallenge,"mytest");
-#		
-#		print(STDERR "CALC\n");
-#		print(STDERR "Result   : len = ".length($result).", hex = ".unpack("H*",$result)."\n");
-#		print(STDERR "\n\n");
-#	}
-#
-#
-#	# Is this a MSCHAP autehentication attempt?
-#	if ((my $rawChallenge = $pkt->vsattr("311",'MS-CHAP-Challenge'))) {
-#		print(STDERR "This is a MS-CHAP challenge....\n");
-#
-#		# MSCHAPv1
-#		if (my $rawResponse = $pkt->vsattr("311",'MS-CHAP-Response')) {
-#			my $challenge = @{$rawChallenge}[0];
-#			my $response = substr(@{$rawResponse}[0],2);
-#
-#			print(STDERR "RECEIVED\n");
-#			print(STDERR "Challenge: len = ".length($challenge).", hex = ".unpack("H*",$challenge)."\n");
-#			print(STDERR "Reponse  : len = ".length($response).", hex = ".unpack("H*",$response)."\n");
-#			print(STDERR "\n\n");
-#
-#
-#
-#			print(STDERR "CHOPPED OFFF!!\n");
-##			my $peerChallenge = substr($response,0,16);
-#			my $NtResponse = substr($response,24,24);
-##			print(STDERR "Challenge: len = ".length($peerChallenge).", hex = ".unpack("H*",$peerChallenge)."\n");
-#			print(STDERR "NTRespons: len = ".length($NtResponse).", hex = ".unpack("H*",$NtResponse)."\n");
-#			print(STDERR "\n\n");
-#
-#			my $unipass = "mytest";
-#			$unipass =~ s/(.)/$1\0/g; # convert ASCII to unicaode
-#			my $username = "nigel";
-#
-#			print(STDERR "TEST\n");
-##			my $ourChallenge = ChallengeHash($peerChallenge,$challenge,$username);
-#			my $ourResponse = NtChallengeResponse($challenge,$unipass);
-#			print(STDERR "Calculate: len = ".length($ourResponse).", hex = ".unpack("H*",$ourResponse)."\n");
-#			print(STDERR "\n\n");
-#
-#
-#		# MSCHAPv2
-#		} elsif (my $rawResponse = $pkt->vsattr("311",'MS-CHAP2-Response')) {
-#			my $challenge = @{$rawChallenge}[0];
-#			my $response = substr(@{$rawResponse}[0],2);
-#
-#			print(STDERR "RECEIVED\n");
-#			print(STDERR "Challenge: len = ".length($challenge).", hex = ".unpack("H*",$challenge)."\n");
-#			print(STDERR "Reponse  : len = ".length($response).", hex = ".unpack("H*",$response)."\n");
-#			print(STDERR "\n\n");
-#
-#
-#
-#			print(STDERR "CHOPPED OFFF!!\n");
-#			my $peerChallenge = substr($response,0,16);
-#			my $NtRespnse = substr($response,24,24);
-#			print(STDERR "Challenge: len = ".length($peerChallenge).", hex = ".unpack("H*",$peerChallenge)."\n");
-#			print(STDERR "NTRespons: len = ".length($NtRespnse).", hex = ".unpack("H*",$NtRespnse)."\n");
-#			print(STDERR "\n\n");
-#
-#			my $unipass = "mytest";
-#			$unipass =~ s/(.)/$1\0/g; # convert ASCII to unicaode
-#			my $username = "nigel";
-#
-#			print(STDERR "TEST\n");
-#			my $ourChallenge = ChallengeHash($peerChallenge,$challenge,$username);
-#			my $ourResponse = NtChallengeResponse($ourChallenge,$unipass);
-#			print(STDERR "Calculate: len = ".length($ourResponse).", hex = ".unpack("H*",$ourResponse)."\n");
-#			print(STDERR "\n\n");
-#
-#
-#
-#		}
-#	}
-#
-#
-#
-##	printf("GOT PACKET: user = %s/%s, nas-ip = %s, nas-port-type = %s, nas-port = %s, connect-info = %s, service-type = %s\n",
-##		$pkt->attr('User-Name'), $pkt->password('test'),
-##		$pkt->attr('NAS-IP-Address'),
-##		$pkt->attr('NAS-Port-Type'),
-##		$pkt->attr('NAS-Port'),
-##		$pkt->attr('Connect-Info'),
-##		$pkt->attr('Service-Type')
-##	);
-#
-#
-#	if ($pkt->code eq "Accounting-Request") {
-#		my $resp = Radius::Packet->new($self->{'config'}->{'dictionary'});
-#		$resp->set_code('Accounting-Response');
-#		$resp->set_identifier($pkt->identifier);
-#		$resp->set_authenticator($pkt->authenticator);
-#		$udp_packet = auth_resp($resp->pack, "test");
-#		$server->{'client'}->send($udp_packet);
-#
-#
-#	} elsif ($pkt->code eq "Access-Request") {
-#		my $resp = Radius::Packet->new($self->{'config'}->{'dictionary'});
-#    	$resp->set_code('Access-Accept');
-#	    $resp->set_identifier($pkt->identifier);
-#	    $resp->set_authenticator($pkt->authenticator);
-#	    $resp->set_attr('Framed-IP-Address' => "192.168.0.233");
-#		$udp_packet = auth_resp($resp->pack, "test");
-#		$server->{'client'}->send($udp_packet);
-#	}
-#
-
+	return;
 }
 
 
