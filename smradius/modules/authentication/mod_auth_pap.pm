@@ -24,6 +24,7 @@ use strict;
 use warnings;
 
 # Modules we need
+use smradius::attributes;
 use smradius::constants;
 use smradius::logging;
 use Digest::MD5;
@@ -84,8 +85,9 @@ sub authenticate
 #	print(STDERR "User-Pass: len = ".length($encPassword).", hex = ".unpack("H*",$encPassword)."\n");
 #	print(STDERR "\n\n");
 
-	# FIXME - test is the radius secret, must pull it from the configuration attributes??
-	my $clearPassword = $packet->password("test","User-Password");
+	# Decode the password using the secret
+	my $clearPassword = $packet->password(getAttributeValue($user->{'ConfigAttributes'},"SMRadius-Config-Secret"),
+			"User-Password");
 
 #	print(STDERR "CALC\n");
 #	print(STDERR "Result   : len = ".length($clearPassword).", hex = ".unpack("H*",$clearPassword).", password = $clearPassword\n");
@@ -100,7 +102,8 @@ sub authenticate
 				return MOD_RES_ACK;
 			} 
 		} else {
-			$server->log(LOG_NOTICE,"[MOD_AUTH_PAP] No valid operators for attribute 'User-Password', supported operators are: ==");
+			$server->log(LOG_NOTICE,"[MOD_AUTH_PAP] No valid operators for attribute 'User-Password', ".
+					"supported operators are: ==");
 		}
 	} else {
 		$server->log(LOG_NOTICE,"[MOD_AUTH_PAP] No 'User-Password' attribute, cannot authenticate");
