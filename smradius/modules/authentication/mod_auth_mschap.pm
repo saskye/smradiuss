@@ -31,6 +31,7 @@ use warnings;
 
 
 # Modules we need
+use smradius::attributes;
 use smradius::constants;
 use smradius::logging;
 use Crypt::DES;
@@ -40,9 +41,6 @@ use Digest::MD4 qw( md4 );
 
 # Don't use unicode
 use bytes;
-
-use Data::Dumper; 
-
 
 
 # Exporter stuff
@@ -173,11 +171,13 @@ sub authenticate
 
 		# Pull off challenge & response
 		my $challenge = @{$rawChallenge}[0];
+		my $ident = unpack("C", substr(@{$rawResponse2}[0],0,1));
 		my $response = substr(@{$rawResponse2}[0],2);
 
 #		print(STDERR "RECEIVED\n");
 #		print(STDERR "Challenge: len = ".length($challenge).", hex = ".unpack("H*",$challenge)."\n");
-#		print(STDERR "Reponse  : len = ".length($response).", hex = ".unpack("H*",$response)."\n");
+#		print(STDERR "Ident    : $ident\n");
+#		print(STDERR "Response : len = ".length($response).", hex = ".unpack("H*",$response)."\n");
 #		print(STDERR "\n\n");
 
 
@@ -186,19 +186,34 @@ sub authenticate
 		# Grab peer challenge and response
 		my $peerChallenge = substr($response,0,16);
 		my $NtResponse = substr($response,24,24);
-#		print(STDERR "Challenge: len = ".length($peerChallenge).", hex = ".unpack("H*",$peerChallenge)."\n");
-#		print(STDERR "NTRespons: len = ".length($NtResponse).", hex = ".unpack("H*",$NtResponse)."\n");
+#		print(STDERR "PeerChallenge: len = ".length($peerChallenge).", hex = ".unpack("H*",$peerChallenge)."\n");
+#		print(STDERR "NTResponse: len = ".length($NtResponse).", hex = ".unpack("H*",$NtResponse)."\n");
 #		print(STDERR "\n\n");
 
 #		print(STDERR "TEST\n");
 		# Generate our challenge and our response
 		my $ourChallenge = ChallengeHash($peerChallenge,$challenge,$username);
 		my $ourResponse = NtChallengeResponse($ourChallenge,$unicodePassword);
-#		print(STDERR "Calculate: len = ".length($ourResponse).", hex = ".unpack("H*",$ourResponse)."\n");
+#		print(STDERR "OurChallenge: len = ".length($ourChallenge).", hex = ".unpack("H*",$ourChallenge)."\n");
+#		print(STDERR "OurResponse: len = ".length($ourResponse).", hex = ".unpack("H*",$ourResponse)."\n");
 #		print(STDERR "\n\n");
 
 		# Check response match
 		if ($NtResponse eq $ourResponse) {
+			# Generate authenticator response
+			my $authenticatorResponse = pack("C",$ident) . GenerateAuthenticatorResponse($unicodePassword,$ourResponse,
+					$peerChallenge,$challenge,$username);
+
+#			print(STDERR "Authenticator Response: len = ".length($authenticatorResponse).
+#					", hex = ".unpack("H*",$authenticatorResponse)."\n");
+
+			setReplyVAttribute($server,$user->{'ReplyVAttributes'}, {
+				'Vendor' => 311,
+				'Name' => 'MS-CHAP2-Success',
+				'Operator' => ":=",
+				'Value' => $authenticatorResponse
+			});
+
 			return MOD_RES_ACK;
 		}
 
@@ -487,30 +502,32 @@ sub GenerateAuthenticatorResponse
 	my ($Password,$NTResponse,$PeerChallenge,$AuthenticatorChallenge,$UserName) = @_;
 
 
-	# "Magic" constants used in response generation
+	# "Magic" constants used in response generation - this is in hex
 	my @Magic1 = 
-		(0x4D, 0x61, 0x67, 0x69, 0x63, 0x20, 0x73, 0x65, 0x72, 0x76,
-		 0x65, 0x72, 0x20, 0x74, 0x6F, 0x20, 0x63, 0x6C, 0x69, 0x65,
-		 0x6E, 0x74, 0x20, 0x73, 0x69, 0x67, 0x6E, 0x69, 0x6E, 0x67,
-		 0x20, 0x63, 0x6F, 0x6E, 0x73, 0x74, 0x61, 0x6E, 0x74);
+		("4D", "61", "67", "69", "63", "20", "73", "65", "72", "76",
+		 "65", "72", "20", "74", "6F", "20", "63", "6C", "69", "65",
+		 "6E", "74", "20", "73", "69", "67", "6E", "69", "6E", "67",
+		 "20", "63", "6F", "6E", "73", "74", "61", "6E", "74");
 	my @Magic2 = 
-		(0x50, 0x61, 0x64, 0x20, 0x74, 0x6F, 0x20, 0x6D, 0x61, 0x6B,
-		 0x65, 0x20, 0x69, 0x74, 0x20, 0x64, 0x6F, 0x20, 0x6D, 0x6F,
-		 0x72, 0x65, 0x20, 0x74, 0x68, 0x61, 0x6E, 0x20, 0x6F, 0x6E,
-		 0x65, 0x20, 0x69, 0x74, 0x65, 0x72, 0x61, 0x74, 0x69, 0x6F,
-		 0x6E);
+		("50", "61", "64", "20", "74", "6F", "20", "6D", "61", "6B",
+		 "65", "20", "69", "74", "20", "64", "6F", "20", "6D", "6F",
+		 "72", "65", "20", "74", "68", "61", "6E", "20", "6F", "6E",
+		 "65", "20", "69", "74", "65", "72", "61", "74", "69", "6F",
+		 "6E");
 	
 	# Hash the password with MD4
 	my $PasswordHash = NtPasswordHash($Password);
 
 	# Now hash the hash
 	my $PasswordHashHash = HashNtPasswordHash($PasswordHash);
-
+		
 	# SHA encryption
 	my $sha = Digest::SHA1->new();
 	$sha->add($PasswordHashHash);
 	$sha->add($NTResponse);
-	$sha->add(@Magic1);
+	foreach my $item (@Magic1) {
+		$sha->add(pack("H*",$item));
+	}
 	my $Digest = $sha->digest();
 
 	my $Challenge = ChallengeHash($PeerChallenge, $AuthenticatorChallenge, $UserName);
@@ -518,11 +535,13 @@ sub GenerateAuthenticatorResponse
 	$sha = Digest::SHA1->new();
 	$sha->add($Digest);
 	$sha->add($Challenge);
-	$sha->add(@Magic2);
+	foreach my $item (@Magic2) {
+		$sha->add(pack("H*",$item));
+	}
 	$Digest = $sha->digest();
 
-	# Encode digest and return response
-	my $AuthenticatorResponse = "S=" . unpack("H*",$Digest);
+	# Encode digest and return response, UPPERCASE response
+	my $AuthenticatorResponse = "S=" . uc( unpack("H*",$Digest) );
 
 	return $AuthenticatorResponse;
 }
