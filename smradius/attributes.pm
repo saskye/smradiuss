@@ -30,7 +30,8 @@ our (@ISA,@EXPORT);
 @EXPORT = qw(
 	addAttribute
 	checkAuthAttribute
-	getReplyAttribute
+	setReplyAttribute
+	setReplyVAttribute
 	processConfigAttribute
 	
 	getAttributeValue
@@ -310,13 +311,13 @@ sub checkAuthAttribute
 
 
 
-## @fn getReplyAttribute($server,$attributes,$attribute)
+## @fn setReplyAttribute($server,$attributes,$attribute)
 # Function which sees if we must reply with this attribute
 #
 # @param server Server instance
 # @param attributes Hashref of reply attributes
 # @param attribute Attribute to check
-sub getReplyAttribute
+sub setReplyAttribute
 {
 	my ($server,$attributes,$attribute) = @_;
 
@@ -326,9 +327,6 @@ sub getReplyAttribute
 		# 2 = IGNORE, so return IGNORE for all ignored items
 		return 2 if ($attribute->{'Name'} eq $ignoredAttr);
 	}
-
-	# Did we find a match
-	my $matched = 0;
 
 	# Figure out our attr values
 	my @attrValues;
@@ -396,6 +394,101 @@ sub getReplyAttribute
 	} else {
 		# Ignore and b0rk out
 		$server->log(LOG_NOTICE,"[ATTRIBUTES] - Attribute '".$attribute->{'Name'}."' ignored, invalid operator?");
+		last;
+	}
+
+	return;
+}
+
+
+
+
+## @fn setReplyVAttribute($server,$attributes,$attribute)
+# Function which sees if we must reply with this attribute
+#
+# @param server Server instance
+# @param attributes Hashref of reply attributes
+# @param attribute Attribute to check
+sub setReplyVAttribute
+{
+	my ($server,$attributes,$attribute) = @_;
+
+	
+	# Check ignore list
+	foreach my $ignoredAttr (@attributeIgnoreList) {
+		# 2 = IGNORE, so return IGNORE for all ignored items
+		return 2 if ($attribute->{'Name'} eq $ignoredAttr);
+	}
+
+	# Did we find a match
+	my $matched = 0;
+
+	# Figure out our attr values
+	my @attrValues;
+	if (ref($attribute->{'Value'}) eq "ARRAY") {
+		@attrValues = @{$attribute->{'Value'}};
+	} else {
+		@attrValues = ( $attribute->{'Value'} );
+	}	
+
+	$server->log(LOG_DEBUG,"[VATTRIBUTES] Processing REPLY attribute: '".
+			$attribute->{'Name'}."' ".$attribute->{'Operator'}." '".join("','",@attrValues)."'");
+	
+
+	# Operator: =
+	#
+	# Use: Attribute = Value
+	# Not allowed as a check item for RADIUS protocol attributes. It is allowed for server
+	# configuration attributes (Auth-Type, etc), and sets the value of on attribute,
+	# only if there is no other item of the same attribute.
+	#
+	# As a reply item, it means "add the item to the reply list, but only if there is
+	# no other item of the same attribute.
+	
+	if ($attribute->{'Operator'} eq '=') {
+		# If item does not exist
+		if (!defined($attributes->{$attribute->{'Vendor'}}->{$attribute->{'Name'}})) {
+			# Then add
+			$server->log(LOG_DEBUG,"[VATTRIBUTES] - Attribute '".$attribute->{'Name'}.
+					"' no value exists, setting value to '".join("','",@attrValues)."'");
+			@{$attributes->{$attribute->{'Vendor'}}->{$attribute->{'Name'}}} = @attrValues;
+		}
+
+	
+	# Operator: :=
+	#
+	# Use: Attribute := Value
+	# Always matches as a check item, and replaces in the configuration items any attribute of the same name. 
+	# If no attribute of that name appears in the request, then this attribute is added.
+	#
+	# As a reply item, it has an itendtical meaning, but for the reply items, instead of the request items.
+	
+	} elsif ($attribute->{'Operator'} eq ':=') {
+		# Overwrite
+		$server->log(LOG_DEBUG,"[VATTRIBUTES] - Attribute '".$attribute->{'Name'}.
+					"' setting attribute value to '".join("','",@attrValues)."'");
+		@{$attributes->{$attribute->{'Vendor'}}->{$attribute->{'Name'}}} = @attrValues;
+
+	
+	# Operator: +=
+	#
+	# Use: Attribute += Value
+	# Always matches as a check item, and adds the current
+	# attribute with value to the list of configuration items.
+	#
+	# As a reply item, it has an itendtical meaning, but the
+	# attribute is added to the reply items.
+	
+	} elsif ($attribute->{'Operator'} eq '+=') {
+		# Then add
+		$server->log(LOG_DEBUG,"[VATTRIBUTES] - Attribute '".$attribute->{'Name'}.
+				"' appending values '".join("','",@attrValues)."'");
+		push(@{$attributes->{$attribute->{'Vendor'}}->{$attribute->{'Name'}}},@attrValues);
+	
+	# Attributes that are not defined
+	} else {
+		# Ignore and b0rk out
+		$server->log(LOG_NOTICE,"[VATTRIBUTES] - Attribute '".$attribute->{'Name'}."' ignored, invalid operator?");
 		last;
 	}
 
