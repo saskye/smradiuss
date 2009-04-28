@@ -1,1 +1,16 @@
 * Eval around actual code in process_request
+
+WebUI:
+WiSP -> User List -> Edit: Must be able to clear fields (MAC Address)
+WiSP User -> Delete: Page no found / Check delete attribute as well
+WiSP User Add -> Check if only certain fields are blank. Might want to add user without MAC Address.
+
+
+Realm config
+- config global defaults and defaults for realms
+<DEFAULT>
+@realm
+
+
+
+
