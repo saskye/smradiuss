@@ -93,7 +93,7 @@ if (isset($_POST['frmaction']) && $_POST['frmaction'] == "delete") {
 			}
 
 			if ($res !== FALSE) {
-				$res = $db->exec("DELETE FROM ${DB_TABLE_PREFIX}userdata WHERE UserID = ".$db->quote($_POST['user_id']));
+				$res = $db->exec("DELETE FROM ${DB_TABLE_PREFIX}wisp_userdata WHERE UserID = ".$db->quote($_POST['user_id']));
 				if ($res !== FALSE) {
 ?>
 					<div class="notice">Userdata deleted</div>
