@@ -79,6 +79,7 @@ function printHeader($params = NULL)
 							<ul>
 								<li><a href="wisp-user-list.php">User List</a></li>
 								<li><a href="wisp-user-add.php">Add User</a></li>
+								<li><a href="wisp-locations-manage.php">Manage Locations</a></li>
 								<li><a href="wisp-multiuser-add.php">Add Many Users</a></li>
 							</ul>
 								
