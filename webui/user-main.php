@@ -95,7 +95,7 @@ if (!isset($_POST['frmaction']))
 ?>
 				<p />
 				<tr>
-					<td colspan="3" class="textcenter">Group list is empty</td>
+					<td colspan="3" class="textcenter">User list is empty</td>
 				</tr>
 <?php
 			}
