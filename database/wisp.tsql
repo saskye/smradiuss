@@ -1,19 +1,35 @@
 @PRELOAD@
 
-/* User Data */
-CREATE TABLE @PREFIX@userdata (
+
+
+/* WiSP User Data */
+CREATE TABLE @PREFIX@wisp_userdata (
 	ID			@SERIAL_TYPE@,
 
 	UserID			@SERIAL_REF_TYPE@ NOT NULL,
 
-	FirstName		VARCHAR(255) NOT NULL,
-	LastName		VARCHAR(255) NOT NULL,
+	LocationID		@SERIAL_REF_TYPE@,
 
-	Email			VARCHAR(255) NOT NULL,
-	Phone			VARCHAR(20) NOT NULL,
-	Location		VARCHAR(255) NOT NULL,
+	FirstName		VARCHAR(255),
+	LastName		VARCHAR(255),
+
+	Email			VARCHAR(255),
+	Phone			VARCHAR(255),
 	
 	UNIQUE (UserID),
-	FOREIGN KEY (UserID) REFERENCES @PREFIX@users(ID)
+	FOREIGN KEY (UserID) REFERENCES @PREFIX@users(ID),
+	FOREIGN KEY (LocationID) REFERENCES @PREFIX@locations(ID)
 )  @CREATE_TABLE_SUFFIX@;
 CREATE INDEX @PREFIX@userdata_idx1 ON @PREFIX@userdata (UserID);
+CREATE INDEX @PREFIX@userdata_idx2 ON @PREFIX@userdata (LocationID);
+
+
+/* User Locations */
+CREATE TABLE @PREFIX@wisp_locations (
+	ID			@SERIAL_TYPE@,
+
+	Location		VARCHAR(255) NOT NULL,
+
+	UNIQUE(Location)	
+)  @CREATE_TABLE_SUFFIX@;
+
