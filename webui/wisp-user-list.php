@@ -124,33 +124,38 @@ if (isset($_POST['frmaction']) && $_POST['frmaction'] == "dofilter") {
 <?php
 
 			# Additions to the SQL statement
+			$extraTables = "";
 			$extraSQLVals = array();
 			$extraSQL = "";
 			$orderSQL = "";
 
 			# What searches are we going to do?
 			if ($_POST['username']) {
-				$extraSQL = " AND users.Username LIKE ?";
+				$extraSQL .= " AND users.Username LIKE ?";
 				array_push($extraSQLVals,"%".$_POST['username']."%");
 			}
 			if ($_POST['firstname']) {
-				$extraSQL = " AND userdata.FirstName LIKE ?";
+				$extraSQL .= " AND wisp_userdata.FirstName LIKE ?";
 				array_push($extraSQLVals,"%".$_POST['firstname']."%");
 			}
 			if ($_POST['lastname']) {
-				$extraSQL = " AND userdata.LastName LIKE ?";
+				$extraSQL .= " AND wisp_userdata.LastName LIKE ?";
 				array_push($extraSQLVals,"%".$_POST['lastname']."%");
 			}
 			if ($_POST['phone']) {
-				$extraSQL = " AND userdata.Phone LIKE ?";
+				$extraSQL .= " AND wisp_userdata.Phone LIKE ?";
 				array_push($extraSQLVals,"%".$_POST['phone']."%");
 			}
 			if ($_POST['location']) {
-				$extraSQL = " AND userdata.Location LIKE ?";
+				$extraSQL .= " AND locations.Name LIKE ?";
 				array_push($extraSQLVals,"%".$_POST['location']."%");
+
+				$extraSQL .= " AND wisp_userdata.LocationID = locations.ID";
+
+				$extraTables .= ", wisp_locations";
 			}
 			if ($_POST['email']) {
-				$extraSQL = " AND userdata.Email LIKE ?";
+				$extraSQL = " AND wisp_userdata.Email LIKE ?";
 				array_push($extraSQLVals,"%".$_POST['email']."%");
 			}
 
@@ -162,10 +167,10 @@ if (isset($_POST['frmaction']) && $_POST['frmaction'] == "dofilter") {
 						$sortSQL = " ORDER BY users.ID";
 						break;
 					case "fname":
-						$sortSQL = " ORDER BY userdata.FirstName";
+						$sortSQL = " ORDER BY wisp_userdata.FirstName";
 						break;
 					case "lname":
-						$sortSQL = " ORDER BY userdata.LastName";
+						$sortSQL = " ORDER BY wisp_userdata.LastName";
 						break;
 					case "uname":
 						$sortSQL = " ORDER BY users.Username";
@@ -178,16 +183,16 @@ if (isset($_POST['frmaction']) && $_POST['frmaction'] == "dofilter") {
 				SELECT
 						users.ID, 
 						users.Username,
-						userdata.UserID,
-						userdata.FirstName,
-						userdata.LastName,
-						userdata.Email, 
-						userdata.Phone,
-						userdata.Location
+						wisp_userdata.UserID,
+						wisp_userdata.FirstName,
+						wisp_userdata.LastName,
+						wisp_userdata.Email, 
+						wisp_userdata.Phone,
+						wisp_userdata.LocationID
 				FROM 
-						users, userdata
+						users, wisp_userdata $extraTables
 				WHERE 
-						users.ID = userdata.UserID
+						users.ID = wisp_userdata.UserID
 						$extraSQL
 						$sortSQL
 				";
@@ -239,7 +244,7 @@ if (isset($_POST['frmaction']) && $_POST['frmaction'] == "dofilter") {
 					<td><?php echo $row->lastname; ?></td>
 					<td><?php echo $row->email; ?></td>
 					<td><?php echo $row->phone; ?></td>
-					<td><?php echo $row->location; ?></td>
+					<td><?php echo $row->locationid; ?></td>
 					<td><?php echo $dataCap; ?> MB</td>
 					<td><?php echo $timeCap; ?> Min</td>
 					<td><?php echo $userIP; ?></td>
