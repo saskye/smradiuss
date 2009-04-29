@@ -101,7 +101,7 @@ if (isset($_POST['frmaction']) && $_POST['frmaction'] == "dofilter") {
 				<option value="edit">Edit User</option>
 				<option value="delete">Remove User</option>
 				<option disabled="disabled"> - - - - - - - - - - - </option>
-				<option value="viewlogs">View User Logs</option>
+				<option value="viewlogs">Logs</option>
 			</select> 
 		</div>
 
