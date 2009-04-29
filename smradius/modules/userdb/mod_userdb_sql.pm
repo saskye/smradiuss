@@ -81,7 +81,7 @@ sub init
 		FROM 
 			@TP@group_attributes, @TP@users_to_groups 
 		WHERE 
-			users_to_groups.UserID = %{user.ID}
+			users_to_groups.UserID = %{userdb.ID}
 			AND group_attributes.GroupID = users_to_groups.GroupID
 	';
 	
@@ -91,7 +91,7 @@ sub init
 		FROM 
 			@TP@user_attributes 
 		WHERE 
-			UserID = %{user.ID}
+			UserID = %{userdb.ID}
 	';
 	
 
@@ -101,7 +101,16 @@ sub init
 		if (defined($scfg->{'mod_userdb_sql'}->{'userdb_find_query'}) &&
 				$scfg->{'mod_userdb_sql'}->{'userdb_find_query'} ne "") {
 			$config->{'userdb_find_query'} = $scfg->{'mod_userdb_sql'}->{'userdb_find_query'};
-			
+		}
+
+		if (defined($scfg->{'mod_userdb_sql'}->{'userdb_get_group_attributes_query'}) &&
+				$scfg->{'mod_userdb_sql'}->{'userdb_get_group_attributes_query'} ne "") {
+			$config->{'userdb_get_group_attributes_query'} = $scfg->{'mod_userdb_sql'}->{'userdb_get_group_attributes_query'};
+		}
+
+		if (defined($scfg->{'mod_userdb_sql'}->{'userdb_get_user_attributes_query'}) &&
+				$scfg->{'mod_userdb_sql'}->{'userdb_get_user_attributes_query'} ne "") {
+			$config->{'userdb_get_user_attributes_query'} = $scfg->{'mod_userdb_sql'}->{'userdb_get_user_attributes_query'};
 		}
 	}
 }
