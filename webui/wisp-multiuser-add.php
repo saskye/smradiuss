@@ -156,9 +156,9 @@ if (isset($_POST['frmaction']) && $_POST['frmaction'] == "insert") {
 				$resultRow = $getUserID->fetchObject();
 				$userID = $resultRow->id;
 
-				# Inset UserID into userdata table
+				# Inset UserID into wisp_userdata table
 				$userDataStatement = $db->prepare("	INSERT INTO
-																${DB_TABLE_PREFIX}userdata (UserID)
+																${DB_TABLE_PREFIX}wisp_userdata (UserID)
 													VALUES
 																(?)
 													");
