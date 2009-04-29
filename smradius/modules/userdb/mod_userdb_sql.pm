@@ -72,7 +72,7 @@ sub init
 		FROM 
 			@TP@users 
 		WHERE 
-			UserName = %{authentication.User-Name}
+			UserName = %{requet.User-Name}
 	';
 	
 	$config->{'userdb_get_group_attributes_query'} = '
@@ -121,7 +121,7 @@ sub find
 	# Build template
 	my $template;
 	foreach my $attr ($packet->attributes) {
-		$template->{'authentication'}->{$attr} = $packet->rawattr($attr)
+		$template->{'request'}->{$attr} = $packet->rawattr($attr)
 	}
 	$template->{'user'} = $user;
 
@@ -168,7 +168,7 @@ sub get
 	# Build template
 	my $template;
 	foreach my $attr ($packet->attributes) {
-		$template->{'authentication'}->{$attr} = $packet->rawattr($attr)
+		$template->{'request'}->{$attr} = $packet->rawattr($attr)
 	}
 	$template->{'user'}->{'Username'} = $user->{'Username'};
 	$template->{'user'}->{'ID'} = $user->{'_UserDB_Data'}->{'id'};
