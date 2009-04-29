@@ -79,7 +79,7 @@ if (!isset($_POST['frmaction'])) {
 			<tr>
 				<td class="entrytitle">Location</td>
 				<td>
-					<select name="user_location">
+				<select name="user_location">
 						<option selected="selected" value="NULL">No location</option>
 <?php
 							$sql = "SELECT
@@ -144,143 +144,129 @@ if (isset($_POST['frmaction']) && $_POST['frmaction'] == "insert") {
 
 <?php
 
-	# Check for empty values
-	$emptyItem = 0;
-	foreach ($_POST as $key => $value) {
-		if (empty($value)) {
-			$emptyItem = 1;
-		}
-	}
-	
-	if ($emptyItem == 1) {
-
-?>
-
-		<div class="warning">One or more fields have been left empty</div>
-
-<?php
-
-	} else {
-
 		$db->beginTransaction();
 
 		# Insert into users table
-		$usersStatement = $db->prepare("INSERT INTO ${DB_TABLE_PREFIX}users (Username) VALUES (?)");
-		$userResult = $usersStatement->execute(array(
-				$_POST['user_name'],
+		$stmt = $db->prepare("INSERT INTO ${DB_TABLE_PREFIX}users (Username) VALUES (?)");
+		$res = $stmt->execute(array($_POST['user_name']));
+
+		# Grab inserted ID
+		$userID = $db->lastInsertId();
+
+		# FIXME Check for empty values for certain fields
+		# Check if userID is integer and > 0
+		if (is_int($userID) && $userID > 0) {
+
+			# Insert MAC Address
+			$stmt = $db->prepare("
+					INSERT INTO 
+						${DB_TABLE_PREFIX}user_attributes (UserID,Name,Operator,Value) 
+					VALUES 
+						($userID,'Calling-Station-Id','||==',?)
+			");
+
+			$res = $stmt->execute(array($_POST['user_mac_address']));
+
+			if ($res) {
+				# Insert IP Address
+				$stmt = $db->prepare("
+						INSERT INTO 
+							${DB_TABLE_PREFIX}user_attributes (UserID,Name,Operator,Value) 
+						VALUES 
+							($userID,'Framed-IP-Address','+=',?)
+				");
+
+				$res = $stmt->execute(array($_POST['user_ip_address']));
+			}
+
+			if ($res) {
+				# Insert data limit
+				$stmt = $db->prepare("
+						INSERT INTO 
+							${DB_TABLE_PREFIX}user_attributes (UserID,Name,Operator,Value) 
+						VALUES 
+							($userID,'SMRadius-Capping-Traffic-Limit','==',?)
+				");
+
+				$res = $stmt->execute(array($_POST['user_data_limit']));
+			}
+
+			if ($res) {
+				# Insert time limit
+				$stmt = $db->prepare("
+						INSERT INTO 
+							${DB_TABLE_PREFIX}user_attributes (UserID,Name,Operator,Value) 
+						VALUES 
+							($userID,'SMRadius-Capping-UpTime-Limit','==',?)
+				");
+
+				$res = $stmt->execute(array($_POST['user_time_limit']));
+			}
+
+			if ($res) {
+				# Insert password 
+				$stmt = $db->prepare("
+						INSERT INTO 
+							${DB_TABLE_PREFIX}user_attributes (UserID,Name,Operator,Value) 
+						VALUES 
+							($userID,'User-Password','==',?)
+						");
+
+				$res = $stmt->execute(array($_POST['user_password']));
+			}
+
+			if ($res) {
+				# Insert user data
+				$stmt = $db->prepare("
+						INSERT INTO 
+							${DB_TABLE_PREFIX}wisp_userdata (UserID, FirstName, LastName, Email, Phone) 
+						VALUES 
+							($userID,?,?,?,?)
+				");
+
+				$res = $stmt->execute(array(
+											$_POST['user_first_name'],
+											$_POST['user_last_name'],
+											$_POST['user_email'],
+											$_POST['user_phone']
 				));
-		
+			}
 
-		# Get user ID to insert into other tables
-		$getUserID = $db->query("SELECT ID FROM ${DB_TABLE_PREFIX}users WHERE Username = ".$db->quote($_POST['user_name']));
-		$resultRow = $getUserID->fetchObject();
-		$userID = $resultRow->id;
+			if (!empty($_POST['user_location'])) {
+				# Insert user location
+				$stmt = $db->prepare("
+						INSERT INTO
+							${DB_TABLE_PREFIX}wisp_userdata (LocationID)
+						VALUES
+							(".$db->quote($_POST['user_location']).")
+				");
 
+				$res = $stmt->execute(array($_POST['user_location']));
+			}
 
-		# Insert MAC Address
-		$userMACAddressStatement = $db->prepare("INSERT INTO 
-															${DB_TABLE_PREFIX}user_attributes (UserID,Name,Operator,Value) 
-												VALUES 
-															($userID,'Calling-Station-Id','||==',?)
-												");
-
-		$userMACAddressResult = $userMACAddressStatement->execute(array(
-												$_POST['user_mac_address'],
-												));
-
-
-		# Insert IP Address
-		$userIPAddressStatement = $db->prepare("INSERT INTO 
-															${DB_TABLE_PREFIX}user_attributes (UserID,Name,Operator,Value) 
-												VALUES 
-															($userID,'Framed-IP-Address','+=',?)
-												");
-
-		$userIPAddressResult = $userIPAddressStatement->execute(array(
-												$_POST['user_ip_address'],
-												));
-
-
-		# Insert data limit
-		$userDataStatement = $db->prepare("	INSERT INTO 
-														${DB_TABLE_PREFIX}user_attributes (UserID,Name,Operator,Value) 
-											VALUES 
-														($userID,'SMRadius-Capping-Traffic-Limit',':=',?)
-											");
-
-		$userDataResult = $userDataStatement->execute(array(
-												$_POST['user_data_limit'],
-											));
-
-
-		# Insert time limit
-		$userTimeStatement = $db->prepare("	INSERT INTO 
-														${DB_TABLE_PREFIX}user_attributes (UserID,Name,Operator,Value) 
-											VALUES 
-														($userID,'SMRadius-Capping-UpTime-Limit',':=',?)
-											");
-
-		$userTimeResult = $userTimeStatement->execute(array(
-												$_POST['user_time_limit'],
-											));
-
-
-		# Insert password 
-		$userPasswordStatement = $db->prepare("	INSERT INTO 
-														${DB_TABLE_PREFIX}user_attributes (UserID,Name,Operator,Value) 
-											VALUES 
-														($userID,'User-Password','==',?)
-											");
-
-		$userPasswordResult = $userPasswordStatement->execute(array(
-												$_POST['user_password'],
-											));
-
-
-		# Insert user data
-		$userDataStatement = $db->prepare("	INSERT INTO 
-														${DB_TABLE_PREFIX}wisp_userdata (UserID, FirstName, LastName, Email, Phone) 
-											VALUES 
-														($userID,?,?,?,?)
-											");
-
-		$userDataResult = $userDataStatement->execute(array(
-															$_POST['user_first_name'],
-															$_POST['user_last_name'],
-															$_POST['user_email'],
-															$_POST['user_phone'],
-															));
-												
-		$userLocationStatement = $db->prepare("	INSERT INTO
-														${DB_TABLE_PREFIX}wisp_userdata (LocationID)
-												VALUES
-														(?)
-												");
-
-		$userLocationResult = $userLocationStatement->execute(array($_POST['user_location'],));
-
-		# Was it successful?
-		if ($userDataResult && $userResult && $userIPAddressResult && $userDataResult && $userTimeResult && $userPasswordResult) {
-
+			# Was it successful?
+			if ($res) {
 ?>
-
-			<div class="notice">User added</div>
-
+				<div class="notice">User added</div>
 <?php
-			$db->commit();			
+				$db->commit();			
 
-		} else {
-
+			} else {
 ?>
-
-			<div class="warning">Failed to add user</div>
+				<div class="warning">Failed to add user</div>
+				<div class="warning"><?php print_r($db->errorInfo()) ?></div>
+<?php
+				$db->rollback();
+			}
+		} else {
+?>
+			<div class="warning">Cannot find User ID</div>
 			<div class="warning"><?php print_r($db->errorInfo()) ?></div>
-
+			<?php print_r($userID); ?>
 <?php
 			$db->rollback();
 		}
 	}
-}
 
 
 printFooter();
