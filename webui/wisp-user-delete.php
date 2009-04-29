@@ -75,7 +75,7 @@ if (isset($_POST['frmaction']) && $_POST['frmaction'] == "delete") {
 		if (isset($_POST['confirm']) && $_POST['confirm'] == "yes") {
 			$db->beginTransaction();
 			# Delete user data
-			$res = $db->exec("DELETE FROM userdata WHERE UserID = ".$db->quote($_POST['user_id']));
+			$res = $db->exec("DELETE FROM wisp_userdata WHERE UserID = ".$db->quote($_POST['user_id']));
 			if ($res !== FALSE) {
 				# Delete user attributes
 				$res = $db->exec("DELETE FROM user_attributes WHERE UserID = ".$db->quote($_POST['user_id']));
