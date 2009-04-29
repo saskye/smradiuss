@@ -52,7 +52,7 @@ our $pluginInfo = {
 
 # Some constants
 my $TRAFFIC_LIMIT_KEY = 'SMRadius-Capping-Traffic-Limit';
-my $TIME_LIMIT_KEY = 'SMRadius-Capping-Time-Limit';
+my $UPTIME_LIMIT_KEY = 'SMRadius-Capping-UpTime-Limit';
 
 
 ## @internal
@@ -79,19 +79,19 @@ sub post_auth_hook
 	
 	my ($trafficLimit,$timeLimit);
 	
-	# Compare SMRadius-Capping-Time-Limit
-	if (defined($user->{'Attributes'}->{$TIME_LIMIT_KEY})) {
-		$server->log(LOG_DEBUG,"[MOD_FEATURE_CAPPING] '".$TIME_LIMIT_KEY."' is defined");
+	# Compare uptime limit
+	if (defined($user->{'Attributes'}->{$UPTIME_LIMIT_KEY})) {
+		$server->log(LOG_DEBUG,"[MOD_FEATURE_CAPPING] '".$UPTIME_LIMIT_KEY."' is defined");
 		# Operator: :=
-		if (defined($user->{'Attributes'}->{$TIME_LIMIT_KEY}->{':='})) {
+		if (defined($user->{'Attributes'}->{$UPTIME_LIMIT_KEY}->{':='})) {
 			# Is it a number?
-			if ($user->{'Attributes'}->{$TIME_LIMIT_KEY}->{':='}->{'Value'} =~ /^[0-9]+$/) {
-				$timeLimit = $user->{'Attributes'}->{$TIME_LIMIT_KEY};
+			if ($user->{'Attributes'}->{$UPTIME_LIMIT_KEY}->{':='}->{'Value'} =~ /^[0-9]+$/) {
+				$timeLimit = $user->{'Attributes'}->{$UPTIME_LIMIT_KEY};
 			} else {
-				$server->log(LOG_NOTICE,"[MOD_FEATURE_CAPPING] '".$user->{'Attributes'}->{$TIME_LIMIT_KEY}->{':='}->{'Value'}."' is NOT a numeric value");
+				$server->log(LOG_NOTICE,"[MOD_FEATURE_CAPPING] '".$user->{'Attributes'}->{$UPTIME_LIMIT_KEY}->{':='}->{'Value'}."' is NOT a numeric value");
 			}
 		} else {
-			$server->log(LOG_NOTICE,"[MOD_FEATURE_CAPPING] No valid operators for attribute '".$user->{'Attributes'}->{$TIME_LIMIT_KEY}."'");
+			$server->log(LOG_NOTICE,"[MOD_FEATURE_CAPPING] No valid operators for attribute '".$user->{'Attributes'}->{$UPTIME_LIMIT_KEY}."'");
 		}
 	}
 
@@ -168,19 +168,19 @@ sub post_acct_hook
 
 	my ($trafficLimit,$timeLimit);
 	
-	# Compare SMRadius-Capping-Time-Limit
-	if (defined($user->{'Attributes'}->{$TIME_LIMIT_KEY})) {
-		$server->log(LOG_DEBUG,"[MOD_FEATURE_CAPPING] '".$TIME_LIMIT_KEY."' is defined");
+	# Compare uptime limit
+	if (defined($user->{'Attributes'}->{$UPTIME_LIMIT_KEY})) {
+		$server->log(LOG_DEBUG,"[MOD_FEATURE_CAPPING] '".$UPTIME_LIMIT_KEY."' is defined");
 		# Operator: :=
-		if (defined($user->{'Attributes'}->{$TIME_LIMIT_KEY}->{':='})) {
+		if (defined($user->{'Attributes'}->{$UPTIME_LIMIT_KEY}->{':='})) {
 			# Is it a number?
-			if ($user->{'Attributes'}->{$TIME_LIMIT_KEY}->{':='}->{'Value'} =~ /^[0-9]+$/) {
-				$timeLimit = $user->{'Attributes'}->{$TIME_LIMIT_KEY};
+			if ($user->{'Attributes'}->{$UPTIME_LIMIT_KEY}->{':='}->{'Value'} =~ /^[0-9]+$/) {
+				$timeLimit = $user->{'Attributes'}->{$UPTIME_LIMIT_KEY};
 			} else {
-				$server->log(LOG_NOTICE,"[MOD_FEATURE_CAPPING] '".$user->{'Attributes'}->{$TIME_LIMIT_KEY}->{':='}->{'Value'}."' is NOT a numeric value");
+				$server->log(LOG_NOTICE,"[MOD_FEATURE_CAPPING] '".$user->{'Attributes'}->{$UPTIME_LIMIT_KEY}->{':='}->{'Value'}."' is NOT a numeric value");
 			}
 		} else {
-			$server->log(LOG_NOTICE,"[MOD_FEATURE_CAPPING] No valid operators for attribute '".$user->{'Attributes'}->{$TIME_LIMIT_KEY}."'");
+			$server->log(LOG_NOTICE,"[MOD_FEATURE_CAPPING] No valid operators for attribute '".$user->{'Attributes'}->{$UPTIME_LIMIT_KEY}."'");
 		}
 	}
 

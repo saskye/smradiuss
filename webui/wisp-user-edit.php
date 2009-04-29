@@ -113,7 +113,7 @@ if (isset($_POST['frmaction']) && $_POST['frmaction'] == "edit") {
 				WHERE
 					UserID = ".$db->quote($userID)."
 				AND
-					Name = 'SMRadius-Capping-Time-Limit'
+					Name = 'SMRadius-Capping-UpTime-Limit'
 				";
 
 		$timeLimitResult = $db->query($sql);

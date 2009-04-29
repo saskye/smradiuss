@@ -140,7 +140,7 @@ function displayDetails() {
 		if ($row->name == "SMRadius-Capping-Traffic-Limit") {
 			$dataCap = $row->value;
 		}
-		if ($row->name == "SMRadius-Capping-Time-Limit") {
+		if ($row->name == "SMRadius-Capping-UpTime-Limit") {
 			$timeCap = $row->value;
 		}
 		if ($row->name == "SMRadius-User-Service") {

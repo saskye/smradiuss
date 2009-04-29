@@ -197,7 +197,7 @@ if (isset($_POST['frmaction']) && $_POST['frmaction'] == "insert") {
 				$userTimeStatement = $db->prepare("	INSERT INTO
 																${DB_TABLE_PREFIX}user_attributes (UserID,Name,Operator,Value)
 													VALUES
-																($userID,'SMRadius-Capping-Time-Limit',':=',?)
+																($userID,'SMRadius-Capping-UpTime-Limit',':=',?)
 													");
 
 				$userTimeResult = $userTimeStatement->execute(array($timeLimit,));

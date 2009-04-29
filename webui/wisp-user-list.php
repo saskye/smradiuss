@@ -220,7 +220,7 @@ if (isset($_POST['frmaction']) && $_POST['frmaction'] == "dofilter") {
 						$dataCap = $attrRow->value;
 					}
 					# Or the time cap attribute
-					if ($attrRow->name == "SMRadius-Capping-Time-Limit") {
+					if ($attrRow->name == "SMRadius-Capping-UpTime-Limit") {
 						$timeCap = $attrRow->value;
 					}
 					# Or the user IP attribute
