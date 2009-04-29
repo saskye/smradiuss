@@ -170,8 +170,10 @@ sub get
 	foreach my $attr ($packet->attributes) {
 		$template->{'request'}->{$attr} = $packet->rawattr($attr)
 	}
-	$template->{'user'}->{'Username'} = $user->{'Username'};
-	$template->{'user'}->{'ID'} = $user->{'_UserDB_Data'}->{'id'};
+	# Add in userdb data
+	foreach my $item ($user->{'_UserDB_Data'}) {
+		$template->{'userdb'}->{$item} =  $user->{'_UserDB_Data'}->{$item};
+	}
 
 	# Attributes to return
 	my %attributes = ();
