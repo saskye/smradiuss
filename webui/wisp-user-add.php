@@ -78,7 +78,33 @@ if (!isset($_POST['frmaction'])) {
 			</tr>
 			<tr>
 				<td class="entrytitle">Location</td>
-				<td><input type="text" name="user_location" /></td>
+				<td>
+					<select name="user_location">
+						<option selected="selected" value="NULL">No location</option>
+<?php
+							$sql = "SELECT
+											ID, Name
+									FROM
+											${DB_TABLE_PREFIX}wisp_locations
+									ORDER BY
+											Name
+									DESC
+									";
+
+							$res = $db->query($sql);
+
+							# If there are any result rows, list items
+							if ($res->rowCount() > 0) {
+
+								while ($row = $res->fetchObject()) {
+?>
+									<option value="<?php echo $row->id; ?>"><?php echo $row->name; ?></option>
+<?php
+								}
+							}
+?>
+					</select>
+				</td>
 			</tr>
 			<tr>
 				<td class="entrytitle">Email Address</td>
@@ -213,20 +239,25 @@ if (isset($_POST['frmaction']) && $_POST['frmaction'] == "insert") {
 
 		# Insert user data
 		$userDataStatement = $db->prepare("	INSERT INTO 
-														${DB_TABLE_PREFIX}userdata (UserID, FirstName, LastName, Location, Email, Phone) 
+														${DB_TABLE_PREFIX}wisp_userdata (UserID, FirstName, LastName, Email, Phone) 
 											VALUES 
-														($userID,?,?,?,?,?)
+														($userID,?,?,?,?)
 											");
 
 		$userDataResult = $userDataStatement->execute(array(
 															$_POST['user_first_name'],
 															$_POST['user_last_name'],
-															$_POST['user_location'],
 															$_POST['user_email'],
 															$_POST['user_phone'],
 															));
 												
+		$userLocationStatement = $db->prepare("	INSERT INTO
+														${DB_TABLE_PREFIX}wisp_userdata (LocationID)
+												VALUES
+														(?)
+												");
 
+		$userLocationResult = $userLocationStatement->execute(array($_POST['user_location'],));
 
 		# Was it successful?
 		if ($userDataResult && $userResult && $userIPAddressResult && $userDataResult && $userTimeResult && $userPasswordResult) {
