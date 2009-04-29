@@ -59,9 +59,9 @@ if (!isset($_POST['frmaction']))
 				<option value="add">Add User</option>
 				<option value="delete">Delete User</option>
 				<option disabled="disabled"> - - - - - - - - - - - </option>
-				<option value="useratts">List User Attributes</option>
-				<option value="usergroups">List User Groups</option>
-				<option value="defaultlist">User Log</option>
+				<option value="useratts">Attributes</option>
+				<option value="usergroups">Groups</option>
+				<option value="defaultlist">LogS</option>
 			</select> 
 		</div>
 
