@@ -82,14 +82,15 @@ if (!isset($_POST['frmaction'])) {
 				<select name="user_location">
 						<option selected="selected" value="NULL">No location</option>
 <?php
-							$sql = "SELECT
-											ID, Name
-									FROM
-											${DB_TABLE_PREFIX}wisp_locations
-									ORDER BY
-											Name
-									DESC
-									";
+							$sql = "
+								SELECT
+									ID, Name
+								FROM
+									${DB_TABLE_PREFIX}wisp_locations
+								ORDER BY
+									Name
+								DESC
+							";
 
 							$res = $db->query($sql);
 
@@ -144,129 +145,189 @@ if (isset($_POST['frmaction']) && $_POST['frmaction'] == "insert") {
 
 <?php
 
-		$db->beginTransaction();
+	$db->beginTransaction();
 
-		# Insert into users table
-		$stmt = $db->prepare("INSERT INTO ${DB_TABLE_PREFIX}users (Username) VALUES (?)");
-		$res = $stmt->execute(array($_POST['user_name']));
+	# Insert into users table
+	$stmt = $db->prepare("INSERT INTO ${DB_TABLE_PREFIX}users (Username) VALUES (?)");
+	$res = $stmt->execute(array($_POST['user_name']));
+
+
+	if ($res !== FALSE) {
+?>
+		<div class="notice">User added</div>
+<?php
 
 		# Grab inserted ID
 		$userID = $db->lastInsertId();
 
 		# FIXME Check for empty values for certain fields
 		# Check if userID is integer and > 0
-		if (is_int($userID) && $userID > 0) {
-
-			# Insert MAC Address
-			$stmt = $db->prepare("
-					INSERT INTO 
-						${DB_TABLE_PREFIX}user_attributes (UserID,Name,Operator,Value) 
-					VALUES 
-						($userID,'Calling-Station-Id','||==',?)
-			");
-
-			$res = $stmt->execute(array($_POST['user_mac_address']));
-
-			if ($res) {
-				# Insert IP Address
-				$stmt = $db->prepare("
-						INSERT INTO 
-							${DB_TABLE_PREFIX}user_attributes (UserID,Name,Operator,Value) 
-						VALUES 
-							($userID,'Framed-IP-Address','+=',?)
-				");
-
-				$res = $stmt->execute(array($_POST['user_ip_address']));
-			}
-
-			if ($res) {
-				# Insert data limit
-				$stmt = $db->prepare("
-						INSERT INTO 
-							${DB_TABLE_PREFIX}user_attributes (UserID,Name,Operator,Value) 
-						VALUES 
-							($userID,'SMRadius-Capping-Traffic-Limit','==',?)
-				");
-
-				$res = $stmt->execute(array($_POST['user_data_limit']));
-			}
-
-			if ($res) {
-				# Insert time limit
-				$stmt = $db->prepare("
-						INSERT INTO 
-							${DB_TABLE_PREFIX}user_attributes (UserID,Name,Operator,Value) 
-						VALUES 
-							($userID,'SMRadius-Capping-UpTime-Limit','==',?)
-				");
-
-				$res = $stmt->execute(array($_POST['user_time_limit']));
-			}
-
-			if ($res) {
-				# Insert password 
-				$stmt = $db->prepare("
-						INSERT INTO 
-							${DB_TABLE_PREFIX}user_attributes (UserID,Name,Operator,Value) 
-						VALUES 
-							($userID,'User-Password','==',?)
-						");
-
-				$res = $stmt->execute(array($_POST['user_password']));
-			}
-
-			if ($res) {
-				# Insert user data
-				$stmt = $db->prepare("
-						INSERT INTO 
-							${DB_TABLE_PREFIX}wisp_userdata (UserID, FirstName, LastName, Email, Phone) 
-						VALUES 
-							($userID,?,?,?,?)
-				");
-
-				$res = $stmt->execute(array(
-											$_POST['user_first_name'],
-											$_POST['user_last_name'],
-											$_POST['user_email'],
-											$_POST['user_phone']
-				));
-			}
-
-			if (!empty($_POST['user_location'])) {
-				# Insert user location
-				$stmt = $db->prepare("
-						INSERT INTO
-							${DB_TABLE_PREFIX}wisp_userdata (LocationID)
-						VALUES
-							(".$db->quote($_POST['user_location']).")
-				");
-
-				$res = $stmt->execute(array($_POST['user_location']));
-			}
-
-			# Was it successful?
-			if ($res) {
+		if (!isset($userID) || $userID < 1) {
+			$db->rollback();
 ?>
-				<div class="notice">User added</div>
-<?php
-				$db->commit();			
+			<div class="warning">Failed to get user ID</div>
+<?php			
+			$res = FALSE;
+		}
 
-			} else {
+
+	} else {
 ?>
-				<div class="warning">Failed to add user</div>
-				<div class="warning"><?php print_r($db->errorInfo()) ?></div>
+			<div class="warning">Failed to add user</div>
+			<div class="warning"><?php print_r($stmt->errorInfo()) ?></div>
 <?php
-				$db->rollback();
-			}
+	}
+
+
+	if ($res !== FALSE) {
+		# Insert MAC Address
+		$stmt = $db->prepare("
+			INSERT INTO 
+				${DB_TABLE_PREFIX}user_attributes (UserID,Name,Operator,Value) 
+			VALUES 
+				($userID,'Calling-Station-Id','||==',?)
+		");
+
+		$res = $stmt->execute(array($_POST['user_mac_address']));
+
+		if ($res !== FALSE) {
+?>
+			<div class="notice">Added MAC address</div>
+<?php
 		} else {
 ?>
-			<div class="warning">Cannot find User ID</div>
-			<div class="warning"><?php print_r($db->errorInfo()) ?></div>
-			<?php print_r($userID); ?>
+			<div class="warning">Failed to add MAC address</div>
+			<div class="warning"><?php print_r($stmt->errorInfo()) ?></div>
 <?php
-			$db->rollback();
 		}
 	}
+
+
+	if ($res !== FALSE) {
+		# Insert IP Address
+		$stmt = $db->prepare("
+			INSERT INTO 
+				${DB_TABLE_PREFIX}user_attributes (UserID,Name,Operator,Value) 
+			VALUES 
+				($userID,'Framed-IP-Address','+=',?)
+		");
+
+		$res = $stmt->execute(array($_POST['user_ip_address']));
+		if ($res !== FALSE) {
+?>
+			<div class="notice">IP address added</div>
+<?php
+		} else {
+?>
+			<div class="warning">Failed to add IP address</div>
+			<div class="warning"><?php print_r($stmt->errorInfo()) ?></div>
+<?php
+		}
+	}
+
+	if ($res !== FALSE) {
+		# Insert data limit
+		$stmt = $db->prepare("
+			INSERT INTO 
+				${DB_TABLE_PREFIX}user_attributes (UserID,Name,Operator,Value) 
+			VALUES 
+				($userID,'SMRadius-Capping-Traffic-Limit','==',?)
+		");
+
+		$res = $stmt->execute(array($_POST['user_data_limit']));
+		if ($res !== FALSE) {
+?>
+			<div class="notice">Traffic limit added</div>
+<?php
+		} else {
+?>
+			<div class="warning">Failed to add traffic limit</div>
+			<div class="warning"><?php print_r($stmt->errorInfo()) ?></div>
+<?php
+		}
+	}
+
+	if ($res !== FALSE) {
+		# Insert time limit
+		$stmt = $db->prepare("
+			INSERT INTO 
+				${DB_TABLE_PREFIX}user_attributes (UserID,Name,Operator,Value) 
+			VALUES 
+				($userID,'SMRadius-Capping-UpTime-Limit','==',?)
+		");
+
+		$res = $stmt->execute(array($_POST['user_time_limit']));
+		if  ($res !== FALSE) {
+?>
+			<div class="notice">Uptime limit added</div>
+<?php
+		} else {
+?>
+			<div class="warning">Failed to add uptime limit</div>
+			<div class="warning"><?php print_r($stmt->errorInfo()) ?></div>
+<?php
+		}
+	}
+
+	if ($res !== FALSE) {
+		# Insert password 
+		$stmt = $db->prepare("
+			INSERT INTO 
+				${DB_TABLE_PREFIX}user_attributes (UserID,Name,Operator,Value) 
+			VALUES 
+				($userID,'User-Password','==',?)
+		");
+
+		$res = $stmt->execute(array($_POST['user_password']));
+		if ($res !== FALSE) {
+?>
+			<div class="notice">User password added</div>
+<?php
+		} else {
+?>
+			<div class="warning">Failed to add up user password</div>
+			<div class="warning"><?php print_r($stmt->errorInfo()) ?></div>
+<?php
+		}
+	}
+
+
+	if ($res !== FALSE) {
+		# Insert user data
+		$stmt = $db->prepare("
+			INSERT INTO 
+				${DB_TABLE_PREFIX}wisp_userdata (UserID, FirstName, LastName, Email, Phone, LocationID) 
+			VALUES 
+				(?,?,?,?,?,?)
+		");
+
+		$res = $stmt->execute(array(
+			$userID,
+			$_POST['user_first_name'],
+			$_POST['user_last_name'],
+			$_POST['user_email'],
+			$_POST['user_phone'],
+			$_POST['user_location']
+		));
+		if ($res !== FALSE) {
+?>
+			<div class="notice">WiSP user data added</div>
+<?php
+		} else {
+?>
+			<div class="warning">Failed to add WiSP user data</div>
+			<div class="warning"><?php print_r($stmt->errorInfo()) ?></div>
+<?php
+		}
+	}
+
+
+	if ($res !== FALSE) {
+		$db->commit();
+	} else {
+		$db->rollback();
+	}
+}
 
 
 printFooter();
