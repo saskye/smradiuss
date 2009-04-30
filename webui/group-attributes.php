@@ -117,6 +117,9 @@ printHeader(array(
 <?php
 
 			}
+?>
+			<input type="hidden" name="group_id" value="<?php echo $_POST['group_id']; ?>" />
+<?php
 
 		} else {
 ?>

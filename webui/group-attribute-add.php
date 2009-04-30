@@ -73,6 +73,7 @@ if (isset($_POST['frmaction']) && $_POST['frmaction'] == "add") {
 			</tr>
 			<tr>
 				<td colspan="2">
+					<input type="hidden" name="group_id" value="<?php echo $_POST['group_id']; ?>" />
 					<input type="submit" />
 				</td>
 			</tr>
@@ -96,7 +97,7 @@ if (isset($_POST['frmaction']) && $_POST['frmaction'] == "add") {
 	} else {
 		$stmt = $db->prepare("INSERT INTO ${DB_TABLE_PREFIX}group_attributes (GroupID,Name,Operator,Value) VALUES (?,?,?,?)");
 		$res = $stmt->execute(array(
-			$attr_group_id,
+			$_POST['group_id'],
 			$_POST['attr_name'],
 			$_POST['attr_operator'],
 			$_POST['attr_value'],
