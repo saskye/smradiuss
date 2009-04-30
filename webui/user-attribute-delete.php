@@ -44,7 +44,7 @@ if (isset($_POST['frmaction']) && $_POST['frmaction'] == "delete") {
 ?>
 		<p class="pageheader">Delete Attribute</p>
 
-		<form action="attribute-delete.php" method="post">
+		<form action="user-attribute-delete.php" method="post">
 			<div>
 				<input type="hidden" name="frmaction" value="delete2" />
 				<input type="hidden" name="attr_id" value="<?php echo $_POST['attr_id']; ?>" />

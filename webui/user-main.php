@@ -61,7 +61,7 @@ if (!isset($_POST['frmaction']))
 				<option disabled="disabled"> - - - - - - - - - - - </option>
 				<option value="useratts">Attributes</option>
 				<option value="usergroups">Groups</option>
-				<option value="defaultlist">LogS</option>
+				<option value="defaultlist">Logs</option>
 			</select> 
 		</div>
 
