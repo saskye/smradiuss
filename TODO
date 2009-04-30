@@ -9,6 +9,7 @@ WiSP User Add -> Check if only certain fields are blank. Might want to add user 
 Remove the need for using $_SESSION, use $_POST instead and pass the data like that
 Fix up multi-user-add, code is a bit fugly, use lastinsertid
 wisp-user-delete.php - proper sql error handling
+wisp-user-edit.php - proper sql error handling, use 1 query to pull in all attribs and check them in a hash, nigel to then cleanup
 
 
 Realm config
