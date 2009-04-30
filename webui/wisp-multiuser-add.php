@@ -78,7 +78,6 @@ if (isset($_POST['frmaction']) && $_POST['frmaction'] == "insert") {
 ?>
 	<p class="pageheader">Add WiSP Users</p>
 <?php
-	#FIXME
 	# Perform checks on input
 	if (!empty($_POST['num_users']) && !empty($_POST['session_timeout']) && !empty($_POST['data_limit']) 
 			&& !empty($_POST['time_limit'])) {
@@ -91,138 +90,149 @@ if (isset($_POST['frmaction']) && $_POST['frmaction'] == "insert") {
 		$timeLimit = (int)$_POST['time_limit'];
 		$loginNamePrefix = $_POST['login_prefix'];
 
-		for ($counter = 0; $counter <= $numberOfUsers; $counter += 1) {
-			# Check if user already exists
-			$checkUsernameDuplicates = 0;
+		for ($counter = 0; $counter <= $numberOfUsers; $counter++) {
 
+			# Loop and try add user, maybe its duplicate?
 			do {
+				$isDuplicate = 0;
+
 				# Generate random username
-				$randomString = chr(rand(97,122)).
-								chr(rand(97,122)).
-								chr(rand(97,122)).
-								chr(rand(97,122)).
-								chr(rand(97,122)).
-								chr(rand(97,122)).
-								chr(rand(97,122)).
-								chr(rand(97,122));
-
-				# If there is no login name prefix
-				if (empty($loginNamePrefix)) {
-					$userName = $randomString;
-
-					$lookForUser = $db->query("SELECT ID FROM ${DB_TABLE_PREFIX}users WHERE Username LIKE '%$userName%'");
-
-					# If the user was found
-					if ($lookForUser->rowCount() > 0) {
-						$checkUsernameDuplicates = 1;
-					} else {
-						$checkUsernameDuplicates = 0;
-					}
+				$randomString = "";
+				for ($i = 0; $i < 8; $i++) { $randomString .= chr(rand(97,122)); }
 
 				# If there is a login name prefix
-				} else {
+				if (isset($loginNamePrefix) && $loginNamePrefix != "") {
 					$userName = $loginNamePrefix."_".$randomString;
-
-					$lookForUser = $db->query("SELECT ID FROM ${DB_TABLE_PREFIX}users WHERE Username LIKE '%$userName%'");
-
-					# If the user was found
-					if ($lookForUser->rowCount() > 0) {
-						$checkUsernameDuplicates = 1;
-					} else {
-						$checkUsernameDuplicates = 0;
-					}
+				# If there is no login name prefix
+				} else {
+					$userName = $randomString;
 				}
 
-			} while ($checkUsernameDuplicates > 0);
+				$stmt = $db->query("
+					SELECT 
+						COUNT(*) AS Duplicate
+					FROM 
+						${DB_TABLE_PREFIX}users 
+					WHERE 
+						Username LIKE '%$userName%'
+				");
+
+				$row = $stmt->fetchObject();
+
+			} while ($row->duplicate > 0);
 
 			#Insert user into users table
-			$userInsert = $db->prepare("
+			$stmt = $db->prepare("
 				INSERT INTO
 					${DB_TABLE_PREFIX}users (Username)
 				VALUES
 					(?)
 			");
-
-			$userInsertExec = $userInsert->execute(array($userName));
-
-			$failed = 0;
+			$res = $stmt->execute(array($userName));
 
 			# After a user add is successful, continue with inserting the other data
-			if ($userInsertExec) {
+			if ($res !== FALSE) {
 
 				# Get user ID to insert into other tables
-				$getUserID = $db->query("SELECT ID FROM ${DB_TABLE_PREFIX}users WHERE Username = '$userName'");
-				$resultRow = $getUserID->fetchObject();
-				$userID = $resultRow->id;
+				$userID = $db->lastInsertId();
 
-				# Inset UserID into wisp_userdata table
-				$userDataStatement = $db->prepare("	INSERT INTO
-																${DB_TABLE_PREFIX}wisp_userdata (UserID)
-													VALUES
-																(?)
-													");
+				if (isset($userID)) {
+					# Inset UserID into wisp_userdata table
+					$stmt = $db->prepare("
+									INSERT INTO
+										${DB_TABLE_PREFIX}wisp_userdata (UserID)
+									VALUES
+										(?)
+					");
 
-				$userDataResult = $userDataStatement->execute(array($userID));
-
-				# Generate a password
-				$userPassword = chr(rand(97,122)).
-								chr(rand(97,122)).
-								chr(rand(97,122)).
-								chr(rand(97,122)).
-								chr(rand(97,122)).
-								chr(rand(97,122)).
-								chr(rand(97,122)).
-								chr(rand(97,122));
-
-				# Insert password into user_attributes table
-				$userPasswordStatement = $db->prepare("	INSERT INTO
-																	${DB_TABLE_PREFIX}user_attributes (UserID,Name,Operator,Value)
-														VALUES
-																	($userID,'User-Password','==',?)
-														");
-
-				$userPasswordResult = $userPasswordStatement->execute(array($userPassword));
-				
-				# Insert data limit into user_attributes table
-				$userDataLimitStatement = $db->prepare("INSERT INTO
-																	${DB_TABLE_PREFIX}user_attributes (UserID,Name,Operator,Value)
-														VALUES
-																	($userID,'SMRadius-Capping-Traffic-Limit',':=',?)
-														");
-
-				$userDataLimitResult = $userDataLimitStatement->execute(array($dataLimit,));
-				
-				# Insert time limit into user_attributes table
-				$userTimeStatement = $db->prepare("	INSERT INTO
-																${DB_TABLE_PREFIX}user_attributes (UserID,Name,Operator,Value)
-													VALUES
-																($userID,'SMRadius-Capping-UpTime-Limit',':=',?)
-													");
-
-				$userTimeResult = $userTimeStatement->execute(array($timeLimit,));
-
-				# Insert timeout into user_attributes table
-				$userTimeOutStatement = $db->prepare("	INSERT INTO
-																	${DB_TABLE_PREFIX}user_attributes (UserID,Name,Operator,Value)
-														VALUES
-																	($userID,'Session-Timeout','+=',?)
-													");
-
-				$userTimeOutResult = $userTimeOutStatement->execute(array($sessionTimeout,));
-
-				if ($userTimeOutResult && $userTimeResult && $userDataResult && $userPasswordResult && $userDataLimitResult) {
-					$failed = 0;
+					$res = $stmt->execute(array($userID));
 				} else {
-					$failed = 1;
+					$res = 0;
+?>
+					<div class="warning">Failed to retreive user ID</div>
+<?php
 				}
-			# If one was not successful, rollback
-			} else {
-				print_r($db->errorInfo());
-				$db->rollback;
-				$failed = 1;
-				break;
+
+
+				if ($res !== FALSE) {
+					# Generate password
+					$userPassword = "";
+					for ($passCount = 0; $passCount < 8; $passCount++) {
+					$userPassword .= chr(rand(97,122));
+					}
+
+					# Insert password into user_attributes table
+					$stmt = $db->prepare("
+									INSERT INTO
+										${DB_TABLE_PREFIX}user_attributes (UserID,Name,Operator,Value)
+									VALUES
+										($userID,'User-Password','==',?)
+					");
+
+					$res = $stmt->execute(array($userPassword));
+				} else {
+?>
+					<div class="warning">Failed to add user password</div>
+					<div class="warning"><?php print_r($stmt->errorInfo()); ?></div>
+<?php
+				}
+				
+
+				if ($res !== FALSE) {
+					# Insert data limit into user_attributes table
+					$stmt = $db->prepare("
+									INSERT INTO
+										${DB_TABLE_PREFIX}user_attributes (UserID,Name,Operator,Value)
+									VALUES
+										($userID,'SMRadius-Capping-Traffic-Limit',':=',?)
+					");
+
+					$res = $stmt->execute(array($dataLimit));
+				} else {
+?>
+					<div class="warning">Failed to add data cap</div>
+					<div class="warning"><?php print_r($stmt->errorInfo()); ?></div>
+<?php
+				}
+
+				
+				if ($res !== FALSE) {
+					# Insert time limit into user_attributes table
+					$stmt = $db->prepare("
+									INSERT INTO
+										${DB_TABLE_PREFIX}user_attributes (UserID,Name,Operator,Value)
+									VALUES
+										($userID,'SMRadius-Capping-UpTime-Limit',':=',?)
+					");
+
+					$res = $stmt->execute(array($timeLimit));
+				} else {
+?>
+					<div class="warning">Failed to add uptime cap</div>
+					<div class="warning"><?php print_r($stmt->errorInfo()); ?></div>
+<?php
+				}
+
+
+				if ($res !== FALSE) {
+					# Insert timeout into user_attributes table
+					$stmt = $db->prepare("
+									INSERT INTO
+										${DB_TABLE_PREFIX}user_attributes (UserID,Name,Operator,Value)
+									VALUES
+										($userID,'Session-Timeout','+=',?)
+					");
+
+					$res = $stmt->execute(array($sessionTimeout));
+				} else {
+?>
+					<div class="warning">Failed to add uptime cap</div>
+					<div class="warning"><?php print_r($stmt->errorInfo()); ?></div>
+<?php
+				}
 			}
-		}
+
+
 			# Check if all is ok, if so, we can commit, else must rollback
 			if ($res !== FALSE) {
 				$db->commit();
@@ -236,14 +246,11 @@ if (isset($_POST['frmaction']) && $_POST['frmaction'] == "insert") {
 <?php
 			}
 		}
-
 	} else {
-
 ?>
 		<div class="warning">One or more fields have been left empty</div>
 <?php
 	}
-
 }
 
 printFooter();
