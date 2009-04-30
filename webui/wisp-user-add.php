@@ -30,9 +30,7 @@ printHeader(array(
 
 
 if (!isset($_POST['frmaction'])) {
-
 ?>
-
 	<p class="pageheader">Add WiSP User</p>
 
 	<!-- Add user input fields -->
@@ -168,11 +166,8 @@ if (!isset($_POST['frmaction'])) {
 }
 	
 if (isset($_POST['frmaction']) && $_POST['frmaction'] == "insert") {
-
 ?>
-
 	<p class="pageheader">Add user</p>
-
 <?php
 
 	$db->beginTransaction();
@@ -181,12 +176,10 @@ if (isset($_POST['frmaction']) && $_POST['frmaction'] == "insert") {
 	$stmt = $db->prepare("INSERT INTO ${DB_TABLE_PREFIX}users (Username) VALUES (?)");
 	$res = $stmt->execute(array($_POST['user_name']));
 
-
 	if ($res !== FALSE) {
 ?>
 		<div class="notice">User added</div>
 <?php
-
 		# Grab inserted ID
 		$userID = $db->lastInsertId();
 
@@ -257,7 +250,6 @@ if (isset($_POST['frmaction']) && $_POST['frmaction'] == "insert") {
 			}
 		}
 	}
-
 
 	if ($res !== FALSE) {
 		# Insert IP Address
@@ -347,7 +339,6 @@ if (isset($_POST['frmaction']) && $_POST['frmaction'] == "insert") {
 		}
 	}
 
-
 	if ($res !== FALSE) {
 		# Insert user data
 		$stmt = $db->prepare("
@@ -377,11 +368,17 @@ if (isset($_POST['frmaction']) && $_POST['frmaction'] == "insert") {
 		}
 	}
 
-
+	# Check if all is ok, if so, we can commit, else must rollback
 	if ($res !== FALSE) {
 		$db->commit();
+?>
+		<div class="notice">Changes comitted.</div>
+<?php
 	} else {
 		$db->rollback();
+?>
+		<div class="notice">Changes reverted.</div>
+<?php
 	}
 }
 

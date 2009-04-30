@@ -37,11 +37,10 @@ printHeader(array(
 
 # Display delete confirm screen
 if (isset($_POST['frmaction']) && $_POST['frmaction'] == "delete") {
+
 	# Check a user was selected
 	if (isset($_POST['user_id'])) {
-
 ?>
-
 		<p class="pageheader">Remove User</p>
 
 		<form action="wisp-user-delete.php" method="post">
@@ -55,24 +54,23 @@ if (isset($_POST['frmaction']) && $_POST['frmaction'] == "delete") {
 				<input type="submit" name="confirm" value="no" />
 			</div>
 		</form>
-
 <?php
 
 	} else {
-
 ?>
-
 		<div class="warning">No user selected</div>
-
 <?php
 	}
+
 # SQL Updates
 } elseif (isset($_POST['frmaction']) && $_POST['frmaction'] == "delete2") {
 ?>
 	<p class="pageheader">User Remove Results</p>
 <?php
 	if (isset($_POST['user_id'])) {
+
 		if (isset($_POST['confirm']) && $_POST['confirm'] == "yes") {
+
 			$db->beginTransaction();
 			# Delete user data
 			$res = $db->exec("DELETE FROM wisp_userdata WHERE UserID = ".$db->quote($_POST['user_id']));
@@ -118,16 +116,32 @@ if (isset($_POST['frmaction']) && $_POST['frmaction'] == "delete") {
 <?php
 				$db->rollback();
 			}
+
+			# Check if all is ok, if so, we can commit, else must rollback
+			if ($res !== FALSE) {
+				$db->commit();
+?>
+				<div class="notice">Changes comitted.</div>
+<?php
+			} else {
+				$db->rollback();
+?>
+				<div class="notice">Changes reverted.</div>
+<?php
+			}
+
 		} else {
 ?>
 			<div class="warning">Delete user aborted</div>
 <?php
 		}
+
 	} else {
 ?>
 		<div class="warning">No user selected</div>
 <?php
 	}
+
 } else {
 
 ?>
@@ -139,4 +153,3 @@ printFooter();
 
 # vim: ts=4
 ?>
-

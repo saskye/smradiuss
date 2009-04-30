@@ -38,7 +38,6 @@ printHeader(array(
 <p class="pageheader">WiSP User Log</p>
 
 <?php
-
 if (isset($_POST['user_id'])) {
 
 	# Which user in the accounting table should we look for?
@@ -47,9 +46,7 @@ if (isset($_POST['user_id'])) {
 	$row = $stmt->fetchObject();
 	$stmt->closeCursor();
 	$getuser = $row->username;
-
 ?>
-
 	<form id="main_form" action="wisp-user-logs.php" method="post">
 		<!-- User input from and to dates -->
 		<div>
@@ -126,37 +123,37 @@ if (isset($_POST['user_id'])) {
 		# Query to get all default data
 		$sql = "
 			SELECT
-					EventTimestamp, 
-					ServiceType,
-					FramedProtocol,
-					NASPort,
-					NASPortType, 
-					CallingStationID, 
-					CalledStationID, 
-					NASPortID, 
-					AcctSessionID, 
-					FramedIPAddress, 
-					AcctAuthentic, 
-					NASIdentifier, 
-					NASIPAddress, 
-					AcctDelayTime, 
-					AcctSessionTime, 
-					AcctInputOctets, 
-					AcctInputGigawords, 
-					AcctOutputOctets, 
-					AcctOutputGigawords, 
-					AcctStatusType, 
-					AcctTerminateCause 
+				EventTimestamp, 
+				ServiceType,
+				FramedProtocol,
+				NASPort,
+				NASPortType, 
+				CallingStationID, 
+				CalledStationID, 
+				NASPortID, 
+				AcctSessionID, 
+				FramedIPAddress, 
+				AcctAuthentic, 
+				NASIdentifier, 
+				NASIPAddress, 
+				AcctDelayTime, 
+				AcctSessionTime, 
+				AcctInputOctets, 
+				AcctInputGigawords, 
+				AcctOutputOctets, 
+				AcctOutputGigawords, 
+				AcctStatusType, 
+				AcctTerminateCause 
 			FROM 
-					${DB_TABLE_PREFIX}accounting 
+				${DB_TABLE_PREFIX}accounting 
 			WHERE 
-					Username = '$getuser'
-					$extraSQL
+				Username = '$getuser'
+				$extraSQL
 			ORDER BY
-					EventTimestamp
+				EventTimestamp
 			DESC
-				$limitSQL
-			";
+			$limitSQL
+		";
 
 		$res = $db->prepare($sql);
 		$res->execute($extraSQLVals);
@@ -166,7 +163,6 @@ if (isset($_POST['user_id'])) {
 		$totalSessionTime = 0;
 
 		while ($row = $res->fetchObject()) {
-
 			# Input
 			$inputDataItem = 0;
 
@@ -199,9 +195,7 @@ if (isset($_POST['user_id'])) {
 			}
 
 			$totalSessionTime += $sessionTimeItem;
-
 ?>
-
 			<tr class="resultsitem">
 				<td class="textcenter"><?php echo $row->eventtimestamp; ?></td>
 				<td class="textcenter"><?php echo $row->servicetype; ?></td>
@@ -223,69 +217,43 @@ if (isset($_POST['user_id'])) {
 				<td class="textcenter"><?php echo $row->acctstatustype; ?></td>
 				<td class="textcenter"><?php echo strRadiusTermCode($row->acctterminatecause); ?></td>
 			</tr>
-
 <?php
-
 		}
+
 		if ($res->rowCount() == 0) {
-
 ?>
-
 			<tr>
 				<td colspan="23" class="textcenter">No logs found for user: <?php echo $getuser; ?></td>
 			</tr>
-
 <?php
-
 		} else {
-
 ?>
 
 			<tr class="resultsitem">
-				<td class="textcenter"></td>
-				<td class="textcenter"></td>
-				<td class="textcenter"></td>
-				<td class="textcenter"></td>
-				<td class="textcenter"></td>
-				<td class="textcenter"></td>
-				<td class="textcenter"></td>
-				<td class="textcenter"></td>
-				<td class="textcenter"></td>
-				<td class="textcenter"></td>
-				<td class="textcenter"></td>
-				<td class="textcenter"></td>
-				<td class="textcenter"></td>
-				<td class="textcenter"></td>
+				<td colspan="13"</td>
 				<td class="textcenter" style="font-weight: bold;"><? printf('%.2f',$totalSessionTime); ?> Min</td>
 				<td class="textcenter" style="font-weight: bold;"><? printf('%.2f',$totalInputData); ?> MB</td>
 				<td class="textcenter" style="font-weight: bold;"><? printf('%.2f',$totalOutputData); ?> MB</td>
-				<td class="textcenter"></td>
-				<td class="textcenter"></td>
 			</tr>
-
 <?php
-
 		}
+
 		$res->closeCursor();
 ?>
 		</table>
+
 <?php
 
 } else {
-
 ?>
 	<div class="warning">No user selected</div>
 <?php
-
 }
 
 ?>
-
-
 <?php
 
 printFooter();
-
 
 # vim: ts=4
 ?>

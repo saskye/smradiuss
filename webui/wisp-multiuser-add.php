@@ -30,9 +30,7 @@ printHeader(array(
 
 
 if (!isset($_POST['frmaction'])) {
-
 ?>
-
 	<p class="pageheader">Add WiSP Users</p>
 
 	<!-- Add user input fields -->
@@ -74,19 +72,17 @@ if (!isset($_POST['frmaction'])) {
 	</form>
 
 <?php
-
 }
 
 if (isset($_POST['frmaction']) && $_POST['frmaction'] == "insert") {
-
 ?>
-
 	<p class="pageheader">Add WiSP Users</p>
-
 <?php
 	#FIXME
 	# Perform checks on input
-	if (!empty($_POST['num_users']) && !empty($_POST['session_timeout']) && !empty($_POST['data_limit']) && !empty($_POST['time_limit'])) {
+	if (!empty($_POST['num_users']) && !empty($_POST['session_timeout']) && !empty($_POST['data_limit']) 
+			&& !empty($_POST['time_limit'])) {
+
 		$db->beginTransaction();
 
 		$numberOfUsers = (int)$_POST['num_users'];
@@ -96,7 +92,6 @@ if (isset($_POST['frmaction']) && $_POST['frmaction'] == "insert") {
 		$loginNamePrefix = $_POST['login_prefix'];
 
 		for ($counter = 0; $counter <= $numberOfUsers; $counter += 1) {
-
 			# Check if user already exists
 			$checkUsernameDuplicates = 0;
 
@@ -137,17 +132,21 @@ if (isset($_POST['frmaction']) && $_POST['frmaction'] == "insert") {
 						$checkUsernameDuplicates = 0;
 					}
 				}
+
 			} while ($checkUsernameDuplicates > 0);
 
 			#Insert user into users table
-			$userInsert = $db->prepare("INSERT INTO
-													${DB_TABLE_PREFIX}users (Username)
-										VALUES
-													(?)
-										");
+			$userInsert = $db->prepare("
+				INSERT INTO
+					${DB_TABLE_PREFIX}users (Username)
+				VALUES
+					(?)
+			");
+
 			$userInsertExec = $userInsert->execute(array($userName));
 
 			$failed = 0;
+
 			# After a user add is successful, continue with inserting the other data
 			if ($userInsertExec) {
 
@@ -224,25 +223,27 @@ if (isset($_POST['frmaction']) && $_POST['frmaction'] == "insert") {
 				break;
 			}
 		}
-		if ($failed == 0) {
-			$db->commit();
-
+			# Check if all is ok, if so, we can commit, else must rollback
+			if ($res !== FALSE) {
+				$db->commit();
 ?>
-
-				<div class="notice">Users added</div>
-
+				<div class="notice">Changes comitted.</div>
 <?php
-
+			} else {
+				$db->rollback();
+?>
+				<div class="notice">Changes reverted.</div>
+<?php
+			}
 		}
+
 	} else {
 
 ?>
-
 		<div class="warning">One or more fields have been left empty</div>
-
 <?php
-
 	}
+
 }
 
 printFooter();

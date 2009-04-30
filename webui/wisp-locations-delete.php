@@ -38,11 +38,10 @@ printHeader(array(
 
 # Display delete confirm screen
 if (isset($_POST['frmaction']) && $_POST['frmaction'] == "delete") {
+
 	# Check a user was selected
 	if (isset($_POST['location_id'])) {
-
 ?>
-
 		<p class="pageheader">Delete Location</p>
 
 		<form action="wisp-locations-delete.php" method="post">
@@ -54,82 +53,101 @@ if (isset($_POST['frmaction']) && $_POST['frmaction'] == "delete") {
 				<input type="submit" name="confirm" value="no" />
 			</div>
 		</form>
-
 <?php
 
 	} else {
-
 ?>
-
 		<div class="warning">No location selected</div>
-
 <?php
-
 	}
+
 # SQL Updates
 } elseif (isset($_POST['frmaction']) && $_POST['frmaction'] == "delete2") {
-
 ?>
-
 	<p class="pageheader">Location Delete Results</p>
-
 <?php
 
 	if (isset($_POST['location_id'])) {
+
 		if (isset($_POST['confirm']) && $_POST['confirm'] == "yes") {
+
 			$db->beginTransaction();
 
-			$res = $db->exec("UPDATE ${DB_TABLE_PREFIX}wisp_userdata SET LocationID = NULL WHERE LocationID = ".$db->quote($_POST['location_id']));
+			$res = $db->exec("
+				UPDATE 
+					${DB_TABLE_PREFIX}wisp_userdata 
+				SET 
+					LocationID = NULL 
+				WHERE 
+					LocationID = ".$db->quote($_POST['location_id'])."
+			");
+
 			if ($res !== FALSE) {
 ?>
 				<div class="notice">Location members unlinked</div>
 <?php
 			} else {
 ?>
-				<div class="warning">Error unlinking members from location</div>
+				<div class="warning">Error removing users from location</div>
 				<div class="warning"><?php print_r($db->errorInfo()); ?></div>
 <?php
 				$db->rollback();
 			}
 
 			if ($res !== FALSE) {
-				$res = $db->exec("DELETE FROM ${DB_TABLE_PREFIX}wisp_locations WHERE ID = ".$db->quote($_POST['location_id']));
+
+				$res = $db->exec("
+					DELETE FROM 
+						${DB_TABLE_PREFIX}wisp_locations 
+					WHERE 
+						ID = ".$db->quote($_POST['location_id'])."
+				");
+
 				if ($res !== FALSE) {
 ?>
 					<div class="notice">Location deleted</div>
 <?php
 				} else {
 ?>
-					<div class="warning">Error deleting location</div>
+					<div class="warning">Error removing location</div>
 					<div class="warning"><?php print_r($db->errorInfo()); ?></div>
 <?php
 					$db->rollback();
 				}
+
 			}
-			if ($res) {
-?>
-				<div class="notice">Location with ID: <?php echo $_POST['location_id']; ?> deleted</div>
-<?php
+
+			# Check if all is ok, if so, we can commit, else must rollback
+			if ($res !== FALSE) {
 				$db->commit();
+?>
+				<div class="notice">Changes comitted.</div>
+<?php
+			} else {
+				$db->rollback();
+?>
+				<div class="notice">Changes reverted.</div>
+<?php
 			}
+
 		} else {
 ?>
 			<div class="warning">Delete location aborted</div>
 <?php
 		}
+
 	} else {
 ?>
-
 		<div class="warning">Invocation error, no location ID selected</div>
-
 <?php
-
 	}
+
 } else {
 ?>
 	<div class="warning">Invocation error</div>
 <?php
 }
+
 printFooter();
 
 

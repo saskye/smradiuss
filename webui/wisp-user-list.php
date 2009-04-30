@@ -67,8 +67,9 @@ if (!isset($_POST['frmaction'])) {
 		</table>
 	</form>
 <?php
-}
-if (isset($_POST['frmaction']) && $_POST['frmaction'] == "dofilter") {
+
+
+} elseif (isset($_POST['frmaction']) && $_POST['frmaction'] == "dofilter") {
 ?>
 	<form id="main_form" action="wisp-user-list.php" method="post">
 
@@ -114,14 +115,15 @@ if (isset($_POST['frmaction']) && $_POST['frmaction'] == "dofilter") {
 				<td class="textcenter">IP Address</td>
 			</tr>
 <?php
-			$sql = "SELECT
-						ID, Name
-					FROM
-						${DB_TABLE_PREFIX}wisp_locations
-					ORDER BY
+			$sql = "
+				SELECT
+					ID, Name
+				FROM
+					${DB_TABLE_PREFIX}wisp_locations
+				ORDER BY
 						Name
 					ASC
-					";
+			";
 			$res = $db->query($sql);
 
 			$locationsIDtoName = array();
@@ -192,39 +194,38 @@ if (isset($_POST['frmaction']) && $_POST['frmaction'] == "dofilter") {
 			# Query based on user input
 			$sql = "
 				SELECT
-						users.ID, 
-						users.Username,
-						wisp_userdata.UserID,
-						wisp_userdata.FirstName,
-						wisp_userdata.LastName,
-						wisp_userdata.Email, 
-						wisp_userdata.Phone,
-						wisp_userdata.LocationID
+					users.ID, 
+					users.Username,
+					wisp_userdata.UserID,
+					wisp_userdata.FirstName,
+					wisp_userdata.LastName,
+					wisp_userdata.Email, 
+					wisp_userdata.Phone,
+					wisp_userdata.LocationID
 				FROM 
-						users, wisp_userdata $extraTables
+					users, wisp_userdata $extraTables
 				WHERE 
-						users.ID = wisp_userdata.UserID
-						$extraSQL
-						$sortSQL
-				";
+					users.ID = wisp_userdata.UserID
+					$extraSQL
+					$sortSQL
+			";
 
 			$res = $db->prepare($sql);
 			$res->execute($extraSQLVals);
 
 			# List users
 			while ($row = $res->fetchObject()) {
-
 				# Second dirty query to get user's attributes
 				$tempUserID = $row->id;
 				$attrQuery = "
-						SELECT
-								Name,
-								Value
-						FROM
-								user_attributes
-						WHERE
-								UserID = $tempUserID
-						";
+					SELECT
+						Name,
+						Value
+					FROM
+						user_attributes
+					WHERE
+						UserID = $tempUserID
+				";
 				
 				$dataCap = NULL;
 				$timeCap = NULL;
@@ -264,13 +265,11 @@ if (isset($_POST['frmaction']) && $_POST['frmaction'] == "dofilter") {
 					<td><?php echo $timeCap; ?> Min</td>
 					<td><?php echo $userIP; ?></td>
 				</tr>
-
 <?php
 			}
 
 			# If there were no rows, complain
 			if ($res->rowCount() == 0) {
-
 ?>
 				<p />
 				<tr>
@@ -284,6 +283,7 @@ if (isset($_POST['frmaction']) && $_POST['frmaction'] == "dofilter") {
 	</form>
 <?php
 }
+
 printFooter();
 
 # vim: ts=4

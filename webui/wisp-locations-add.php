@@ -29,7 +29,6 @@ printHeader(array(
 ));
 
 if (isset($_POST['frmaction']) && $_POST['frmaction'] == "add") {
-
 ?>
 
 	<p class="pageheader">Add location</p>
@@ -54,56 +53,41 @@ if (isset($_POST['frmaction']) && $_POST['frmaction'] == "add") {
 
 # Check we have all params
 } elseif (isset($_POST['frmaction']) && $_POST['frmaction'] == "add2") {
-
 ?>
-
 	<p class="pageheader">Location Add Results</p>
-
 <?php
 
 	# Check name
 	if (empty($_POST['location'])) {
-
 ?>
-
 		<div class="warning">Location cannot be empty</div>
-
 <?php
 
 	# Add to database
 	} else {
 		$stmt = $db->prepare("INSERT INTO ${DB_TABLE_PREFIX}wisp_locations (Location) VALUES (?)");
 		$res = $stmt->execute(array(
-				$_POST['location'],
-				));
+			$_POST['location'],
+		));
+
 		# Was it successful?
-		if ($res) {
-
+		if ($res !== FALSE) {
 ?>
-
 			<div class="notice">Location added</div>
-
 <?php
-
 		} else {
-
 ?>
-
 			<div class="warning">Failed to add location</div>
 			<div class="warning"><?php print_r($stmt->errorInfo()) ?></div>
-
 <?php
 
 		}
 	}
+
 } else {
-
 ?>
-
 	<div class="warning">Invalid invocation</div>
-
 <?php
-
 }
 
 printFooter();

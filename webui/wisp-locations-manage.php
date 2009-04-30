@@ -27,8 +27,7 @@ printHeader(array(
 ));
 
 # If we have no action, display list
-if (!isset($_POST['frmaction']))
-{
+if (!isset($_POST['frmaction'])) {
 ?>
 	<p class="pageheader">Location List</p>
 
@@ -66,23 +65,20 @@ if (!isset($_POST['frmaction']))
 				<td class="textcenter">ID</td>
 				<td class="textcenter">Location</td>
 			</tr>
-
 <?php
-
 			$sql = "SELECT Name FROM ${DB_TABLE_PREFIX}wisp_locations ORDER BY Name ASC";
 			$res = $db->query($sql);
 
 			# List users
 			while ($row = $res->fetchObject()) {
-
 ?>
-
-					<tr class="resultsitem">
-						<td><input type="radio" name="location_id" value="<?php echo $row->id; ?>"/></td>
-						<td><?php echo $row->name; ?></td>
-					</tr>
+				<tr class="resultsitem">
+					<td><input type="radio" name="location_id" value="<?php echo $row->id; ?>"/></td>
+					<td><?php echo $row->name; ?></td>
+				</tr>
 <?php
 			}
+
 			if ($res->rowCount() == 0) {
 ?>
 				<p />
@@ -91,12 +87,14 @@ if (!isset($_POST['frmaction']))
 				</tr>
 <?php
 			}
+
 			$res->closeCursor();
 ?>
 		</table>
 	</form>
 <?php
 }
+
 printFooter();
 
 # vim: ts=4
