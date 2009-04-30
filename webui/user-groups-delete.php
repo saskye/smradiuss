@@ -17,8 +17,6 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 
-session_start();
-
 include_once("includes/header.php");
 include_once("includes/footer.php");
 include_once("includes/db.php");
@@ -38,11 +36,10 @@ printHeader(array(
 
 # Display delete confirm screen
 if (isset($_POST['frmaction']) && $_POST['frmaction'] == "delete") {
+
 	# Check a user was selected
 	if (isset($_POST['group_id'])) {
-
 ?>
-
 		<p class="pageheader">Remove Group Assignment</p>
 
 		<form action="user-groups-delete.php" method="post">
@@ -56,77 +53,55 @@ if (isset($_POST['frmaction']) && $_POST['frmaction'] == "delete") {
 				<input type="submit" name="confirm" value="no" />
 			</div>
 		</form>
-
 <?php
 
 	} else {
-
 ?>
-
 		<div class="warning">No group assignment selected</div>
-
 <?php
-
 	}
+
 # SQL Updates
 } elseif (isset($_POST['frmaction']) && $_POST['frmaction'] == "delete2") {
-
 ?>
-
 	<p class="pageheader">Group Assignment Removal Results</p>
-
 <?php
+	if (isset($_POST['group_id']) && isset($_POST['groups_user_id'])) {
 
-	if (isset($_POST['group_id']) && isset($_SESSION['groups_user_id'])) {
 		if (isset($_POST['confirm']) && $_POST['confirm'] == "yes") {
 			$res = $db->exec("	
-								DELETE FROM 
-										${DB_TABLE_PREFIX}users_to_groups 
-								WHERE 
-										UserID = ".$db->quote($_SESSION['groups_user_id'])." 
-								AND 
-										GroupID = ".$db->quote($_POST['group_id'])
-							);
+				DELETE FROM 
+					${DB_TABLE_PREFIX}users_to_groups 
+				WHERE 
+					UserID = ".$db->quote($_SESSION['groups_user_id'])." 
+					AND GroupID = ".$db->quote($_POST['group_id'])."
+			");
 
 			if ($res !== FALSE) {
-
 ?>
-
-				<div class="notice">Group with ID: <?php print_r($_POST['group_id']);?> deleted from user with ID: <?php print_r($_SESSION['groups_user_id']);?></div>
-
+				<div class="notice">Group removed from user</div>
 <?php
-
-				session_destroy();
 			} else {
-
 ?>
-
 				<div class="warning">Error removing group assignment</div>
 				<div class="warning"><?php print_r($db->errorInfo()); ?></div>
-
 <?php
-
 			}
+
 		# Warn
 		} else {
-
 ?>
-
 			<div class="warning">Remove Group Assignment aborted</div>
-
 <?php
-
 		}
+
 	} else {
-
 ?>
-
 		<div class="warning">Invocation error, no group ID selected</div>
-
 <?php
-
 	}
 }
+
 printFooter();
 
 

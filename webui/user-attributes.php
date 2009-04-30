@@ -17,8 +17,6 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 
-session_start();
-
 include_once("includes/header.php");
 include_once("includes/footer.php");
 include_once("includes/db.php");
@@ -76,27 +74,22 @@ printHeader(array(
 		</tr>
 
 <?php
-
 		if (isset($_POST['user_id'])) {
-			# Set to session for later use
-			$_SESSION['attr_user_id'] = $_POST['user_id']; 
-
 			# Get old attributes
-			$sql = "SELECT 
-						ID, Name, Operator, Value, Disabled 
-					FROM 
-						${DB_TABLE_PREFIX}user_attributes 
-					WHERE 
-						UserID = ".$db->quote($_POST['user_id'])." 
-					ORDER BY 
-						ID
-					";
+			$sql = "
+				SELECT 
+					ID, Name, Operator, Value, Disabled 
+				FROM 
+					${DB_TABLE_PREFIX}user_attributes 
+				WHERE 
+					UserID = ".$db->quote($_POST['user_id'])." 
+				ORDER BY 
+					ID
+			";
 
 			$res = $db->query($sql);
 			while ($row = $res->fetchObject()) {
-
 ?>
-
 				<tr class="resultsitem">
 					<td><input type="radio" name="attr_id" value="<?php echo $row->id; ?>"/><?php echo $row->id; ?></td>
 					<td><?php echo $row->name; ?></td>
@@ -104,40 +97,31 @@ printHeader(array(
 					<td><?php echo $row->value; ?></td>
 					<td class="textcenter"><?php echo $row->disabled ? 'yes' : 'no'; ?></td>
 				</tr>
-
 <?php
-
 			}
+
 			if ($res->rowCount() == 0) {
-
 ?>
-
 				<p />
 				<tr>
 					<td colspan="5" class="textcenter">Attribute list is empty</td>
 				</tr>
-
 <?php
-
 			}
+
 			$res->closeCursor();
+
 		} else {
-
 ?>
-
 			<tr class="resultitem">
 				<td colspan="5" class="textcenter">No User ID selected</td>
 			</tr>
-
 <?php
-
 		}
 
 ?>
-
 	</table>
 </form>
-
 <?php
 
 printFooter();

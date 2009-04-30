@@ -17,9 +17,6 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 
-session_start();
-
-
 include_once("includes/header.php");
 include_once("includes/footer.php");
 include_once("includes/db.php");
@@ -32,7 +29,8 @@ printHeader(array(
 ));
 
 
-if (isset($_SESSION['groups_user_id'])) {
+if (isset($_POST['groups_user_id'])) {
+
 	if (isset($_POST['frmaction']) && $_POST['frmaction'] == "add") {
 
 ?>
@@ -79,9 +77,7 @@ if (isset($_SESSION['groups_user_id'])) {
 				$res = $db->query($sql);
 
 				while ($row = $res->fetchObject()) {
-
 ?>
-
 					<tr class="resultsitem">
 						<td><input type="radio" name="group_id" value="<?php echo $row->id; ?>" /></td>
 						<td><?php echo $row->name; ?></td>
@@ -89,73 +85,59 @@ if (isset($_SESSION['groups_user_id'])) {
 						<td class="textcenter"><?php echo $row->disabled ? 'yes' : 'no'; ?></td>
 						<td><?php echo $row->comment; ?></td>
 					</tr>
-
 <?php
-
 				}
+
 				$res->closeCursor();
-
 ?>
-
 			</table>
 		</form>
 
 <?php
 
 	} elseif (isset($_POST['frmaction']) && $_POST['frmaction'] == "add2") {
-
 ?>
-
 		<p class="pageheader">Group assignment results</p>
-
 <?php
 
 		if (isset($_POST['group_id']) && !empty($_POST['users_to_groups_comment'])) {
-			$stmt = $db->prepare("INSERT INTO ${DB_TABLE_PREFIX}users_to_groups (UserID,GroupID,Comment,Disabled) VALUES (?,?,?,?)");
+			$stmt = $db->prepare("
+				INSERT INTO ${DB_TABLE_PREFIX}users_to_groups 
+					(UserID,GroupID,Comment,Disabled) 
+				VALUES 
+					(?,?,?,?)
+			");
 
 			$res = $stmt->execute(array(
-						$_SESSION['groups_user_id'],
+						$_POST['groups_user_id'],
 						$_POST['group_id'],
 						$_POST['users_group_comment'],
 						$_POST['users_group_disabled'],
 						));
 
-			if ($res) {
-
+			if ($res !== FALSE) {
 ?>
-
 				<div class="notice">Group assignment successful</div>
-
 <?php
-
 			} else {
-
 ?>
-
 				<div class="warning">Failed to assign group to user</div>
 				<div class="warning"><?php print_r($stmt->errorInfo()) ?></div>
-
 <?php
-
 			}
+
 		} else {
-
 ?>
-
 			<div class="warning">One or more values not set</div>
-
 <?php
-
 		}
+
 	}
+
 } else {
-
 ?>
-
-	<div class="warning">No user id received</div>
-
+	<div class="warning">No user ID received</div>
 <?php
-
 }
 
 printFooter();

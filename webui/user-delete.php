@@ -38,11 +38,10 @@ printHeader(array(
 
 # Display delete confirm screen
 if (isset($_POST['frmaction']) && $_POST['frmaction'] == "delete") {
+
 	# Check a user was selected
 	if (isset($_POST['user_id'])) {
-
 ?>
-
 		<p class="pageheader">Delete User</p>
 
 		<form action="user-delete.php" method="post">
@@ -54,29 +53,24 @@ if (isset($_POST['frmaction']) && $_POST['frmaction'] == "delete") {
 				<input type="submit" name="confirm" value="no" />
 			</div>
 		</form>
-
 <?php
 
 	} else {
-
 ?>
-
 		<div class="warning">No user selected</div>
-
 <?php
-
 	}
+
 # SQL Updates
 } elseif (isset($_POST['frmaction']) && $_POST['frmaction'] == "delete2") {
-
 ?>
-
 	<p class="pageheader">User Delete Results</p>
-
 <?php
 
 	if (isset($_POST['user_id'])) {
+
 		if (isset($_POST['confirm']) && $_POST['confirm'] == "yes") {
+
 			$db->beginTransaction();
 
 			$res = $db->exec("DELETE FROM ${DB_TABLE_PREFIX}users_to_groups WHERE UserID = ".$db->quote($_POST['user_id']));
@@ -86,39 +80,46 @@ if (isset($_POST['frmaction']) && $_POST['frmaction'] == "delete") {
 <?php
 			} else {
 ?>
-				<div class="warning">Error deleting user</div>
+				<div class="warning">Error removing groups from user</div>
 				<div class="warning"><?php print_r($db->errorInfo()); ?></div>
 <?php
-				$db->rollback();
 			}
 
 			if ($res !== FALSE) {
-				$res = $db->exec("DELETE FROM ${DB_TABLE_PREFIX}wisp_userdata WHERE UserID = ".$db->quote($_POST['user_id']));
+				$res = $db->exec("
+					DELETE FROM 
+						${DB_TABLE_PREFIX}wisp_userdata
+					WHERE 
+						UserID = ".$db->quote($_POST['user_id']."
+				"));
 				if ($res !== FALSE) {
 ?>
-					<div class="notice">Userdata deleted</div>
+					<div class="notice">WiSP user data deleted</div>
 <?php
 				} else {
 ?>
-					<div class="warning">Error deleting user</div>
+					<div class="warning">Error removing WiSP user data</div>
 					<div class="warning"><?php print_r($db->errorInfo()); ?></div>
 <?php
-					$db->rollback();
 				}
 			}
 
 			if ($res !== FALSE) {
-				$res = $db->exec("DELETE FROM ${DB_TABLE_PREFIX}user_attributes WHERE UserID = ".$db->quote($_POST['user_id']));
+				$res = $db->exec("
+					DELETE FROM 
+						${DB_TABLE_PREFIX}user_attributes 
+					WHERE 
+						UserID = ".$db->quote($_POST['user_id'])."
+				");
 				if ($res !== FALSE) {
 ?>
 					<div class="notice">User attributes deleted</div>
 <?php
 				} else {
 ?>
-					<div class="warning">Error deleting user</div>
+					<div class="warning">Error removing user attributes</div>
 					<div class="warning"><?php print_r($db->errorInfo()); ?></div>
 <?php
-					$db->rollback();
 				}
 			}
 
@@ -130,39 +131,45 @@ if (isset($_POST['frmaction']) && $_POST['frmaction'] == "delete") {
 <?php
 				} else {
 ?>
-					<div class="warning">Error deleting user</div>
+					<div class="warning">Error removing user</div>
 					<div class="warning"><?php print_r($db->errorInfo()); ?></div>
 <?php
-					$db->rollback();
 				}
 			}
-			if ($res) {
-?>
-				<div class="notice">User with ID: <?php echo $_POST['user_id']; ?> deleted</div>
-<?php
+
+			# Check if all is ok, if so, we can commit, else must rollback
+			if ($res !== FALSE) {
 				$db->commit();
+?>
+				<div class="notice">Changes comitted.</div>
+<?php
+			} else {
+				$db->rollback();
+?>
+				<div class="notice">Changes reverted.</div>
+<?php
 			}
+
 		} else {
 ?>
 			<div class="warning">Delete user aborted</div>
 <?php
 		}
+
 	} else {
 ?>
-
 		<div class="warning">Invocation error, no user ID selected</div>
-
 <?php
-
 	}
+
 } else {
 ?>
 	<div class="warning">Invocation error</div>
 <?php
 }
+
 printFooter();
 
 
 # vim: ts=4
 ?>
-

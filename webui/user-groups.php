@@ -17,9 +17,6 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 
-session_start();
-
-
 include_once("includes/header.php");
 include_once("includes/footer.php");
 include_once("includes/db.php");
@@ -76,20 +73,23 @@ printHeader(array(
 <?php
 
 		if (isset($_POST['user_id'])) {
-
-			# Store user_id for later use
-			$_SESSION['groups_user_id'] = $_POST['user_id'];
-
 			$sql = "SELECT GroupID FROM ${DB_TABLE_PREFIX}users_to_groups WHERE UserID = ".$db->quote($_POST['user_id']);
 			$res = $db->query($sql);
 
 			while ($row = $res->fetchObject()) {
-				$sql = "SELECT ID, Name, Priority, Disabled, Comment FROM ${DB_TABLE_PREFIX}groups WHERE ID = ".$db->quote($row->groupid);
-				$result = $db->query($sql);
+				$sql = "
+					SELECT 
+						ID, Name, Priority, Disabled, Comment
+					FROM 
+						${DB_TABLE_PREFIX}groups 
+					WHERE 
+						ID = ".$db->quote($row->groupid)."
+				";
+				$res2 = $db->query($sql);
 
-				while ($row = $result->fetchObject()) {
+				while ($row = $res2->fetchObject()) {
 ?>
-					<tr class="resultsitem">
+					<tr class="res2">
 						<td><input type="radio" name="group_id" value="<?php echo $row->id; ?>"/></td>
 						<td><?php echo $row->name; ?></td>
 						<td><?php echo $row->priority; ?></td>
@@ -98,8 +98,10 @@ printHeader(array(
 					</tr>
 <?php
 				}
-				$result->closeCursor();
+
+				$res2->closeCursor();
 			}
+
 			if ($res->rowCount() == 0) {
 ?>
 				<tr>
@@ -107,7 +109,9 @@ printHeader(array(
 				</tr>
 <?php
 			}
+
 			$res->closeCursor();
+
 		} else {
 ?>
 			<tr>
@@ -121,7 +125,6 @@ printHeader(array(
 <?php
  
 printFooter();
-
 
 # vim: ts=4
 ?>

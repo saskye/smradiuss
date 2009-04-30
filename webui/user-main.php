@@ -81,9 +81,7 @@ if (!isset($_POST['frmaction']))
 
 			# List users
 			while ($row = $res->fetchObject()) {
-
 ?>
-
 					<tr class="resultsitem">
 						<td><input type="radio" name="user_id" value="<?php echo $row->id; ?>"/><?php echo $row->id; ?></td>
 						<td><?php echo $row->username; ?></td>
@@ -91,6 +89,7 @@ if (!isset($_POST['frmaction']))
 					</tr>
 <?php
 			}
+
 			if ($res->rowCount() == 0) {
 ?>
 				<p />
@@ -99,12 +98,14 @@ if (!isset($_POST['frmaction']))
 				</tr>
 <?php
 			}
+
 			$res->closeCursor();
 ?>
 		</table>
 	</form>
 <?php
 }
+
 printFooter();
 
 # vim: ts=4

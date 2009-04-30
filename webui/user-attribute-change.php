@@ -38,15 +38,22 @@ printHeader(array(
 
 # Display change screen
 if (isset($_POST['frmaction']) && $_POST['frmaction'] == "change") {
+
 	# Check an attribute was selected
 	if (isset($_POST['attr_id'])) {
 		# Prepare statement
-		$sql = "SELECT ID, Name, Operator, Value, Disabled FROM ${DB_TABLE_PREFIX}user_attributes WHERE ID = ".$db->quote($_POST['attr_id']);
+		$sql = "
+			SELECT 
+				ID, Name, Operator, Value, Disabled 
+			FROM 
+				${DB_TABLE_PREFIX}user_attributes 
+			WHERE 
+				ID = ".$db->quote($_POST['attr_id']."
+		");
 		$res = $db->query($sql); 
 		$row = $res->fetchObject();
 
 ?>
-
 		<p class="pageheader">Update User</p>
 
 		<form action="user-attribute-change.php" method="post">
@@ -122,23 +129,16 @@ if (isset($_POST['frmaction']) && $_POST['frmaction'] == "change") {
 
 	$res->closeCursor();
 	} else {
-
 ?>
-
 		<div class="warning">No attribute selected</div>
-
 <?php
-
 	}
+
 # SQL Updates
 } elseif (isset($_POST['frmaction']) && $_POST['frmaction'] == "change2") {
-
 ?>
-
 	<p class="pageheader">Attribute Update Results</p>
-
 <?php
-
 	# Check an attribute was selected
 	if (isset($_POST['attr_id'])) {
 
@@ -161,58 +161,46 @@ if (isset($_POST['frmaction']) && $_POST['frmaction'] == "change") {
 		if (sizeof($updates) > 0) {
 			$updateStr = implode(', ',$updates);
 
-			$res = $db->exec("UPDATE ${DB_TABLE_PREFIX}user_attributes SET $updateStr WHERE ID = ".$db->quote($_POST['attr_id']));
-			if ($res) {
-
+			$res = $db->exec("
+				UPDATE 
+					${DB_TABLE_PREFIX}user_attributes 
+				SET 
+					$updateStr 
+				WHERE 
+					ID = ".$db->quote($_POST['attr_id']."
+			"));
+			if ($res !== FALSE) {
 ?>
-
 				<div class="notice">Attribute updated</div>
-
 <?php
-
 			} else {
-
 ?>
-
 				<div class="warning">Error updating attribute</div>
 				<div class="warning"><?php print_r($db->errorInfo()) ?></div>
-
 <?php
-
 			}
+
 		# Warn
 		} else {
-
 ?>
-
 			<div class="warning">No attribute updates</div>
-
 <?php
-
 		}
+
 	# Warn
 	} else {
-
 ?>
-
 		<div class="error">No attribute data available</div>
-
 <?php
-
 	}
+
 } else {
-
 ?>
-
 	<div class="warning">Invalid invocation</div>
-
 <?php
-
 }
 
-
 printFooter();
-
 
 # vim: ts=4
 ?>
