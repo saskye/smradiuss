@@ -73,6 +73,9 @@ printHeader(array(
 <?php
 
 		if (isset($_POST['user_id'])) {
+?>
+			<input type="hidden" name="user_id" value="<?php echo $_POST['user_id']; ?>" />
+<?php
 			$sql = "SELECT GroupID FROM ${DB_TABLE_PREFIX}users_to_groups WHERE UserID = ".$db->quote($_POST['user_id']);
 			$res = $db->query($sql);
 

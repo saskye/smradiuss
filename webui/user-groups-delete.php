@@ -46,6 +46,7 @@ if (isset($_POST['frmaction']) && $_POST['frmaction'] == "delete") {
 			<div>
 				<input type="hidden" name="frmaction" value="delete2" />
 				<input type="hidden" name="group_id" value="<?php echo $_POST['group_id']; ?>" />
+				<input type="hidden" name="user_id" value="<?php echo $_POST['user_id']; ?>" />
 			</div>
 			<div class="textcenter">
 				Are you very sure? <br />
@@ -66,14 +67,14 @@ if (isset($_POST['frmaction']) && $_POST['frmaction'] == "delete") {
 ?>
 	<p class="pageheader">Group Assignment Removal Results</p>
 <?php
-	if (isset($_POST['group_id']) && isset($_POST['groups_user_id'])) {
+	if (isset($_POST['group_id']) && isset($_POST['user_id'])) {
 
 		if (isset($_POST['confirm']) && $_POST['confirm'] == "yes") {
 			$res = $db->exec("	
 				DELETE FROM 
 					${DB_TABLE_PREFIX}users_to_groups 
 				WHERE 
-					UserID = ".$db->quote($_SESSION['groups_user_id'])." 
+					UserID = ".$db->quote($_POST['user_id'])." 
 					AND GroupID = ".$db->quote($_POST['group_id'])."
 			");
 

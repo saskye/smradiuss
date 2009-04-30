@@ -29,7 +29,7 @@ printHeader(array(
 ));
 
 
-if (isset($_POST['groups_user_id'])) {
+if (isset($_POST['user_id'])) {
 
 	if (isset($_POST['frmaction']) && $_POST['frmaction'] == "add") {
 
@@ -37,6 +37,7 @@ if (isset($_POST['groups_user_id'])) {
 		<p class="pageheader">Available Groups</p>
 
 		<form id="main_form" action="user-groups-add.php" method="post">
+			<input type="hidden" name="user_id" value="<?php echo $_POST['user_id']; ?>" />
 			<div class="textcenter">
 				<input type="hidden" name="frmaction" value="add2" />
 				<table class="entry">
@@ -109,9 +110,9 @@ if (isset($_POST['groups_user_id'])) {
 			");
 
 			$res = $stmt->execute(array(
-						$_POST['groups_user_id'],
+						$_POST['user_id'],
 						$_POST['group_id'],
-						$_POST['users_group_comment'],
+						$_POST['users_to_groups_comment'],
 						$_POST['users_group_disabled'],
 						));
 
