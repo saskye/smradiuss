@@ -238,7 +238,7 @@ if (isset($_POST['frmaction']) && $_POST['frmaction'] == "dofilter") {
 ?>		
 
 				<tr class="resultsitem">
-					<td><input type="radio" name="user_id" value="<?php echo $row->id; ?>"/><?php echo $row->id; ?></td>
+					<td><input type="radio" name="user_id" value="<?php echo $row->id; ?>"/></td>
 					<td><?php echo $row->username; ?></td>
 					<td><?php echo $row->firstname; ?></td>
 					<td><?php echo $row->lastname; ?></td>
