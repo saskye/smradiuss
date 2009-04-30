@@ -3,6 +3,8 @@
 WebUI:
 WiSP -> User List -> Edit: Must be able to clear fields (MAC Address)
 WiSP User Add -> Check if only certain fields are blank. Might want to add user without MAC Address.
+Remove the need for using $_SESSION, use $_POST instead and pass the data like that
+
 
 
 Realm config
