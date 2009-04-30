@@ -80,31 +80,41 @@ if (isset($_POST['frmaction']) && $_POST['frmaction'] == "delete") {
 				# Delete user attributes
 				$res = $db->exec("DELETE FROM user_attributes WHERE UserID = ".$db->quote($_POST['user_id']));
 				if ($res !== FALSE) {
-					# Delete from users
-					$res = $db->exec("DELETE FROM users WHERE ID = ".$db->quote($_POST['user_id']));
+					# Delete group associations
+					$res = $db->exec("DELETE FROM ${DB_TABLE_PREFIX}users_to_groups WHERE UserID = ".$db->quote($_POST['user_id']));
 					if ($res !== FALSE) {
+						# Delete from users
+						$res = $db->exec("DELETE FROM users WHERE ID = ".$db->quote($_POST['user_id']));
+						if ($res !== FALSE) {
 ?>
-						<div class="notice">User with ID: <?php print_r($_POST['user_id']); ?> deleted!</div>
+							<div class="notice">User with ID: <?php print_r($_POST['user_id']); ?> deleted!</div>
 <?php
-						$db->commit();
+							$db->commit();
+						} else {
+?>
+							<div class="warning">Failed to delete user!</div>
+							<div class="warning"><?php print_r($res->errorInfo()); ?></div>
+<?php
+							$db->rollback();
+						}
 					} else {
 ?>
-						<div class="warning">Failed to delete user!</div>
-						<div class="warning"><?php print_r($db->errorInfo()); ?></div>
+						<div class="warning">Failed to remove group associations</div>
+						<div class="warning"><?php print_r($res->errorInfo()); ?></div>
 <?php
 						$db->rollback();
 					}
 				} else {
 ?>
-					<div class="warning">Failed to delete user!</div>
-					<div class="warning"><?php print_r($db->errorInfo()); ?></div>
+					<div class="warning">Failed to delete user attributes</div>
+					<div class="warning"><?php print_r($res->errorInfo()); ?></div>
 <?php
 					$db->rollback();
 				}
 			} else {
 ?>
-				<div class="warning">Failed to delete user!</div>
-				<div class="warning"><?php print_r($db->errorInfo()); ?></div>
+				<div class="warning">Failed to delete user data</div>
+				<div class="warning"><?php print_r($res->errorInfo()); ?></div>
 <?php
 				$db->rollback();
 			}

@@ -56,6 +56,36 @@ if (!isset($_POST['frmaction'])) {
 				<td><input type="password" name="user_password" /></td>
 			</tr>
 			<tr>
+				<td class="entrytitle">Group</td>
+				<td>
+				<select name="user_group">
+						<option selected="selected" value="NULL">No group</option>
+<?php
+							$sql = "
+								SELECT
+									ID, Name
+								FROM
+									${DB_TABLE_PREFIX}groups
+								ORDER BY
+									Name
+								DESC
+							";
+
+							$res = $db->query($sql);
+
+							# If there are any result rows, list items
+							if ($res->rowCount() > 0) {
+								while ($row = $res->fetchObject()) {
+?>
+									<option value="<?php echo $row->id; ?>"><?php echo $row->name; ?></option>
+<?php
+								}
+							}
+?>
+					</select>
+				</td>
+			</tr>
+			<tr>
 				<td><div></div><td>
 			</tr>
 			<tr>
@@ -199,6 +229,32 @@ if (isset($_POST['frmaction']) && $_POST['frmaction'] == "insert") {
 			<div class="warning">Failed to add MAC address</div>
 			<div class="warning"><?php print_r($stmt->errorInfo()) ?></div>
 <?php
+		}
+	}
+
+
+	if ($res !== FALSE) {
+		if ($_POST['user_group'] !== "NULL") {
+			# Insert user group
+			$stmt = $db->prepare("
+				INSERT INTO 
+					${DB_TABLE_PREFIX}users_to_groups (UserID,GroupID) 
+				VALUES 
+					($userID,?)
+			");
+
+			$res = $stmt->execute(array($_POST['user_group']));
+
+			if ($res !== FALSE) {
+?>
+				<div class="notice">Added user to group</div>
+<?php
+			} else {
+?>
+				<div class="warning">Failed to add user to group</div>
+				<div class="warning"><?php print_r($stmt->errorInfo()) ?></div>
+<?php
+			}
 		}
 	}
 
