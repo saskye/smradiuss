@@ -76,6 +76,7 @@ if (isset($_POST['frmaction']) && $_POST['frmaction'] == "add") {
 			</tr>
 			<tr>
 				<td colspan="2">
+					<input type="hidden" name="user_id" value="<?php echo $_POST['user_id']; ?>" />
 					<input type="submit" />
 				</td>
 			</tr>
@@ -99,7 +100,7 @@ if (isset($_POST['frmaction']) && $_POST['frmaction'] == "add") {
 		$stmt = $db->prepare("INSERT INTO ${DB_TABLE_PREFIX}user_attributes (UserID,Name,Operator,Value) VALUES (?,?,?,?)");
 
 		$res = $stmt->execute(array(
-			$_POST['attr_userid'],
+			$_POST['user_id'],
 			$_POST['attr_name'],
 			$_POST['attr_operator'],
 			$_POST['attr_value'],

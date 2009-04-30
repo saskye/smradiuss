@@ -17,6 +17,7 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 
+
 include_once("includes/header.php");
 include_once("includes/footer.php");
 include_once("includes/db.php");
@@ -60,6 +61,7 @@ printHeader(array(
 			<option disabled="disabled"> - - - - - - - - - - - </option>
 			<option value="change">Change Attribute</option>
 		</select> 
+		<input type="hidden" name="user_id" value="<?php echo $_POST['user_id']; ?>" />
 	</div>
 
 	<p />
@@ -75,6 +77,7 @@ printHeader(array(
 
 <?php
 		if (isset($_POST['user_id'])) {
+
 			# Get old attributes
 			$sql = "
 				SELECT 
@@ -91,7 +94,9 @@ printHeader(array(
 			while ($row = $res->fetchObject()) {
 ?>
 				<tr class="resultsitem">
-					<td><input type="radio" name="attr_id" value="<?php echo $row->id; ?>"/><?php echo $row->id; ?></td>
+					<td>
+						<input type="radio" name="attr_id" value="<?php echo $row->id; ?>"/><?php echo $row->id; ?>
+					</td>
 					<td><?php echo $row->name; ?></td>
 					<td><?php echo $row->operator; ?></td>
 					<td><?php echo $row->value; ?></td>
