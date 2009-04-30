@@ -28,9 +28,7 @@ printHeader(array(
 
 # If we have nothing to do - display search
 if (!isset($_POST['frmaction'])) {
-
 ?>
-
 	<p class="pageheader">User List</p>
 
 	<form id="main_form" action="wisp-user-list.php" method="post">
@@ -68,15 +66,10 @@ if (!isset($_POST['frmaction'])) {
 			</tr>
 		</table>
 	</form>
-
 <?php
-
 }
-
 if (isset($_POST['frmaction']) && $_POST['frmaction'] == "dofilter") {
-
 ?>
-
 	<form id="main_form" action="wisp-user-list.php" method="post">
 
 		<div class="textcenter">
@@ -120,8 +113,21 @@ if (isset($_POST['frmaction']) && $_POST['frmaction'] == "dofilter") {
 				<td class="textcenter">Time Cap</td>
 				<td class="textcenter">IP Address</td>
 			</tr>
-
 <?php
+			$sql = "SELECT
+						ID, Name
+					FROM
+						${DB_TABLE_PREFIX}wisp_locations
+					ORDER BY
+						Name
+					ASC
+					";
+			$res = $db->query($sql);
+
+			$locationsIDtoName = array();
+			while ($row = $res->fetchObject()) {
+				$locationsIDtoName[$row->id] = $row->name;
+			}
 
 			# Additions to the SQL statement
 			$extraTables = "";
@@ -134,18 +140,22 @@ if (isset($_POST['frmaction']) && $_POST['frmaction'] == "dofilter") {
 				$extraSQL .= " AND users.Username LIKE ?";
 				array_push($extraSQLVals,"%".$_POST['username']."%");
 			}
+
 			if ($_POST['firstname']) {
 				$extraSQL .= " AND wisp_userdata.FirstName LIKE ?";
 				array_push($extraSQLVals,"%".$_POST['firstname']."%");
 			}
+
 			if ($_POST['lastname']) {
 				$extraSQL .= " AND wisp_userdata.LastName LIKE ?";
 				array_push($extraSQLVals,"%".$_POST['lastname']."%");
 			}
+
 			if ($_POST['phone']) {
 				$extraSQL .= " AND wisp_userdata.Phone LIKE ?";
 				array_push($extraSQLVals,"%".$_POST['phone']."%");
 			}
+
 			if ($_POST['location']) {
 				$extraSQL .= " AND locations.Name LIKE ?";
 				array_push($extraSQLVals,"%".$_POST['location']."%");
@@ -154,6 +164,7 @@ if (isset($_POST['frmaction']) && $_POST['frmaction'] == "dofilter") {
 
 				$extraTables .= ", wisp_locations";
 			}
+
 			if ($_POST['email']) {
 				$extraSQL = " AND wisp_userdata.Email LIKE ?";
 				array_push($extraSQLVals,"%".$_POST['email']."%");
@@ -220,23 +231,17 @@ if (isset($_POST['frmaction']) && $_POST['frmaction'] == "dofilter") {
 				$userIP = NULL;
 				$attrResult = $db->query($attrQuery);
 				while ($attrRow = $attrResult->fetchObject()) {
-					# Is it the data cap attribute
-					if ($attrRow->name == "SMRadius-Capping-Traffic-Limit") {
-						$dataCap = $attrRow->value;
-					}
-					# Or the time cap attribute
-					if ($attrRow->name == "SMRadius-Capping-UpTime-Limit") {
-						$timeCap = $attrRow->value;
-					}
-					# Or the user IP attribute
-					if ($attrRow->name == "Framed-IP-Address") {
-						$userIP = $attrRow->value;
+					switch ($attrRow->name) {
+						case "SMRadius-Capping-Traffic-Limit":
+							$dataCap = $attrRow->value;
+						case "SMRadius-Capping-UpTime-Limit":
+							$timeCap = $attrRow->value;
+						case "Framed-IP-Address":
+							$userIP = $attrRow->value;
 					}
 				}
 				$attrResult->closeCursor();
-
 ?>		
-
 				<tr class="resultsitem">
 					<td><input type="radio" name="user_id" value="<?php echo $row->id; ?>"/></td>
 					<td><?php echo $row->username; ?></td>
@@ -244,37 +249,40 @@ if (isset($_POST['frmaction']) && $_POST['frmaction'] == "dofilter") {
 					<td><?php echo $row->lastname; ?></td>
 					<td><?php echo $row->email; ?></td>
 					<td><?php echo $row->phone; ?></td>
-					<td><?php echo $row->locationid; ?></td>
+<?php
+					if (isset($row->locationid)) {
+?>
+						<td><?php echo $locationsIDtoName[$row->locationid]; ?></td>
+<?php
+					} else {
+?>
+						<td><?php echo "None"; ?></td>
+<?php
+					}
+?>
 					<td><?php echo $dataCap; ?> MB</td>
 					<td><?php echo $timeCap; ?> Min</td>
 					<td><?php echo $userIP; ?></td>
 				</tr>
 
 <?php
-
 			}
+
 			# If there were no rows, complain
 			if ($res->rowCount() == 0) {
 
 ?>
-
 				<p />
 				<tr>
 					<td colspan="3" class="textcenter">No users found</td>
 				</tr>
-
 <?php
-
 			}
 			$res->closeCursor();
-
 ?>
-
 		</table>
 	</form>
-
 <?php
-
 }
 printFooter();
 
