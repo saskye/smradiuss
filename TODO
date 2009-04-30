@@ -7,7 +7,6 @@ WebUI:
 WiSP -> User List -> Edit: Must be able to clear fields (MAC Address)
 WiSP User Add -> Check if only certain fields are blank. Might want to add user without MAC Address.
 Fix up multi-user-add, code is a bit fugly, use lastinsertid
-wisp-user-delete.php - proper sql error handling
 wisp-user-edit.php - proper sql error handling, use 1 query to pull in all attribs and check them in a hash, nigel to then cleanup
 
 
