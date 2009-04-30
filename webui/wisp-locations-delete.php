@@ -30,7 +30,7 @@ $db = connect_db();
 
 printHeader(array(
 		"Tabs" => array(
-			"Back to location list" => "wisp-locations-manage.php",
+			"Back to location list" => "wisp-locations-main.php",
 		),
 ));
 

@@ -31,7 +31,7 @@ if (!isset($_POST['frmaction'])) {
 ?>
 	<p class="pageheader">Location List</p>
 
-	<form id="main_form" action="wisp-locations-manage.php" method="post">
+	<form id="main_form" action="wisp-locations-main.php" method="post">
 		<div class="textcenter">
 			Action
 			<select id="main_form_action" name="frmaction" 
