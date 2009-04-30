@@ -29,7 +29,7 @@ printHeader(array(
 # If we have nothing to do - display search
 if (!isset($_POST['frmaction'])) {
 ?>
-	<p class="pageheader">User List</p>
+	<p class="pageheader">WiSP User List</p>
 
 	<form id="main_form" action="wisp-user-list.php" method="post">
 		<input type="hidden" name="frmaction" value="dofilter" />
@@ -71,6 +71,8 @@ if (!isset($_POST['frmaction'])) {
 
 } elseif (isset($_POST['frmaction']) && $_POST['frmaction'] == "dofilter") {
 ?>
+	<p class="pageheader">WiSP User List</p>
+
 	<form id="main_form" action="wisp-user-list.php" method="post">
 
 		<div class="textcenter">

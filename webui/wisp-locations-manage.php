@@ -54,7 +54,7 @@ if (!isset($_POST['frmaction'])) {
 				<option value="add">Add Location</option>
 				<option value="delete">Delete Location</option>
 				<option disabled="disabled"> - - - - - - - - - - - </option>
-				<option value="useratts">List Location Members</option>
+				<option value="useratts">Members</option>
 			</select> 
 		</div>
 

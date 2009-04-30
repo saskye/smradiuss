@@ -62,8 +62,8 @@ printHeader(array(
 				<option value="add">Add Group</option>
 				<option value="delete">Delete Group</option>
 				<option disabled="disabled"> - - - - - - - - - - - </option>
-				<option value="members">List Users</option>
-				<option value="members">List Attributes</option>
+				<option value="members">Users</option>
+				<option value="members">Attributes</option>
 			</select> 
 		</div>
 

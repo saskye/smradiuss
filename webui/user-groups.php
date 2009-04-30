@@ -55,7 +55,7 @@ printHeader(array(
 			<option selected="selected">select action</option>
 			<option disabled="disabled"> - - - - - - - - - - - </option>
 			<option value="add">Assign Group</option>
-			<option value="delete">Remove Group Assignment</option>
+			<option value="delete">Remove Group</option>
 		</select> 
 	</div>
 
@@ -108,7 +108,7 @@ printHeader(array(
 			if ($res->rowCount() == 0) {
 ?>
 				<tr>
-					<td>User does not belong to any groups</td>
+					<td colspan="5">User does not belong to any groups</td>
 				</tr>
 <?php
 			}
@@ -118,7 +118,7 @@ printHeader(array(
 		} else {
 ?>
 			<tr>
-				<td>Invocation error, no user ID selected</td>
+				<td colspan="5">Invocation error, no user ID selected</td>
 			</tr>
 <?php
 		}
