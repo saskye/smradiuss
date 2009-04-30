@@ -92,30 +92,19 @@ if (isset($_POST['frmaction']) && $_POST['frmaction'] == "add") {
 			$_POST['group_disabled'],
 			$_POST['group_comment'],
 		));
-		if ($res) {
-
+		if ($res !== FALSE) {
 ?>
-
 			<div class="notice">Group created</div>
-
 <?php
-
 		} else {
-
 ?>
-
 			<div class="warning">Failed to create group</div>
 			<div class="warning"><?php print_r($stmt->errorInfo()) ?></div>
-
 <?php
-
 		}
 	} else {
-
 ?>
-
 		<div class="warning">Group name cannot be empty!</div>
-
 <?php
 
 	}

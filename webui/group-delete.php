@@ -79,37 +79,73 @@ if (isset($_POST['frmaction']) && $_POST['frmaction'] == "delete") {
 
 			$db->beginTransaction();
 
-			$res = $db->exec("DELETE FROM ${DB_TABLE_PREFIX}users_to_groups WHERE GroupID = ".$db->quote($_POST['group_id']));
+			$res = $db->exec("
+				DELETE FROM 
+					${DB_TABLE_PREFIX}users_to_groups
+				WHERE 
+					GroupID = ".$db->quote($_POST['group_id'])."
+			");
 			if ($res !== FALSE) {
-				$res = $db->exec("DELETE FROM ${DB_TABLE_PREFIX}group_attributes WHERE GroupID = ".$db->quote($_POST['group_id']));
+?>
+				<div class="notice">User to group mappings removed</div>
+<?php
+			} else {
+?>
+				<div class="warning">Error removing user mappings from group</div>
+				<div class="warning"><?php print_r($db->errorInfo()) ?></div>
+<?php
+			}
+
+			if ($res !== FALSE) {
+
+				$res = $db->exec("
+					DELETE FROM 
+						${DB_TABLE_PREFIX}group_attributes
+					WHERE
+						GroupID = ".$db->quote($_POST['group_id'])."
+				");
+
 				if ($res !== FALSE) {
+?>
+					<div class="notice">Group group attributes removed</div>
+<?php
+				} else {
+?>
+					<div class="warning">Error removing group attributes</div>
+					<div class="warning"><?php print_r($db->errorInfo()) ?></div>
+<?php
+				}
+			}
+
+
+			if ($res !== FALSE) {
 					$res = $db->exec("DELETE FROM ${DB_TABLE_PREFIX}groups WHERE ID = ".$db->quote($_POST['group_id']));
+
 					if ($res !== FALSE) {
 ?>
 						<div class="notice">Group deleted</div>
 <?php
-						$db->commit();
 					} else {
 ?>
 						<div class="warning">Error deleting group</div>
 						<div class="warning"><?php print_r($db->errorInfo()) ?></div>
 <?php
-						$db->rollback();
 					}
-				} else {
-?>
-					<div class="warning">Error deleting group</div>
-					<div class="warning"><?php print_r($db->errorInfo()) ?></div>
-<?php
-					$db->rollback();
-				}
-			} else {
-?>
-				<div class="warning">Error deleting group</div>
-				<div class="warning"><?php print_r($db->errorInfo()) ?></div>
-<?php
-				$db->rollback();
 			}
+
+			# Check if all is ok, if so, we can commit, else must rollback
+			if ($res !== FALSE) {
+				$db->commit();
+?>
+				<div class="notice">Changes comitted.</div>
+<?php
+			} else {
+				$db->rollback();
+?>
+				<div class="notice">Changes reverted.</div>
+<?php
+			}
+
 		} else {
 ?>
 			<div class="notice">Group not deleted, aborted by user</div>
