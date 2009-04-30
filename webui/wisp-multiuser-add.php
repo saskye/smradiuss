@@ -82,20 +82,19 @@ if (isset($_POST['frmaction']) && $_POST['frmaction'] == "insert") {
 	if (!empty($_POST['num_users']) && !empty($_POST['session_timeout']) && !empty($_POST['data_limit']) 
 			&& !empty($_POST['time_limit'])) {
 
-		$db->beginTransaction();
-
 		$numberOfUsers = (int)$_POST['num_users'];
 		$sessionTimeout = (int)$_POST['session_timeout'];
 		$dataLimit = (int)$_POST['data_limit'];
 		$timeLimit = (int)$_POST['time_limit'];
 		$loginNamePrefix = $_POST['login_prefix'];
 
+		$userList = array();
+
+		# FIXME
 		for ($counter = 0; $counter <= $numberOfUsers; $counter++) {
 
 			# Loop and try add user, maybe its duplicate?
 			do {
-				$isDuplicate = 0;
-
 				# Generate random username
 				$randomString = "";
 				for ($i = 0; $i < 8; $i++) { $randomString .= chr(rand(97,122)); }
@@ -114,12 +113,19 @@ if (isset($_POST['frmaction']) && $_POST['frmaction'] == "insert") {
 					FROM 
 						${DB_TABLE_PREFIX}users 
 					WHERE 
-						Username LIKE '%$userName%'
+						Username = ".$db->quote($userName)."
 				");
 
 				$row = $stmt->fetchObject();
 
-			} while ($row->duplicate > 0);
+			} while ($row->duplicate != 0);
+
+			array_push($userList,$userName);
+		}
+
+		$db->beginTransaction();
+
+		foreach ($userList as $userName) {
 
 			#Insert user into users table
 			$stmt = $db->prepare("
@@ -146,11 +152,16 @@ if (isset($_POST['frmaction']) && $_POST['frmaction'] == "insert") {
 					");
 
 					$res = $stmt->execute(array($userID));
-				} else {
-					$res = 0;
+					if ($res !== FALSE) {
 ?>
-					<div class="warning">Failed to retreive user ID</div>
+						<div class="notice">Userdata added</div>
 <?php
+					} else {
+						$res = 0;
+?>
+						<div class="warning">Failed to create user</div>
+<?php
+					}
 				}
 
 
@@ -158,77 +169,97 @@ if (isset($_POST['frmaction']) && $_POST['frmaction'] == "insert") {
 					# Generate password
 					$userPassword = "";
 					for ($passCount = 0; $passCount < 8; $passCount++) {
-					$userPassword .= chr(rand(97,122));
+						$userPassword .= chr(rand(97,122));
 					}
 
 					# Insert password into user_attributes table
 					$stmt = $db->prepare("
-									INSERT INTO
-										${DB_TABLE_PREFIX}user_attributes (UserID,Name,Operator,Value)
-									VALUES
-										($userID,'User-Password','==',?)
+						INSERT INTO
+							${DB_TABLE_PREFIX}user_attributes (UserID,Name,Operator,Value)
+						VALUES
+							($userID,'User-Password','==',?)
 					");
 
 					$res = $stmt->execute(array($userPassword));
-				} else {
+					if ($res !== FALSE) {
 ?>
-					<div class="warning">Failed to add user password</div>
-					<div class="warning"><?php print_r($stmt->errorInfo()); ?></div>
+						<div class="notice">User password added</div>
 <?php
+					} else {
+?>
+						<div class="warning">Failed to add user password</div>
+						<div class="warning"><?php print_r($stmt->errorInfo()); ?></div>
+<?php
+					}
 				}
 				
 
 				if ($res !== FALSE) {
 					# Insert data limit into user_attributes table
 					$stmt = $db->prepare("
-									INSERT INTO
-										${DB_TABLE_PREFIX}user_attributes (UserID,Name,Operator,Value)
-									VALUES
-										($userID,'SMRadius-Capping-Traffic-Limit',':=',?)
+						INSERT INTO
+							${DB_TABLE_PREFIX}user_attributes (UserID,Name,Operator,Value)
+						VALUES
+							($userID,'SMRadius-Capping-Traffic-Limit',':=',?)
 					");
 
 					$res = $stmt->execute(array($dataLimit));
-				} else {
+					if ($res !== FALSE) {
 ?>
-					<div class="warning">Failed to add data cap</div>
-					<div class="warning"><?php print_r($stmt->errorInfo()); ?></div>
+						<div class="notice">Data cap added</div>
 <?php
+					} else {
+?>
+						<div class="warning">Failed to add data cap</div>
+						<div class="warning"><?php print_r($stmt->errorInfo()); ?></div>
+<?php
+					}
 				}
 
 				
 				if ($res !== FALSE) {
 					# Insert time limit into user_attributes table
 					$stmt = $db->prepare("
-									INSERT INTO
-										${DB_TABLE_PREFIX}user_attributes (UserID,Name,Operator,Value)
-									VALUES
-										($userID,'SMRadius-Capping-UpTime-Limit',':=',?)
+						INSERT INTO
+							${DB_TABLE_PREFIX}user_attributes (UserID,Name,Operator,Value)
+						VALUES
+							($userID,'SMRadius-Capping-UpTime-Limit',':=',?)
 					");
 
 					$res = $stmt->execute(array($timeLimit));
-				} else {
+					if ($res !== FALSE) {
 ?>
-					<div class="warning">Failed to add uptime cap</div>
-					<div class="warning"><?php print_r($stmt->errorInfo()); ?></div>
+						<div class="notice">Uptime limit added</div>
 <?php
+					} else {
+?>
+						<div class="warning">Failed to add uptime limit</div>
+						<div class="warning"><?php print_r($stmt->errorInfo()); ?></div>
+<?php
+					}
 				}
 
 
 				if ($res !== FALSE) {
 					# Insert timeout into user_attributes table
 					$stmt = $db->prepare("
-									INSERT INTO
-										${DB_TABLE_PREFIX}user_attributes (UserID,Name,Operator,Value)
-									VALUES
-										($userID,'Session-Timeout','+=',?)
+						INSERT INTO
+							${DB_TABLE_PREFIX}user_attributes (UserID,Name,Operator,Value)
+						VALUES
+							($userID,'Session-Timeout','+=',?)
 					");
 
 					$res = $stmt->execute(array($sessionTimeout));
-				} else {
+					if ($res !== FALSE) {
 ?>
-					<div class="warning">Failed to add uptime cap</div>
-					<div class="warning"><?php print_r($stmt->errorInfo()); ?></div>
+						<div class="notice">User timeout added</div>
 <?php
+					} else {
+?>
+						<div class="warning">Failed to add user timeout</div>
+						<div class="warning"><?php print_r($stmt->errorInfo()); ?></div>
+<?php
+					}
 				}
 			}
 
