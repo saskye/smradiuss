@@ -37,18 +37,23 @@ if (isset($_POST['frmaction']) && $_POST['frmaction'] == "edit") {
 
 		$userID = $_POST['user_id'];
 		$sql = "SELECT 
-					FirstName, 
-					LastName, 
-					Location, 
-					Email, 
-					Phone 
+					wisp_userdata.FirstName, 
+					wisp_userdata.LastName, 
+					wisp_userdata.Email, 
+					wisp_userdata.Phone,
+					wisp_userdata.LocationID,
+					wisp_locations.ID,
+					wisp_locations.Name
 				FROM 
-					userdata 
+					wisp_userdata, wisp_locations 
 				WHERE 
-					UserID = ".$db->quote($userID)."
+					wisp_userdata.UserID = ".$db->quote($userID)."
+				AND
+					wisp_userdata.LocationID = 'wisp_locations.ID'
 				";
 
 		$userDataResult = $db->query($sql); 
+		print_r("NUMBER OF ROWS: ".$userDataResult->rowCount());
 		$userDataRow = $userDataResult->fetchObject();
 
 		$sql = "SELECT
@@ -181,8 +186,34 @@ if (isset($_POST['frmaction']) && $_POST['frmaction'] == "edit") {
 				</tr>
 				<tr>
 					<td class="entrytitle texttop">Location</td>
-					<td class="oldval texttop"><?php echo $userDataRow->location; ?></td>
-					<td><input type="text" name="new_location" /></td>
+					<td class="oldval texttop"><?php echo $userDataRow->name; ?></td>
+					<td>
+						<select name="new_location">
+							<option selected="selected" value="<?php echo $userDataRow->id; ?>">Unchanged</option>
+<?php
+								$sql = "SELECT
+												ID, Name
+										FROM
+												${DB_TABLE_PREFIX}wisp_locations
+										ORDER BY
+												Name
+										DESC
+										";
+
+								$res = $db->query($sql);
+
+								# If there are any result rows, list items
+								if ($res->rowCount() > 0) {
+
+									while ($row = $res->fetchObject()) {
+?>
+										<option value="<?php echo $row->id; ?>"><?php echo $row->name; ?></option>
+<?php
+									}
+								}
+?>
+						</select>
+					</td>
 				</tr>
 				<tr>
 					<td class="entrytitle texttop">Email</td>
@@ -313,12 +344,22 @@ if (isset($_POST['frmaction']) && $_POST['frmaction'] == "edit") {
 										");
 			$numUserAttributesUpdates++;
 		}
+		if (!empty($_POST['new_location'])) {
+			$locationResult = $db->exec("	UPDATE
+												wisp_userdata
+											SET
+												LocationID = ".$db->quote($_POST['new_location'])."
+											WHERE
+												UserID = ".$db->quote($_POST['user_id'])."
+										");
+		}
+												
 
-		# Check if we have userdata table updates
+		# Check if we have wisp_userdata table updates
 		if (sizeof($userDataUpdates) > 0) {
 			$userDataUpdateString = implode(', ',$userDataUpdates);
 
-			$res = $db->exec("UPDATE userdata SET $userDataUpdateString WHERE UserID = ".$db->quote($_POST['user_id']));
+			$res = $db->exec("UPDATE wisp_userdata SET $userDataUpdateString WHERE UserID = ".$db->quote($_POST['user_id']));
 			if ($res) {
 
 ?>
