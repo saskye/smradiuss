@@ -157,45 +157,38 @@ if (isset($_POST['frmaction']) && $_POST['frmaction'] == "change") {
 		if (sizeof($updates) > 0) {
 			$updateStr = implode(', ',$updates);
 
-			$res = $db->exec("UPDATE ${DB_TABLE_PREFIX}group_attributes SET $updateStr WHERE ID = ".$db->quote($_POST['attr_id']));
+			$res = $db->exec("
+				UPDATE 
+					${DB_TABLE_PREFIX}group_attributes 
+				SET 
+					$updateStr 
+				WHERE 
+					ID = ".$db->quote($_POST['attr_id']."
+			"));
 			if ($res !== FALSE) {
-
 ?>
-
 				<div class="notice">Attribute updated</div>
-
 <?php
-
 			} else {
-
 ?>
-
 				<div class="warning">Error updating attribute</div>
 				<div class="warning"><?php print_r($db->errorInfo()) ?></div>
-
 <?php
-
 			}
 		# Warn
 		} else {
-
 ?>
-
 			<div class="warning">No attribute updates</div>
-
 <?php
-
 		}
+
 	# Warn
 	} else {
-
 ?>
-
 		<div class="error">No attribute data available</div>
-
 <?php
-
 	}
+
 } else {
 
 ?>

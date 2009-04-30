@@ -76,45 +76,35 @@ if (isset($_POST['frmaction']) && $_POST['frmaction'] == "delete") {
 
 <?php
 
+	# Make sure we have the attribute ID set
 	if (isset($_POST['attr_id'])) {
+
+		# And make sure user confirmed
 		if (isset($_POST['confirm']) && $_POST['confirm'] == "yes") {
+
 			$res = $db->exec("DELETE FROM ${DB_TABLE_PREFIX}group_attributes WHERE ID = ".$db->quote($_POST['attr_id']));
 			if ($res !== FALSE) {
-
 ?>
-
 				<div class="notice">Attribute with ID: <?php print_r($_POST['attr_id']);?> deleted</div>
-
 <?php
-
 			} else {
-
 ?>
-
 				<div class="warning">Error deleting attribute</div>
 				<div class="warning"><?php print_r($db->errorInfo()) ?></div>
-
 <?php
-
 			}
+
 		# Warn
 		} else {
-
 ?>
-
 			<div class="warning">Delete attribute aborted</div>
-
 <?php
-
 		}
+
 	} else {
-
 ?>
-
 		<div class="warning">Invocation error, no attribute ID selected</div>
-
 <?php
-
 	}
 }
 printFooter();

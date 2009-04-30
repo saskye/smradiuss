@@ -111,19 +111,12 @@ if (isset($_POST['frmaction']) && $_POST['frmaction'] == "add") {
 			$_POST['attr_operator'],
 			$_POST['attr_value'],
 		));
-		if ($res) {
-
+		if ($res !== FALSE) {
 ?>
-
 			<div class="notice">Attribute added</div>
-
 <?php
-
-			session_destroy();
 		} else {
-
 ?>
-
 			<div class="warning">Failed to add attribute</div>
 			<div class="warning"><?php print_r($stmt->errorInfo()) ?></div>
 
