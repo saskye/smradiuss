@@ -95,9 +95,6 @@ if (isset($_POST['frmaction']) && $_POST['frmaction'] == "add") {
 
 	} else {
 		$stmt = $db->prepare("INSERT INTO ${DB_TABLE_PREFIX}group_attributes (GroupID,Name,Operator,Value) VALUES (?,?,?,?)");
-		# Which user am I working with?
-		$attr_group_id = $_SESSION['attr_group_id']; 
-
 		$res = $stmt->execute(array(
 			$attr_group_id,
 			$_POST['attr_name'],
