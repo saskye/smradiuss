@@ -37,11 +37,10 @@ printHeader(array(
 
 # Display delete confirm screen
 if (isset($_POST['frmaction']) && $_POST['frmaction'] == "delete") {
+
 	# Check a user was selected
 	if (isset($_POST['attr_id'])) {
-
 ?>
-
 		<p class="pageheader">Delete Attribute</p>
 
 		<form action="group-attribute-delete.php" method="post">
@@ -55,25 +54,19 @@ if (isset($_POST['frmaction']) && $_POST['frmaction'] == "delete") {
 				<input type="submit" name="confirm" value="no" />
 			</div>
 		</form>
-
 <?php
 
 	} else {
-
 ?>
-
 		<div class="warning">No attribute selected</div>
-
 <?php
-
 	}
+
 # SQL Updates
 } elseif (isset($_POST['frmaction']) && $_POST['frmaction'] == "delete2") {
 
 ?>
-
 	<p class="pageheader">Attribute Delete Results</p>
-
 <?php
 
 	# Make sure we have the attribute ID set

@@ -79,12 +79,10 @@ printHeader(array(
 			</tr>
 
 <?php
-
 			$sql = "SELECT ID, Name, Priority, Disabled, Comment FROM ${DB_TABLE_PREFIX}groups ORDER BY ID";
 			$res = $db->query($sql);
 
 			while ($row = $res->fetchObject()) {
-
 ?>
 				<tr class="resultsitem">
 					<td><input type="radio" name="group_id" value="<?php echo $row->id; ?>" /></td>
@@ -93,29 +91,23 @@ printHeader(array(
 					<td class="textcenter"><?php echo $row->disabled ? 'yes' : 'no'; ?></td>
 					<td><?php echo $row->comment; ?></td>
 				</tr>
-
 <?php
-
 			}
+
 			if ($res->rowCount() == 0) {
-
 ?>
-
 				<p />
 				<tr>
 					<td colspan="5" class="textcenter">Group list is empty</td>
 				</tr>
-
 <?php
-
 			}
+
 			$res->closeCursor();
 
 ?>
-
 		</table>
 	</form>
-
 <?php
 
 printFooter();

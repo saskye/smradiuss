@@ -16,8 +16,6 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-session_start();
-
 include_once("includes/header.php");
 include_once("includes/footer.php");
 include_once("includes/db.php");
@@ -86,18 +84,13 @@ if (isset($_POST['frmaction']) && $_POST['frmaction'] == "add") {
 } elseif (isset($_POST['frmaction']) && $_POST['frmaction'] == "add2") {
 
 ?>
-
 	<p class="pageheader">Attribute Add Results</p>
-
 <?php
 
 	# Check for empty values
 	if (empty($_POST['attr_name']) || empty($_POST['attr_operator']) || empty($_POST['attr_value'])) {
-
 ?>
-
 		<div class="warning">Submission cannot have empty value</div>
-
 <?php
 
 	} else {
@@ -121,17 +114,13 @@ if (isset($_POST['frmaction']) && $_POST['frmaction'] == "add") {
 			<div class="warning"><?php print_r($stmt->errorInfo()) ?></div>
 
 <?php
-
 		}
+
 	}
 } else {
-
 ?>
-
 	<div class="warning">Invalid invocation</div>
-
 <?php
-
 }
 printFooter();
 

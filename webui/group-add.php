@@ -102,18 +102,18 @@ if (isset($_POST['frmaction']) && $_POST['frmaction'] == "add") {
 			<div class="warning"><?php print_r($stmt->errorInfo()) ?></div>
 <?php
 		}
+
 	} else {
 ?>
 		<div class="warning">Group name cannot be empty!</div>
 <?php
 
 	}
+
 } else {
 
 ?>
-
 	<div class="warning">Invalid invocation</div>
-
 <?php
 
 }

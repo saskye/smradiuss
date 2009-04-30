@@ -56,9 +56,7 @@ if (isset($_POST['group_id'])) {
 			<td class="textcenter">Member</td>
 			<td class="textcenter">Disabled</td>
 		</tr>
-
 <?php
-
 		# Get list of members belonging to this group
 		$stmt = $db->prepare("SELECT UserID FROM ${DB_TABLE_PREFIX}users_to_groups WHERE GroupID = ?");
 		$stmtResult = $stmt->execute(array($_REQUEST['group_id']));
@@ -71,50 +69,38 @@ if (isset($_POST['group_id'])) {
 
 			# List users
 			while ($row = $res->fetchObject()) {
-
 ?>
-
 				<tr class="resultsitem">
 					<td><?php echo $row->id; ?></td>
 					<td><?php echo $row->username; ?></td>
 					<td class="textcenter"><?php echo $row->disabled ? 'yes' : 'no'; ?></td>
 				</tr>
-
 <?php
-
 			}
+
 			$res->closeCursor();
 		}
 
 		# Did we get any results?
 		if ($stmt->rowCount() == 0) {
-
 ?>
-
 			<p />
 			<tr>
 				<td colspan="3" class="textcenter">Group has no users</td>
 			</tr>
-
 <?php
-
 		}
+
 		$stmt->closeCursor();
 
 ?>
-
 	</table>
-
 <?php
 
 } else {
-
 ?>
-
 	<div class="warning">Invalid invocation</div>
-
 <?php
-
 }
 printFooter();
 

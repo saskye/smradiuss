@@ -37,11 +37,10 @@ printHeader(array(
 
 # Display delete confirm screen
 if (isset($_POST['frmaction']) && $_POST['frmaction'] == "delete") {
+
 	# Check a policy group was selected
 	if (isset($_POST['group_id'])) {
-
 ?>
-
 		<p class="pageheader">Delete Group</p>
 
 		<form action="group-delete.php" method="post">
@@ -53,28 +52,22 @@ if (isset($_POST['frmaction']) && $_POST['frmaction'] == "delete") {
 				<input type="submit" name="confirm" value="no" />
 			</div>
 		</form>
-
 <?php
 
 	} else {
-
 ?>
-
 		<div class="warning">No group selected</div>
-
 <?php
-
 	}
+
 # SQL Updates
 } elseif (isset($_POST['frmaction']) && $_POST['frmaction'] == "delete2") {
-
 ?>
-
 	<p class="pageheader">Group Delete Results</p>
-
 <?php
 
 	if (isset($_POST['group_id'])) {
+
 		if (isset($_POST['confirm']) && $_POST['confirm'] == "yes") {
 
 			$db->beginTransaction();

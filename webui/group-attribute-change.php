@@ -37,15 +37,14 @@ printHeader(array(
 
 # Display change screen
 if (isset($_POST['frmaction']) && $_POST['frmaction'] == "change") {
+
 	# Check an attribute was selected
 	if (isset($_POST['attr_id'])) {
 		# Prepare statement
 		$sql = "SELECT ID, Name, Operator, Value, Disabled FROM ${DB_TABLE_PREFIX}group_attributes WHERE ID = ".$db->quote($_POST['attr_id']);
 		$res = $db->query($sql); 
 		$row = $res->fetchObject();
-
 ?>
-
 		<p class="pageheader">Update Group Attribute</p>
 
 		<form action="group-attribute-change.php" method="post">
@@ -113,26 +112,21 @@ if (isset($_POST['frmaction']) && $_POST['frmaction'] == "change") {
 				<input type="submit" />
 			</div>
 		</form>
-
 <?php
 
 		$res->closeCursor();
+
 	} else {
-
 ?>
-
 		<div class="warning">No attribute selected</div>
-
 <?php
-
 	}
+
 # SQL Updates
 } elseif (isset($_POST['frmaction']) && $_POST['frmaction'] == "change2") {
 
 ?>
-
 	<p class="pageheader">Attribute Update Results</p>
-
 <?php
 
 	# Check an attribute was selected
@@ -175,6 +169,7 @@ if (isset($_POST['frmaction']) && $_POST['frmaction'] == "change") {
 				<div class="warning"><?php print_r($db->errorInfo()) ?></div>
 <?php
 			}
+
 		# Warn
 		} else {
 ?>
@@ -190,13 +185,9 @@ if (isset($_POST['frmaction']) && $_POST['frmaction'] == "change") {
 	}
 
 } else {
-
 ?>
-
 	<div class="warning">Invalid invocation</div>
-
 <?php
-
 }
 
 
