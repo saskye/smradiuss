@@ -275,7 +275,7 @@ if (!isset($_POST['frmaction'])) {
 ?>
 				<p />
 				<tr>
-					<td colspan="3" class="textcenter">No users found</td>
+					<td colspan="10" class="textcenter">No users found</td>
 				</tr>
 <?php
 			}
