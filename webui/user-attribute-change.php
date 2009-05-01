@@ -54,7 +54,7 @@ if (isset($_POST['frmaction']) && $_POST['frmaction'] == "change") {
 		$row = $res->fetchObject();
 
 ?>
-		<p class="pageheader">Update User</p>
+		<p class="pageheader">Change Attribute</p>
 
 		<form action="user-attribute-change.php" method="post">
 			<div>
@@ -73,7 +73,7 @@ if (isset($_POST['frmaction']) && $_POST['frmaction'] == "change") {
 						<?php tooltip('user_attributes_name'); ?>
 					</td>
 					<td class="oldval texttop"><?php echo $row->name; ?></td>
-					<td><textarea name="user_attributes_name" cols="40" rows="1"></textarea></td>
+					<td><input name="user_attributes_name" /></td>
 				</tr>
 				<tr>
 					<td class="entrytitle texttop">
@@ -82,6 +82,7 @@ if (isset($_POST['frmaction']) && $_POST['frmaction'] == "change") {
 					<td class="oldval texttop"><?php echo $row->operator; ?></td>
 					<td>
 						<select name="user_attributes_operator">
+							<option value="">--</option>
 							<option value="=">=</option>
 							<option value="==">==</option>
 							<option value=":=">:=</option>
