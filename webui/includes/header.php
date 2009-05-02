@@ -46,6 +46,7 @@ function printHeader($params = NULL)
 	<title>SMRadiusd Web Administration</title>
 	<link rel="stylesheet" type="text/css" href="stylesheet.css" />
 	
+	<script type="text/javascript" src="library.js"></script>
 	<script type="text/javascript" src="tooltips/BubbleTooltips.js"></script>
 	<script type="text/javascript">
 		window.onload=function(){enableTooltips(null,"img")};
