@@ -494,20 +494,24 @@ sub process_request {
 		if ($module->{'Config_get'}) {
 
 			# Get result from config module
-			$self->log(LOG_INFO,"[SMRADIUS] FIND: Trying plugin '".$module->{'Name'}."' for incoming connection");
-			my ($configData) = $module->{'Config_get'}($self,$user,$pkt);
-			# If we got some config back, process it
-			if ($configData) {
-				# Loop with attributes we got from the user
-				foreach my $attrName (keys %{$configData}) {
-					# Loop with operators
-					foreach my $attrOp (keys %{$configData->{$attrName}}) {
-						# Grab attribute
-						my $attr = $configData->{$attrName}->{$attrOp};
-						# Process attribute
-						my $res = processConfigAttribute($self,$user->{'ConfigAttributes'},$attr);
-					}
-				}
+			$self->log(LOG_INFO,"[SMRADIUS] CONFIG: Trying plugin '".$module->{'Name'}."' for incoming connection");
+			my $res = $module->{'Config_get'}($self,$user,$pkt);
+
+			# Check result
+			if (!defined($res)) {
+				$self->log(LOG_DEBUG,"[SMRADIUS] CONFIG: Error with plugin '".$module->{'Name'}."'");
+
+			# Check if we skipping this plugin
+			} elsif ($res == MOD_RES_SKIP) {
+				$self->log(LOG_DEBUG,"[SMRADIUS] CONFIG: Skipping '".$module->{'Name'}."'");
+
+			# Check if we got a positive result back
+			} elsif ($res == MOD_RES_ACK) {
+				$self->log(LOG_NOTICE,"[SMRADIUS] CONFIG: Configuration retrieved from '".$module->{'Name'}."'");
+
+			# Check if we got a negative result back
+			} elsif ($res == MOD_RES_NACK) {
+				$self->log(LOG_NOTICE,"[SMRADIUS] CONFIG: Configuration problem when using '".$module->{'Name'}."'");
 			}
 		}
 	}
@@ -866,6 +870,7 @@ sub process_request {
 					}
 				}
 			}
+use Data::Dumper; print ( STDERR  "ATTRIBUTES: ".Dumper($user->{'ConfigAttributes'}) );
 			$udp_packet = auth_resp($resp->pack, getAttributeValue($user->{'ConfigAttributes'},"SMRadius-Config-Secret"));
 			$server->{'client'}->send($udp_packet);
 

@@ -81,7 +81,7 @@ sub init
 		FROM 
 			@TP@group_attributes, @TP@users_to_groups 
 		WHERE 
-			users_to_groups.UserID = %{userdb.ID}
+			users_to_groups.UserID = %{userdb.id}
 			AND group_attributes.GroupID = users_to_groups.GroupID
 	';
 	
@@ -100,17 +100,33 @@ sub init
 		# Pull in queries
 		if (defined($scfg->{'mod_userdb_sql'}->{'userdb_find_query'}) &&
 				$scfg->{'mod_userdb_sql'}->{'userdb_find_query'} ne "") {
-			$config->{'userdb_find_query'} = $scfg->{'mod_userdb_sql'}->{'userdb_find_query'};
+			if (ref($scfg->{'mod_userdb_sql'}->{'userdb_find_query'}) eq "ARRAY") {
+				$config->{'userdb_find_query'} = join(' ', @{$scfg->{'mod_userdb_sql'}->{'userdb_find_query'}});
+			} else {
+				$config->{'userdb_find_query'} = $scfg->{'mod_userdb_sql'}->{'userdb_find_query'};
+			}
 		}
 
 		if (defined($scfg->{'mod_userdb_sql'}->{'userdb_get_group_attributes_query'}) &&
 				$scfg->{'mod_userdb_sql'}->{'userdb_get_group_attributes_query'} ne "") {
-			$config->{'userdb_get_group_attributes_query'} = $scfg->{'mod_userdb_sql'}->{'userdb_get_group_attributes_query'};
+			if (ref($scfg->{'mod_userdb_sql'}->{'userdb_get_group_attributes_query'}) eq "ARRAY") {
+				$config->{'userdb_get_group_attributes_query'} = join(' ', 
+						@{$scfg->{'mod_userdb_sql'}->{'userdb_get_group_attributes_query'}});
+			} else {
+				$config->{'userdb_get_group_attributes_query'} = 
+						$scfg->{'mod_userdb_sql'}->{'userdb_get_group_attributes_query'};
+			}
 		}
 
 		if (defined($scfg->{'mod_userdb_sql'}->{'userdb_get_user_attributes_query'}) &&
 				$scfg->{'mod_userdb_sql'}->{'userdb_get_user_attributes_query'} ne "") {
-			$config->{'userdb_get_user_attributes_query'} = $scfg->{'mod_userdb_sql'}->{'userdb_get_user_attributes_query'};
+			if (ref($scfg->{'mod_userdb_sql'}->{'userdb_get_user_attributes_query'}) eq "ARRAY") {
+				$config->{'userdb_get_user_attributes_query'} = join(' ',
+						@{$scfg->{'mod_userdb_sql'}->{'userdb_get_user_attributes_query'}});
+			} else {
+					$config->{'userdb_get_user_attributes_query'} = 
+						$scfg->{'mod_userdb_sql'}->{'userdb_get_user_attributes_query'};
+			}
 		}
 	}
 }
@@ -180,7 +196,7 @@ sub get
 		$template->{'request'}->{$attr} = $packet->rawattr($attr)
 	}
 	# Add in userdb data
-	foreach my $item ($user->{'_UserDB_Data'}) {
+	foreach my $item (keys %{$user->{'_UserDB_Data'}}) {
 		$template->{'userdb'}->{$item} =  $user->{'_UserDB_Data'}->{$item};
 	}
 
@@ -189,6 +205,7 @@ sub get
 
 	# Replace template entries
 	my @dbDoParams = templateReplace($config->{'userdb_get_group_attributes_query'},$template);
+
 	# Query database
 	my $sth = DBSelect(@dbDoParams);
 	if (!$sth) {

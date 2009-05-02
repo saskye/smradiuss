@@ -78,7 +78,11 @@ sub init
 		# Pull in queries
 		if (defined($scfg->{'mod_config_sql'}->{'get_config_query'}) &&
 				$scfg->{'mod_config_sql'}->{'get_config_query'} ne "") {
-			$config->{'get_config_query'} = $scfg->{'mod_config_sql'}->{'get_config_query'};
+			if (ref($scfg->{'mod_config_sql'}->{'get_config_query'}) eq "ARRAY") {
+				$config->{'get_config_query'} = join(' ',@{$scfg->{'mod_config_sql'}->{'get_config_query'}});
+			} else {
+				$config->{'get_config_query'} = $scfg->{'mod_config_sql'}->{'get_config_query'};
+			}
 			
 		}
 	}
@@ -98,26 +102,23 @@ sub getConfig
 	my ($server,$user,$packet) = @_;
 
 
-	# Attributes to return
-	my %configAttributes = ();
-
 	# Replace template entries
 	my @dbDoParams = $config->{'get_config_query'};
 	# Query database
 	my $sth = DBSelect(@dbDoParams);
 	if (!$sth) {
 		$server->log(LOG_ERR,"Failed to get config attributes: ".smradius::dblayer::Error());
-		return -1;
+		return MOD_RES_NACK;
 	}
 	
 	# Loop with user attributes
 	while (my $row = $sth->fetchrow_hashref()) {
-		addAttribute($server,\%configAttributes,hashifyLCtoMC($row,qw(Name Operator Value)));
+		processConfigAttribute($server,$user->{'ConfigAttributes'},hashifyLCtoMC($row,qw(Name Operator Value)));
 	}
 
 	DBFreeRes($sth);
 
-	return \%configAttributes;
+	return MOD_RES_ACK;
 }
 
 

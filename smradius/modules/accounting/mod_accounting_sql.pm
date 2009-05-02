@@ -166,19 +166,39 @@ sub init
 		# Pull in queries
 		if (defined($scfg->{'mod_accounting_sql'}->{'accounting_start_query'}) &&
 				$scfg->{'mod_accounting_sql'}->{'accounting_start_query'} ne "") {
-			$config->{'accounting_start_query'} = $scfg->{'mod_accounting_sql'}->{'accounting_start_query'};
+			if (ref($scfg->{'mod_accounting_sql'}->{'accounting_start_query'}) eq "ARRAY") {
+				$config->{'accounting_start_query'} = join(' ',
+						@{$scfg->{'mod_accounting_sql'}->{'accounting_start_query'}});
+			} else {
+				$config->{'accounting_start_query'} = $scfg->{'mod_accounting_sql'}->{'accounting_start_query'};
+			}
 		}
 		if (defined($scfg->{'mod_accounting_sql'}->{'accounting_update_query'}) &&
 				$scfg->{'mod_accounting_sql'}->{'accounting_update_query'} ne "") {
-			$config->{'accounting_update_query'} = $scfg->{'mod_accounting_sql'}->{'accounting_update_query'};
+			if (ref($scfg->{'mod_accounting_sql'}->{'accounting_update_query'}) eq "ARRAY") {
+				$config->{'accounting_update_query'} = join(' ',
+						@{$scfg->{'mod_accounting_sql'}->{'accounting_update_query'}});
+			} else {
+				$config->{'accounting_update_query'} = $scfg->{'mod_accounting_sql'}->{'accounting_update_query'};
+			}
 		}
 		if (defined($scfg->{'mod_accounting_sql'}->{'accounting_stop_query'}) &&
 				$scfg->{'mod_accounting_sql'}->{'accounting_stop_query'} ne "") {
-			$config->{'accounting_stop_query'} = $scfg->{'mod_accounting_sql'}->{'accounting_stop_query'};
+			if (ref($scfg->{'mod_accounting_sql'}->{'accounting_stop_query'}) eq "ARRAY") {
+				$config->{'accounting_stop_query'} = join(' ',
+						@{$scfg->{'mod_accounting_sql'}->{'accounting_stop_query'}});
+			} else {
+				$config->{'accounting_stop_query'} = $scfg->{'mod_accounting_sql'}->{'accounting_stop_query'};
+			}
 		}
 		if (defined($scfg->{'mod_accounting_sql'}->{'get_usage_query'}) &&
 				$scfg->{'mod_accounting_sql'}->{'get_usage_query'} ne "") {
-			$config->{'get_usage_query'} = $scfg->{'mod_accounting_sql'}->{'get_usage_query'};
+			if (ref($scfg->{'mod_accounting_sql'}->{'get_usage_query'}) eq "ARRAY") {
+				$config->{'get_usage_query'} = join(' ',
+						@{$scfg->{'mod_accounting_sql'}->{'get_usage_query'}});
+			} else {
+				$config->{'get_usage_query'} = $scfg->{'mod_accounting_sql'}->{'get_usage_query'};
+			}
 		}
 	}
 }
