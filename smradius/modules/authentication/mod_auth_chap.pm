@@ -31,8 +31,6 @@ use smradius::constants;
 use smradius::logging;
 use Digest::MD5;
 
-use Data::Dumper; 
-
 
 
 # Exporter stuff

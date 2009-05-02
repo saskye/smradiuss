@@ -101,10 +101,6 @@ Acct-Delay-Time: %{accounting.Acct-Delay-Time}
 	}
 	$template->{'user'} = $user;
 
-
-	use Data::Dumper;
-	print(STDERR Dumper(templateReplace($string,$template)));
-
 	if ($packet->attr('Acct-Status-Type') eq "Start") {
 		$server->log(LOG_DEBUG,"Start Packet: ".$packet->dump());
 

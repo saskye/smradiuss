@@ -24,7 +24,6 @@ use warnings;
 use smradius::constants;
 use smradius::logging;
 use smradius::util;
-use Data::Dumper;
 
 # Exporter stuff
 require Exporter;
