@@ -119,52 +119,52 @@ CREATE TABLE @PREFIX@realm_attributes (
 CREATE TABLE @PREFIX@accounting (
 	ID			@SERIAL_TYPE@,
 
-	Username		VARCHAR(255) NOT NULL,
+	Username		VARCHAR(255),
 
-	ServiceType		INT UNSIGNED NOT NULL,
+	ServiceType		@INT_UNSIGNED@,
 
-	FramedProtocol		INT UNSIGNED NOT NULL, 
+	FramedProtocol		@INT_UNSIGNED@, 
 
-	NASPort			VARCHAR(255) NOT NULL,
+	NASPort			VARCHAR(255),
 		
-	NASPortType		INT UNSIGNED NOT NULL,
+	NASPortType		@INT_UNSIGNED@,
 
-	CallingStationID	VARCHAR(255) NOT NULL, 
+	CallingStationID	VARCHAR(255), 
 
-	CalledStationID		VARCHAR(255) NOT NULL,
+	CalledStationID		VARCHAR(255),
 
-	NASPortID		VARCHAR(255) NOT NULL,
+	NASPortID		VARCHAR(255),
 
-	AcctSessionID		VARCHAR(255) NOT NULL,
+	AcctSessionID		VARCHAR(255),
 	
-	FramedIPAddress		VARCHAR(16) NOT NULL,
+	FramedIPAddress		VARCHAR(16),
 
-	AcctAuthentic		INT UNSIGNED NOT NULL,
+	AcctAuthentic		@INT_UNSIGNED@,
 
-	EventTimestamp		DATETIME NOT NULL,
+	EventTimestamp		DATETIME,
 
-	NASIdentifier		VARCHAR(255) NOT NULL,	
+	NASIdentifier		VARCHAR(255),	
 
-	NASIPAddress		VARCHAR(16) NOT NULL,
+	NASIPAddress		VARCHAR(16),
 
-	AcctDelayTime		INT UNSIGNED NOT NULL,
+	AcctDelayTime		@INT_UNSIGNED@,
 
-	AcctSessionTime		INT UNSIGNED NOT NULL,
+	AcctSessionTime		@INT_UNSIGNED@,
 
-	AcctInputOctets		INT UNSIGNED NOT NULL,
+	AcctInputOctets		@INT_UNSIGNED@,
 
-	AcctInputGigawords	INT UNSIGNED NOT NULL,
+	AcctInputGigawords	@INT_UNSIGNED@,
 
-	AcctInputPackets	INT UNSIGNED NOT NULL,	
+	AcctInputPackets	@INT_UNSIGNED@,	
 
-	AcctOutputOctets	INT UNSIGNED NOT NULL,
+	AcctOutputOctets	@INT_UNSIGNED@,
 
-	AcctOutputGigawords	INT UNSIGNED NOT NULL,
+	AcctOutputGigawords	@INT_UNSIGNED@,
 
-	AcctOutputPackets	INT UNSIGNED NOT NULL,
+	AcctOutputPackets	@INT_UNSIGNED@,
 
-	AcctStatusType		INT UNSIGNED NOT NULL,
+	AcctStatusType		@INT_UNSIGNED@,
 
-	AcctTerminateCause	INT UNSIGNED NOT NULL
+	AcctTerminateCause	@INT_UNSIGNED@
 ) @CREATE_TABLE_SUFFIX@;
 CREATE INDEX @PREFIX@accounting_idx1 ON @PREFIX@accounting (Username);
