@@ -26,7 +26,6 @@ use smradius::dblayer;
 use smradius::logging;
 use smradius::util;
 
-use DateTime;
 use POSIX qw(ceil);
 
 
@@ -94,61 +93,61 @@ sub init
 				)
 			VALUES
 				(
-					%{accounting.User-Name},
-					%{accounting.Service-Type},
-					%{accounting.Framed-Protocol},
-					%{accounting.NAS-Port},
-					%{accounting.NAS-Port-Type},
-					%{accounting.Calling-Station-Id},
-					%{accounting.Called-Station-Id},
-					%{accounting.NAS-Port-Id},
-					%{accounting.Acct-Session-Id},
-					%{accounting.Framed-IP-Address},
-					%{accounting.Acct-Authentic},
-					%{accounting.Event-Timestamp},
-					%{accounting.Acct-Status-Type},
-					%{accounting.NAS-Identifier},
-					%{accounting.NAS-IP-Address},
-					%{accounting.Acct-Delay-Time}
+					%{request.User-Name},
+					%{request.Service-Type},
+					%{request.Framed-Protocol},
+					%{request.NAS-Port},
+					%{request.NAS-Port-Type},
+					%{request.Calling-Station-Id},
+					%{request.Called-Station-Id},
+					%{request.NAS-Port-Id},
+					%{request.Acct-Session-Id},
+					%{request.Framed-IP-Address},
+					%{request.Acct-Authentic},
+					%{request.Timestamp},
+					%{request.Acct-Status-Type},
+					%{request.NAS-Identifier},
+					%{request.NAS-IP-Address},
+					%{request.Acct-Delay-Time}
 				)
 	';
 
 	$config->{'accounting_update_query'} = '
 		UPDATE @TP@accounting
 			SET
-					AcctSessionTime = %{accounting.Acct-Session-Time},
-					AcctInputOctets = %{accounting.Acct-Input-Octets},
-					AcctInputGigawords = %{accounting.Acct-Input-Gigawords},
-					AcctInputPackets = %{accounting.Acct-Input-Packets},
-					AcctOutputOctets = %{accounting.Acct-Output-Octets},
-					AcctOutputGigawords = %{accounting.Acct-Output-Gigawords},
-					AcctOutputPackets = %{accounting.Acct-Output-Packets},
-					AcctStatusType = %{accounting.Acct-Status-Type}
+					AcctSessionTime = %{request.Acct-Session-Time},
+					AcctInputOctets = %{request.Acct-Input-Octets},
+					AcctInputGigawords = %{request.Acct-Input-Gigawords},
+					AcctInputPackets = %{request.Acct-Input-Packets},
+					AcctOutputOctets = %{request.Acct-Output-Octets},
+					AcctOutputGigawords = %{request.Acct-Output-Gigawords},
+					AcctOutputPackets = %{request.Acct-Output-Packets},
+					AcctStatusType = %{request.Acct-Status-Type}
 			WHERE
-					UserName = %{accounting.User-Name}
-					AND AcctSessionID = %{accounting.Acct-Session-Id}
-					AND NASIPAddress = %{accounting.NAS-IP-Address}
+					UserName = %{request.User-Name}
+					AND AcctSessionID = %{request.Acct-Session-Id}
+					AND NASIPAddress = %{request.NAS-IP-Address}
 	';
 
 	$config->{'accounting_stop_query'} = '
 		UPDATE @TP@accounting
 			SET
-					AcctSessionTime = %{accounting.Acct-Session-Time},
-					AcctInputOctets = %{accounting.Acct-Input-Octets},
-					AcctInputGigawords = %{accounting.Acct-Input-Gigawords},
-					AcctInputPackets = %{accounting.Acct-Input-Packets},
-					AcctOutputOctets = %{accounting.Acct-Output-Octets},
-					AcctOutputGigawords = %{accounting.Acct-Output-Gigawords},
-					AcctOutputPackets = %{accounting.Acct-Output-Packets},
-					AcctStatusType = %{accounting.Acct-Status-Type},
-					AcctTerminateCause = %{accounting.Acct-Terminate-Cause}
+					AcctSessionTime = %{request.Acct-Session-Time},
+					AcctInputOctets = %{request.Acct-Input-Octets},
+					AcctInputGigawords = %{request.Acct-Input-Gigawords},
+					AcctInputPackets = %{request.Acct-Input-Packets},
+					AcctOutputOctets = %{request.Acct-Output-Octets},
+					AcctOutputGigawords = %{request.Acct-Output-Gigawords},
+					AcctOutputPackets = %{request.Acct-Output-Packets},
+					AcctStatusType = %{request.Acct-Status-Type},
+					AcctTerminateCause = %{request.Acct-Terminate-Cause}
 			WHERE
-					UserName = %{accounting.User-Name}
-					AND AcctSessionID = %{accounting.Acct-Session-Id}
-					AND NASIPAddress = %{accounting.NAS-IP-Address}
+					UserName = %{request.User-Name}
+					AND AcctSessionID = %{request.Acct-Session-Id}
+					AND NASIPAddress = %{request.NAS-IP-Address}
 	';
 
-	$config->{'get_usage_query'} = '
+	$config->{'accounting_usage_query'} = '
 			SELECT 
 					SUM(AcctInputOctets) AS InputOctets, 
 					SUM(AcctOutputOctets) AS OutputOctets,
@@ -158,7 +157,7 @@ sub init
 			FROM 
 					@TP@accounting 
 			WHERE 
-					Username = %{accounting.User-Name}
+					Username = %{request.User-Name}
 	';
 
 	# Setup SQL queries
@@ -191,13 +190,13 @@ sub init
 				$config->{'accounting_stop_query'} = $scfg->{'mod_accounting_sql'}->{'accounting_stop_query'};
 			}
 		}
-		if (defined($scfg->{'mod_accounting_sql'}->{'get_usage_query'}) &&
-				$scfg->{'mod_accounting_sql'}->{'get_usage_query'} ne "") {
-			if (ref($scfg->{'mod_accounting_sql'}->{'get_usage_query'}) eq "ARRAY") {
-				$config->{'get_usage_query'} = join(' ',
-						@{$scfg->{'mod_accounting_sql'}->{'get_usage_query'}});
+		if (defined($scfg->{'mod_accounting_sql'}->{'accounting_usage_query'}) &&
+				$scfg->{'mod_accounting_sql'}->{'accounting_usage_query'} ne "") {
+			if (ref($scfg->{'mod_accounting_sql'}->{'accounting_usage_query'}) eq "ARRAY") {
+				$config->{'accounting_usage_query'} = join(' ',
+						@{$scfg->{'mod_accounting_sql'}->{'accounting_usage_query'}});
 			} else {
-				$config->{'get_usage_query'} = $scfg->{'mod_accounting_sql'}->{'get_usage_query'};
+				$config->{'accounting_usage_query'} = $scfg->{'mod_accounting_sql'}->{'accounting_usage_query'};
 			}
 		}
 	}
@@ -212,12 +211,12 @@ sub getUsage
 	# Build template
 	my $template;
 	foreach my $attr ($packet->attributes) {
-		$template->{'accounting'}->{$attr} = $packet->rawattr($attr)
+		$template->{'request'}->{$attr} = $packet->rawattr($attr)
 	}
 	$template->{'user'} = $user;
 
 	# Replace template entries
-	my @dbDoParams = templateReplace($config->{'get_usage_query'},$template);
+	my @dbDoParams = templateReplace($config->{'accounting_usage_query'},$template);
 
 	# Fetch data
 	my $sth = DBSelect(@dbDoParams);
@@ -286,14 +285,11 @@ sub acct_log
 	# Build template
 	my $template;
 	foreach my $attr ($packet->attributes) {
-		$template->{'accounting'}->{$attr} = $packet->rawattr($attr)
+		$template->{'request'}->{$attr} = $packet->rawattr($attr)
 	}
-
-	# Fix up timestamp a bit
-	$template->{'accounting'}->{'Event-Timestamp-Unix'} = $template->{'accounting'}->{'Event-Timestamp'};
-	my $dt = DateTime->from_epoch( epoch => $template->{'accounting'}->{'Event-Timestamp'} );
-	
-	$template->{'accounting'}->{'Event-Timestamp'} = $dt->strftime('%Y-%m-%d %H:%M:%S');
+	# Fix event timestamp
+	$template->{'request'}->{'Timestamp'} = $user->{'_Internal'}->{'Timestamp'};
+	# Add user
 	$template->{'user'} = $user;
 
 
