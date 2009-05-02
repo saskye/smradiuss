@@ -35,6 +35,7 @@ package radiusd;
 
 use base qw(Net::Server::PreFork);
 use Config::IniFiles;
+use DateTime;
 use Getopt::Long;
 use Sys::Syslog;
 
@@ -478,12 +479,31 @@ sub process_request {
 #NAS-Identifier:      lbsd-test
 #NAS-IP-Address:      10.254.254.239
 
+#PPTP
+#Service-Type:        Framed-User
+#Framed-Protocol:     PPP
+#NAS-Port:            49
+#NAS-Port-Type:       Virtual
+#User-Name:           johnsmith
+#Calling-Station-Id:  10.254.254.242
+#Called-Station-Id:   10.254.254.239
+#NAS-Identifier:      lbsd-test
+#NAS-IP-Address:      10.254.254.239
+
 
 	# Main user hash with everything in
 	my $user;
 	$user->{'ConfigAttributes'} = {};
 	$user->{'ReplyAttributes'} = {};
 	$user->{'ReplyVAttributes'} = {};
+
+	# Private data
+	$user->{'_Internal'} = {
+		'Timestamp-Unix' => defined($pkt->rawattr('Event-Timestamp')) ? $pkt->rawattr('Event-Timestamp') : time()
+	};
+	my $eventTimestamp = DateTime->from_epoch( epoch => $user->{'_Internal'}->{'Timestamp-Unix'} );
+	$user->{'_Internal'}->{'Timestamp'} = $eventTimestamp->strftime('%Y-%m-%d %H:%M:%S');
+
 
 	#
 	# GRAB & PROCESS CONFIG 
@@ -530,7 +550,9 @@ sub process_request {
 	if ($pkt->code eq "Accounting-Request" || $pkt->code eq "Access-Request") {
 		# Set username
 		$user->{'Username'} = $pkt->attr('User-Name');
-		
+	
+$pkt->dump();
+	
 		#
 		# FIND USER
 		#
@@ -661,7 +683,6 @@ sub process_request {
 		$self->log(LOG_DEBUG,"[SMRADIUS] POST-ACCT: Trying to disconnect user...");
 
 		my $resp = Radius::Packet->new($self->{'radius'}->{'dictionary'});
-		#	my $classData = { 'PODServers' => "10.254.254.239/test:1700"};
 
 	 	$resp->set_code('Disconnect-Request');
 		my $id = $$ & 0xff;
@@ -701,7 +722,6 @@ sub process_request {
 	
 	
 		$self->log(LOG_DEBUG,"[SMRADIUS] Access Request Packet");
-		$self->log(LOG_DEBUG,"[SMRADIUS] Packet: ".$pkt->dump);
 	
 		# Authentication variables
 		my $authenticated = 0;
@@ -870,7 +890,7 @@ sub process_request {
 					}
 				}
 			}
-use Data::Dumper; print ( STDERR  "ATTRIBUTES: ".Dumper($user->{'ConfigAttributes'}) );
+
 			$udp_packet = auth_resp($resp->pack, getAttributeValue($user->{'ConfigAttributes'},"SMRadius-Config-Secret"));
 			$server->{'client'}->send($udp_packet);
 
