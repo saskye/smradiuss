@@ -67,8 +67,12 @@ sub templateReplace
 	while (my ($entireMacro,$section,$item,$default) = ($string =~ /(\%{([a-z]+)\.([a-z0-9\-]+)(?:=([^}]+))?})/i )) {
 		# Replace macro with ?	
 		$string =~ s/$entireMacro/\?/;
+
+		# Get value to substitute
+		my $value = defined($hashref->{$section}->{$item}) ? $hashref->{$section}->{$item} : $default;
+
 		# Add value onto our array
-		push(@valueArray,$hashref->{$section}->{$item});
+		push(@valueArray,$value);
 		
 	}
 
