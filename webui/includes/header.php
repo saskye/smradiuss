@@ -74,6 +74,7 @@ function printHeader($params = NULL)
 							<ul>
 								<li><a href="user-main.php">User List</a></li>
 								<li><a href="group-main.php">Groups</a></li>
+								<li><a href="realms-main.php">Realms</a></li>
 							</ul>
 
 							<p>WiSP</p>
