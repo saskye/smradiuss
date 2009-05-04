@@ -31,6 +31,150 @@ printHeader(array(
 
 if (!isset($_POST['frmaction'])) {
 ?>
+	<script language="javascript">
+
+		function changeAttribute(rowid) {
+			var select_box = document.getElementById("s"+rowid);
+			var input_area = document.getElementById("i"+rowid);
+		
+			// Check what we going to display	
+			switch (select_box.value) {
+
+				case "group":
+					input_area.innerHTML = ' \
+						<select name="user_item['+rowid+'][value]"> \
+							<option value="1">test group 1</option> \
+							<option value="2">test group 2</option> \
+							<option value="3">test group 3</option> \
+						</select> \
+					';
+					break;
+
+				case "location":
+					input_area.innerHTML = ' \
+						<select name="user_item['+rowid+'][value]"> \
+							<option value="1">test location 1</option> \
+							<option value="2">test location 2</option> \
+							<option value="3">test location 3</option> \
+						</select> \
+					';
+					break;
+
+				case "first_name":
+					input_area.innerHTML = ' \
+						<input type="text" name="user_item['+rowid+'][value]" /> \
+					';
+					break;
+
+				case "last_name":
+					input_area.innerHTML = ' \
+						<input type="text" name="user_item['+rowid+'][value]" /> \
+					';
+					break;
+
+				case "phone":
+					input_area.innerHTML = ' \
+						<input type="text" name="user_item['+rowid+'][value]" /> \
+					';
+					break;
+
+				case "email_address":
+					input_area.innerHTML = ' \
+						<input type="text" name="user_item['+rowid+'][value]" /> \
+					';
+					break;
+
+				case "mac_address":
+					input_area.innerHTML = ' \
+						<input type="text" name="user_item['+rowid+'][value]" /> \
+					';
+					break;
+
+				case "ip_address":
+					input_area.innerHTML = ' \
+						<input type="text" name="user_item['+rowid+'][value]" /> \
+					';
+					break;
+
+				case "data_limit":
+					input_area.innerHTML = ' \
+						<input type="text" name="user_item['+rowid+'][value]" size="5" /> \
+						<select name="user_item['+rowid+'][modifier]"> \
+							<option value="1">Mbyte</option> \
+							<option value="2">Gbyte</option> \
+						</select> \
+					';
+					break;
+
+				case "uptime_limit":
+					input_area.innerHTML = ' \
+						<input type="text" name="user_item['+rowid+'][value]" size="5" /> \
+						<select name="user_item['+rowid+'][modifier]"> \
+							<option value="1">Seconds</option> \
+							<option value="2">Minutes</option> \
+							<option value="3">Hours</option> \
+							<option value="4">Days</option> \
+							<option value="5">Weeks</option> \
+							<option value="6">Months</option> \
+							<option value="6">Years</option> \
+						</select> \
+					';
+					break;
+			}
+
+		}
+
+		function addAttributeRow(area) {
+			// Prevent older browsers from getting any further
+			if(!document.getElementById) return;
+
+			// Grab the dynamic table
+			var dynamic_table = document.getElementById(area);
+
+			// Create the row
+			var new_row_num = dynamic_table.rows.length - 2;
+			var e_tr = dynamic_table.insertRow( new_row_num );
+
+			var rowid = "attr" + new_row_num + rand(9999999);
+			e_tr.id = rowid;
+
+			// Create the cells
+			var e_td1 = e_tr.insertCell(0);
+			var e_td2 = e_tr.insertCell(1);
+			var e_td3 = e_tr.insertCell(2);
+
+			e_td1.innerHTML = ' \
+				<select id="s'+rowid+'" name="user_item['+rowid+'][select]" onchange=" \
+							changeAttribute('+"'"+rowid+"'"+'); \
+						"> \
+					<option value="">--</option> \
+					<option value="group">Group</option> \
+					<option value="location">Location</option> \
+					<option value="first_name">First Name</option> \
+					<option value="last_name">Last Name</option> \
+					<option value="phone">Phone</option> \
+					<option value="email_address">Email Address</option> \
+					<option value="mac_address">MAC Address</option> \
+					<option value="ip_address">IP Address</option> \
+					<option value="data_limit">Data Limit</option> \
+					<option value="uptime_limit">Uptime Limit</option> \
+				</select> \
+			';
+
+			e_td2.innerHTML = ' \
+				<div id="i'+rowid+'"></div> \
+			';
+
+			e_td3.innerHTML = ' \
+				<a onclick=" \
+					var this_table = document.getElementById('+"'"+area+"'"+ '); \
+					var this_row = document.getElementById('+"'"+rowid+"'"+ '); \
+					this_table.deleteRow(this_row.rowIndex); \
+				">remove</a> \
+			';
+		}
+	</script>
+
 	<p class="pageheader">Add WiSP User</p>
 
 	<!-- Add user input fields -->
@@ -38,12 +182,15 @@ if (!isset($_POST['frmaction'])) {
 		<div>
 			<input type="hidden" name="frmaction" value="insert" />
 		</div>
-		<table class="entry">
+
+		<table id="dynamic_table" class="entry">
 			<tr>
 				<td class="textcenter" colspan="2">Account Information</td>
 			</tr>
 			<tr>
-				<td><div></div><td>
+				<td><div /><td/>
+				<td><div /><td/>
+				<td><div /><td/>
 			</tr>
 			<tr>
 				<td class="entrytitle">User Name</td>
@@ -54,113 +201,18 @@ if (!isset($_POST['frmaction'])) {
 				<td><input type="password" name="user_password" /></td>
 			</tr>
 			<tr>
-				<td class="entrytitle">Group</td>
-				<td>
-				<select name="user_group">
-						<option selected="selected" value="NULL">No group</option>
-<?php
-							$sql = "
-								SELECT
-									ID, Name
-								FROM
-									${DB_TABLE_PREFIX}groups
-								ORDER BY
-									Name
-								DESC
-							";
-
-							$res = $db->query($sql);
-
-							# If there are any result rows, list items
-							if ($res->rowCount() > 0) {
-								while ($row = $res->fetchObject()) {
-?>
-									<option value="<?php echo $row->id; ?>"><?php echo $row->name; ?></option>
-<?php
-								}
-							}
-?>
-					</select>
+				<td class="textcenter" colspan="3">
+					<input type="button" value="Add Attribute" onclick=" addAttributeRow('dynamic_table'); " />
 				</td>
 			</tr>
-			<tr>
-				<td><div></div><td>
-			</tr>
-			<tr>
-				<td class="textcenter" colspan="2">Private Information</td>
-			</tr>
-			<tr>
-				<td><div></div><td>
-			</tr>
-			<tr>
-				<td class="entrytitle">First Name</td>
-				<td><input type="text" name="user_first_name" /></td>
-			</tr>
-			<tr>
-				<td class="entrytitle">Last Name</td>
-				<td><input type="text" name="user_last_name" /></td>
-			</tr>
-			<tr>
-				<td class="entrytitle">Phone</td>
-				<td><input type="text" name="user_phone" /></td>
-			</tr>
-			<tr>
-				<td class="entrytitle">Location</td>
-				<td>
-				<select name="user_location">
-						<option selected="selected" value="NULL">No location</option>
-<?php
-							$sql = "
-								SELECT
-									ID, Name
-								FROM
-									${DB_TABLE_PREFIX}wisp_locations
-								ORDER BY
-									Name
-								DESC
-							";
 
-							$res = $db->query($sql);
-
-							# If there are any result rows, list items
-							if ($res->rowCount() > 0) {
-
-								while ($row = $res->fetchObject()) {
-?>
-									<option value="<?php echo $row->id; ?>"><?php echo $row->name; ?></option>
-<?php
-								}
-							}
-?>
-					</select>
-				</td>
-			</tr>
 			<tr>
-				<td class="entrytitle">Email Address</td>
-				<td><input type="text" name="user_email" /></td>
-			</tr>
-			<tr>
-				<td class="entrytitle">MAC Address</td>
-				<td><input type="text" name="user_mac_address" /></td>
-			</tr>
-			<tr>
-				<td class="entrytitle">IP Address</td>
-				<td><input type="text" name="user_ip_address" /></td>
-			</tr>
-			<tr>
-				<td class="entrytitle">Data Usage Limit (MB)</td>
-				<td><input type="text" name="user_data_limit" /></td>
-			</tr>
-			<tr>
-				<td class="entrytitle">Time Limit (Min)</td>
-				<td><input type="text" name="user_time_limit" /></td>
-			</tr>
-			<tr>
-				<td class="textcenter" colspan="2"><input type="submit" value="Submit" /></td>
+				<td class="textcenter" colspan="3"><input type="submit" value="Submit" /></td>
 			</tr>
 		</table>
 	</form>
 
+	<script language="javascript"> addAttributeRow('dynamic_table'); </script>
 <?php
 
 }
@@ -169,6 +221,12 @@ if (isset($_POST['frmaction']) && $_POST['frmaction'] == "insert") {
 ?>
 	<p class="pageheader">Add user</p>
 <?php
+
+
+	print_r($_POST);
+
+	return;
+
 
 	$db->beginTransaction();
 
@@ -304,7 +362,7 @@ if (isset($_POST['frmaction']) && $_POST['frmaction'] == "insert") {
 				($userID,'SMRadius-Capping-UpTime-Limit','==',?)
 		");
 
-		$res = $stmt->execute(array($_POST['user_time_limit']));
+		$res = $stmt->execute(array($_POST['user_uptime_limit']));
 		if  ($res !== FALSE) {
 ?>
 			<div class="notice">Uptime limit added</div>
