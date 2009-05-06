@@ -1,5 +1,10 @@
 <?php
 
+	# Requires / Includes
+	include_once("functions/AdminUsers.php");
+	include_once("functions/AdminGroups.php");
+	include_once("functions/AdminRealms.php");
+	include_once("functions/AdminLocations.php");
 
 	define('RES_OK',0);
 	define('RES_ERR',-1);
@@ -167,8 +172,7 @@
 		);
 		echo json_encode($res);
 */
-#		echo json_encode($msg);
-print_r($_POST);
+		echo json_encode($msg);
 		exit;
 	}
 
@@ -287,46 +291,185 @@ print_r($_POST);
 		}
 	}
 
+	switch ($function) {
+		case "getWiSPResellers":
 
-	if ($function == "getWiSPUsers") {
+			$rawData = array (
 
-		$rawData = array (
+				array(
+					'ID' => 10,
+					'Name' => 'TestReseller1'
+				)
+			);
 
-			array(
-				'ID' => 10,
-				'AgentID' => 5,
-				'AgentName' => 'joe agent',
-				'Username' => 'johnsmith',
-				'UsageCap' => 1000,
-				'ClassID' => 7,
-				'ClassDesc' => 'ClassTest',
-				'RealmDesc' => 'My Realm',
-				'Service' => 'My Service',
-				'AgentDisabled' => FALSE,
-				'Disabled' => FALSE,
-				'AgentRef' => 'Reseller ref'
-			)
-		);
-		$numResults = 1;
+			$numResults = 1;
 
-		$res = new json_response;
-		$res->setID('ID');
-		$res->addField('ID','int');
-		$res->addField('AgentID','int');
-		$res->addField('AgentName','string');
-		$res->addField('Username','string');
-		$res->addField('UsageCap','int');
-		$res->addField('ClassID','int');
-		$res->addField('ClassDesc','string');
-		$res->addField('RealmDesc','string');
-		$res->addField('Service','string');
-		$res->addField('AgentDisabled','boolean');
-		$res->addField('Disabled','boolean');
-		$res->addField('AgentRef','string');
-		$res->parseArray($rawData);
-		$res->setDatasetSize($numResults);
+			$res = new json_response;
+			$res->setID('ID');
+			$res->addField('ID','int');
+			$res->addField('Name','string');
+			$res->parseArray($rawData);
+			$res->setDatasetSize($numResults);
 
-		echo json_encode($res->export());
+			echo json_encode($res->export());
+			break;
+
+		case "getLocations":
+
+			$rawData = getAdminLocations($soapParams);
+
+			$res = new json_response;
+			$res->setID('ID');
+			$res->addField('ID','int');
+			$res->addField('Name','string');
+			$res->parseArray($rawData[1]);
+			$res->setDatasetSize($rawData[0]);
+
+			echo json_encode($res->export());
+			break;
+
+		case "getAdminRealms":
+
+			$rawData = getAdminRealms($soapParams);
+
+			$res = new json_response;
+			$res->setID('ID');
+			$res->addField('ID','int');
+			$res->addField('Name','string');
+			$res->addField('Disabled','boolean');
+			$res->parseArray($rawData[1]);
+			$res->setDatasetSize($rawData[0]);
+
+			echo json_encode($res->export());
+			break;
+
+		case "getAdminGroups":
+
+			$rawData = getAdminGroups($soapParams);
+
+			$res = new json_response;
+			$res->setID('ID');
+			$res->addField('ID','int');
+			$res->addField('Name','string');
+			$res->addField('Priority','int');
+			$res->addField('Disabled','boolean');
+			$res->addField('Comment','string');
+			$res->parseArray($rawData[1]);
+			$res->setDatasetSize($rawData[0]);
+
+			echo json_encode($res->export());
+			break;
+
+		case "getAdminUsers":
+
+			$rawData = getAdminUsers($soapParams);
+
+			$res = new json_response;
+			$res->setID('ID');
+			$res->addField('ID','int');
+			$res->addField('Username','string');
+			$res->addField('Disabled','boolean');
+			$res->parseArray($rawData[1]);
+			$res->setDatasetSize($rawData[0]);
+
+			echo json_encode($res->export());
+			break;
+
+		case "getWiSPUsers":
+
+			$rawData = array (
+
+				array(
+					'ID' => 10,
+					'AgentID' => 5,
+					'AgentName' => 'joe agent',
+					'Username' => 'johnsmith',
+					'UsageCap' => 1000,
+					'ClassID' => 7,
+					'ClassDesc' => 'ClassTest',
+					'RealmDesc' => 'My Realm',
+					'Service' => 'My Service',
+					'AgentDisabled' => FALSE,
+					'Disabled' => FALSE,
+					'AgentRef' => 'Reseller ref'
+				)
+			);
+
+			$numResults = 1;
+
+			$res = new json_response;
+			$res->setID('ID');
+			$res->addField('ID','int');
+			$res->addField('AgentID','int');
+			$res->addField('AgentName','string');
+			$res->addField('Username','string');
+			$res->addField('UsageCap','int');
+			$res->addField('ClassID','int');
+			$res->addField('ClassDesc','string');
+			$res->addField('RealmDesc','string');
+			$res->addField('Service','string');
+			$res->addField('AgentDisabled','boolean');
+			$res->addField('Disabled','boolean');
+			$res->addField('AgentRef','string');
+			$res->parseArray($rawData);
+			$res->setDatasetSize($numResults);
+
+			echo json_encode($res->export());
+			break;
+
+		case "getWiSPUserLogs":
+
+			$rawData = array (
+
+				array(
+					'ID' => 10,
+					'Username' => 'johnsmith',
+					'Status' => 1,
+					'Timestamp' => '10/03/2009',
+					'AcctSessionID' => '24234',
+					'AcctSessionTime' => '10:30',
+					'NASIPAddress' => '192.168.1.254',
+					'NASPortType' => '2',
+					'NASPort' => '3128',
+					'CalledStationID' => '282282',
+					'CallingStationID' => '2782872',
+					'NASTransmitRate' => '2000',
+					'NASReceiveRate' => '4000',
+					'FramedIPAddress' => '192.168.1.30',
+					'AcctInputMbyte' => '1241',
+					'AcctOutputMbyte' => '229',
+					'LastAcctUpdate' => '1282893',
+					'ConnectTermReason' => 'Failboat'
+				)
+			);
+
+			$numResults = 1;
+
+			$res = new json_response;
+			$res->setID('ID');
+			$res->addField('ID','int');
+			$res->addField('Username','int');
+			$res->addField('Status','string');
+			$res->addField('Timestamp','string');
+			$res->addField('AcctSessionID','int');
+			$res->addField('AcctSessionTime','int');
+			$res->addField('NASIPAddress','string');
+			$res->addField('NASPortType','string');
+			$res->addField('NASPort','string');
+			$res->addField('CalledStationID','boolean');
+			$res->addField('CallingStationID','boolean');
+			$res->addField('NASTransmitRate','string');
+			$res->addField('NASReceiveRate','string');
+			$res->addField('FramedIPAddress','string');
+			$res->addField('AcctInputMbyte','string');
+			$res->addField('AcctOutputMbyte','string');
+			$res->addField('LastAcctUpdate','string');
+			$res->addField('ConnectTermReason','string');
+			$res->parseArray($rawData);
+			$res->setDatasetSize($numResults);
+
+			echo json_encode($res->export());
+			break;
 	}
 
 	exit;
