@@ -80,6 +80,17 @@ function DBSelect($query)
 }
 
 
+# Perform a command
+# Args: <command statement>
+function DBDo($command)
+{
+	global $db;
+
+	# Perform query
+	$sth = $db->exec($command);
+
+	return $sth;
+}
 
 ## @fn DBSelectNumResults($query)
 # Return how many results came up from the specific SELECT query
