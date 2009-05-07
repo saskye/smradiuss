@@ -4,11 +4,10 @@ include_once("include/db.php");
 
 
 # Return list of users
-function getAdminLocations($params) {
+function getAdminUsers($params) {
+	global $db;
 
-	$db = connect_db();
-
-	$sql = "SELECT ID, Name FROM wisp_locations";
+	$sql = "SELECT ID, Username, Disabled FROM users";
 	$res = $db->query($sql);
 
 	$resultArray = array();
@@ -18,14 +17,15 @@ function getAdminLocations($params) {
 			$item = array();
 
 			$item['ID'] = $row->id;
-			$item['Name'] = $row->name;
+			$item['Username'] = $row->username;
+			$item['Disabled'] = $row->disabled;
 
 			# push this row onto array
 			array_push($resultArray,$item);
 		}
 
 	# get number of rows
-	$sql = "SELECT count(*) FROM wisp_locations";
+	$sql = "SELECT count(*) FROM users";
 	$res = $db->query($sql);
 	$numResults = $res->fetchColumn();
 

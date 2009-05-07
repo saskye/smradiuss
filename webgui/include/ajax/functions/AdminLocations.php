@@ -4,11 +4,10 @@ include_once("include/db.php");
 
 
 # Return list of users
-function getAdminRealms($params) {
+function getAdminLocations($params) {
+	global $db;
 
-	$db = connect_db();
-
-	$sql = "SELECT ID, Name, Disabled FROM realms";
+	$sql = "SELECT ID, Name FROM wisp_locations";
 	$res = $db->query($sql);
 
 	$resultArray = array();
@@ -19,14 +18,13 @@ function getAdminRealms($params) {
 
 			$item['ID'] = $row->id;
 			$item['Name'] = $row->name;
-			$item['Disabled'] = $row->disabled;
 
 			# push this row onto array
 			array_push($resultArray,$item);
 		}
 
 	# get number of rows
-	$sql = "SELECT count(*) FROM realms";
+	$sql = "SELECT count(*) FROM wisp_locations";
 	$res = $db->query($sql);
 	$numResults = $res->fetchColumn();
 

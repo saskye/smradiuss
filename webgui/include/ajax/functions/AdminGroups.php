@@ -4,11 +4,10 @@ include_once("include/db.php");
 
 
 # Return list of users
-function getAdminUsers($params) {
+function getAdminGroups($params) {
+	global $db;
 
-	$db = connect_db();
-
-	$sql = "SELECT ID, Username, Disabled FROM users";
+	$sql = "SELECT ID, Name, Priority, Disabled, Comment FROM groups";
 	$res = $db->query($sql);
 
 	$resultArray = array();
@@ -18,15 +17,17 @@ function getAdminUsers($params) {
 			$item = array();
 
 			$item['ID'] = $row->id;
-			$item['Username'] = $row->username;
+			$item['Name'] = $row->name;
+			$item['Priority'] = $row->priority;
 			$item['Disabled'] = $row->disabled;
+			$item['Comment'] = $row->comment;
 
 			# push this row onto array
 			array_push($resultArray,$item);
 		}
 
 	# get number of rows
-	$sql = "SELECT count(*) FROM users";
+	$sql = "SELECT count(*) FROM groups";
 	$res = $db->query($sql);
 	$numResults = $res->fetchColumn();
 

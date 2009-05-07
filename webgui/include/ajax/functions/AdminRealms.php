@@ -4,11 +4,10 @@ include_once("include/db.php");
 
 
 # Return list of users
-function getAdminGroups($params) {
+function getAdminRealms($params) {
+	global $db;
 
-	$db = connect_db();
-
-	$sql = "SELECT ID, Name, Priority, Disabled, Comment FROM groups";
+	$sql = "SELECT ID, Name, Disabled FROM realms";
 	$res = $db->query($sql);
 
 	$resultArray = array();
@@ -19,16 +18,14 @@ function getAdminGroups($params) {
 
 			$item['ID'] = $row->id;
 			$item['Name'] = $row->name;
-			$item['Priority'] = $row->priority;
 			$item['Disabled'] = $row->disabled;
-			$item['Comment'] = $row->comment;
 
 			# push this row onto array
 			array_push($resultArray,$item);
 		}
 
 	# get number of rows
-	$sql = "SELECT count(*) FROM groups";
+	$sql = "SELECT count(*) FROM realms";
 	$res = $db->query($sql);
 	$numResults = $res->fetchColumn();
 
