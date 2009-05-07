@@ -2,9 +2,11 @@
 
 function showWiSPUserLogsWindow(wispUserID) {
 	// Calculate dates we going to need
+/*
 	var today = new Date();
 	var firstOfMonth = today.getFirstDateOfMonth();
 	var firstOfNext = today.getLastDateOfMonth().add(Date.DAY, 1);
+*/
 	
 	var wispUserLogsWindow = new Ext.ux.GenericGridWindow(
 		// Window config
@@ -35,20 +37,20 @@ function showWiSPUserLogsWindow(wispUserID) {
 							name: 'after',
 							width: 180,
 							fieldLabel: 'From',
-							vtype: 'daterange',
+					//		vtype: 'daterange',
 							format: 'Y-m-d',
-							value: firstOfMonth,
-							endDateField: 'before',
+					//		value: firstOfMonth,
+					//		endDateField: 'before',
 						},
 						{
 							id: 'before',
 							name: 'before',
 							width: 180,
 							fieldLabel: 'To',
-							vtype: 'daterange',
+					//		vtype: 'daterange',
 							format: 'Y-m-d',
-							value: firstOfNext,
-							startDateField: 'after'
+					//		value: firstOfNext,
+					//		startDateField: 'after'
 						}
 					],
 					buttons: [
@@ -84,6 +86,7 @@ function showWiSPUserLogsWindow(wispUserID) {
 						}
 					],
 					buttonAlign: 'center'
+
 				},
 				{
 					xtype: 'form',
@@ -231,6 +234,7 @@ function showWiSPUserLogsWindow(wispUserID) {
 				{type: 'numeric',  dataIndex: 'ID'},
 				{type: 'string',  dataIndex: 'Username'},
 				{type: 'numeric',  dataIndex: 'Status'},
+/*
 				{
 					type: 'date',  
 					dataIndex: 'Timestamp', 
@@ -239,7 +243,7 @@ function showWiSPUserLogsWindow(wispUserID) {
 						before: firstOfNext
 					}
 				},
-
+*/
 				{type: 'string',  dataIndex: 'AcctSessionID'},
 				{type: 'numeric',  dataIndex: 'AcctSessionTime'},
 
