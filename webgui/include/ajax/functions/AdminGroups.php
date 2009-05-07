@@ -42,4 +42,19 @@ function getAdminGroups($params) {
 	return array($resultArray,$numResults);
 }
 
+# Return list of users
+function removeAdminGroup($params) {
+	global $db;
+
+	$db->errorInfo();
+	$res = DBDo("DELETE FROM groups WHERE ID = ".$params[0]['id']);
+	print_r($params);
+	# If STH is blank, return the error back to whoever requested the data
+	if (!isset($res)) {
+		print_r($res->errorInfo());
+	}
+
+	return $res;
+}
+
 ?>

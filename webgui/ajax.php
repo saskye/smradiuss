@@ -146,6 +146,12 @@
 	}
 
 	switch ($function) {
+		case "removeAdminGroup":
+
+			print_r($soapParams);
+			$res = removeAdminGroup($soapParams);
+			break;
+
 		case "getWiSPResellers":
 
 			$rawData = array (

@@ -35,7 +35,7 @@ function showAdminGroupWindow() {
 						// Check if we have selected item
 						if (selectedItem) {
 							// If so display window
-							showAdminGroupRemoveWindow(WiSPUserWindow,selectedItem.data.ID);
+							showAdminGroupRemoveWindow(AdminGroupWindow,selectedItem.data.ID);
 						} else {
 							AdminGroupWindow.getEl().mask();
 
@@ -207,7 +207,7 @@ function showAdminGroupEditWindow(id) {
 		ID: id,
 		sortInfo: { field: "Name", direction: "ASC" },
 		baseParams: {
-			SOAPGroupname: globalConfig.soap.username,
+			SOAPUsername: globalConfig.soap.username,
 			SOAPPassword: globalConfig.soap.password,
 			SOAPAuthType: globalConfig.soap.authtype,
 			SOAPModule: 'AdminGroups',
@@ -233,7 +233,7 @@ function showAdminGroupEditWindow(id) {
 		{
 			labelWidth: 85,
 			baseParams: {
-				SOAPGroupname: globalConfig.soap.username,
+				SOAPUsername: globalConfig.soap.username,
 				SOAPPassword: globalConfig.soap.password,
 				SOAPAuthType: globalConfig.soap.authtype,
 				SOAPModule: 'AdminGroups'
@@ -264,7 +264,7 @@ function showAdminGroupEditWindow(id) {
 						ID: id,
 						sortInfo: { field: "Name", direction: "ASC" },
 						baseParams: {
-							SOAPGroupname: globalConfig.soap.username,
+							SOAPUsername: globalConfig.soap.username,
 							SOAPPassword: globalConfig.soap.password,
 							SOAPAuthType: globalConfig.soap.authtype,
 							SOAPModule: 'Agents',
@@ -381,7 +381,7 @@ function showAdminGroupEditWindow(id) {
 		wispGroupFormWindow.getComponent('formpanel').load({
 			params: {
 				id: id,
-				SOAPGroupname: globalConfig.soap.username,
+				SOAPUsername: globalConfig.soap.username,
 				SOAPPassword: globalConfig.soap.password,
 				SOAPAuthType: globalConfig.soap.authtype,
 				SOAPModule: 'AdminGroups',
@@ -403,7 +403,7 @@ function showAdminGroupRemoveWindow(parent,id) {
 	// Display remove confirm window
 	Ext.Msg.show({
 		title: "Confirm removal",
-		msg: "Are you very sure you wish to remove this user?",
+		msg: "Are you very sure you wish to remove this group?",
 		icon: Ext.MessageBox.ERROR,
 		buttons: Ext.Msg.YESNO,
 		modal: false,
@@ -415,7 +415,7 @@ function showAdminGroupRemoveWindow(parent,id) {
 				uxAjaxRequest(parent,{
 					params: {
 						id: id,
-						SOAPGroupname: globalConfig.soap.username,
+						SOAPUsername: globalConfig.soap.username,
 						SOAPPassword: globalConfig.soap.password,
 						SOAPAuthType: globalConfig.soap.authtype,
 						SOAPModule: 'AdminGroups',
