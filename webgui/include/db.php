@@ -63,5 +63,291 @@ function connect_postfix_db()
 }
 
 
+## @fn DBSelect($query)
+# Return database selection results...
+#
+# @param query Query to run
+#
+# @return DBI statement handle, undef on error
+function DBSelect($query) 
+{
+	# Prepare query
+	if (!($sth = $db->query($query))) {
+		return NULL;
+	}
+
+	return $sth;
+}
+
+
+
+## @fn DBSelectNumResults($query)
+# Return how many results came up from the specific SELECT query
+#
+# @param query Query to perform, minus "SELECT COUNT(*) AS num_results"
+#
+# @return Number of results, undef on error
+function DBSelectNumResults($query) 
+{
+	# Prepare query
+	if (!($sth = $dbh->query("SELECT COUNT(*) AS num_results $query"))) {
+		return NULL;
+	}
+
+	# Grab row
+	$row = $sth->fetchObject();
+	if (!defined($row)) {
+		return NULL;
+	}
+
+	# Pull number
+	$num_results = $row->num_results;
+
+	return $num_results;
+}
+
+
+
+## @fn DBSelectSearch($query,$search,$filters,$sorts)
+# Select results from database and return the total number aswell
+#
+# @param query Base query
+#
+# @param search Search hash ref
+# @li Filter - Filter based on this...
+# [filter] => Array ( 
+#	[0] => Array ( 
+#		[field] => Name 
+#		[data] => Array ( 
+#			[type] => string 
+#			[value] => hi there 
+#		) 
+#	)
+# )
+# { 'data' => { 'comparison' => 'gt', 'value' => '5', 'type' => 'numeric' }, 'field' => 'ID' }
+# @li Start - Start item number, indexed from 0 onwards
+# @li Limit - Limit number of results
+# @li Sort - Sort by this item
+# @li SortDirection - Sort in this direction, either ASC or DESC 
+#
+# @param filters Filter hash ref
+# Hash:  'Column' -> 'Table.DBColumn'
+#
+# @param sorts Hash ref of valid sort criteria, indexed by what we get, pointing to the DB column in the query
+# Hash:  'Column' -> 'Table.DBColumn'
+#
+# @return Number of results, undef on error
+function DBSelectSearch($query,$search,$filters,$sorts) {
+	# Stuff we need to add to the SQL query
+	$where = array(); # Where clauses
+	$sqlWhere = "";
+	$sqlLimit = "";
+	$sqlOffset = "";
+	$sqlOrderBy = "";
+	$sqlOrderByDirection = "";
+
+	# Check if we're searching
+	if (isset($search)) {
+		# Check it is a hash
+		if (gettype($search) != "ARRAY") {
+			return array(NULL,"Parameter 'search' is not a hashtable");
+		}
+		# Check if we need to filter
+		if (isset($search['Filter'])) {
+			# We need filters in order to use filtering
+			if (!isset($filters)) {
+				return array(NULL,"Parameter 'search' element 'Filter' requires 'filters' to be defined");
+			}
+
+			# Check type of Filter
+			if (isset($search->{'Filter'}) != "ARRAY") {
+				return array(NULL,"Parameter 'search' element 'Filter' is of invalid type, it must be an ARRAY'");
+			}
+
+			# Loop with filters
+			foreach ($search->{'Filter'} as $item) {
+				$data = $item['data'];  # value, type, comparison
+				$field = $item['field'];
+				$column = $filters[$field];
+
+				# Check if field is in our allowed filters
+				if (!isset($filters[$field])) {
+					return array(NULL,"Parameter 'search' element 'Filter' has invalid field item '$field' according to 'filters'"); 
+				}
+				# Check data
+				if (!isset($data['type'])) {
+					return array(NULL,"Parameter 'search' element 'Filter' requires field data element 'type' for field '$field'"); 
+				}
+				if (!isset($data['value'])) {
+					return array(NULL,"Parameter 'search' element 'Filter' requires field data element 'value' for field '$field'"); 
+				}
+
+				# match =, LIKE, IN (
+				# matchEnd '' or )
+				$match;
+				$matchEnd = "";
+				# value is the $db->quote()'d value
+				$value;
+
+				# Check what type of comparison
+				if ($data['type'] == "boolean") {
+					$match = '=';
+					$value = $db->quote($data['value']);
+
+
+				} elseif ($data['type'] == "date") {
+
+					# The comparison type must be defined
+					if (!isset($data['comparison'])) {
+						return array(NULL,"Parameter 'search' element 'Filter' requires field data element 'comparison' for date field '$field'"); 
+					}
+
+					# Check comparison type
+					if ($data['comparison'] == "gt") {
+						$match = ">";
+
+					} elseif ($data['comparison'] == "lt") {
+						$match = "<";
+					
+					} elseif ($data['comparison'] == "eq") {
+						$match = "=";
+					}
+					# Convert to ISO format	
+					# FIXME
+#					$unixtime = str2time($data['value']);
+#					$date = DateTime->from_epoch( epoch => $unixtime );
+#					$value = $db->quote($date->ymd());
+
+
+				} elseif ($data['type'] == "list") {
+					# Quote all values
+					$valueList = array();
+					foreach (explode(",",$data['value']) as $i) {
+						array_push($valueList,$db->quote($i));
+					}
+
+					$match = "IN (";
+					# Join up 'xx','yy','zz'
+					$value = implode(',',$valueList);
+					$matchEnd = ")";
+
+
+				} elseif ($data['type'] == "numeric") {
+
+					# The comparison type must be defined
+					if (!isset($data['comparison'])) {
+						return array(NULL,"Parameter 'search' element 'Filter' requires field data element 'comparison' for numeric field '$field'"); 
+					}
+
+					# Check comparison type
+					if ($data['comparison'] == "gt") {
+						$match = ">";
+
+					} elseif ($data['comparison'] == "lt") {
+						$match = "<";
+					
+					} elseif ($data['comparison'] == "eq") {
+						$match = "=";
+					}
+					
+					$value = $db->quote($data['value']);
+
+
+				} elseif ($data['type'] == "string") {
+					$match = "LIKE";
+					$value = $db->quote("%".$data['value']."%");
+
+				}
+
+				# Add to list
+				array_push($where,"$column $match $value $matchEnd");
+			}
+
+			# Check if we have any WHERE clauses to add ...
+			if (count($where) > 0) {
+				# Check if we have WHERE clauses in the query
+				if (preg_match("/\sWHERE\s/i",$query)) {
+					# If so start off with AND
+					$sqlWhere .= "AND ";
+				} else {
+					$sqlWhere = "WHERE ";
+				}
+				$sqlWhere .= implode(" AND ",$where);
+			}
+		}
+
+		# Check if we starting at an OFFSET
+		if (isset($search['Start'])) {
+			# Check if Start is valid
+			if ($search['Start'] < 0) {
+				return array(NULL,"Parameter 'search' element 'Start' invalid value '".$search['Start']."'"); 
+			}
+
+			$sqlOffset = sprintf("OFFSET %i",$search['Start']);
+		}
+
+		# Check if results will be LIMIT'd
+		if (isset($search['Limit'])) {
+			# Check if Limit is valid
+			if ($search['Limit'] < 1) {
+				return array(NULL,"Parameter 'search' element 'Limit' invalid value '".$search['Limit']."'"); 
+			}
+
+			$sqlLimit = sprintf("LIMIT %i",$search['Limit']);
+		}
+
+		# Check if we going to be sorting
+		if (isset($search['Sort'])) {
+			# We need sorts in order to use sorting
+			if (!isset($sorts)) {
+				return array(NULL,"Parameter 'search' element 'Filter' requires 'filters' to be defined");
+			}
+
+			# Check if sort is defined
+			if (!isset($sorts->{$search['Sort']})) {
+				return array(NULL,"Parameter 'search' element 'Sort' invalid item '".$search['Sort']."' according to 'sorts'"); 
+			}
+
+			# Build ORDER By
+			$sqlOrderBy = "ORDER BY ".$sorts->{$search['Sort']};
+
+			# Check for sort ORDER
+			if (isset($search['SortDirection'])) {
+
+				# Check for valid directions
+				if (strtolower($search['SortDirection']) == "asc") {
+					$sqlOrderByDirection = "ASC";
+
+				} elseif (strtolower($search['SortDirection']) == "desc") {
+					$sqlOrderByDirection = "DESC";
+
+				} else {
+					return array(NULL,"Parameter 'search' element 'SortDirection' invalid value '".$search['SortDirection']."'"); 
+				}
+			}
+		}
+	}
+
+	# Select row count, pull out   "SELECT .... "  as we replace this in the NumResults query
+	$queryCount = $query; preg_replace("/^\s*SELECT\s.*\sFROM/is","FROM",$queryCount);
+	$numResults = DBSelectNumResults("$queryCount $sqlWhere");
+	if (!isset($numResults)) {
+		return NULL;
+	}
+
+	# Add Start, Limit, Sort, Direction
+	$sth = DBSelect("$query $sqlWhere $sqlOrderBy $sqlOrderByDirection $sqlLimit $sqlOffset");
+	if (!isset($sth)) {
+		return NULL;
+	}
+
+	return array($sth,$numResults);
+}
+
+
+
+# Connet to database when we load this file
+$db = connect_db();
+
+
 # vim: ts=4
-?>
