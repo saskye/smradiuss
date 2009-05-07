@@ -7,29 +7,35 @@ include_once("include/db.php");
 function getAdminUsers($params) {
 	global $db;
 
-	$sql = "SELECT ID, Username, Disabled FROM users";
-	$res = $db->query($sql);
+	# Filters and sorts are the same here
+	$filtersorts = array(
+		'ID' => 'users.ID',
+		'Username' => 'users.Username',
+		'Disabled' => 'users.Disabled'
+	);
+
+	$res = DBSelectSearch("SELECT ID, Username, Disabled FROM users",$params[1],$filtersorts,$filtersorts);
+	$sth = $res[0]; $numResults = $res[1];
+	# If STH is blank, return the error back to whoever requested the data
+	if (!isset($sth)) {
+		return $res;
+	}
 
 	$resultArray = array();
 
-		# loop through rows
-		while ($row = $res->fetchObject()) {
-			$item = array();
+	# loop through rows
+	while ($row = $sth->fetchObject()) {
+		$item = array();
 
-			$item['ID'] = $row->id;
-			$item['Username'] = $row->username;
-			$item['Disabled'] = $row->disabled;
+		$item['ID'] = $row->id;
+		$item['Username'] = $row->username;
+		$item['Disabled'] = $row->disabled;
 
-			# push this row onto array
-			array_push($resultArray,$item);
-		}
+		# push this row onto array
+		array_push($resultArray,$item);
+	}
 
-	# get number of rows
-	$sql = "SELECT count(*) FROM users";
-	$res = $db->query($sql);
-	$numResults = $res->fetchColumn();
-
-	return array($numResults,$resultArray);
+	return array($resultArray,$numResults);
 }
 
 ?>

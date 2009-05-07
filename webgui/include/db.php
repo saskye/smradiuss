@@ -71,10 +71,10 @@ function connect_postfix_db()
 # @return DBI statement handle, undef on error
 function DBSelect($query) 
 {
-	# Prepare query
-	if (!($sth = $db->query($query))) {
-		return NULL;
-	}
+	global $db;
+
+	# Query
+	$sth = $db->query($query);
 
 	return $sth;
 }
@@ -89,16 +89,13 @@ function DBSelect($query)
 # @return Number of results, undef on error
 function DBSelectNumResults($query) 
 {
-	# Prepare query
-	if (!($sth = $dbh->query("SELECT COUNT(*) AS num_results $query"))) {
-		return NULL;
-	}
+	global $db;
+
+	# Query
+	$sth = $db->query("SELECT COUNT(*) AS num_results $query");
 
 	# Grab row
 	$row = $sth->fetchObject();
-	if (!defined($row)) {
-		return NULL;
-	}
 
 	# Pull number
 	$num_results = $row->num_results;
@@ -113,7 +110,7 @@ function DBSelectNumResults($query)
 #
 # @param query Base query
 #
-# @param search Search hash ref
+# @param search Search array
 # @li Filter - Filter based on this...
 # [filter] => Array ( 
 #	[0] => Array ( 
@@ -130,7 +127,7 @@ function DBSelectNumResults($query)
 # @li Sort - Sort by this item
 # @li SortDirection - Sort in this direction, either ASC or DESC 
 #
-# @param filters Filter hash ref
+# @param filters Filter array ref
 # Hash:  'Column' -> 'Table.DBColumn'
 #
 # @param sorts Hash ref of valid sort criteria, indexed by what we get, pointing to the DB column in the query
@@ -138,6 +135,8 @@ function DBSelectNumResults($query)
 #
 # @return Number of results, undef on error
 function DBSelectSearch($query,$search,$filters,$sorts) {
+	global $db;
+
 	# Stuff we need to add to the SQL query
 	$where = array(); # Where clauses
 	$sqlWhere = "";
@@ -148,32 +147,33 @@ function DBSelectSearch($query,$search,$filters,$sorts) {
 
 	# Check if we're searching
 	if (isset($search)) {
-		# Check it is a hash
-		if (gettype($search) != "ARRAY") {
-			return array(NULL,"Parameter 'search' is not a hashtable");
+		# Check it is a array
+		if (gettype($search) != "array") {
+			return array(NULL,"Parameter 'search' is not a array");
 		}
 		# Check if we need to filter
-		if (isset($search['Filter'])) {
+		if (isset($search['Filter']) && !empty($search['Filter'])) {
 			# We need filters in order to use filtering
 			if (!isset($filters)) {
 				return array(NULL,"Parameter 'search' element 'Filter' requires 'filters' to be defined");
 			}
 
 			# Check type of Filter
-			if (isset($search->{'Filter'}) != "ARRAY") {
-				return array(NULL,"Parameter 'search' element 'Filter' is of invalid type, it must be an ARRAY'");
+			if (isset($search['Filter']) != "array") {
+				return array(NULL,"Parameter 'search' element 'Filter' is of invalid type, it must be an array'");
 			}
 
 			# Loop with filters
-			foreach ($search->{'Filter'} as $item) {
+			foreach ($search['Filter'] as $item) {
 				$data = $item['data'];  # value, type, comparison
 				$field = $item['field'];
-				$column = $filters[$field];
 
 				# Check if field is in our allowed filters
 				if (!isset($filters[$field])) {
 					return array(NULL,"Parameter 'search' element 'Filter' has invalid field item '$field' according to 'filters'"); 
 				}
+				$column = $filters[$field];
+
 				# Check data
 				if (!isset($data['type'])) {
 					return array(NULL,"Parameter 'search' element 'Filter' requires field data element 'type' for field '$field'"); 
@@ -279,40 +279,40 @@ function DBSelectSearch($query,$search,$filters,$sorts) {
 		# Check if we starting at an OFFSET
 		if (isset($search['Start'])) {
 			# Check if Start is valid
-			if ($search['Start'] < 0) {
+			if (!is_numeric($search['Start']) || $search['Start'] < 0) {
 				return array(NULL,"Parameter 'search' element 'Start' invalid value '".$search['Start']."'"); 
 			}
 
-			$sqlOffset = sprintf("OFFSET %i",$search['Start']);
+			$sqlOffset = sprintf("OFFSET %d",$search['Start']);
 		}
 
 		# Check if results will be LIMIT'd
 		if (isset($search['Limit'])) {
 			# Check if Limit is valid
-			if ($search['Limit'] < 1) {
+			if (!is_numeric($search['Limit']) || $search['Limit'] < 1) {
 				return array(NULL,"Parameter 'search' element 'Limit' invalid value '".$search['Limit']."'"); 
 			}
 
-			$sqlLimit = sprintf("LIMIT %i",$search['Limit']);
+			$sqlLimit = sprintf("LIMIT %d",$search['Limit']);
 		}
 
 		# Check if we going to be sorting
-		if (isset($search['Sort'])) {
+		if (isset($search['Sort']) && !empty($search['Sort'])) {
 			# We need sorts in order to use sorting
 			if (!isset($sorts)) {
 				return array(NULL,"Parameter 'search' element 'Filter' requires 'filters' to be defined");
 			}
 
 			# Check if sort is defined
-			if (!isset($sorts->{$search['Sort']})) {
+			if (!isset($sorts[$search['Sort']])) {
 				return array(NULL,"Parameter 'search' element 'Sort' invalid item '".$search['Sort']."' according to 'sorts'"); 
 			}
 
 			# Build ORDER By
-			$sqlOrderBy = "ORDER BY ".$sorts->{$search['Sort']};
+			$sqlOrderBy = "ORDER BY ".$sorts[$search['Sort']];
 
 			# Check for sort ORDER
-			if (isset($search['SortDirection'])) {
+			if (isset($search['SortDirection']) && !empty($search['SortDirection'])) {
 
 				# Check for valid directions
 				if (strtolower($search['SortDirection']) == "asc") {
@@ -329,16 +329,16 @@ function DBSelectSearch($query,$search,$filters,$sorts) {
 	}
 
 	# Select row count, pull out   "SELECT .... "  as we replace this in the NumResults query
-	$queryCount = $query; preg_replace("/^\s*SELECT\s.*\sFROM/is","FROM",$queryCount);
+	$queryCount = $query; $queryCount = preg_replace("/^\s*SELECT\s.*\sFROM/is","FROM",$queryCount);
 	$numResults = DBSelectNumResults("$queryCount $sqlWhere");
 	if (!isset($numResults)) {
-		return NULL;
+		return array(NULL,"Backend database query 1 failed");
 	}
 
 	# Add Start, Limit, Sort, Direction
 	$sth = DBSelect("$query $sqlWhere $sqlOrderBy $sqlOrderByDirection $sqlLimit $sqlOffset");
 	if (!isset($sth)) {
-		return NULL;
+		return array(NULL,"Backend database query 2 failed");
 	}
 
 	return array($sth,$numResults);

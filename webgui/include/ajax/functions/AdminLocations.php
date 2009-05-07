@@ -7,28 +7,33 @@ include_once("include/db.php");
 function getAdminLocations($params) {
 	global $db;
 
-	$sql = "SELECT ID, Name FROM wisp_locations";
-	$res = $db->query($sql);
+	# Filters and sorts are the same here
+	$filtersorts = array(
+		'ID' => 'wisp_locations.ID',
+		'Name' => 'wisp_locations.Name',
+	);
+
+	$res = DBSelectSearch("SELECT ID, Name FROM wisp_locations",$params[1],$filtersorts,$filtersorts);
+	$sth = $res[0]; $numResults = $res[1];
+	# If STH is blank, return the error back to whoever requested the data
+	if (!isset($sth)) {
+		return $res;
+	}
 
 	$resultArray = array();
 
-		# loop through rows
-		while ($row = $res->fetchObject()) {
-			$item = array();
+	# loop through rows
+	while ($row = $sth->fetchObject()) {
+		$item = array();
 
-			$item['ID'] = $row->id;
-			$item['Name'] = $row->name;
+		$item['ID'] = $row->id;
+		$item['Name'] = $row->name;
 
-			# push this row onto array
-			array_push($resultArray,$item);
-		}
+		# push this row onto array
+		array_push($resultArray,$item);
+	}
 
-	# get number of rows
-	$sql = "SELECT count(*) FROM wisp_locations";
-	$res = $db->query($sql);
-	$numResults = $res->fetchColumn();
-
-	return array($numResults,$resultArray);
+	return array($resultArray,$numResults);
 }
 
 ?>
