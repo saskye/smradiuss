@@ -46,15 +46,12 @@ function getAdminGroups($params) {
 function removeAdminGroup($params) {
 	global $db;
 
-	$db->errorInfo();
-	$res = DBDo("DELETE FROM groups WHERE ID = ".$params[0]['id']);
-	print_r($params);
-	# If STH is blank, return the error back to whoever requested the data
-	if (!isset($res)) {
-		print_r($res->errorInfo());
+	$res = DBDo("DELETE FROM groups WHERE ID = ".$params[0][0]);
+	if (!is_numeric($res)) {
+		return $res;
 	}
 
-	return $res;
+	return NULL;
 }
 
 ?>

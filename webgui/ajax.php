@@ -150,6 +150,10 @@
 
 			print_r($soapParams);
 			$res = removeAdminGroup($soapParams);
+			if (isset($res)) {
+				ajaxException($res);
+			}
+
 			break;
 
 		case "getWiSPResellers":

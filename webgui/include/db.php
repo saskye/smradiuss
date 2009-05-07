@@ -88,6 +88,9 @@ function DBDo($command)
 
 	# Perform query
 	$sth = $db->exec($command);
+	if ($sth === FALSE) {
+		return $db->errorInfo();
+	}
 
 	return $sth;
 }
