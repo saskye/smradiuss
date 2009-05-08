@@ -18,13 +18,41 @@ function showAdminGroupWindow() {
 			// Inline toolbars
 			tbar: [
 				{
-					text:'Add/Edit',
-					tooltip:'Add or edit group',
+					text:'Add',
+					tooltip:'Add group',
 					iconCls:'add',
 					handler: function() {
-						showAdminGroupEditWindow();
+						showAdminGroupAddEditWindow();
 					}
 				}, 
+				'-', 
+				{
+					text:'Edit',
+					tooltip:'Edit group',
+					iconCls:'edit',
+					handler: function() {
+						var selectedItem = AdminGroupWindow.getComponent('gridpanel').getSelectionModel().getSelected();
+						// Check if we have selected item
+						if (selectedItem) {
+							// If so display window
+							showAdminGroupAddEditWindow(selectedItem.data.ID);
+						} else {
+							AdminGroupWindow.getEl().mask();
+
+							// Display error
+							Ext.Msg.show({
+								title: "Nothing selected",
+								msg: "No group selected",
+								icon: Ext.MessageBox.ERROR,
+								buttons: Ext.Msg.CANCEL,
+								modal: false,
+								fn: function() {
+									AdminGroupWindow.getEl().unmask();
+								}
+							});
+						}
+					}
+				},
 				'-', 
 				{
 					text:'Remove',
@@ -169,7 +197,7 @@ function showAdminGroupWindow() {
 
 
 // Display edit/add form
-function showAdminGroupEditWindow(id) {
+function showAdminGroupAddEditWindow(id) {
 
 	var submitAjaxConfig;
 
