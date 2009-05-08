@@ -146,6 +146,15 @@
 	}
 
 	switch ($function) {
+		case "updateAdminGroup":
+
+			$res = updateAdminGroup($soapParams);
+			if (isset($res)) {
+				ajaxException($res);
+			}
+
+			break;
+
 		case "createAdminGroup":
 
 			$res = createAdminGroup($soapParams);
@@ -231,6 +240,21 @@
 			$res->addField('Comment','string');
 			$res->parseArray($rawData);
 			$res->setDatasetSize($numResults);
+
+			echo json_encode($res->export());
+			break;
+
+		case "getAdminGroup":
+			$rawData = getAdminGroup($soapParams);
+
+			$res = new json_response;
+			$res->setID('ID');
+			$res->addField('ID','int');
+			$res->addField('Name','string');
+			$res->addField('Priority','int');
+			$res->addField('Disabled','boolean');
+			$res->addField('Comment','string');
+			$res->parseHash($rawData);
 
 			echo json_encode($res->export());
 			break;
