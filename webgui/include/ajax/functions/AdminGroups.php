@@ -42,11 +42,23 @@ function getAdminGroups($params) {
 	return array($resultArray,$numResults);
 }
 
-# Return list of users
+# Remove admin group
 function removeAdminGroup($params) {
 	global $db;
 
-	$res = DBDo("DELETE FROM groups WHERE ID = ".$params[0][0]);
+	$res = DBDo("DELETE FROM groups WHERE ID = ?",array($params[0][0]));
+	if (!is_numeric($res)) {
+		return $res;
+	}
+
+	return NULL;
+}
+
+# Add admin group
+function createAdminGroup($params) {
+	global $db;
+
+	$res = DBDo("INSERT INTO groups (Name) VALUES (?)",array($params[0]['Name']));
 	if (!is_numeric($res)) {
 		return $res;
 	}
