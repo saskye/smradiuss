@@ -42,6 +42,29 @@ function getAdminGroups($params) {
 	return array($resultArray,$numResults);
 }
 
+# Return list of users
+function getAdminGroup($params) {
+	global $db;
+
+
+	$res = DBSelect("SELECT ID, Name, Priority, Disabled, Comment FROM groups WHERE ID = ?",array($params[0]));
+	if (!is_object($res)) {
+		return $res;
+	}
+
+	$resultArray = array();
+
+	$row = $res->fetchObject();
+
+	$resultArray['ID'] = $row->id;
+	$resultArray['Name'] = $row->name;
+	$resultArray['Priority'] = $row->priority;
+	$resultArray['Disabled'] = $row->disabled;
+	$resultArray['Comment'] = $row->comment;
+
+	return $resultArray;
+}
+
 # Remove admin group
 function removeAdminGroup($params) {
 	global $db;
@@ -59,6 +82,18 @@ function createAdminGroup($params) {
 	global $db;
 
 	$res = DBDo("INSERT INTO groups (Name) VALUES (?)",array($params[0]['Name']));
+	if (!is_numeric($res)) {
+		return $res;
+	}
+
+	return NULL;
+}
+
+# Edit admin group
+function updateAdminGroup($params) {
+	global $db;
+
+	$res = DBDo("UPDATE groups SET Name = ? WHERE ID = ?",array($params[0]['Name'],$params[0]['ID']));
 	if (!is_numeric($res)) {
 		return $res;
 	}
