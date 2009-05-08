@@ -63,53 +63,84 @@ function connect_postfix_db()
 }
 
 
-## @fn DBSelect($query)
+## @fn DBSelect($query,$args)
 # Return database selection results...
 #
 # @param query Query to run
+# @param args Array of arguments we substitute in ?'s place
 #
 # @return DBI statement handle, undef on error
-function DBSelect($query) 
+function DBSelect($query,$args = array())
 {
 	global $db;
 
-	# Query
-	$sth = $db->query($query);
+	# Try prepare, and catch exceptions
+	try {
+		$stmt = $db->prepare($query);
 
-	return $sth;
-}
+	} catch (PDOException $e) {
+		return $e->getMessage();
 
-
-# Perform a command
-# Args: <command statement>
-function DBDo($command)
-{
-	global $db;
-
-	# Perform query
-	$sth = $db->exec($command);
-	if ($sth === FALSE) {
-		return $db->errorInfo();
 	}
 
-	return $sth;
+	# Execute query
+	$res = $stmt->execute($args);
+	if ($res === FALSE) {
+		return $stmt->errorInfo();
+	}
+
+	return $stmt;
 }
 
-## @fn DBSelectNumResults($query)
+
+## @fn DBDo($query,$args)
+# Perform a database command
+#
+# @param command Command to execute in database
+# @param args Arguments to quote in the command string
+#
+# @return Number of results, undef on error
+function DBDo($command,$args = array())
+{
+	global $db;
+
+	# Try prepare, and catch exceptions
+	try {
+		$stmt = $db->prepare($command);
+
+	} catch (PDOException $e) {
+		return $e->getMessage();
+
+	}
+
+	# Execute query
+	$res = $stmt->execute($args);
+	if ($res === FALSE) {
+		return $stmt->errorInfo();
+	}
+
+	return $res;
+}
+
+## @fn DBSelectNumResults($query,$args)
 # Return how many results came up from the specific SELECT query
 #
 # @param query Query to perform, minus "SELECT COUNT(*) AS num_results"
+# @param args Arguments to quote in the query string
 #
 # @return Number of results, undef on error
-function DBSelectNumResults($query) 
+function DBSelectNumResults($query,$args = array())
 {
 	global $db;
 
-	# Query
-	$sth = $db->query("SELECT COUNT(*) AS num_results $query");
+
+	$res = DBSelect("SELECT COUNT(*) AS num_results $query",$args);
+	if (!is_object($res)) {
+		return $res;
+	}
 
 	# Grab row
-	$row = $sth->fetchObject();
+	$row = $res->fetchObject();
 
 	# Pull number
 	$num_results = $row->num_results;
