@@ -18,8 +18,8 @@ function showAdminGroupWindow() {
 			// Inline toolbars
 			tbar: [
 				{
-					text:'Add',
-					tooltip:'Add group',
+					text:'Add/Edit',
+					tooltip:'Add or edit group',
 					iconCls:'add',
 					handler: function() {
 						showAdminGroupEditWindow();
@@ -172,7 +172,6 @@ function showAdminGroupWindow() {
 function showAdminGroupEditWindow(id) {
 
 	var submitAjaxConfig;
-	var editMode;
 
 
 	// We doing an update
@@ -182,41 +181,18 @@ function showAdminGroupEditWindow(id) {
 			SOAPFunction: 'updateAdminGroup',
 			SOAPParams: 
 				'0:ID,'+
-				'0:UsageCap,'+
-				'0:AgentRef,'+
-				'0:AgentDisabled:boolean'
+				'0:Name'
 		};
-		editMode = true;
 
 	// We doing an Add
 	} else {
 		submitAjaxConfig = {
 			SOAPFunction: 'createAdminGroup',
 			SOAPParams: 
-				'0:AgentID,'+
-				'0:GroupName,'+
-				'0:UsageCap,'+
-				'0:AgentRef,'+
-				'0:AgentDisabled:boolean'
+				'0:Name'
 		};
-		editMode = false;
 	}
 	
-	// Service store
-	var serviceStore = new Ext.ux.JsonStore({
-		ID: id,
-		sortInfo: { field: "Name", direction: "ASC" },
-		baseParams: {
-			SOAPUsername: globalConfig.soap.username,
-			SOAPPassword: globalConfig.soap.password,
-			SOAPAuthType: globalConfig.soap.authtype,
-			SOAPModule: 'AdminGroups',
-			SOAPFunction: 'getClasses',
-			AgentID: 1,
-			SOAPParams: '0:AgentID,__search'
-		}
-	});
-
 	// Create window
 	var wispGroupFormWindow = new Ext.ux.GenericFormWindow(
 		// Window config
@@ -240,153 +216,30 @@ function showAdminGroupEditWindow(id) {
 			},
 			items: [
 				{
-					fieldLabel: 'Groupname',
-					name: 'Groupname',
+					fieldLabel: 'Name',
+					name: 'Name',
 					vtype: 'usernamePart',
 					maskRe: usernamePartRe,
-					allowBlank: false,
-					
-					disabled: editMode
+					allowBlank: false
 				},
-
-				{
-					xtype: 'combo',
-
-					// We use an ID so we can get the box later
-					id: 'agent_combobox',
-
-					fieldLabel: 'Agent',
-					name: 'Agent',
-					allowBlank: false,
-					width: 225,
-
-					store: new Ext.ux.JsonStore({
-						ID: id,
-						sortInfo: { field: "Name", direction: "ASC" },
-						baseParams: {
-							SOAPUsername: globalConfig.soap.username,
-							SOAPPassword: globalConfig.soap.password,
-							SOAPAuthType: globalConfig.soap.authtype,
-							SOAPModule: 'Agents',
-							SOAPFunction: 'getAgents',
-							SOAPParams: '__search'
-						}
-					}),
-					displayField: 'Name',
-					valueField: 'ID',
-					hiddenName: 'AgentID',
-
-					forceSelection: false,
-					triggerAction: 'all',
-					editable: false,
-
-					disabled: editMode
-				},
-
-				{
-					xtype: 'combo',
-
-					// We use an ID so we can get the box later
-					id: 'service_combobox',
-
-					fieldLabel: 'Service',
-					name: 'Service',
-					allowBlank: false,
-					width: 340,
-
-					store: serviceStore,
-
-					displayField: 'Service',
-					valueField: 'ID',
-					hiddenName: 'ClassID',
-
-					forceSelection: false,
-					triggerAction: 'all',
-					editable: false,
-
-					disabled: true
-				},
-
-				{
-					fieldLabel: 'Usage Cap',
-					name: 'UsageCap',
-				},
-
-				{
-					fieldLabel: 'Agent Ref',
-					name: 'AgentRef'
-				},
-
-				{
-					xtype: 'checkbox',
-					fieldLabel: 'Disabled',
-					name: 'AgentDisabled'
-				}/*,
-				{
-					xtype: 'tabpanel',
-					plain: 'true',
-					deferredRender: false, // Load all panels!
-					activeTab: 0,
-					height: 100,
-					defaults: {
-						layout: 'form',
-						bodyStyle: 'padding: 10px;'
-					},
-					
-					items: [
-						{
-							title: 'Policy Settings',
-							layout: 'form',
-							defaultType: 'textfield',
-							items: [
-								{
-									fieldLabel: 'Transport Policy',
-									name: 'Policy',
-									vtype: 'number',
-									value: '1'
-								}
-							]
-						}
-					]
-				}*/
 			],
 		},
 		// Submit button config
 		submitAjaxConfig
 	);
 
-	// Events
-	if (!id) {
-		wispGroupFormWindow.findById('agent_combobox').on({
-			select: {
-				fn: function() {
-					var tb = this.ownerCt.findById('service_combobox');
-
-					if (this.getValue()) {
-						tb.reset();
-						serviceStore.baseParams.AgentID = this.getValue();
-						serviceStore.reload();
-						tb.enable();
-					} else {
-						tb.reset();
-						tb.disable();
-					}
-				}
-			},
-		});
-	}
 	wispGroupFormWindow.show();
 
 	if (id) {
 		wispGroupFormWindow.getComponent('formpanel').load({
 			params: {
-				id: id,
+				ID: id,
 				SOAPUsername: globalConfig.soap.username,
 				SOAPPassword: globalConfig.soap.password,
 				SOAPAuthType: globalConfig.soap.authtype,
 				SOAPModule: 'AdminGroups',
-				SOAPFunction: 'getAdminGroups',
-				SOAPParams: 'id'
+				SOAPFunction: 'getAdminGroup',
+				SOAPParams: 'ID'
 			}
 		});
 	}
