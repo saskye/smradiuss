@@ -102,7 +102,7 @@ class json_response {
 
 		foreach ($this->_fields as $field) {
 			# FIXME - typecast?
-			$this_results[$field['name']] = $hash[$field['name']];
+			$this->_results[$field['name']] = $hash[$field['name']];
 		}
 	}
 
