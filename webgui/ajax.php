@@ -113,14 +113,14 @@
 			if (count($items) > 1) {
 				$array_pos = $items[0];
 				$array_item = $items[1];
-				$array_type = $items[2];
 
 				# Initialize array
 				if (!isset($soapParams[$array_pos])) {
 					$soapParams[$array_pos] = array();
 				}
 				# Check if we have an explicit type
-				if (isset($array_type)) {
+				if (isset($items[2])) {
+					$array_type = $items[2];
 					# Check type
 					if ($array_type == "boolean") {
 						# Checkboxes/booleans are undefined if false
@@ -146,9 +146,17 @@
 	}
 
 	switch ($function) {
+		case "createAdminGroup":
+
+			$res = createAdminGroup($soapParams);
+			if (isset($res)) {
+				ajaxException($res);
+			}
+
+			break;
+
 		case "removeAdminGroup":
 
-			print_r($soapParams);
 			$res = removeAdminGroup($soapParams);
 			if (isset($res)) {
 				ajaxException($res);
