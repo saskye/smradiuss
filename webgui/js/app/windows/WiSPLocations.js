@@ -22,10 +22,38 @@ function showWiSPLocationWindow() {
 					tooltip:'Add location',
 					iconCls:'add',
 					handler: function() {
-						showWiSPLocationEditWindow();
+						showWiSPLocationAddEditWindow();
 					}
 				}, 
 				'-',
+				{
+					text:'Edit',
+					tooltip:'Edit location',
+					iconCls:'edit',
+					handler: function() {
+						var selectedItem = WiSPLocationWindow.getComponent('gridpanel').getSelectionModel().getSelected();
+						// Check if we have selected item
+						if (selectedItem) {
+							// If so display window
+							showWiSPLocationAddEditWindow(selectedItem.data.ID);
+						} else {
+							WiSPLocationWindow.getEl().mask();
+
+							// Display error
+							Ext.Msg.show({
+								title: "Nothing selected",
+								msg: "No location selected",
+								icon: Ext.MessageBox.ERROR,
+								buttons: Ext.Msg.CANCEL,
+								modal: false,
+								fn: function() {
+									WiSPLocationWindow.getEl().unmask();
+								}
+							});
+						}
+					}
+				},
+				'-', 
 				{
 					text:'Remove',
 					tooltip:'Remove location',
@@ -70,7 +98,7 @@ function showWiSPLocationWindow() {
 							// Display error
 							Ext.Msg.show({
 								title: "Nothing selected",
-								msg: "No user selected",
+								msg: "No location selected",
 								icon: Ext.MessageBox.ERROR,
 								buttons: Ext.Msg.CANCEL,
 								modal: false,
@@ -105,7 +133,7 @@ function showWiSPLocationWindow() {
 				SOAPPassword: globalConfig.soap.password,
 				SOAPAuthType: globalConfig.soap.authtype,
 				SOAPModule: 'WiSPLocations',
-				SOAPFunction: 'getLocations',
+				SOAPFunction: 'getWiSPLocations',
 				SOAPParams: '__null,__search'
 			}
 		},
@@ -122,8 +150,81 @@ function showWiSPLocationWindow() {
 }
 
 
+// Display edit/add form
+function showWiSPLocationAddEditWindow(id) {
 
+	var submitAjaxConfig;
 
+	// We doing an update
+	if (id) {
+		submitAjaxConfig = {
+			ID: id,
+			SOAPFunction: 'updateWiSPLocation',
+			SOAPParams: 
+				'0:ID,'+
+				'0:Name'
+		};
+
+	// We doing an Add
+	} else {
+		submitAjaxConfig = {
+			SOAPFunction: 'createWiSPLocation',
+			SOAPParams: 
+				'0:Name'
+		};
+	}
+	
+	// Create window
+	var wispLocationFormWindow = new Ext.ux.GenericFormWindow(
+		// Window config
+		{
+			title: "Location Information",
+
+			width: 475,
+			height: 260,
+
+			minWidth: 475,
+			minHeight: 260
+		},
+		// Form panel config
+		{
+			labelWidth: 85,
+			baseParams: {
+				SOAPUsername: globalConfig.soap.username,
+				SOAPPassword: globalConfig.soap.password,
+				SOAPAuthType: globalConfig.soap.authtype,
+				SOAPModule: 'WiSPLocations'
+			},
+			items: [
+				{
+					fieldLabel: 'Name',
+					name: 'Name',
+					vtype: 'usernamePart',
+					maskRe: usernamePartRe,
+					allowBlank: false
+				},
+			],
+		},
+		// Submit button config
+		submitAjaxConfig
+	);
+
+	wispLocationFormWindow.show();
+
+	if (id) {
+		wispLocationFormWindow.getComponent('formpanel').load({
+			params: {
+				ID: id,
+				SOAPUsername: globalConfig.soap.username,
+				SOAPPassword: globalConfig.soap.password,
+				SOAPAuthType: globalConfig.soap.authtype,
+				SOAPModule: 'WiSPLocations',
+				SOAPFunction: 'getWiSPLocation',
+				SOAPParams: 'ID'
+			}
+		});
+	}
+}
 
 
 // Display remove form
@@ -134,7 +235,7 @@ function showWiSPLocationRemoveWindow(parent,id) {
 	// Display remove confirm window
 	Ext.Msg.show({
 		title: "Confirm removal",
-		msg: "Are you very sure you wish to remove this user?",
+		msg: "Are you very sure you wish to remove this location?",
 		icon: Ext.MessageBox.ERROR,
 		buttons: Ext.Msg.YESNO,
 		modal: false,
@@ -149,8 +250,8 @@ function showWiSPLocationRemoveWindow(parent,id) {
 						SOAPUsername: globalConfig.soap.username,
 						SOAPPassword: globalConfig.soap.password,
 						SOAPAuthType: globalConfig.soap.authtype,
-						SOAPModule: 'WiSPUsers',
-						SOAPFunction: 'removeWiSPUser',
+						SOAPModule: 'WiSPLocations',
+						SOAPFunction: 'removeWiSPLocation',
 						SOAPParams: 'id'
 					}
 				});
@@ -163,13 +264,4 @@ function showWiSPLocationRemoveWindow(parent,id) {
 		}
 	});
 }
-
-
-
-
-
-
-
-
-
 

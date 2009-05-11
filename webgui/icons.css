@@ -11,6 +11,9 @@
         .add {
             background-image:url(resources/extjs/icons/fam/add.gif) !important;
         }
+        .edit {
+            background-image:url(resources/extjs/icons/fam/plugin.gif) !important;
+        }
         .option {
             background-image:url(resources/extjs/icons/fam/plugin.gif) !important;
         }

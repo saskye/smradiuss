@@ -3,18 +3,17 @@
 include_once("include/db.php");
 
 
-# Return list of realms
-function getAdminRealms($params) {
+# Return list of locations
+function getWiSPLocations($params) {
 	global $db;
 
 	# Filters and sorts are the same here
 	$filtersorts = array(
-		'ID' => 'realms.ID',
-		'Name' => 'realms.Name',
-		'Disabled' => 'realms.Disabled'
+		'ID' => 'groups.ID',
+		'Name' => 'groups.Name'
 	);
 
-	$res = DBSelectSearch("SELECT ID, Name, Disabled FROM realms",$params[1],$filtersorts,$filtersorts);
+	$res = DBSelectSearch("SELECT ID, Name FROM wisp_locations",$params[1],$filtersorts,$filtersorts);
 	$sth = $res[0]; $numResults = $res[1];
 	# If STH is blank, return the error back to whoever requested the data
 	if (!isset($sth)) {
@@ -29,7 +28,6 @@ function getAdminRealms($params) {
 
 		$item['ID'] = $row->id;
 		$item['Name'] = $row->name;
-		$item['Disabled'] = $row->disabled;
 
 		# push this row onto array
 		array_push($resultArray,$item);
@@ -38,12 +36,12 @@ function getAdminRealms($params) {
 	return array($resultArray,$numResults);
 }
 
-# Return specific realm row
-function getAdminRealm($params) {
+# Return specific location row
+function getWiSPLocation($params) {
 	global $db;
 
 
-	$res = DBSelect("SELECT ID, Name, Disabled FROM realms WHERE ID = ?",array($params[0]));
+	$res = DBSelect("SELECT ID, Name FROM wisp_locations WHERE ID = ?",array($params[0]));
 	if (!is_object($res)) {
 		return $res;
 	}
@@ -54,16 +52,15 @@ function getAdminRealm($params) {
 
 	$resultArray['ID'] = $row->id;
 	$resultArray['Name'] = $row->name;
-	$resultArray['Disabled'] = $row->disabled;
 
 	return $resultArray;
 }
 
-# Remove admin realm
-function removeAdminRealm($params) {
+# Remove admin group
+function removeWiSPLocation($params) {
 	global $db;
 
-	$res = DBDo("DELETE FROM realms WHERE ID = ?",array($params[0]));
+	$res = DBDo("DELETE FROM wisp_locations WHERE ID = ?",array($params[0][0]));
 	if (!is_numeric($res)) {
 		return $res;
 	}
@@ -71,11 +68,11 @@ function removeAdminRealm($params) {
 	return NULL;
 }
 
-# Add admin realm
-function createAdminRealm($params) {
+# Add admin group
+function createWiSPLocation($params) {
 	global $db;
 
-	$res = DBDo("INSERT INTO realms (Name) VALUES (?)",array($params[0]['Name']));
+	$res = DBDo("INSERT INTO wisp_locations (Name) VALUES (?)",array($params[0]['Name']));
 	if (!is_numeric($res)) {
 		return $res;
 	}
@@ -83,11 +80,11 @@ function createAdminRealm($params) {
 	return NULL;
 }
 
-# Edit admin realm
-function updateAdminRealm($params) {
+# Edit admin group
+function updateWiSPLocation($params) {
 	global $db;
 
-	$res = DBDo("UPDATE realms SET Name = ? WHERE ID = ?",array($params[0]['Name'],$params[0]['ID']));
+	$res = DBDo("UPDATE wisp_locations SET Name = ? WHERE ID = ?",array($params[0]['Name'],$params[0]['ID']));
 	if (!is_numeric($res)) {
 		return $res;
 	}

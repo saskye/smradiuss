@@ -222,7 +222,7 @@ function showAdminGroupAddEditWindow(id) {
 	}
 	
 	// Create window
-	var wispGroupFormWindow = new Ext.ux.GenericFormWindow(
+	var adminGroupFormWindow = new Ext.ux.GenericFormWindow(
 		// Window config
 		{
 			title: "Group Information",
@@ -256,10 +256,10 @@ function showAdminGroupAddEditWindow(id) {
 		submitAjaxConfig
 	);
 
-	wispGroupFormWindow.show();
+	adminGroupFormWindow.show();
 
 	if (id) {
-		wispGroupFormWindow.getComponent('formpanel').load({
+		adminGroupFormWindow.getComponent('formpanel').load({
 			params: {
 				ID: id,
 				SOAPUsername: globalConfig.soap.username,
@@ -295,13 +295,13 @@ function showAdminGroupRemoveWindow(parent,id) {
 				// Do ajax request
 				uxAjaxRequest(parent,{
 					params: {
-						id: id,
+						ID: id,
 						SOAPUsername: globalConfig.soap.username,
 						SOAPPassword: globalConfig.soap.password,
 						SOAPAuthType: globalConfig.soap.authtype,
 						SOAPModule: 'AdminGroups',
 						SOAPFunction: 'removeAdminGroup',
-						SOAPParams: 'id'
+						SOAPParams: 'ID'
 					}
 				});
 
@@ -313,13 +313,4 @@ function showAdminGroupRemoveWindow(parent,id) {
 		}
 	});
 }
-
-
-
-
-
-
-
-
-
 

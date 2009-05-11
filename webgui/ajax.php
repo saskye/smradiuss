@@ -5,7 +5,7 @@
 	include_once("include/ajax/functions/AdminUsers.php");
 	include_once("include/ajax/functions/AdminGroups.php");
 	include_once("include/ajax/functions/AdminRealms.php");
-	include_once("include/ajax/functions/AdminLocations.php");
+	include_once("include/ajax/functions/WiSPLocations.php");
 
 	define('RES_OK',0);
 	define('RES_ERR',-1);
@@ -146,6 +146,177 @@
 	}
 
 	switch ($function) {
+
+		# WiSPLocations.js functions
+		case "updateWiSPLocation":
+
+			$res = updateWiSPLocation($soapParams);
+			if (isset($res)) {
+				ajaxException($res);
+			}
+
+			break;
+
+		case "createWiSPLocation":
+
+			$res = createWiSPLocation($soapParams);
+			if (isset($res)) {
+				ajaxException($res);
+			}
+
+			break;
+
+		case "removeWiSPLocation":
+
+			$res = removeWiSPLocation($soapParams);
+			if (isset($res)) {
+				ajaxException($res);
+			}
+
+			break;
+
+		case "getWiSPLocations":
+
+			$res = getWiSPLocations($soapParams);
+			$rawData = $res[0]; $numResults = $res[1];
+
+			$res = new json_response;
+			$res->setID('ID');
+			$res->addField('ID','int');
+			$res->addField('Name','string');
+			$res->parseArray($rawData);
+			$res->setDatasetSize($numResults);
+
+			echo json_encode($res->export());
+			break;
+
+		case "getWiSPLocation":
+			$rawData = getWiSPLocation($soapParams);
+
+			$res = new json_response;
+			$res->setID('ID');
+			$res->addField('ID','int');
+			$res->addField('Name','string');
+			$res->parseHash($rawData);
+
+			echo json_encode($res->export());
+			break;
+
+		# AdminUsers.js functions
+		case "updateAdminUser":
+
+			$res = updateAdminUser($soapParams);
+			if (isset($res)) {
+				ajaxException($res);
+			}
+
+			break;
+
+		case "createAdminUser":
+
+			$res = createAdminUser($soapParams);
+			if (isset($res)) {
+				ajaxException($res);
+			}
+
+			break;
+
+		case "removeAdminUser":
+
+			$res = removeAdminUser($soapParams);
+			if (isset($res)) {
+				ajaxException($res);
+			}
+
+			break;
+
+		case "getAdminUsers":
+
+			$res = getAdminUsers($soapParams);
+			$rawData = $res[0]; $numResults = $res[1];
+
+			$res = new json_response;
+			$res->setID('ID');
+			$res->addField('ID','int');
+			$res->addField('Username','string');
+			$res->addField('Disabled','boolean');
+			$res->parseArray($rawData);
+			$res->setDatasetSize($numResults);
+
+			echo json_encode($res->export());
+			break;
+
+		case "getAdminUser":
+			$rawData = getAdminUser($soapParams);
+
+			$res = new json_response;
+			$res->setID('ID');
+			$res->addField('ID','int');
+			$res->addField('Username','string');
+			$res->addField('Disabled','boolean');
+			$res->parseHash($rawData);
+
+			echo json_encode($res->export());
+			break;
+
+		# AdminRealms.js functions
+		case "updateAdminRealm":
+
+			$res = updateAdminRealm($soapParams);
+			if (isset($res)) {
+				ajaxException($res);
+			}
+
+			break;
+
+		case "createAdminRealm":
+
+			$res = createAdminRealm($soapParams);
+			if (isset($res)) {
+				ajaxException($res);
+			}
+
+			break;
+
+		case "removeAdminRealm":
+
+			$res = removeAdminRealm($soapParams);
+			if (isset($res)) {
+				ajaxException($res);
+			}
+
+			break;
+
+		case "getAdminRealms":
+
+			$res = getAdminRealms($soapParams);
+			$rawData = $res[0]; $numResults = $res[1];
+
+			$res = new json_response;
+			$res->setID('ID');
+			$res->addField('ID','int');
+			$res->addField('Name','string');
+			$res->addField('Disabled','boolean');
+			$res->parseArray($rawData);
+			$res->setDatasetSize($numResults);
+
+			echo json_encode($res->export());
+			break;
+
+		case "getAdminRealm":
+			$rawData = getAdminRealm($soapParams);
+
+			$res = new json_response;
+			$res->setID('ID');
+			$res->addField('ID','int');
+			$res->addField('Name','string');
+			$res->addField('Disabled','boolean');
+			$res->parseHash($rawData);
+
+			echo json_encode($res->export());
+			break;
+
+		# AdminGroups.js functions
 		case "updateAdminGroup":
 
 			$res = updateAdminGroup($soapParams);
@@ -173,6 +344,41 @@
 
 			break;
 
+		case "getAdminGroups":
+
+			$res = getAdminGroups($soapParams);
+			$rawData = $res[0]; $numResults = $res[1];
+
+			$res = new json_response;
+			$res->setID('ID');
+			$res->addField('ID','int');
+			$res->addField('Name','string');
+			$res->addField('Priority','int');
+			$res->addField('Disabled','boolean');
+			$res->addField('Comment','string');
+			$res->parseArray($rawData);
+			$res->setDatasetSize($numResults);
+
+			echo json_encode($res->export());
+
+			break;
+
+		case "getAdminGroup":
+			$rawData = getAdminGroup($soapParams);
+
+			$res = new json_response;
+			$res->setID('ID');
+			$res->addField('ID','int');
+			$res->addField('Name','string');
+			$res->addField('Priority','int');
+			$res->addField('Disabled','boolean');
+			$res->addField('Comment','string');
+			$res->parseHash($rawData);
+
+			echo json_encode($res->export());
+
+			break;
+
 		case "getWiSPResellers":
 
 			$rawData = array (
@@ -195,21 +401,6 @@
 			echo json_encode($res->export());
 			break;
 
-		case "getLocations":
-
-			$res = getAdminLocations($soapParams);
-			$rawData = $res[0]; $numResults = $res[1];
-
-			$res = new json_response;
-			$res->setID('ID');
-			$res->addField('ID','int');
-			$res->addField('Name','string');
-			$res->parseArray($rawData);
-			$res->setDatasetSize($numResults);
-
-			echo json_encode($res->export());
-			break;
-
 		case "getAdminRealms":
 
 			$res = getAdminRealms($soapParams);
@@ -219,61 +410,6 @@
 			$res->setID('ID');
 			$res->addField('ID','int');
 			$res->addField('Name','string');
-			$res->addField('Disabled','boolean');
-			$res->parseArray($rawData);
-			$res->setDatasetSize($numResults);
-
-			echo json_encode($res->export());
-			break;
-
-		case "getAdminGroups":
-
-			$res = getAdminGroups($soapParams);
-			$rawData = $res[0]; $numResults = $res[1];
-
-			$res = new json_response;
-			$res->setID('ID');
-			$res->addField('ID','int');
-			$res->addField('Name','string');
-			$res->addField('Priority','int');
-			$res->addField('Disabled','boolean');
-			$res->addField('Comment','string');
-			$res->parseArray($rawData);
-			$res->setDatasetSize($numResults);
-
-			echo json_encode($res->export());
-			break;
-
-		case "getAdminGroup":
-			$rawData = getAdminGroup($soapParams);
-
-			$res = new json_response;
-			$res->setID('ID');
-			$res->addField('ID','int');
-			$res->addField('Name','string');
-			$res->addField('Priority','int');
-			$res->addField('Disabled','boolean');
-			$res->addField('Comment','string');
-			$res->parseHash($rawData);
-
-			echo json_encode($res->export());
-			break;
-
-		case "getAdminUsers":
-
-			$res = getAdminUsers($soapParams);
-			$rawData = $res[0]; $numResults = $res[1];
-
-			# Check we have data returned
-			if (!isset($rawData)) {
-				# $numResults in this case is actually $msg, which is the errorm essage
-				ajaxException($numResults);
-			}
-
-			$res = new json_response;
-			$res->setID('ID');
-			$res->addField('ID','int');
-			$res->addField('Username','string');
 			$res->addField('Disabled','boolean');
 			$res->parseArray($rawData);
 			$res->setDatasetSize($numResults);

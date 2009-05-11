@@ -3,7 +3,7 @@
 include_once("include/db.php");
 
 
-# Return list of users
+# Return list of groups
 function getAdminGroups($params) {
 	global $db;
 
@@ -25,24 +25,24 @@ function getAdminGroups($params) {
 
 	$resultArray = array();
 
-		# loop through rows
-		while ($row = $sth->fetchObject()) {
-			$item = array();
+	# loop through rows
+	while ($row = $sth->fetchObject()) {
+		$item = array();
 
-			$item['ID'] = $row->id;
-			$item['Name'] = $row->name;
-			$item['Priority'] = $row->priority;
-			$item['Disabled'] = $row->disabled;
-			$item['Comment'] = $row->comment;
+		$item['ID'] = $row->id;
+		$item['Name'] = $row->name;
+		$item['Priority'] = $row->priority;
+		$item['Disabled'] = $row->disabled;
+		$item['Comment'] = $row->comment;
 
-			# push this row onto array
-			array_push($resultArray,$item);
-		}
+		# push this row onto array
+		array_push($resultArray,$item);
+	}
 
 	return array($resultArray,$numResults);
 }
 
-# Return list of users
+# Return specific group row
 function getAdminGroup($params) {
 	global $db;
 
@@ -69,7 +69,7 @@ function getAdminGroup($params) {
 function removeAdminGroup($params) {
 	global $db;
 
-	$res = DBDo("DELETE FROM groups WHERE ID = ?",array($params[0][0]));
+	$res = DBDo("DELETE FROM groups WHERE ID = ?",array($params[0]));
 	if (!is_numeric($res)) {
 		return $res;
 	}

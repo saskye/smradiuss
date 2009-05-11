@@ -22,7 +22,7 @@ function showAdminUserWindow() {
 					tooltip:'Add user',
 					iconCls:'add',
 					handler: function() {
-						showAdminUserEditWindow();
+						showAdminUserAddEditWindow();
 					}
 				}, 
 				'-', 
@@ -35,7 +35,7 @@ function showAdminUserWindow() {
 						// Check if we have selected item
 						if (selectedItem) {
 							// If so display window
-							showAdminUserEditWindow(selectedItem.data.ID);
+							showAdminUserAddEditWindow(selectedItem.data.ID);
 						} else {
 							AdminUserWindow.getEl().mask();
 
@@ -153,11 +153,11 @@ function showAdminUserWindow() {
 				},
 				{
 					header: "Disabled",
-					sortable: false,
+					sortable: true,
 					dataIndex: 'Disabled'
 				}
 			]),
-			autoExpandColumn: 'Service'
+			autoExpandColumn: 'Username'
 		},
 		// Store config
 		{
@@ -185,11 +185,9 @@ function showAdminUserWindow() {
 
 
 // Display edit/add form
-function showAdminUserEditWindow(id) {
+function showAdminUserAddEditWindow(id) {
 
 	var submitAjaxConfig;
-	var editMode;
-
 
 	// We doing an update
 	if (id) {
@@ -198,40 +196,17 @@ function showAdminUserEditWindow(id) {
 			SOAPFunction: 'updateAdminUser',
 			SOAPParams: 
 				'0:ID,'+
-				'0:UsageCap,'+
-				'0:AgentRef,'+
-				'0:AgentDisabled:boolean'
+				'0:Username'
 		};
-		editMode = true;
 
 	// We doing an Add
 	} else {
 		submitAjaxConfig = {
 			SOAPFunction: 'createAdminUser',
 			SOAPParams: 
-				'0:AgentID,'+
-				'0:UserName,'+
-				'0:UsageCap,'+
-				'0:AgentRef,'+
-				'0:AgentDisabled:boolean'
+				'0:Username'
 		};
-		editMode = false;
 	}
-	
-	// Service store
-	var serviceStore = new Ext.ux.JsonStore({
-		ID: id,
-		sortInfo: { field: "Name", direction: "ASC" },
-		baseParams: {
-			SOAPUsername: globalConfig.soap.username,
-			SOAPPassword: globalConfig.soap.password,
-			SOAPAuthType: globalConfig.soap.authtype,
-			SOAPModule: 'AdminUsers',
-			SOAPFunction: 'getClasses',
-			AgentID: 1,
-			SOAPParams: '0:AgentID,__search'
-		}
-	});
 
 	// Create window
 	var adminUserFormWindow = new Ext.ux.GenericFormWindow(
@@ -261,148 +236,25 @@ function showAdminUserEditWindow(id) {
 					vtype: 'usernamePart',
 					maskRe: usernamePartRe,
 					allowBlank: false,
-					
-					disabled: editMode
 				},
-
-				{
-					xtype: 'combo',
-
-					// We use an ID so we can get the box later
-					id: 'agent_combobox',
-
-					fieldLabel: 'Agent',
-					name: 'Agent',
-					allowBlank: false,
-					width: 225,
-
-					store: new Ext.ux.JsonStore({
-						ID: id,
-						sortInfo: { field: "Name", direction: "ASC" },
-						baseParams: {
-							SOAPUsername: globalConfig.soap.username,
-							SOAPPassword: globalConfig.soap.password,
-							SOAPAuthType: globalConfig.soap.authtype,
-							SOAPModule: 'Agents',
-							SOAPFunction: 'getAgents',
-							SOAPParams: '__search'
-						}
-					}),
-					displayField: 'Name',
-					valueField: 'ID',
-					hiddenName: 'AgentID',
-
-					forceSelection: false,
-					triggerAction: 'all',
-					editable: false,
-
-					disabled: editMode
-				},
-
-				{
-					xtype: 'combo',
-
-					// We use an ID so we can get the box later
-					id: 'service_combobox',
-
-					fieldLabel: 'Service',
-					name: 'Service',
-					allowBlank: false,
-					width: 340,
-
-					store: serviceStore,
-
-					displayField: 'Service',
-					valueField: 'ID',
-					hiddenName: 'ClassID',
-
-					forceSelection: false,
-					triggerAction: 'all',
-					editable: false,
-
-					disabled: true
-				},
-
-				{
-					fieldLabel: 'Usage Cap',
-					name: 'UsageCap',
-				},
-
-				{
-					fieldLabel: 'Agent Ref',
-					name: 'AgentRef'
-				},
-
-				{
-					xtype: 'checkbox',
-					fieldLabel: 'Disabled',
-					name: 'AgentDisabled'
-				}/*,
-				{
-					xtype: 'tabpanel',
-					plain: 'true',
-					deferredRender: false, // Load all panels!
-					activeTab: 0,
-					height: 100,
-					defaults: {
-						layout: 'form',
-						bodyStyle: 'padding: 10px;'
-					},
-					
-					items: [
-						{
-							title: 'Policy Settings',
-							layout: 'form',
-							defaultType: 'textfield',
-							items: [
-								{
-									fieldLabel: 'Transport Policy',
-									name: 'Policy',
-									vtype: 'number',
-									value: '1'
-								}
-							]
-						}
-					]
-				}*/
 			],
 		},
 		// Submit button config
 		submitAjaxConfig
 	);
 
-	// Events
-	if (!id) {
-		adminUserFormWindow.findById('agent_combobox').on({
-			select: {
-				fn: function() {
-					var tb = this.ownerCt.findById('service_combobox');
-
-					if (this.getValue()) {
-						tb.reset();
-						serviceStore.baseParams.AgentID = this.getValue();
-						serviceStore.reload();
-						tb.enable();
-					} else {
-						tb.reset();
-						tb.disable();
-					}
-				}
-			},
-		});
-	}
 	adminUserFormWindow.show();
 
 	if (id) {
 		adminUserFormWindow.getComponent('formpanel').load({
 			params: {
-				id: id,
+				ID: id,
 				SOAPUsername: globalConfig.soap.username,
 				SOAPPassword: globalConfig.soap.password,
 				SOAPAuthType: globalConfig.soap.authtype,
 				SOAPModule: 'AdminUsers',
 				SOAPFunction: 'getAdminUser',
-				SOAPParams: 'id'
+				SOAPParams: 'ID'
 			}
 		});
 	}
@@ -430,13 +282,13 @@ function showAdminUserRemoveWindow(parent,id) {
 				// Do ajax request
 				uxAjaxRequest(parent,{
 					params: {
-						id: id,
+						ID: id,
 						SOAPUsername: globalConfig.soap.username,
 						SOAPPassword: globalConfig.soap.password,
 						SOAPAuthType: globalConfig.soap.authtype,
 						SOAPModule: 'AdminUsers',
 						SOAPFunction: 'removeAdminUser',
-						SOAPParams: 'id'
+						SOAPParams: 'ID'
 					}
 				});
 
