@@ -390,6 +390,24 @@ function DBSelectSearch($query,$search,$filters,$sorts) {
 }
 
 
+## @fn DBLastInsertID($table,$column)
+# Function to get last insert id
+#
+# @param table Table to check
+# @param column Column to get last insert on
+#
+# @return Last insert ID or undef on error
+function DBLastInsertID()
+{
+	global $db;
+
+	# TODO: Implement $table nad $column??
+	$res = $db->lastInsertID();
+
+	return $res;
+}
+
+
 
 # Connet to database when we load this file
 $db = connect_db();
