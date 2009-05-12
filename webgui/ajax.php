@@ -6,6 +6,9 @@
 	include_once("include/ajax/functions/AdminGroups.php");
 	include_once("include/ajax/functions/AdminRealms.php");
 	include_once("include/ajax/functions/WiSPLocations.php");
+	include_once("include/ajax/functions/WiSPUsers.php");
+	include_once("include/ajax/functions/AdminUserAttributes.php");
+	include_once("include/ajax/functions/AdminUserGroups.php");
 
 	define('RES_OK',0);
 	define('RES_ERR',-1);
@@ -146,6 +149,101 @@
 	}
 
 	switch ($function) {
+
+		# AdminUserGroups.js functions
+		case "getAdminUserGroups":
+
+			$res = getAdminUserGroups($soapParams);
+			$rawData = $res[0]; $numResults = $res[1];
+
+			$res = new json_response;
+			$res->setID('ID');
+			$res->addField('ID','int');
+			$res->addField('Name','string');
+			$res->parseArray($rawData);
+			$res->setDatasetSize($numResults);
+
+			echo json_encode($res->export());
+			break;
+
+		# AdminUserAttributes.js functions
+		case "getAdminUserAttributes":
+
+			$res = getAdminUserAttributes($soapParams);
+			$rawData = $res[0]; $numResults = $res[1];
+
+			$res = new json_response;
+			$res->setID('ID');
+			$res->addField('ID','int');
+			$res->addField('Name','string');
+			$res->addField('Operator','string');
+			$res->addField('Value','string');
+			$res->addField('Disabled','boolean');
+			$res->parseArray($rawData);
+			$res->setDatasetSize($numResults);
+
+			echo json_encode($res->export());
+			break;
+
+		# WiSPUsers.js functions
+		case "updateWiSPUser":
+
+			$res = updateWiSPUser($soapParams);
+			if (isset($res)) {
+				ajaxException($res);
+			}
+
+			break;
+
+		case "createWiSPUser":
+
+			$res = createWiSPUser($soapParams);
+			if (isset($res)) {
+				ajaxException($res);
+			}
+
+			break;
+
+		case "removeWiSPUser":
+
+			$res = removeWiSPUser($soapParams);
+			if (isset($res)) {
+				ajaxException($res);
+			}
+
+			break;
+
+		case "getWiSPUsers":
+
+			$res = getWiSPUsers($soapParams);
+			$rawData = $res[0]; $numResults = $res[1];
+
+			$res = new json_response;
+			$res->setID('ID');
+			$res->addField('ID','int');
+			$res->addField('Username','string');
+			$res->addField('Disabled','boolean');
+			$res->addField('Firstname','string');
+			$res->addField('Lastname','string');
+			$res->addField('Email','string');
+			$res->addField('Phone','int');
+			$res->parseArray($rawData);
+			$res->setDatasetSize($numResults);
+
+			echo json_encode($res->export());
+			break;
+
+		case "getWiSPUser":
+			$rawData = getWiSPUser($soapParams);
+
+			$res = new json_response;
+			$res->setID('ID');
+			$res->addField('ID','int');
+			$res->addField('Username','string');
+			$res->parseHash($rawData);
+
+			echo json_encode($res->export());
+			break;
 
 		# WiSPLocations.js functions
 		case "updateWiSPLocation":
