@@ -408,6 +408,40 @@ function DBLastInsertID()
 }
 
 
+# Function to begin a transaction
+# Args: none
+function DBBegin()
+{
+	global $db;
+
+	$res = $db->beginTransaction();
+
+	return $res;
+}
+
+
+# Function to commit a transaction
+# Args: none
+function DBCommit()
+{
+	global $db;
+
+	$res = $db->commit();
+
+	return $res;
+}
+
+
+# Function to rollback a transaction
+# Args: none
+function DBRollback()
+{
+	global $db;
+
+	$res = $db->rollback();
+
+	return $res;
+}
 
 # Connet to database when we load this file
 $db = connect_db();
