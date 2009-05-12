@@ -1,12 +1,12 @@
 
 
-function showWiSPUserLogsWindow(wispUserID) {
+function showAdminUserLogsWindow(id) {
 	// Calculate dates we going to need
 	var today = new Date();
 	var firstOfMonth = today.getFirstDateOfMonth();
 	var firstOfNext = today.getLastDateOfMonth().add(Date.DAY, 1);
 	
-	var wispUserLogsWindow = new Ext.ux.GenericGridWindow(
+	var adminUserLogsWindow = new Ext.ux.GenericGridWindow(
 		// Window config
 		{
 			title: 'User Logs',
@@ -126,54 +126,39 @@ function showWiSPUserLogsWindow(wispUserID) {
 			// Column model
 			colModel: new Ext.grid.ColumnModel([
 				{
-					id: 'ID',
-					header: "ID",
-					hidden: true,
-					dataIndex: 'ID'
-				},
-				{
-					header: "Username",
-					hidden: true,
-					dataIndex: 'Username'
+					header: "Timestamp",
+					sortable: true,
+					dataIndex: 'EventTimestamp'
 				},
 				{
 					header: "Status",
 					sortable: true,
-					hidden: true,
-					dataIndex: 'Status'
+					dataIndex: 'AcctStatusType'
 				},
 				{
-					header: "Timestamp",
+					header: "Service Type",
 					sortable: true,
-					dataIndex: 'Timestamp'
+					dataIndex: 'ServiceType'
 				},
 				{
-					header: "Session ID",
-					hidden: true,
-					dataIndex: 'AcctSessionID'
-				},
-				{
-					header: "Session Time",
-					dataIndex: 'AcctSessionTime'
-				},
-				{
-					header: "NAS IP",
-					hidden: true,
-					dataIndex: 'NASIPAddress'
-				},
-				{
-					header: "Port Type",
-					hidden: true,
-					dataIndex: 'NASPortType'
+					header: "Framed Protocol",
+					sortable: true,
+					dataIndex: 'FramedProtocol'
 				},
 				{
 					header: "NAS Port",
+					sortable: true,
 					dataIndex: 'NASPort'
 				},
 				{
-					header: "Called Station",
-					hidden: true,
-					dataIndex: 'CalledStationID'
+					header: "NAS Port Type",
+					sortable: true,
+					dataIndex: 'NASPortType'
+				},
+				{
+					header: "NAS Port ID",
+					sortable: true,
+					dataIndex: 'NASPortID'
 				},
 				{
 					header: "Calling Station",
@@ -181,19 +166,20 @@ function showWiSPUserLogsWindow(wispUserID) {
 					dataIndex: 'CallingStationID'
 				},
 				{
-					header: "NAS Xmit Rate",
-					dataIndex: 'NASTransmitRate'
+					header: "Called Station",
+					sortable: true,
+					dataIndex: 'CalledStationID'
 				},
 				{
-					header: "NAS Recv Rate",
-					hidden: true,
-					dataIndex: 'NASReceiveRate'
+					header: "Session ID",
+					sortable: true,
+					dataIndex: 'AcctSessionID'
 				},
 				{
-					header: "IP Address",
-					hidden: true,
+					header: "Framed IP",
+					sortable: true,
 					dataIndex: 'FramedIPAddress'
-				},
+				}/*,
 				{
 					header: "Input Mbyte",
 					dataIndex: 'AcctInputMbyte'
@@ -203,34 +189,26 @@ function showWiSPUserLogsWindow(wispUserID) {
 					dataIndex: 'AcctOutputMbyte'
 				},
 				{
-					header: "Last Update",
-					hidden: true,
-					dataIndex: 'LastAcctUpdate'
-				},
-				{
 					header: "Term. Reason",
 					dataIndex: 'ConnectTermReason'
-				}
+				}*/
 			])
 		},
 		// Store config
 		{
 			baseParams: {
+				ID: id,
 				SOAPUsername: globalConfig.soap.username,
 				SOAPPassword: globalConfig.soap.password,
 				SOAPAuthType: globalConfig.soap.authtype,
-				SOAPModule: 'WiSPUsers',
-				SOAPFunction: 'getWiSPUserLogs',
-				SOAPParams: '0:UserID,__search',
-				UserID: wispUserID
+				SOAPModule: 'AdminUserLogs',
+				SOAPFunction: 'getAdminUserLogs',
+				SOAPParams: 'ID,__search'
 			}
 		},
 		// Filter config
 		{
 			filters: [
-				{type: 'numeric',  dataIndex: 'ID'},
-				{type: 'string',  dataIndex: 'Username'},
-				{type: 'numeric',  dataIndex: 'Status'},
 				{
 					type: 'date',  
 					dataIndex: 'Timestamp', 
@@ -239,29 +217,21 @@ function showWiSPUserLogsWindow(wispUserID) {
 						before: firstOfNext
 					}
 				},
-
-				{type: 'string',  dataIndex: 'AcctSessionID'},
-				{type: 'numeric',  dataIndex: 'AcctSessionTime'},
-
-				{type: 'string',  dataIndex: 'NASIPAddress'},
-				{type: 'string',  dataIndex: 'NASPortType'},
+				{type: 'numeric',  dataIndex: 'AcctStatusType'},
+				{type: 'numeric',  dataIndex: 'ServiceType'},
+				{type: 'numeric',  dataIndex: 'FramedProtocol'},
 				{type: 'string',  dataIndex: 'NASPort'},
-				{type: 'string',  dataIndex: 'CalledStationID'},
+				{type: 'numeric',  dataIndex: 'NASPortType'},
+				{type: 'string',  dataIndex: 'NASPortID'},
 				{type: 'string',  dataIndex: 'CallingStationID'},
-
-				{type: 'string',  dataIndex: 'NASTransmitRate'},
-				{type: 'string',  dataIndex: 'NASReceiveRate'},
-
-				{type: 'string',  dataIndex: 'FramedIPAddress'},
-
-				{type: 'date',  dataIndex: 'LastAcctUpdate'},
-
-				{type: 'string',  dataIndex: 'ConnectTermReason'}
+				{type: 'string',  dataIndex: 'CalledStationID'},
+				{type: 'string',  dataIndex: 'AcctSessionID'},
+				{type: 'string',  dataIndex: 'FramedIPAddress'}
 			]
 		}
 	);
 	// Grab store
-	var store = wispUserLogsWindow.getComponent('gridpanel').getStore();
+	var store = adminUserLogsWindow.getComponent('gridpanel').getStore();
 
 	store.on('load',function() {
 		var inputTotal = store.sum('AcctInputMbyte');
@@ -276,12 +246,12 @@ function showWiSPUserLogsWindow(wispUserID) {
 		var userUsage = inputTotal + outputTotal;
 		var userLeft = userTotalAllowed - userUsage;
 
-		var form = wispUserLogsWindow.getComponent('summary-form');
+		var form = adminUserLogsWindow.getComponent('summary-form');
 		var summaryTotal = form.getForm().findField('summaryTotal');
 
 		summaryTotal.setValue(
 				sprintf('Cap Total: %6d\nTopups   : %6d\n-----------------\n           %6d\n-----------------\nUsage    : %6d\n=================\nAvailable: %6d',userCap,userTopups,userTotalAllowed,userUsage,userLeft)
 		);
 	});
-	wispUserLogsWindow.show();				
+	adminUserLogsWindow.show();				
 }
