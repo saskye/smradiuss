@@ -7,6 +7,8 @@ include_once("include/db.php");
 function getAdminUserGroups($params) {
 	global $db;
 
+	$i = 0;
+
 	# Filters and sorts are the same here
 	$filtersorts = array(
 		'ID' => 'users_to_groups.GroupID',
@@ -17,6 +19,9 @@ function getAdminUserGroups($params) {
 	$res = DBDo("SELECT GroupID FROM users_to_groups WHERE UserID = ?",$params[0]);
 	if ($res !== FALSE) {
 		while ($row = $res->fetchObject()) {
+
+			$i++;
+
 			$item = array();
 			$item['ID'] = $row->groupid;
 
@@ -36,18 +41,7 @@ function getAdminUserGroups($params) {
 		return $res;
 	}
 
-	# loop through rows
-	while ($row = $sth->fetchObject()) {
-		$item = array();
-
-		$item['ID'] = $row->groupid;
-		$item['Name'] = $row->name;
-
-		# push this row onto array
-		array_push($resultArray,$item);
-	}
-
-	return array($resultArray,$numResults);
+	return array($resultArray,$i);
 }
 
 ?>
