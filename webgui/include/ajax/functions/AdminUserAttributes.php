@@ -16,7 +16,15 @@ function getAdminUserAttributes($params) {
 		'Disabled' => 'user_attributes.Disabled'
 	);
 
-	$res = DBSelectSearch("SELECT ID, Name, Operator, Value, Disabled FROM user_attributes WHERE UserID = $params[0]",$params[1],$filtersorts,$filtersorts);
+	$res = DBSelectSearch("
+			SELECT 
+				ID, Name, Operator, Value, Disabled 
+			FROM 
+				user_attributes 
+			WHERE 
+				UserID = ".DBQuote($params[0])."
+		",$params[1],$filtersorts,$filtersorts);
+
 	$sth = $res[0]; $numResults = $res[1];
 	# If STH is blank, return the error back to whoever requested the data
 	if (!isset($sth)) {
