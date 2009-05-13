@@ -2,14 +2,18 @@
 
 	# Requires / Includes
 	include_once("include/ajax/json.php");
+
 	include_once("include/ajax/functions/AdminUsers.php");
+	include_once("include/ajax/functions/AdminUserAttributes.php");
+	include_once("include/ajax/functions/AdminUserGroups.php");
+
 	include_once("include/ajax/functions/AdminGroups.php");
+	include_once("include/ajax/functions/AdminGroupAttributes.php");
+	include_once("include/ajax/functions/AdminGroupMembers.php");
+
 	include_once("include/ajax/functions/AdminRealms.php");
 	include_once("include/ajax/functions/WiSPLocations.php");
 	include_once("include/ajax/functions/WiSPUsers.php");
-	include_once("include/ajax/functions/AdminUserAttributes.php");
-	include_once("include/ajax/functions/AdminUserGroups.php");
-	include_once("include/ajax/functions/AdminGroupAttributes.php");
 
 	define('RES_OK',0);
 	define('RES_ERR',-1);
@@ -151,7 +155,34 @@
 
 	switch ($function) {
 
-		# getAdminUserLogs.js functions
+		# AdminGroupMembers.js functions
+		case "getAdminGroupMembers":
+
+			$res = getAdminGroupMembers($soapParams);
+			$rawData = $res[0]; $numResults = $res[1];
+
+			$res = new json_response;
+			$res->setID('ID');
+			$res->addField('ID','int');
+			$res->addField('Name','string');
+			$res->addField('Disabled','boolean');
+			$res->parseArray($rawData);
+			$res->setDatasetSize($numResults);
+
+			echo json_encode($res->export());
+
+			break;
+
+		case "removeAdminGroupMember":
+
+			$res = removeAdminGroupMember($soapParams);
+			if (isset($res)) {
+				ajaxException($res);
+			}
+
+			break;
+
+		# AdminUserLogs.js functions
 		case "getAdminUserLogs":
 
 			$rawData = getAdminUserLogs($soapParams);
