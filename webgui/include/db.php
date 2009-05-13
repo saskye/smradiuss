@@ -432,6 +432,18 @@ function DBCommit()
 }
 
 
+# Function to quote a variable
+# Args: none
+function DBQuote($var)
+{
+	global $db;
+
+	$res = $db->quote($var);
+
+	return $res;
+}
+
+
 # Function to rollback a transaction
 # Args: none
 function DBRollback()
