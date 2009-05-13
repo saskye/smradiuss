@@ -2,6 +2,17 @@
 
 include_once("include/db.php");
 
+# Add user attribute
+function addAdminUserAttribute($params) {
+	global $db;
+
+	$res = DBDo("INSERT INTO user_attributes (UserID,Name) VALUES (?,?)",array($params[0]['UserID'],$params[0]['Name']));
+	if (!is_numeric($res)) {
+		return $res;
+	}
+
+	return NULL;
+}
 
 # Remove user attribute
 function removeAdminUserAttribute($params) {
