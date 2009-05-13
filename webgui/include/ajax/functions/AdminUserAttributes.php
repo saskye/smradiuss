@@ -15,6 +15,38 @@ function removeAdminUserAttribute($params) {
 	return NULL;
 }
 
+# Edit attribute
+function updateAdminUserAttribute($params) {
+	global $db;
+
+	$res = DBDo("UPDATE user_attributes SET Name = ? WHERE ID = ?",array($params[0]['Name'],$params[0]['ID']));
+	if (!is_numeric($res)) {
+		return $res;
+	}
+
+	return NULL;
+}
+
+# Return specific attribute row
+function getAdminUserAttribute($params) {
+	global $db;
+
+
+	$res = DBSelect("SELECT ID, Name FROM user_attributes WHERE ID = ?",array($params[0]));
+	if (!is_object($res)) {
+		return $res;
+	}
+
+	$resultArray = array();
+
+	$row = $res->fetchObject();
+
+	$resultArray['ID'] = $row->id;
+	$resultArray['Name'] = $row->name;
+
+	return $resultArray;
+}
+
 # Return list of attributes
 function getAdminUserAttributes($params) {
 	global $db;

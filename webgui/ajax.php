@@ -186,6 +186,27 @@
 			break;
 
 		# AdminUserAttributes.js functions
+		case "updateAdminUserAttribute":
+
+			$res = updateAdminUserAttribute($soapParams);
+			if (isset($res)) {
+				ajaxException($res);
+			}
+
+			break;
+
+		case "getAdminUserAttribute":
+			$rawData = getAdminUserAttribute($soapParams);
+
+			$res = new json_response;
+			$res->setID('ID');
+			$res->addField('ID','int');
+			$res->addField('Name','string');
+			$res->parseHash($rawData);
+
+			echo json_encode($res->export());
+			break;
+
 		case "getAdminUserAttributes":
 
 			$res = getAdminUserAttributes($soapParams);

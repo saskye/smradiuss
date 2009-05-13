@@ -142,7 +142,7 @@ function showAdminUserAttributesWindow(id) {
 
 
 // Display edit/add form
-function showAdminGroupAddEditWindow(id) {
+function showAdminUserAttributeAddEditWindow(id) {
 
 	var submitAjaxConfig;
 
@@ -151,7 +151,7 @@ function showAdminGroupAddEditWindow(id) {
 	if (id) {
 		submitAjaxConfig = {
 			ID: id,
-			SOAPFunction: 'updateAdminGroup',
+			SOAPFunction: 'updateAdminUserAttribute',
 			SOAPParams: 
 				'0:ID,'+
 				'0:Name'
@@ -160,7 +160,7 @@ function showAdminGroupAddEditWindow(id) {
 	// We doing an Add
 	} else {
 		submitAjaxConfig = {
-			SOAPFunction: 'createAdminGroup',
+			SOAPFunction: 'createAdminUserAttribute',
 			SOAPParams: 
 				'0:Name'
 		};
@@ -170,7 +170,7 @@ function showAdminGroupAddEditWindow(id) {
 	var adminGroupFormWindow = new Ext.ux.GenericFormWindow(
 		// Window config
 		{
-			title: "Group Information",
+			title: "Attribute Information",
 
 			width: 475,
 			height: 260,
@@ -185,7 +185,7 @@ function showAdminGroupAddEditWindow(id) {
 				SOAPUsername: globalConfig.soap.username,
 				SOAPPassword: globalConfig.soap.password,
 				SOAPAuthType: globalConfig.soap.authtype,
-				SOAPModule: 'AdminGroups'
+				SOAPModule: 'AdminUserAttributes'
 			},
 			items: [
 				{
@@ -210,8 +210,8 @@ function showAdminGroupAddEditWindow(id) {
 				SOAPUsername: globalConfig.soap.username,
 				SOAPPassword: globalConfig.soap.password,
 				SOAPAuthType: globalConfig.soap.authtype,
-				SOAPModule: 'AdminGroups',
-				SOAPFunction: 'getAdminGroup',
+				SOAPModule: 'AdminUserAttributes',
+				SOAPFunction: 'getAdminUserAttribute',
 				SOAPParams: 'ID'
 			}
 		});
@@ -221,7 +221,7 @@ function showAdminGroupAddEditWindow(id) {
 
 
 
-// Display edit/add form
+// Display remove form
 function showAdminUserAttributeRemoveWindow(parent,id) {
 	// Mask parent window
 	parent.getEl().mask();
