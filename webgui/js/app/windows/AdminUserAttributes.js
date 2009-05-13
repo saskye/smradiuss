@@ -1,6 +1,6 @@
 
 
-function showAdminUserAttributesWindow(id) {
+function showAdminUserAttributesWindow(userID) {
 
 	var AdminUserAttributesWindow = new Ext.ux.GenericGridWindow(
 		// Window config
@@ -22,7 +22,7 @@ function showAdminUserAttributesWindow(id) {
 					tooltip:'Add attribute',
 					iconCls:'add',
 					handler: function() {
-						showAdminUserAttributeAddEditWindow();
+						showAdminUserAttributeAddEditWindow(userID);
 					}
 				}, 
 				'-', 
@@ -35,7 +35,7 @@ function showAdminUserAttributesWindow(id) {
 						// Check if we have selected item
 						if (selectedItem) {
 							// If so display window
-							showAdminUserAttributeAddEditWindow(selectedItem.data.ID);
+							showAdminUserAttributeAddEditWindow(userID,selectedItem.data.ID);
 						} else {
 							AdminUserAttributesWindow.getEl().mask();
 
@@ -116,7 +116,7 @@ function showAdminUserAttributesWindow(id) {
 		// Store config
 		{
 			baseParams: {
-				ID: id,
+				ID: userID,
 				SOAPUsername: globalConfig.soap.username,
 				SOAPPassword: globalConfig.soap.password,
 				SOAPAuthType: globalConfig.soap.authtype,
@@ -142,15 +142,15 @@ function showAdminUserAttributesWindow(id) {
 
 
 // Display edit/add form
-function showAdminUserAttributeAddEditWindow(id) {
+function showAdminUserAttributeAddEditWindow(userID,attrID) {
 
 	var submitAjaxConfig;
 
 
 	// We doing an update
-	if (id) {
+	if (attrID) {
 		submitAjaxConfig = {
-			ID: id,
+			ID: attrID,
 			SOAPFunction: 'updateAdminUserAttribute',
 			SOAPParams: 
 				'0:ID,'+
@@ -160,8 +160,10 @@ function showAdminUserAttributeAddEditWindow(id) {
 	// We doing an Add
 	} else {
 		submitAjaxConfig = {
-			SOAPFunction: 'createAdminUserAttribute',
+			UserID: userID,
+			SOAPFunction: 'addAdminUserAttribute',
 			SOAPParams: 
+				'0:UserID,'+
 				'0:Name'
 		};
 	}
@@ -203,10 +205,10 @@ function showAdminUserAttributeAddEditWindow(id) {
 
 	adminGroupFormWindow.show();
 
-	if (id) {
+	if (attrID) {
 		adminGroupFormWindow.getComponent('formpanel').load({
 			params: {
-				ID: id,
+				ID: attrID,
 				SOAPUsername: globalConfig.soap.username,
 				SOAPPassword: globalConfig.soap.password,
 				SOAPAuthType: globalConfig.soap.authtype,
