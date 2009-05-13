@@ -9,6 +9,7 @@
 	include_once("include/ajax/functions/WiSPUsers.php");
 	include_once("include/ajax/functions/AdminUserAttributes.php");
 	include_once("include/ajax/functions/AdminUserGroups.php");
+	include_once("include/ajax/functions/AdminGroupAttributes.php");
 
 	define('RES_OK',0);
 	define('RES_ERR',-1);
@@ -150,6 +151,30 @@
 
 	switch ($function) {
 
+		# getAdminUserLogs.js functions
+		case "getAdminUserLogs":
+
+			$rawData = getAdminUserLogs($soapParams);
+
+			$res = new json_response;
+			$res->setID('ID');
+			$res->addField('ID','int');
+			$res->addField('AcctStatusType','int');
+			$res->addField('ServiceType','int');
+			$res->addField('FramedProtocol','int');
+			$res->addField('NASPort','string');
+			$res->addField('NASPortType','int');
+			$res->addField('NASPortID','string');
+			$res->addField('CallingStationID','string');
+			$res->addField('CalledStationID','string');
+			$res->addField('AcctSessionID','string');
+			$res->addField('FramedIPAddress','string');
+			$res->parseHash($rawData);
+
+			echo json_encode($res->export());
+
+			break;
+	
 		# addAdminUserGroup.js functions
 		case "addAdminUserGroup":
 
@@ -182,6 +207,64 @@
 			$res->setDatasetSize($numResults);
 
 			echo json_encode($res->export());
+
+			break;
+
+		# AdminGroupAttributes.js functions
+		case "addAdminGroupAttribute":
+
+			$res = addAdminGroupAttribute($soapParams);
+			if (isset($res)) {
+				ajaxException($res);
+			}
+
+			break;
+
+		case "updateAdminGroupAttribute":
+
+			$res = updateAdminGroupAttribute($soapParams);
+			if (isset($res)) {
+				ajaxException($res);
+			}
+
+			break;
+
+		case "getAdminGroupAttribute":
+			$rawData = getAdminGroupAttribute($soapParams);
+
+			$res = new json_response;
+			$res->setID('ID');
+			$res->addField('ID','int');
+			$res->addField('Name','string');
+			$res->parseHash($rawData);
+
+			echo json_encode($res->export());
+			break;
+
+		case "getAdminGroupAttributes":
+
+			$res = getAdminGroupAttributes($soapParams);
+			$rawData = $res[0]; $numResults = $res[1];
+
+			$res = new json_response;
+			$res->setID('ID');
+			$res->addField('ID','int');
+			$res->addField('Name','string');
+			$res->addField('Operator','string');
+			$res->addField('Value','string');
+			$res->addField('Disabled','boolean');
+			$res->parseArray($rawData);
+			$res->setDatasetSize($numResults);
+
+			echo json_encode($res->export());
+			break;
+
+		case "removeAdminGroupAttribute":
+
+			$res = removeAdminGroupAttribute($soapParams);
+			if (isset($res)) {
+				ajaxException($res);
+			}
 
 			break;
 
