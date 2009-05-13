@@ -151,6 +151,15 @@
 	switch ($function) {
 
 		# AdminUserGroups.js functions
+		case "removeAdminUserGroup":
+
+			$res = removeAdminUserGroup($soapParams);
+			if (isset($res)) {
+				ajaxException($res);
+			}
+
+			break;
+
 		case "getAdminUserGroups":
 
 			$res = getAdminUserGroups($soapParams);
@@ -164,6 +173,7 @@
 			$res->setDatasetSize($numResults);
 
 			echo json_encode($res->export());
+
 			break;
 
 		# AdminUserAttributes.js functions

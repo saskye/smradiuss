@@ -176,14 +176,14 @@ function showAdminGroupAddEditWindow(id) {
 
 
 // Display edit/add form
-function showAdminGroupRemoveWindow(parent,id) {
+function showAdminUserGroupRemoveWindow(parent,id) {
 	// Mask parent window
 	parent.getEl().mask();
 
 	// Display remove confirm window
 	Ext.Msg.show({
 		title: "Confirm removal",
-		msg: "Are you very sure you wish to remove this group?",
+		msg: "Are you very sure you wish to unlink this group?",
 		icon: Ext.MessageBox.ERROR,
 		buttons: Ext.Msg.YESNO,
 		modal: false,
@@ -198,8 +198,8 @@ function showAdminGroupRemoveWindow(parent,id) {
 						SOAPUsername: globalConfig.soap.username,
 						SOAPPassword: globalConfig.soap.password,
 						SOAPAuthType: globalConfig.soap.authtype,
-						SOAPModule: 'AdminGroups',
-						SOAPFunction: 'removeAdminGroup',
+						SOAPModule: 'AdminUserGroups',
+						SOAPFunction: 'removeAdminUserGroup',
 						SOAPParams: 'ID'
 					}
 				});
