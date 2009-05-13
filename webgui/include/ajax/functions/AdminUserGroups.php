@@ -3,6 +3,18 @@
 include_once("include/db.php");
 
 
+# Link user to group
+function addAdminUserGroup($params) {
+	global $db;
+
+	$res = DBDo("INSERT INTO users_to_groups (UserID,GroupID) VALUES (?,?)",array($params[0]['UserID'],$params[0]['GroupID']));
+	if (!is_numeric($res)) {
+		return $res;
+	}
+
+	return NULL;
+}
+
 # Unlink user from group
 function removeAdminUserGroup($params) {
 	global $db;

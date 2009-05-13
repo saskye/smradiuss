@@ -3,6 +3,18 @@
 include_once("include/db.php");
 
 
+# Remove user attribute
+function removeAdminUserAttribute($params) {
+	global $db;
+
+	$res = DBDo("DELETE FROM user_attributes WHERE ID = ?",array($params[0]));
+	if (!is_numeric($res)) {
+		return $res;
+	}
+
+	return NULL;
+}
+
 # Return list of attributes
 function getAdminUserAttributes($params) {
 	global $db;

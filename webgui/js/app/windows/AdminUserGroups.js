@@ -1,6 +1,6 @@
 
 
-function showAdminUserGroupsWindow(id) {
+function showAdminUserGroupsWindow(userID) {
 
 	var AdminUserGroupsWindow = new Ext.ux.GenericGridWindow(
 		// Window config
@@ -22,7 +22,7 @@ function showAdminUserGroupsWindow(id) {
 					tooltip:'Add group',
 					iconCls:'add',
 					handler: function() {
-						showAdminUserGroupAddEditWindow();
+						showAdminUserGroupAddWindow(userID);
 					}
 				}, 
 				'-', 
@@ -73,7 +73,7 @@ function showAdminUserGroupsWindow(id) {
 		// Store config
 		{
 			baseParams: {
-				ID: id,
+				ID: userID,
 				SOAPUsername: globalConfig.soap.username,
 				SOAPPassword: globalConfig.soap.password,
 				SOAPAuthType: globalConfig.soap.authtype,
@@ -96,7 +96,7 @@ function showAdminUserGroupsWindow(id) {
 
 
 // Display edit/add form
-function showAdminGroupAddEditWindow(id) {
+function showAdminUserGroupAddWindow(userID,id) {
 
 	var submitAjaxConfig;
 
@@ -108,15 +108,17 @@ function showAdminGroupAddEditWindow(id) {
 			SOAPFunction: 'updateAdminGroup',
 			SOAPParams: 
 				'0:ID,'+
-				'0:Name'
+				'0:GroupID'
 		};
 
 	// We doing an Add
 	} else {
 		submitAjaxConfig = {
-			SOAPFunction: 'createAdminGroup',
+			UserID: userID,
+			SOAPFunction: 'addAdminUserGroup',
 			SOAPParams: 
-				'0:Name'
+				'0:UserID,'+
+				'0:GroupID'
 		};
 	}
 	
@@ -143,11 +145,30 @@ function showAdminGroupAddEditWindow(id) {
 			},
 			items: [
 				{
-					fieldLabel: 'Name',
-					name: 'Name',
-					vtype: 'usernamePart',
-					maskRe: usernamePartRe,
-					allowBlank: false
+					xtype: 'combo',
+					//id: 'combo',
+					fieldLabel: 'Group',
+					name: 'Group',
+					allowBlank: false,
+					width: 160,
+
+					store: new Ext.ux.JsonStore({
+						sortInfo: { field: "Name", direction: "ASC" },
+						baseParams: {
+							SOAPUsername: globalConfig.soap.username,
+							SOAPPassword: globalConfig.soap.password,
+							SOAPAuthType: globalConfig.soap.authtype,
+							SOAPModule: 'AdminUserGroups',
+							SOAPFunction: 'getAdminGroups',
+							SOAPParams: '__null,__search'
+						}
+					}),
+					displayField: 'Name',
+					valueField: 'ID',
+					hiddenName: 'GroupID',
+					forceSelection: true,
+					triggerAction: 'all',
+					editable: false
 				},
 			],
 		},

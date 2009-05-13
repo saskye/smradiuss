@@ -96,8 +96,8 @@
 			# Build hash and push into param list
 			$search = array(
 				'Filter' => isset($_REQUEST['filter']) ? $_REQUEST['filter'] : '',
-				'Start' => $_REQUEST['start'],
-				'Limit' => $_REQUEST['limit'],
+				'Start' => isset($_REQUEST['start']) ? $_REQUEST['start'] : NULL,
+				'Limit' => isset($_REQUEST['limit']) ? $_REQUEST['limit'] : NULL,
 				'Sort' => isset($_REQUEST['sort']) ? $_REQUEST['sort'] : '',
 				'SortDirection' => isset($_REQUEST['dir']) ? $_REQUEST['dir'] : '',
 			);
@@ -150,7 +150,16 @@
 
 	switch ($function) {
 
-		# AdminUserGroups.js functions
+		# addAdminUserGroup.js functions
+		case "addAdminUserGroup":
+
+			$res = addAdminUserGroup($soapParams);
+			if (isset($res)) {
+				ajaxException($res);
+			}
+
+			break;
+
 		case "removeAdminUserGroup":
 
 			$res = removeAdminUserGroup($soapParams);
@@ -193,6 +202,15 @@
 			$res->setDatasetSize($numResults);
 
 			echo json_encode($res->export());
+			break;
+
+		case "removeAdminUserAttribute":
+
+			$res = removeAdminUserAttribute($soapParams);
+			if (isset($res)) {
+				ajaxException($res);
+			}
+
 			break;
 
 		# WiSPUsers.js functions
