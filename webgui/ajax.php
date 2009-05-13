@@ -186,6 +186,15 @@
 			break;
 
 		# AdminUserAttributes.js functions
+		case "addAdminUserAttribute":
+
+			$res = addAdminUserAttribute($soapParams);
+			if (isset($res)) {
+				ajaxException($res);
+			}
+
+			break;
+
 		case "updateAdminUserAttribute":
 
 			$res = updateAdminUserAttribute($soapParams);
