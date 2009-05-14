@@ -189,35 +189,6 @@
 
 			break;
 
-		# WiSPUserLogs.js functions
-		case "getWiSPUserLogs":
-
-			$res = getWiSPUserLogs($soapParams);
-			$rawData = $res[0]; $numResults = $res[1];
-
-			$res = new json_response;
-			$res->setID('ID');
-			$res->addField('ID','int');
-			$res->addField('EventTimestamp','int');
-			$res->addField('AcctStatusType','int');
-			$res->addField('ServiceType','int');
-			$res->addField('FramedProtocol','int');
-			$res->addField('NASPortType','int');
-			$res->addField('NASPortID','string');
-			$res->addField('CallingStationID','string');
-			$res->addField('CalledStationID','string');
-			$res->addField('AcctSessionID','string');
-			$res->addField('FramedIPAddress','string');
-			$res->addField('AcctInputMbyte','int');
-			$res->addField('AcctOutputMbyte','int');
-			$res->addField('ConnectTermReason','string');
-			$res->parseArray($rawData);
-			$res->setDatasetSize($numResults);
-
-			echo json_encode($res->export());
-
-			break;
-	
 		# AdminUserLogs.js functions
 		case "getAdminUserLogs":
 
