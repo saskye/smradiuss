@@ -5,7 +5,7 @@ function showAdminUserLogsWindow(id) {
 	var today = new Date();
 	var firstOfMonth = today.getFirstDateOfMonth();
 	var firstOfNext = today.getLastDateOfMonth().add(Date.DAY, 1);
-	
+
 	var adminUserLogsWindow = new Ext.ux.GenericGridWindow(
 		// Window config
 		{
