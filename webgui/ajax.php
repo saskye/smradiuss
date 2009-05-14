@@ -6,6 +6,7 @@
 	include_once("include/ajax/functions/AdminUsers.php");
 	include_once("include/ajax/functions/AdminUserAttributes.php");
 	include_once("include/ajax/functions/AdminUserGroups.php");
+	include_once("include/ajax/functions/AdminUserLogs.php");
 
 	include_once("include/ajax/functions/AdminGroups.php");
 	include_once("include/ajax/functions/AdminGroupAttributes.php");
@@ -17,6 +18,8 @@
 	include_once("include/ajax/functions/WiSPLocations.php");
 	include_once("include/ajax/functions/WiSPLocationMembers.php");
 	include_once("include/ajax/functions/WiSPUsers.php");
+
+	include_once("include/radiuscodes.php");
 
 	define('RES_OK',0);
 	define('RES_ERR',-1);
@@ -156,6 +159,7 @@
 		}
 	}
 
+
 	switch ($function) {
 
 		# AdminGroupMembers.js functions
@@ -188,22 +192,27 @@
 		# AdminUserLogs.js functions
 		case "getAdminUserLogs":
 
-			$rawData = getAdminUserLogs($soapParams);
+			$res = getAdminUserLogs($soapParams);
+			$rawData = $res[0]; $numResults = $res[1];
 
 			$res = new json_response;
 			$res->setID('ID');
 			$res->addField('ID','int');
+			$res->addField('EventTimestamp','int');
 			$res->addField('AcctStatusType','int');
 			$res->addField('ServiceType','int');
 			$res->addField('FramedProtocol','int');
-			$res->addField('NASPort','string');
 			$res->addField('NASPortType','int');
 			$res->addField('NASPortID','string');
 			$res->addField('CallingStationID','string');
 			$res->addField('CalledStationID','string');
 			$res->addField('AcctSessionID','string');
 			$res->addField('FramedIPAddress','string');
-			$res->parseHash($rawData);
+			$res->addField('AcctInputMbyte','int');
+			$res->addField('AcctOutputMbyte','int');
+			$res->addField('ConnectTermReason','string');
+			$res->parseArray($rawData);
+			$res->setDatasetSize($numResults);
 
 			echo json_encode($res->export());
 
@@ -774,102 +783,8 @@
 			echo json_encode($res->export());
 			break;
 
-		case "getWiSPUsers":
-
-			$rawData = array (
-
-				array(
-					'ID' => 10,
-					'AgentID' => 5,
-					'AgentName' => 'joe agent',
-					'Username' => 'johnsmith',
-					'UsageCap' => 1000,
-					'ClassID' => 7,
-					'ClassDesc' => 'ClassTest',
-					'RealmDesc' => 'My Realm',
-					'Service' => 'My Service',
-					'AgentDisabled' => FALSE,
-					'Disabled' => FALSE,
-					'AgentRef' => 'Reseller ref'
-				)
-			);
-
-			$numResults = 1;
-
-			$res = new json_response;
-			$res->setID('ID');
-			$res->addField('ID','int');
-			$res->addField('AgentID','int');
-			$res->addField('AgentName','string');
-			$res->addField('Username','string');
-			$res->addField('UsageCap','int');
-			$res->addField('ClassID','int');
-			$res->addField('ClassDesc','string');
-			$res->addField('RealmDesc','string');
-			$res->addField('Service','string');
-			$res->addField('AgentDisabled','boolean');
-			$res->addField('Disabled','boolean');
-			$res->addField('AgentRef','string');
-			$res->parseArray($rawData);
-			$res->setDatasetSize($numResults);
-
-			echo json_encode($res->export());
-			break;
-
-		case "getWiSPUserLogs":
-
-			$rawData = array (
-
-				array(
-					'ID' => 10,
-					'Username' => 'johnsmith',
-					'Status' => 1,
-					'Timestamp' => '10/03/2009',
-					'AcctSessionID' => '24234',
-					'AcctSessionTime' => '10:30',
-					'NASIPAddress' => '192.168.1.254',
-					'NASPortType' => '2',
-					'NASPort' => '3128',
-					'CalledStationID' => '282282',
-					'CallingStationID' => '2782872',
-					'NASTransmitRate' => '2000',
-					'NASReceiveRate' => '4000',
-					'FramedIPAddress' => '192.168.1.30',
-					'AcctInputMbyte' => '1241',
-					'AcctOutputMbyte' => '229',
-					'LastAcctUpdate' => '1282893',
-					'ConnectTermReason' => 'Failboat'
-				)
-			);
-
-			$numResults = 1;
-
-			$res = new json_response;
-			$res->setID('ID');
-			$res->addField('ID','int');
-			$res->addField('Username','int');
-			$res->addField('Status','string');
-			$res->addField('Timestamp','string');
-			$res->addField('AcctSessionID','int');
-			$res->addField('AcctSessionTime','int');
-			$res->addField('NASIPAddress','string');
-			$res->addField('NASPortType','string');
-			$res->addField('NASPort','string');
-			$res->addField('CalledStationID','boolean');
-			$res->addField('CallingStationID','boolean');
-			$res->addField('NASTransmitRate','string');
-			$res->addField('NASReceiveRate','string');
-			$res->addField('FramedIPAddress','string');
-			$res->addField('AcctInputMbyte','string');
-			$res->addField('AcctOutputMbyte','string');
-			$res->addField('LastAcctUpdate','string');
-			$res->addField('ConnectTermReason','string');
-			$res->parseArray($rawData);
-			$res->setDatasetSize($numResults);
-
-			echo json_encode($res->export());
-			break;
 	}
+
 
 	exit;
 

@@ -9,7 +9,7 @@ function showAdminUserLogsWindow(id) {
 	var adminUserLogsWindow = new Ext.ux.GenericGridWindow(
 		// Window config
 		{
-			title: 'User Logs',
+			title: 'Logs',
 			layout:'border',
 			height: 480,
 			width: 700,
@@ -35,7 +35,7 @@ function showAdminUserLogsWindow(id) {
 							name: 'after',
 							width: 180,
 							fieldLabel: 'From',
-							vtype: 'daterange',
+//							vtype: 'daterange',
 							format: 'Y-m-d',
 							value: firstOfMonth,
 							endDateField: 'before',
@@ -45,7 +45,7 @@ function showAdminUserLogsWindow(id) {
 							name: 'before',
 							width: 180,
 							fieldLabel: 'To',
-							vtype: 'daterange',
+//							vtype: 'daterange',
 							format: 'Y-m-d',
 							value: firstOfNext,
 							startDateField: 'after'
@@ -66,7 +66,7 @@ function showAdminUserLogsWindow(id) {
 
 								// Grab timestamp filter
 								var gridFilters = grid.filters;
-								var timestampFilter = gridFilters.getFilter('Timestamp');
+								var timestampFilter = gridFilters.getFilter('EventTimestamp');
 
 								// Grab	form fields
 								var afterField = form.getForm().findField('after');
@@ -126,6 +126,11 @@ function showAdminUserLogsWindow(id) {
 			// Column model
 			colModel: new Ext.grid.ColumnModel([
 				{
+					header: "ID",
+					hidden: true,
+					dataIndex: 'ID'
+				},
+				{
 					header: "Timestamp",
 					sortable: true,
 					dataIndex: 'EventTimestamp'
@@ -133,6 +138,7 @@ function showAdminUserLogsWindow(id) {
 				{
 					header: "Status",
 					sortable: true,
+					hidden: true,
 					dataIndex: 'AcctStatusType'
 				},
 				{
@@ -146,19 +152,9 @@ function showAdminUserLogsWindow(id) {
 					dataIndex: 'FramedProtocol'
 				},
 				{
-					header: "NAS Port",
-					sortable: true,
-					dataIndex: 'NASPort'
-				},
-				{
 					header: "NAS Port Type",
-					sortable: true,
+					hidden: true,
 					dataIndex: 'NASPortType'
-				},
-				{
-					header: "NAS Port ID",
-					sortable: true,
-					dataIndex: 'NASPortID'
 				},
 				{
 					header: "Calling Station",
@@ -167,19 +163,19 @@ function showAdminUserLogsWindow(id) {
 				},
 				{
 					header: "Called Station",
-					sortable: true,
+					hidden: true,
 					dataIndex: 'CalledStationID'
 				},
 				{
 					header: "Session ID",
-					sortable: true,
+					hidden: true,
 					dataIndex: 'AcctSessionID'
 				},
 				{
-					header: "Framed IP",
-					sortable: true,
+					header: "IP Address",
+					hidden: true,
 					dataIndex: 'FramedIPAddress'
-				}/*,
+				},
 				{
 					header: "Input Mbyte",
 					dataIndex: 'AcctInputMbyte'
@@ -191,7 +187,7 @@ function showAdminUserLogsWindow(id) {
 				{
 					header: "Term. Reason",
 					dataIndex: 'ConnectTermReason'
-				}*/
+				}
 			])
 		},
 		// Store config
@@ -209,24 +205,27 @@ function showAdminUserLogsWindow(id) {
 		// Filter config
 		{
 			filters: [
-				{
+				{type: 'numeric', dataIndex: 'ID'},
+				/*{
 					type: 'date',  
-					dataIndex: 'Timestamp', 
+					dataIndex: 'EventTimestamp', 
 					value: {
 						after: firstOfMonth,
 						before: firstOfNext
 					}
-				},
+				},*/
 				{type: 'numeric',  dataIndex: 'AcctStatusType'},
 				{type: 'numeric',  dataIndex: 'ServiceType'},
 				{type: 'numeric',  dataIndex: 'FramedProtocol'},
-				{type: 'string',  dataIndex: 'NASPort'},
 				{type: 'numeric',  dataIndex: 'NASPortType'},
 				{type: 'string',  dataIndex: 'NASPortID'},
 				{type: 'string',  dataIndex: 'CallingStationID'},
 				{type: 'string',  dataIndex: 'CalledStationID'},
 				{type: 'string',  dataIndex: 'AcctSessionID'},
-				{type: 'string',  dataIndex: 'FramedIPAddress'}
+				{type: 'string',  dataIndex: 'FramedIPAddress'},
+				{type: 'numeric',  dataIndex: 'AcctInputMbyte'},
+				{type: 'numeric',  dataIndex: 'AcctOutputMbyte'},
+				{type: 'string',  dataIndex: 'ConnectTermReason'}
 			]
 		}
 	);
