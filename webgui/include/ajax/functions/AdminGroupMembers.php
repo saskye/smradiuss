@@ -2,19 +2,7 @@
 
 include_once("include/db.php");
 
-# Add group attribute
-function addAdminGroupMember($params) {
-	global $db;
-
-	$res = DBDo("INSERT INTO group_attributes (GroupID,Name) VALUES (?,?)",array($params[0]['GroupID'],$params[0]['Name']));
-	if (!is_numeric($res)) {
-		return $res;
-	}
-
-	return NULL;
-}
-
-# Remove group attribute
+# Remove group member
 function removeAdminGroupMember($params) {
 	global $db;
 
@@ -26,39 +14,7 @@ function removeAdminGroupMember($params) {
 	return NULL;
 }
 
-# Edit attribute
-function updateAdminGroupMember($params) {
-	global $db;
-
-	$res = DBDo("UPDATE group_attributes SET Name = ? WHERE ID = ?",array($params[0]['Name'],$params[0]['ID']));
-	if (!is_numeric($res)) {
-		return $res;
-	}
-
-	return NULL;
-}
-
-# Return specific attribute row
-function getAdminGroupMember($params) {
-	global $db;
-
-
-	$res = DBSelect("SELECT ID, Name FROM group_attributes WHERE ID = ?",array($params[0]));
-	if (!is_object($res)) {
-		return $res;
-	}
-
-	$resultArray = array();
-
-	$row = $res->fetchObject();
-
-	$resultArray['ID'] = $row->id;
-	$resultArray['Name'] = $row->name;
-
-	return $resultArray;
-}
-
-# Return list of attributes
+# Return list of members
 function getAdminGroupMembers($params) {
 	global $db;
 

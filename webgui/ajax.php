@@ -12,7 +12,10 @@
 	include_once("include/ajax/functions/AdminGroupMembers.php");
 
 	include_once("include/ajax/functions/AdminRealms.php");
+	include_once("include/ajax/functions/AdminRealmAttributes.php");
+
 	include_once("include/ajax/functions/WiSPLocations.php");
+	include_once("include/ajax/functions/WiSPLocationMembers.php");
 	include_once("include/ajax/functions/WiSPUsers.php");
 
 	define('RES_OK',0);
@@ -241,6 +244,64 @@
 
 			break;
 
+		# AdminRealmAttributes.js functions
+		case "addAdminRealmAttribute":
+
+			$res = addAdminRealmAttribute($soapParams);
+			if (isset($res)) {
+				ajaxException($res);
+			}
+
+			break;
+
+		case "updateAdminRealmAttribute":
+
+			$res = updateAdminRealmAttribute($soapParams);
+			if (isset($res)) {
+				ajaxException($res);
+			}
+
+			break;
+
+		case "getAdminRealmAttribute":
+			$rawData = getAdminRealmAttribute($soapParams);
+
+			$res = new json_response;
+			$res->setID('ID');
+			$res->addField('ID','int');
+			$res->addField('Name','string');
+			$res->parseHash($rawData);
+
+			echo json_encode($res->export());
+			break;
+
+		case "getAdminRealmAttributes":
+
+			$res = getAdminRealmAttributes($soapParams);
+			$rawData = $res[0]; $numResults = $res[1];
+
+			$res = new json_response;
+			$res->setID('ID');
+			$res->addField('ID','int');
+			$res->addField('Name','string');
+			$res->addField('Operator','string');
+			$res->addField('Value','string');
+			$res->addField('Disabled','boolean');
+			$res->parseArray($rawData);
+			$res->setDatasetSize($numResults);
+
+			echo json_encode($res->export());
+			break;
+
+		case "removeAdminRealmAttribute":
+
+			$res = removeAdminRealmAttribute($soapParams);
+			if (isset($res)) {
+				ajaxException($res);
+			}
+
+			break;
+
 		# AdminGroupAttributes.js functions
 		case "addAdminGroupAttribute":
 
@@ -415,6 +476,32 @@
 			$res->parseHash($rawData);
 
 			echo json_encode($res->export());
+			break;
+
+		# WiSPLocationMembers.js functions
+		case "getWiSPLocationMembers":
+
+			$res = getWiSPLocationMembers($soapParams);
+			$rawData = $res[0]; $numResults = $res[1];
+
+			$res = new json_response;
+			$res->setID('ID');
+			$res->addField('ID','int');
+			$res->addField('Username','string');
+			$res->parseArray($rawData);
+			$res->setDatasetSize($numResults);
+
+			echo json_encode($res->export());
+
+			break;
+
+		case "removeWiSPLocationMember":
+
+			$res = removeWiSPLocationMember($soapParams);
+			if (isset($res)) {
+				ajaxException($res);
+			}
+
 			break;
 
 		# WiSPLocations.js functions
