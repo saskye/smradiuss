@@ -1,11 +1,11 @@
 
 
-function showAdminRealmWindow() {
+function showAdminRealmAttributesWindow(realmID) {
 
-	var AdminRealmWindow = new Ext.ux.GenericGridWindow(
+	var AdminRealmAttributesWindow = new Ext.ux.GenericGridWindow(
 		// Window config
 		{
-			title: "Realms",
+			title: "Attributes",
 			
 			width: 600,
 			height: 335,
@@ -19,90 +19,63 @@ function showAdminRealmWindow() {
 			tbar: [
 				{
 					text:'Add',
-					tooltip:'Add realm',
+					tooltip:'Add attribute',
 					iconCls:'add',
 					handler: function() {
-						showAdminRealmAddEditWindow();
+						showAdminRealmAttributeAddEditWindow(realmID);
 					}
 				}, 
-				'-',
+				'-', 
 				{
 					text:'Edit',
-					tooltip:'Edit realm',
+					tooltip:'Edit attribute',
 					iconCls:'edit',
 					handler: function() {
-						var selectedItem = AdminRealmWindow.getComponent('gridpanel').getSelectionModel().getSelected();
+						var selectedItem = AdminRealmAttributesWindow.getComponent('gridpanel').getSelectionModel().getSelected();
 						// Check if we have selected item
 						if (selectedItem) {
 							// If so display window
-							showAdminRealmAddEditWindow(selectedItem.data.ID);
+							showAdminRealmAttributeAddEditWindow(realmID,selectedItem.data.ID);
 						} else {
-							AdminRealmWindow.getEl().mask();
+							AdminRealmAttributesWindow.getEl().mask();
 
 							// Display error
 							Ext.Msg.show({
 								title: "Nothing selected",
-								msg: "No realm selected",
+								msg: "No attribute selected",
 								icon: Ext.MessageBox.ERROR,
 								buttons: Ext.Msg.CANCEL,
 								modal: false,
 								fn: function() {
-									AdminRealmWindow.getEl().unmask();
+									AdminRealmAttributesWindow.getEl().unmask();
 								}
 							});
 						}
 					}
 				},
+				'-', 
 				{
 					text:'Remove',
-					tooltip:'Remove realm',
+					tooltip:'Remove attribute',
 					iconCls:'remove',
 					handler: function() {
-						var selectedItem = AdminRealmWindow.getComponent('gridpanel').getSelectionModel().getSelected();
+						var selectedItem = AdminRealmAttributesWindow.getComponent('gridpanel').getSelectionModel().getSelected();
 						// Check if we have selected item
 						if (selectedItem) {
 							// If so display window
-							showAdminRealmRemoveWindow(AdminRealmWindow,selectedItem.data.ID);
+							showAdminRealmAttributeRemoveWindow(AdminRealmAttributesWindow,selectedItem.data.ID);
 						} else {
-							AdminRealmWindow.getEl().mask();
+							AdminRealmAttributesWindow.getEl().mask();
 
 							// Display error
 							Ext.Msg.show({
 								title: "Nothing selected",
-								msg: "No realm selected",
+								msg: "No attribute selected",
 								icon: Ext.MessageBox.ERROR,
 								buttons: Ext.Msg.CANCEL,
 								modal: false,
 								fn: function() {
-									AdminRealmWindow.getEl().unmask();
-								}
-							});
-						}
-					}
-				},
-				'-',
-				{
-					text:'Attributes',
-					tooltip:'Realm attributes',
-					iconCls:'logs',
-					handler: function() {
-						var selectedItem = AdminRealmWindow.getComponent('gridpanel').getSelectionModel().getSelected();
-						// Check if we have selected item
-						if (selectedItem) {
-							// If so display window
-							showAdminRealmAttributesWindow(selectedItem.data.ID);
-						} else {
-							AdminRealmWindow.getEl().mask();
-
-							// Display error
-							Ext.Msg.show({
-								title: "Nothing selected",
-								msg: "No realm selected",
-								icon: Ext.MessageBox.ERROR,
-								buttons: Ext.Msg.CANCEL,
-								modal: false,
-								fn: function() {
-									AdminRealmWindow.getEl().unmask();
+									AdminRealmAttributesWindow.getEl().unmask();
 								}
 							});
 						}
@@ -123,8 +96,18 @@ function showAdminRealmWindow() {
 					dataIndex: 'Name'
 				},
 				{
+					header: "Operator",
+					sortable: true,
+					dataIndex: 'Operator'
+				},
+				{
+					header: "Value",
+					sortable: true,
+					dataIndex: 'Value'
+				},
+				{
 					header: "Disabled",
-					sortable: false,
+					sortable: true,
 					dataIndex: 'Disabled'
 				}
 			]),
@@ -133,12 +116,13 @@ function showAdminRealmWindow() {
 		// Store config
 		{
 			baseParams: {
+				ID: realmID,
 				SOAPUsername: globalConfig.soap.username,
 				SOAPPassword: globalConfig.soap.password,
 				SOAPAuthType: globalConfig.soap.authtype,
-				SOAPModule: 'AdminRealms',
-				SOAPFunction: 'getAdminRealms',
-				SOAPParams: '__null,__search'
+				SOAPModule: 'AdminRealmAttributes',
+				SOAPFunction: 'getAdminRealmAttributes',
+				SOAPParams: 'ID,__search'
 			}
 		},
 		// Filter config
@@ -146,26 +130,28 @@ function showAdminRealmWindow() {
 			filters: [
 				{type: 'numeric',  dataIndex: 'ID'},
 				{type: 'string',  dataIndex: 'Name'},
+				{type: 'string',  dataIndex: 'Operator'},
+				{type: 'string',  dataIndex: 'Value'},
 				{type: 'boolean', dataIndex: 'Disabled'}
 			]
 		}
 	);
 
-	AdminRealmWindow.show();
+	AdminRealmAttributesWindow.show();
 }
 
 
 // Display edit/add form
-function showAdminRealmAddEditWindow(id) {
+function showAdminRealmAttributeAddEditWindow(realmID,attrID) {
 
 	var submitAjaxConfig;
 
 
 	// We doing an update
-	if (id) {
+	if (attrID) {
 		submitAjaxConfig = {
-			ID: id,
-			SOAPFunction: 'updateAdminRealm',
+			ID: attrID,
+			SOAPFunction: 'updateAdminRealmAttribute',
 			SOAPParams: 
 				'0:ID,'+
 				'0:Name'
@@ -174,17 +160,19 @@ function showAdminRealmAddEditWindow(id) {
 	// We doing an Add
 	} else {
 		submitAjaxConfig = {
-			SOAPFunction: 'createAdminRealm',
+			RealmID: realmID,
+			SOAPFunction: 'addAdminRealmAttribute',
 			SOAPParams: 
+				'0:RealmID,'+
 				'0:Name'
 		};
 	}
-
+	
 	// Create window
-	var adminRealmFormWindow = new Ext.ux.GenericFormWindow(
+	var adminRealmAttributesFormWindow = new Ext.ux.GenericFormWindow(
 		// Window config
 		{
-			title: "Realm Information",
+			title: "Attribute Information",
 
 			width: 475,
 			height: 260,
@@ -199,7 +187,7 @@ function showAdminRealmAddEditWindow(id) {
 				SOAPUsername: globalConfig.soap.username,
 				SOAPPassword: globalConfig.soap.password,
 				SOAPAuthType: globalConfig.soap.authtype,
-				SOAPModule: 'AdminRealms'
+				SOAPModule: 'AdminRealmAttributes'
 			},
 			items: [
 				{
@@ -215,17 +203,17 @@ function showAdminRealmAddEditWindow(id) {
 		submitAjaxConfig
 	);
 
-	adminRealmFormWindow.show();
+	adminRealmAttributesFormWindow.show();
 
-	if (id) {
-		adminRealmFormWindow.getComponent('formpanel').load({
+	if (attrID) {
+		adminRealmAttributesFormWindow.getComponent('formpanel').load({
 			params: {
-				ID: id,
+				ID: attrID,
 				SOAPUsername: globalConfig.soap.username,
 				SOAPPassword: globalConfig.soap.password,
 				SOAPAuthType: globalConfig.soap.authtype,
-				SOAPModule: 'AdminRealms',
-				SOAPFunction: 'getAdminRealm',
+				SOAPModule: 'AdminRealmAttributes',
+				SOAPFunction: 'getAdminRealmAttribute',
 				SOAPParams: 'ID'
 			}
 		});
@@ -235,15 +223,15 @@ function showAdminRealmAddEditWindow(id) {
 
 
 
-// Display edit/add form
-function showAdminRealmRemoveWindow(parent,id) {
+// Display remove form
+function showAdminRealmAttributeRemoveWindow(parent,id) {
 	// Mask parent window
 	parent.getEl().mask();
 
 	// Display remove confirm window
 	Ext.Msg.show({
 		title: "Confirm removal",
-		msg: "Are you very sure you wish to remove this realm?",
+		msg: "Are you very sure you wish to remove this attribute?",
 		icon: Ext.MessageBox.ERROR,
 		buttons: Ext.Msg.YESNO,
 		modal: false,
@@ -258,8 +246,8 @@ function showAdminRealmRemoveWindow(parent,id) {
 						SOAPUsername: globalConfig.soap.username,
 						SOAPPassword: globalConfig.soap.password,
 						SOAPAuthType: globalConfig.soap.authtype,
-						SOAPModule: 'AdminRealms',
-						SOAPFunction: 'removeAdminRealm',
+						SOAPModule: 'AdminRealmAttributes',
+						SOAPFunction: 'removeAdminRealmAttribute',
 						SOAPParams: 'ID'
 					}
 				});
@@ -272,13 +260,4 @@ function showAdminRealmRemoveWindow(parent,id) {
 		}
 	});
 }
-
-
-
-
-
-
-
-
-
 
