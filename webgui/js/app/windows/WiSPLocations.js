@@ -91,7 +91,7 @@ function showWiSPLocationWindow() {
 						// Check if we have selected item
 						if (selectedItem) {
 							// If so display window
-							showWiSPLocationMembersWindow(WiSPLocationWindow,selectedItem.data.ID);
+							showWiSPLocationMembersWindow(selectedItem.data.ID);
 						} else {
 							WiSPLocationWindow.getEl().mask();
 
