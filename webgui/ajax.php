@@ -279,6 +279,9 @@
 			$res->setID('ID');
 			$res->addField('ID','int');
 			$res->addField('Name','string');
+			$res->addField('Operator','string');
+			$res->addField('Value','string');
+			$res->addField('Disabled','boolean');
 			$res->parseHash($rawData);
 
 			echo json_encode($res->export());
