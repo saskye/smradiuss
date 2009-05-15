@@ -154,7 +154,10 @@ function showAdminGroupAttributeAddEditWindow(groupID,attrID) {
 			SOAPFunction: 'updateAdminGroupAttribute',
 			SOAPParams: 
 				'0:ID,'+
-				'0:Name'
+				'0:Name,'+
+				'0:Operator,'+
+				'0:Value,'+
+				'0:Disabled:boolean'
 		};
 
 	// We doing an Add
@@ -164,7 +167,10 @@ function showAdminGroupAttributeAddEditWindow(groupID,attrID) {
 			SOAPFunction: 'addAdminGroupAttribute',
 			SOAPParams: 
 				'0:GroupID,'+
-				'0:Name'
+				'0:Name,'+
+				'0:Operator,'+
+				'0:Value,'+
+				'0:Disabled:boolean'
 		};
 	}
 	
@@ -196,6 +202,21 @@ function showAdminGroupAttributeAddEditWindow(groupID,attrID) {
 					vtype: 'usernamePart',
 					maskRe: usernamePartRe,
 					allowBlank: false
+				},
+				{
+					fieldLabel: "Operator",
+					name: "Operator",
+					allowBlank: false
+				},
+				{
+					fieldLabel: "Value",
+					name: "Value",
+					allowBlank: false
+				},
+				{
+					xtype: 'checkbox',
+					fieldLabel: 'Disabled',
+					name: 'Disabled'
 				},
 			],
 		},

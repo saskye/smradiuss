@@ -218,7 +218,6 @@ function showAdminUserAttributeAddEditWindow(userID,attrID) {
 					fieldLabel: 'Disabled',
 					name: 'Disabled'
 				},
-				
 			],
 		},
 		// Submit button config

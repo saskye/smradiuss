@@ -6,7 +6,18 @@ include_once("include/db.php");
 function addAdminGroupAttribute($params) {
 	global $db;
 
-	$res = DBDo("INSERT INTO group_attributes (GroupID,Name) VALUES (?,?)",array($params[0]['GroupID'],$params[0]['Name']));
+	$res = DBDo("
+				INSERT INTO 
+						group_attributes (GroupID,Name,Operator,Value,Disabled) 
+				VALUES 
+						(?,?,?,?,?)",
+				array(	$params[0]['GroupID'],
+						$params[0]['Name'],
+						$params[0]['Operator'],
+						$params[0]['Value'],
+						$params[0]['Disabled'])
+	);
+
 	if (!is_numeric($res)) {
 		return $res;
 	}
@@ -30,7 +41,14 @@ function removeAdminGroupAttribute($params) {
 function updateAdminGroupAttribute($params) {
 	global $db;
 
-	$res = DBDo("UPDATE group_attributes SET Name = ? WHERE ID = ?",array($params[0]['Name'],$params[0]['ID']));
+	$res = DBDo("UPDATE group_attributes SET Name = ?, Operator = ?, Value = ?, Disabled = ? WHERE ID = ?",
+				array($params[0]['Name'],
+				$params[0]['Operator'],
+				$params[0]['Value'],
+				$params[0]['Disabled'],
+				$params[0]['ID'])
+	);
+
 	if (!is_numeric($res)) {
 		return $res;
 	}
@@ -43,7 +61,7 @@ function getAdminGroupAttribute($params) {
 	global $db;
 
 
-	$res = DBSelect("SELECT ID, Name FROM group_attributes WHERE ID = ?",array($params[0]));
+	$res = DBSelect("SELECT ID, Name, Operator, Value, Disabled FROM group_attributes WHERE ID = ?",array($params[0]));
 	if (!is_object($res)) {
 		return $res;
 	}
@@ -54,6 +72,9 @@ function getAdminGroupAttribute($params) {
 
 	$resultArray['ID'] = $row->id;
 	$resultArray['Name'] = $row->name;
+	$resultArray['Operator'] = $row->operator;
+	$resultArray['Value'] = $row->value;
+	$resultArray['Disabled'] = $row->disabled;
 
 	return $resultArray;
 }
