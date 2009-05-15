@@ -222,7 +222,16 @@ function showWiSPUserEditWindow(id) {
 			SOAPFunction: 'updateWiSPUser',
 			SOAPParams: 
 				'0:ID,'+
-				'0:Username'
+				'0:Username,'+
+				'0:Password,'+
+				'0:Firstname,'+
+				'0:Lastname,'+
+				'0:Phone,'+
+				'0:Email,'+
+				'0:MACAddress,'+
+				'0:IPAddress,'+
+				'0:Datalimit,'+
+				'0:Uptimelimit'
 		};
 
 	// We doing an Add
@@ -230,7 +239,16 @@ function showWiSPUserEditWindow(id) {
 		submitAjaxConfig = {
 			SOAPFunction: 'createWiSPUser',
 			SOAPParams: 
-				'0:Username'
+				'0:Username,'+
+				'0:Password,'+
+				'0:Firstname,'+
+				'0:Lastname,'+
+				'0:Phone,'+
+				'0:Email,'+
+				'0:MACAddress,'+
+				'0:IPAddress,'+
+				'0:Datalimit,'+
+				'0:Uptimelimit'
 		};
 	}
 
@@ -241,10 +259,10 @@ function showWiSPUserEditWindow(id) {
 			title: "User Information",
 
 			width: 475,
-			height: 260,
+			height: 340,
 
 			minWidth: 475,
-			minHeight: 260
+			minHeight: 340
 		},
 		// Form panel config
 		{
@@ -262,6 +280,190 @@ function showWiSPUserEditWindow(id) {
 					vtype: 'usernamePart',
 					maskRe: usernamePartRe,
 					allowBlank: false,
+				},
+				{
+					fieldLabel: 'Password',
+					name: 'Password',
+					vtype: 'usernamePart',
+					maskRe: usernamePartRe,
+					allowBlank: false,
+				},
+				{
+					xtype: 'tabpanel',
+					plain: 'true',
+					deferredRender: false, // Load all panels!
+					activeTab: 0,
+					height: 200,
+					defaults: {
+						layout: 'form',
+						bodyStyle: 'padding: 10px;'
+					},
+					
+					items: [
+						{
+							title: 'Personal',
+							layout: 'form',
+							defaultType: 'textfield',
+							items: [
+								{
+									fieldLabel: 'First Name',
+									name: 'Firstname',
+									vtype: 'usernamePart',
+									allowBlank: true
+								},
+								{
+									fieldLabel: 'Last Name',
+									name: 'Lastname',
+									vtype: 'usernamePart',
+									allowBlank: true
+								},
+								{
+									fieldLabel: 'Phone',
+									name: 'Phone',
+									vtype: 'number',
+									allowBlank: true
+								},
+								{
+									fieldLabel: 'Email',
+									name: 'Email',
+									allowBlank: true
+								}
+							]
+						},
+						{
+							title: 'Attributes',
+							layout: 'form',
+							defaultType: 'textfield',
+							items: [
+								{
+									xtype: 'combo',
+									//id: 'combo',
+									fieldLabel: 'Name',
+									name: 'Name',
+									allowBlank: false,
+									width: 160,
+
+									store: new Ext.ux.JsonStore({
+										sortInfo: { field: "Name", direction: "ASC" },
+										baseParams: {
+											SOAPUsername: globalConfig.soap.username,
+											SOAPPassword: globalConfig.soap.password,
+											SOAPAuthType: globalConfig.soap.authtype,
+											SOAPModule: 'WiSPUsers',
+											SOAPFunction: 'getWiSPUserAttributeNames',
+											SOAPParams: '__null,__search'
+										}
+									}),
+									displayField: 'Name',
+									valueField: 'Name',
+									hiddenName: 'Name',
+									forceSelection: true,
+									triggerAction: 'all',
+									editable: false
+								},
+								{
+									xtype: 'combo',
+									//id: 'combo',
+									fieldLabel: 'Value',
+									name: 'Value',
+									allowBlank: false,
+									width: 160,
+
+									store: new Ext.ux.JsonStore({
+										sortInfo: { field: "Value", direction: "ASC" },
+										baseParams: {
+											SOAPUsername: globalConfig.soap.username,
+											SOAPPassword: globalConfig.soap.password,
+											SOAPAuthType: globalConfig.soap.authtype,
+											SOAPModule: 'WiSPUsers',
+											SOAPFunction: 'getWiSPUserAttributeValues',
+											SOAPParams: '__null,__search'
+										}
+									}),
+									displayField: 'Value',
+									valueField: 'Value',
+									hiddenName: 'Value',
+									forceSelection: true,
+									triggerAction: 'all',
+									editable: false
+								},
+								/*{
+									xtype: 'combo',
+									//id: 'combo',
+									fieldLabel: 'Group',
+									name: 'Group',
+									allowBlank: true,
+									width: 140,
+
+									store: new Ext.ux.JsonStore({
+										sortInfo: { field: "Name", direction: "ASC" },
+										baseParams: {
+											SOAPUsername: globalConfig.soap.username,
+											SOAPPassword: globalConfig.soap.password,
+											SOAPAuthType: globalConfig.soap.authtype,
+											SOAPModule: 'AdminUserGroups',
+											SOAPFunction: 'getAdminGroups',
+											SOAPParams: '__null,__search'
+										}
+									}),
+									displayField: 'Name',
+									valueField: 'ID',
+									hiddenName: 'GroupID',
+									forceSelection: false,
+									triggerAction: 'all',
+									editable: false
+								},*/
+								/*{
+									xtype: 'combo',
+									//id: 'combo',
+									fieldLabel: 'Location',
+									name: 'Location',
+									allowBlank: true,
+									width: 160,
+
+									store: new Ext.ux.JsonStore({
+										sortInfo: { field: "Name", direction: "ASC" },
+										baseParams: {
+											SOAPUsername: globalConfig.soap.username,
+											SOAPPassword: globalConfig.soap.password,
+											SOAPAuthType: globalConfig.soap.authtype,
+											SOAPModule: 'AdminUserGroups',
+											SOAPFunction: 'getWiSPLocations',
+											SOAPParams: '__null,__search'
+										}
+									}),
+									displayField: 'Name',
+									valueField: 'ID',
+									hiddenName: 'LocationID',
+									forceSelection: false,
+									triggerAction: 'all',
+									editable: false
+								},*/
+								/*{
+									fieldLabel: 'MAC Address',
+									name: 'MACAddress',
+									allowBlank: true
+								},
+								{
+									fieldLabel: 'IP Address',
+									name: 'IPAddress',
+									allowBlank: true
+								},
+								{
+									fieldLabel: 'Data Limit',
+									name: 'Datalimit',
+									vtype: 'number',
+									allowBlank: true
+								},
+								{
+									fieldLabel: 'Uptime Limit',
+									name: 'Uptimelimit',
+									vtype: 'number',
+									allowBlank: true
+								}*/
+							]
+						},
+					]
 				},
 			],
 		},

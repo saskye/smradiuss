@@ -65,8 +65,23 @@ function getWiSPUsers($params) {
 function getWiSPUser($params) {
 	global $db;
 
+	$res = DBSelect("
+				SELECT 
+					wisp_userdata.UserID, 
+					wisp_userdata.FirstName, 
+					wisp_userdata.LastName, 
+					wisp_userdata.Phone, 
+					wisp_userdata.Email, 
+					users.Username
+				FROM 
+					wisp_userdata, users
+				WHERE 
+					wisp_userdata.UserID = ?
+				AND
+					users.ID = wisp_userdata.UserID
+					",array($params[0])
+	);
 
-	$res = DBSelect("SELECT ID, Username FROM users WHERE ID = ?",array($params[0]));
 	if (!is_object($res)) {
 		return $res;
 	}
@@ -75,9 +90,54 @@ function getWiSPUser($params) {
 
 	$row = $res->fetchObject();
 
-	$resultArray['ID'] = $row->id;
+	$resultArray['ID'] = $row->userid;
 	$resultArray['Username'] = $row->username;
+	$resultArray['Firstname'] = $row->firstname;
+	$resultArray['Lastname'] = $row->lastname;
+	$resultArray['Phone'] = $row->phone;
+	$resultArray['Email'] = $row->email;
+	
+	$res = DBSelect("
+				SELECT
+					user_attributes.Name,
+					user_attributes.Value
+				FROM
+					user_attributes
+				WHERE
+					user_attributes.UserID = ?
+					",array($params[0])
+	);
 
+	if (!is_object($res)) {
+		return $res;
+	}
+
+	while ($row = $res->fetchObject()) {
+		switch ($row->name) {
+			case "User-Password":
+				$resultArray['Password'] = $row->value;
+				break;
+			case "MACAddress":
+				$resultArray['MACAddress'] = $row->value;
+				break;
+			case "SMRadius-Capping-Traffic-Limit":
+				$resultArray['Datalimit'] = $row->value;
+				break;
+			case "SMRadius-Capping-Uptime-Limit":
+				$resultArray['Uptimelimit'] = $row->value;
+				break;
+			case "Framed-IP-Address":
+				$resultArray['IPAddress'] = $row->value;
+				break;
+		}
+	}
+
+	foreach ( array('Password','MACAddress','Datalimit','Uptimelimit','IPAddress') as $key) {
+		if (!isset($resultArray[$key])) {
+			$resultArray[$key] = '';
+		}
+	}
+ 
 	return $resultArray;
 }
 

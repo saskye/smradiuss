@@ -491,6 +491,15 @@
 			$res->setID('ID');
 			$res->addField('ID','int');
 			$res->addField('Username','string');
+			$res->addField('Password','string');
+			$res->addField('Firstname','string');
+			$res->addField('Lastname','string');
+			$res->addField('Phone','string');
+			$res->addField('Email','string');
+			$res->addField('MACAddress','string');
+			$res->addField('IPAddress','string');
+			$res->addField('Datalimit','int');
+			$res->addField('Uptimelimit','int');
 			$res->parseHash($rawData);
 
 			echo json_encode($res->export());
