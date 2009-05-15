@@ -6,7 +6,18 @@ include_once("include/db.php");
 function addAdminUserAttribute($params) {
 	global $db;
 
-	$res = DBDo("INSERT INTO user_attributes (UserID,Name) VALUES (?,?)",array($params[0]['UserID'],$params[0]['Name']));
+	$res = DBDo("
+				INSERT INTO 
+						user_attributes (UserID,Name,Operator,Value,Disabled) 
+				VALUES 
+						(?,?,?,?,?)",
+				array(	$params[0]['UserID'],
+						$params[0]['Name'],
+						$params[0]['Operator'],
+						$params[0]['Value'],
+						$params[0]['Disabled'])
+	);
+
 	if (!is_numeric($res)) {
 		return $res;
 	}
@@ -30,7 +41,14 @@ function removeAdminUserAttribute($params) {
 function updateAdminUserAttribute($params) {
 	global $db;
 
-	$res = DBDo("UPDATE user_attributes SET Name = ? WHERE ID = ?",array($params[0]['Name'],$params[0]['ID']));
+	$res = DBDo("UPDATE user_attributes SET Name = ?, Operator = ?, Value = ?, Disabled = ? WHERE ID = ?",
+				array($params[0]['Name'],
+				$params[0]['Operator'],
+				$params[0]['Value'],
+				$params[0]['Disabled'],
+				$params[0]['ID'])
+	);
+
 	if (!is_numeric($res)) {
 		return $res;
 	}
@@ -43,7 +61,7 @@ function getAdminUserAttribute($params) {
 	global $db;
 
 
-	$res = DBSelect("SELECT ID, Name FROM user_attributes WHERE ID = ?",array($params[0]));
+	$res = DBSelect("SELECT ID, Name, Operator, Value, Disabled FROM user_attributes WHERE ID = ?",array($params[0]));
 	if (!is_object($res)) {
 		return $res;
 	}
@@ -54,6 +72,9 @@ function getAdminUserAttribute($params) {
 
 	$resultArray['ID'] = $row->id;
 	$resultArray['Name'] = $row->name;
+	$resultArray['Operator'] = $row->operator;
+	$resultArray['Value'] = $row->value;
+	$resultArray['Disabled'] = $row->disabled;
 
 	return $resultArray;
 }
