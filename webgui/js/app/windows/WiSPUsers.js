@@ -22,7 +22,7 @@ function showWiSPUserWindow() {
 					tooltip:'Add user',
 					iconCls:'add',
 					handler: function() {
-						showWiSPUserEditWindow();
+						showWiSPUserAddEditWindow();
 					}
 				}, 
 				'-', 
@@ -35,7 +35,7 @@ function showWiSPUserWindow() {
 						// Check if we have selected item
 						if (selectedItem) {
 							// If so display window
-							showWiSPUserEditWindow(selectedItem.data.ID);
+							showWiSPUserAddEditWindow(selectedItem.data.ID);
 						} else {
 							WiSPUserWindow.getEl().mask();
 
@@ -181,11 +181,26 @@ function showWiSPUserWindow() {
 
 
 // Display edit/add form
-function showWiSPUserEditWindow(id) {
+function showWiSPUserAddEditWindow(id) {
 
 	var submitAjaxConfig;
 	var editMode;
 
+
+	// Attribute store
+	var attributeStore;
+	attributeStore = new Ext.data.SimpleStore({
+		fields: [
+			'name', 'operator', 'value', 'modifier'
+		],
+	});
+	// Attribute record that can be added to above store
+	var attributeRecord = Ext.data.Record.create([
+		{name: 'name'},
+		{name: 'operator'},
+		{name: 'value'},
+		{name: 'modifier'}
+	]);
 
 	// We doing an update
 	if (id) {
@@ -209,20 +224,180 @@ function showWiSPUserEditWindow(id) {
 	// We doing an Add
 	} else {
 		submitAjaxConfig = {
-			SOAPFunction: 'createWiSPUser',
-			SOAPParams: 
-				'0:Username,'+
-				'0:Password,'+
-				'0:Firstname,'+
-				'0:Lastname,'+
-				'0:Phone,'+
-				'0:Email,'+
-				'0:MACAddress,'+
-				'0:IPAddress,'+
-				'0:Datalimit,'+
-				'0:Uptimelimit'
+			params: {
+				SOAPFunction: 'createWiSPUser',
+				SOAPParams: 
+					'0:Username,'+
+					'0:Password,'+
+					'0:Firstname,'+
+					'0:Lastname,'+
+					'0:Phone,'+
+					'0:Email,'+
+					'0:Attributes'
+			},
+
+			hook: function() {
+				// Get modified records
+				var attributes = attributeStore.getModifiedRecords();
+
+				var ret = { };
+				// Loop and add to our hash
+        		for(var i = 0, len = attributes.length; i < len; i++){
+					var attribute = attributes[i];
+					ret['Attributes['+i+'][Name]'] = attribute.get('name');
+					ret['Attributes['+i+'][Operator]'] = attribute.get('operator');
+					ret['Attributes['+i+'][Value]'] = attribute.get('value');
+					ret['Attributes['+i+'][Modifier]'] = attribute.get('modifier');
+		        }
+
+				return ret;
+			}
 		};
 	}
+
+
+	// Build the attribute editor grid
+	var attributeEditor = new Ext.grid.EditorGridPanel({
+		plain: true,
+		height: 150,
+		autoScroll: true,
+
+		// Set row selection model
+		selModel: new Ext.grid.RowSelectionModel({
+			singleSelect: true
+		}),
+		
+		// Inline toolbars
+		tbar: [
+			{
+				text:'Add',
+				tooltip:'Add attribute',
+				iconCls:'add',
+				handler: function() {
+					var newAttrStoreRecord = new attributeRecord({
+						name: '',
+						operator: '',
+						value: '',
+						modifier: ''
+					});
+					attributeStore.insert(0,newAttrStoreRecord);
+				}
+			}, 
+			'-', 
+			{
+				text:'Remove',
+				tooltip:'Remove attribute',
+				iconCls:'remove',
+				handler: function() {
+					var selectedItem = attributeEditor.getSelectionModel().getSelected();
+
+					// Check if we have selected item
+					if (selectedItem) {
+						// If so remove
+						attributeStore.remove(selectedItem);
+
+					} else {
+						wispUserFormWindow.getEl().mask();
+
+						// Display error
+						Ext.Msg.show({
+							title: "Nothing selected",
+							msg: "No attribute selected",
+							icon: Ext.MessageBox.ERROR,
+							buttons: Ext.Msg.CANCEL,
+							modal: false,
+							fn: function() {
+								wispUserFormWindow.getEl().unmask();
+							}
+						});
+					}
+				}
+			},
+		],
+
+		cm: new Ext.grid.ColumnModel([
+			{
+				id: 'name',
+				header: 'Name',
+				dataIndex: 'name',
+				width: 150,
+				editor: new Ext.form.ComboBox({
+					allowBlank: false,
+					mode: 'local',
+					store: [ 
+						[ 'SMRadius-Capping-Traffic-Limit', 'Traffic Limit' ],
+						[ 'SMRadius-Capping-Uptime-Limit', 'Uptime Limit' ],
+						[ 'Framed-IP-Address', 'IP Address' ],
+						[ 'Calling-Station-Id', 'MAC Address' ]
+					],
+					triggerAction: 'all',
+					editable: false,
+				})
+			},
+			{
+				id: 'operator',
+				header: 'Operator',
+				dataIndex: 'operator',
+				width: 300,
+				editor: new Ext.form.ComboBox({
+					allowBlank: false,
+					mode: 'local',
+					store: [ 
+						[ '=', 'Add as reply if unique' ], 
+						[ ':=', 'Set configuration value'  ],
+						[ '==', 'Match value in request' ], 
+						[ '+=', 'Add reply and set configuration' ],
+						[ '!=', 'Inverse match value in request' ],
+						[ '<', 'Match less-than value in request' ],
+						[ '>', 'Match greater-than value in request' ],
+						[ '<=', 'Match less-than or equal value in request' ],
+						[ '>=', 'Match greater-than or equal value in request' ],
+						[ '=~', 'Match string containing regex in request' ],
+						[ '!~', 'Match string not containing regex in request' ],
+						[ '=*', 'Match if attribute is defined in request' ],
+						[ '!*', 'Match if attribute is not defined in request' ],
+						[ '||==', 'Match any of these values in request' ]
+					],
+					triggerAction: 'all',
+					editable: true,
+				})
+			},
+			{
+				id: 'value',
+				header: 'Value',
+				dataIndex: 'value',
+				width: 100,
+				editor: new Ext.form.TextField({
+					allowBlank: false,
+				})
+			},
+			{
+				id: 'modifier',
+				header: 'Modifier',
+				dataIndex: 'modifier',
+				width: 80,
+				editor: new Ext.form.ComboBox({
+					allowBlank: false,
+					mode: 'local',
+					store: [ 
+						[ 'Seconds', 'Seconds' ], 
+						[ 'Minutes', 'Minutes' ],
+						[ 'Hours', 'Hours' ],
+						[ 'Days', 'Days' ],
+						[ 'Weeks', 'Weeks' ],
+						[ 'Months', 'Months' ],
+						[ 'MBytes', 'MBytes' ],
+						[ 'GBytes', 'GBytes' ],
+						[ 'TBytes', 'TBytes' ],
+					],
+					triggerAction: 'all',
+					editable: true,
+				})
+			},
+		]),
+		store: attributeStore
+	});
+
 
 	// Create window
 	var wispUserFormWindow = new Ext.ux.GenericFormWindow(
@@ -230,11 +405,11 @@ function showWiSPUserEditWindow(id) {
 		{
 			title: "User Information",
 
-			width: 475,
-			height: 340,
+			width: 700,
+			height: 392,
 
-			minWidth: 475,
-			minHeight: 340
+			minWidth: 700,
+			minHeight: 392
 		},
 		// Form panel config
 		{
@@ -265,7 +440,7 @@ function showWiSPUserEditWindow(id) {
 					plain: 'true',
 					deferredRender: false, // Load all panels!
 					activeTab: 0,
-					height: 200,
+					height: 250,
 					defaults: {
 						layout: 'form',
 						bodyStyle: 'padding: 10px;'
@@ -307,132 +482,7 @@ function showWiSPUserEditWindow(id) {
 							layout: 'form',
 							defaultType: 'textfield',
 							items: [
-								{
-									xtype: 'combo',
-									//id: 'combo',
-									fieldLabel: 'Name',
-									name: 'Name',
-									allowBlank: false,
-									width: 160,
-
-									store: new Ext.ux.JsonStore({
-										sortInfo: { field: "Name", direction: "ASC" },
-										baseParams: {
-											SOAPUsername: globalConfig.soap.username,
-											SOAPPassword: globalConfig.soap.password,
-											SOAPAuthType: globalConfig.soap.authtype,
-											SOAPModule: 'WiSPUsers',
-											SOAPFunction: 'getWiSPUserAttributeNames',
-											SOAPParams: '__null,__search'
-										}
-									}),
-									displayField: 'Name',
-									valueField: 'Name',
-									hiddenName: 'Name',
-									forceSelection: true,
-									triggerAction: 'all',
-									editable: false
-								},
-								{
-									xtype: 'combo',
-									//id: 'combo',
-									fieldLabel: 'Value',
-									name: 'Value',
-									allowBlank: false,
-									width: 160,
-
-									store: new Ext.ux.JsonStore({
-										sortInfo: { field: "Value", direction: "ASC" },
-										baseParams: {
-											SOAPUsername: globalConfig.soap.username,
-											SOAPPassword: globalConfig.soap.password,
-											SOAPAuthType: globalConfig.soap.authtype,
-											SOAPModule: 'WiSPUsers',
-											SOAPFunction: 'getWiSPUserAttributeValues',
-											SOAPParams: '__null,__search'
-										}
-									}),
-									displayField: 'Value',
-									valueField: 'Value',
-									hiddenName: 'Value',
-									forceSelection: true,
-									triggerAction: 'all',
-									editable: false
-								},
-								/*{
-									xtype: 'combo',
-									//id: 'combo',
-									fieldLabel: 'Group',
-									name: 'Group',
-									allowBlank: true,
-									width: 140,
-
-									store: new Ext.ux.JsonStore({
-										sortInfo: { field: "Name", direction: "ASC" },
-										baseParams: {
-											SOAPUsername: globalConfig.soap.username,
-											SOAPPassword: globalConfig.soap.password,
-											SOAPAuthType: globalConfig.soap.authtype,
-											SOAPModule: 'AdminUserGroups',
-											SOAPFunction: 'getAdminGroups',
-											SOAPParams: '__null,__search'
-										}
-									}),
-									displayField: 'Name',
-									valueField: 'ID',
-									hiddenName: 'GroupID',
-									forceSelection: false,
-									triggerAction: 'all',
-									editable: false
-								},*/
-								/*{
-									xtype: 'combo',
-									//id: 'combo',
-									fieldLabel: 'Location',
-									name: 'Location',
-									allowBlank: true,
-									width: 160,
-
-									store: new Ext.ux.JsonStore({
-										sortInfo: { field: "Name", direction: "ASC" },
-										baseParams: {
-											SOAPUsername: globalConfig.soap.username,
-											SOAPPassword: globalConfig.soap.password,
-											SOAPAuthType: globalConfig.soap.authtype,
-											SOAPModule: 'AdminUserGroups',
-											SOAPFunction: 'getWiSPLocations',
-											SOAPParams: '__null,__search'
-										}
-									}),
-									displayField: 'Name',
-									valueField: 'ID',
-									hiddenName: 'LocationID',
-									forceSelection: false,
-									triggerAction: 'all',
-									editable: false
-								},*/
-								/*{
-									fieldLabel: 'MAC Address',
-									name: 'MACAddress',
-									allowBlank: true
-								},
-								{
-									fieldLabel: 'IP Address',
-									name: 'IPAddress',
-									allowBlank: true
-								},
-								{
-									fieldLabel: 'Data Limit',
-									name: 'Datalimit',
-									vtype: 'number',
-									allowBlank: true
-								},
-								{
-									fieldLabel: 'Uptime Limit',
-									name: 'Uptimelimit',
-									vtype: 'number',
-									allowBlank: true
-								}*/
+								attributeEditor
 							]
 						},
 					]

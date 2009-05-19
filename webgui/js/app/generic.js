@@ -77,9 +77,24 @@ Ext.ux.GenericFormWindow = function(windowConfig,formConfig,submitAjaxConfig) {
 					var panel = this.ownerCt;
 					var win = panel.ownerCt;
 
+					var ajaxParams;
+
+					if (submitAjaxConfig.params) {
+						ajaxParams = submitAjaxConfig.params;
+
+						if (submitAjaxConfig.hook) {
+							var extraParams = submitAjaxConfig.hook();
+						}
+
+						ajaxParams = Ext.apply(ajaxParams,extraParams);
+
+					} else {
+						ajaxParams = submitAjaxConfig;
+					}
+
 					// Submit panel
 					panel.submit({
-						params: submitAjaxConfig,
+						params: ajaxParams,
 						// Close window on success
 						success: function() {
 							win.close();

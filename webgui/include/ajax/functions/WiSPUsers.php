@@ -170,22 +170,67 @@ function createWiSPUser($params) {
 	global $db;
 
 	DBBegin();
+	# Insert username
 	$res = DBDo("INSERT INTO users (Username) VALUES (?)",array($params[0]['Username']));
 
+	# Continue with others if successful
 	if ($res !== FALSE) {
 		$userID = DBLastInsertID();
-		$res = DBDo("INSERT INTO wisp_userdata (UserID) VALUES (?)",array($userID));
+		DBDo("
+			INSERT INTO 
+					user_attributes (UserID,Name,Operator,Value) 
+			VALUES 
+					(?,?,?,?)",
+			array($userID,
+				'User-Password',
+				'==',
+				$params[0]['Password'])
+		);
 	}
 
+	# Link users ID to make user a wisp user
+	if ($res !== FALSE) {
+		DBDo("INSERT INTO wisp_userdata (UserID) VALUES (?)",array($userID));
+	}
+
+	# Personal information is optional when adding
+	if ($res !== FALSE && isset($params[0]['Firstname'])) {
+		$res = DBDo("UPDATE wisp_userdata SET FirstName = ? WHERE UserID = ?",array($params[0]['Firstname'],$userID));
+	}
+	if ($res !== FALSE && isset($params[0]['Lastname'])) {
+		$res = DBDo("UPDATE wisp_userdata SET LastName = ? WHERE UserID = ?",array($params[0]['Lastname'],$userID));
+	}
+	if ($res !== FALSE && isset($params[0]['Phone'])) {
+		$res = DBDo("UPDATE wisp_userdata SET Phone = ? WHERE UserID = ?",array($params[0]['Phone'],$userID));
+	}
+	if ($res !== FALSE && isset($params[0]['Email'])) {
+		$res = DBDo("UPDATE wisp_userdata SET Email = ? WHERE UserID = ?",array($params[0]['Email'],$userID));
+	}
+
+	# Grab each attribute and add it's details to the database
+	if ($res !== FALSE) {
+		foreach ($params[0]['Attributes'] as $attr) {
+			$res = DBDo("
+						INSERT INTO 
+								user_attributes (UserID,Name,Operator,Value) 
+						VALUES
+								(?,?,?,?)",
+						array(
+							$userID,
+							$attr['Name'],
+							$attr['Operator'],
+							$attr['Value'])
+			);
+		}
+	}
+
+	# Commit changes if all was successful, else break
 	if ($res !== FALSE) {
 		DBCommit();
 		return $res;
 	} else {
 		DBRollback();
 	}
-#	if (!is_numeric($res)) {
-#		return $res;
-#	}
 
 	return NULL;
 }
