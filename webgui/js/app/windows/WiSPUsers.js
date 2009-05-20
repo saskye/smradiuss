@@ -202,6 +202,18 @@ function showWiSPUserAddEditWindow(id) {
 		{name: 'modifier'}
 	]);
 
+	// Group store
+	var groupStore;
+	groupStore = new Ext.data.SimpleStore({
+		fields: [
+			'name'
+		],
+	});
+	// Group record that can be added to above store
+	var groupRecord = Ext.data.Record.create([
+		{name: 'name'}
+	]);
+
 	// We doing an update
 	if (id) {
 		submitAjaxConfig = {
@@ -214,11 +226,7 @@ function showWiSPUserAddEditWindow(id) {
 				'0:Firstname,'+
 				'0:Lastname,'+
 				'0:Phone,'+
-				'0:Email,'+
-				'0:MACAddress,'+
-				'0:IPAddress,'+
-				'0:Datalimit,'+
-				'0:Uptimelimit'
+				'0:Email'
 		};
 
 	// We doing an Add
@@ -233,12 +241,15 @@ function showWiSPUserAddEditWindow(id) {
 					'0:Lastname,'+
 					'0:Phone,'+
 					'0:Email,'+
-					'0:Attributes'
+					'0:Attributes,'+
+					'0:Groups'
 			},
 
 			hook: function() {
-				// Get modified records
+				// Get modified attribute records
 				var attributes = attributeStore.getModifiedRecords();
+				// Get modified group records
+				var groups = groupStore.getModifiedRecords();
 
 				var ret = { };
 				// Loop and add to our hash
@@ -248,6 +259,11 @@ function showWiSPUserAddEditWindow(id) {
 					ret['Attributes['+i+'][Operator]'] = attribute.get('operator');
 					ret['Attributes['+i+'][Value]'] = attribute.get('value');
 					ret['Attributes['+i+'][Modifier]'] = attribute.get('modifier');
+		        }
+				// Loop and add to our hash
+        		for(var i = 0, len = groups.length; i < len; i++){
+					var group = groups[i];
+					ret['Groups['+i+'][Name]'] = group.get('name');
 		        }
 
 				return ret;
@@ -398,6 +414,91 @@ function showWiSPUserAddEditWindow(id) {
 		store: attributeStore
 	});
 
+	// Build the attribute editor grid
+	var groupEditor = new Ext.grid.EditorGridPanel({
+		plain: true,
+		height: 150,
+		autoScroll: true,
+
+		// Set row selection model
+		selModel: new Ext.grid.RowSelectionModel({
+			singleSelect: true
+		}),
+		
+		// Inline toolbars
+		tbar: [
+			{
+				text:'Add',
+				tooltip:'Add group',
+				iconCls:'add',
+				handler: function() {
+					var newGroupStoreRecord = new groupRecord({
+						name: ''
+					});
+					groupStore.insert(0,newGroupStoreRecord);
+				}
+			}, 
+			'-', 
+			{
+				text:'Remove',
+				tooltip:'Remove group',
+				iconCls:'remove',
+				handler: function() {
+					var selectedItem = groupEditor.getSelectionModel().getSelected();
+
+					// Check if we have selected item
+					if (selectedItem) {
+						// If so remove
+						groupStore.remove(selectedItem);
+
+					} else {
+						wispUserFormWindow.getEl().mask();
+
+						// Display error
+						Ext.Msg.show({
+							title: "Nothing selected",
+							msg: "No group selected",
+							icon: Ext.MessageBox.ERROR,
+							buttons: Ext.Msg.CANCEL,
+							modal: false,
+							fn: function() {
+								wispUserFormWindow.getEl().unmask();
+							}
+						});
+					}
+				}
+			},
+		],
+
+		cm: new Ext.grid.ColumnModel([
+			{
+				id: 'name',
+				header: 'Name',
+				dataIndex: 'name',
+				width: 150,
+				editor: new Ext.form.ComboBox({
+					allowBlank: false,
+					store: new Ext.ux.JsonStore({
+						sortInfo: { field: "Name", direction: "ASC" },
+						baseParams: {
+							SOAPUsername: globalConfig.soap.username,
+							SOAPPassword: globalConfig.soap.password,
+							SOAPAuthType: globalConfig.soap.authtype,
+							SOAPModule: 'AdminUserGroups',
+							SOAPFunction: 'getAdminGroups',
+							SOAPParams: '__null,__search'
+						}
+					}),
+					displayField: 'Name',
+					valueField: 'ID',
+					forceSelection: true,
+					triggerAction: 'all',
+					editable: false
+				})
+			},
+		]),
+		store: groupStore
+	});
 
 	// Create window
 	var wispUserFormWindow = new Ext.ux.GenericFormWindow(
@@ -478,11 +579,40 @@ function showWiSPUserAddEditWindow(id) {
 							]
 						},
 						{
+							title: 'Groups',
+							layout: 'form',
+							defaultType: 'textfield',
+							items: [
+								groupEditor
+							]
+						},
+						{
 							title: 'Attributes',
 							layout: 'form',
 							defaultType: 'textfield',
 							items: [
 								attributeEditor
+							]
+						},
+						{
+							title: 'Add Many',
+							layout: 'form',
+							defaultType: 'textfield',
+							items: [
+								{
+									fieldLabel: 'Prefix',
+									name: 'Prefix',
+									vtype: 'usernamePart',
+									maskRe: usernamePartRe,
+									allowBlank: true,
+								},
+								{
+									fieldLabel: 'Number',
+									name: 'Number',
+									vtype: 'usernamePart',
+									maskRe: usernamePartRe,
+									allowBlank: true,
+								},
 							]
 						},
 					]
