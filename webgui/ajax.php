@@ -148,7 +148,7 @@
 						ajaxException("Unknown AJAX=>SOAP type: '$array_type'");
 					}
 				} else {
-					$item_value = $_REQUEST[$array_item];
+					$item_value = isset($_REQUEST[$array_item]) ? $_REQUEST[$array_item] : NULL;
 				}
 				# Set item
 				$soapParams[$array_pos][$array_item] = $item_value;
@@ -485,7 +485,8 @@
 			break;
 
 		case "getWiSPUser":
-			$rawData = getWiSPUser($soapParams);
+			$res = getWiSPUser($soapParams);
+			$rawData = $res[0]; $numResults = $res[1];
 
 			$res = new json_response;
 			$res->setID('ID');
@@ -496,11 +497,8 @@
 			$res->addField('Lastname','string');
 			$res->addField('Phone','string');
 			$res->addField('Email','string');
-			$res->addField('MACAddress','string');
-			$res->addField('IPAddress','string');
-			$res->addField('Datalimit','int');
-			$res->addField('Uptimelimit','int');
 			$res->parseHash($rawData);
+			$res->setDatasetSize($numResults);
 
 			echo json_encode($res->export());
 			break;
