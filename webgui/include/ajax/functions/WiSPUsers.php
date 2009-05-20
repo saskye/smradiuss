@@ -65,6 +65,7 @@ function getWiSPUsers($params) {
 function getWiSPUser($params) {
 	global $db;
 
+	# Query for userdata and username
 	$res = DBSelect("
 				SELECT 
 					wisp_userdata.UserID, 
@@ -90,16 +91,42 @@ function getWiSPUser($params) {
 
 	$row = $res->fetchObject();
 
+	# Set userdata fields
 	$resultArray['ID'] = $row->userid;
 	$resultArray['Username'] = $row->username;
 	$resultArray['Firstname'] = $row->firstname;
 	$resultArray['Lastname'] = $row->lastname;
 	$resultArray['Phone'] = $row->phone;
 	$resultArray['Email'] = $row->email;
+	$resultArray['Attributes'] = array();
 	
+	# Query to get user password
 	$res = DBSelect("
 				SELECT
+					user_attributes.Value
+				FROM
+					user_attributes
+				WHERE
+					user_attributes.Name = 'User-Password'
+				AND
+					user_attributes.UserID = ?
+					",array($params[0])
+	);
+
+	if (!is_object($res)) {
+		return $res;
+	}
+
+	# Set user password field
+	$row = $res->fetchObject();
+	$resultArray['Password'] = $row->value;
+
+	# Query to get all other attributes
+	$res = DBSelect("
+				SELECT
+					user_attributes.ID,
 					user_attributes.Name,
+					user_attributes.Operator,
 					user_attributes.Value
 				FROM
 					user_attributes
@@ -112,33 +139,18 @@ function getWiSPUser($params) {
 		return $res;
 	}
 
+	$i = 0;
+	# Array for multiple attributes
 	while ($row = $res->fetchObject()) {
-		switch ($row->name) {
-			case "User-Password":
-				$resultArray['Password'] = $row->value;
-				break;
-			case "MACAddress":
-				$resultArray['MACAddress'] = $row->value;
-				break;
-			case "SMRadius-Capping-Traffic-Limit":
-				$resultArray['Datalimit'] = $row->value;
-				break;
-			case "SMRadius-Capping-Uptime-Limit":
-				$resultArray['Uptimelimit'] = $row->value;
-				break;
-			case "Framed-IP-Address":
-				$resultArray['IPAddress'] = $row->value;
-				break;
-		}
+		$resultsArray['Attributes'][$i]['ID'] = $row->id;
+		$resultsArray['Attributes'][$i]['Name'] = $row->name;
+		$resultsArray['Attributes'][$i]['Operator'] = $row->operator;
+		$resultsArray['Attributes'][$i]['Value'] = $row->value;
+		$i++;
 	}
 
-	foreach ( array('Password','MACAddress','Datalimit','Uptimelimit','IPAddress') as $key) {
-		if (!isset($resultArray[$key])) {
-			$resultArray[$key] = '';
-		}
-	}
- 
-	return $resultArray;
+	$numResults = $res->rowCount();
+	return array($resultArray,$numResults);
 }
 
 # Remove wisp user
@@ -172,11 +184,14 @@ function createWiSPUser($params) {
 	DBBegin();
 	# Insert username
 	$res = DBDo("INSERT INTO users (Username) VALUES (?)",array($params[0]['Username']));
+	if ($res !== FALSE) {
+		$res = "Failed to add 'Username'";
+	}
 
 	# Continue with others if successful
 	if ($res !== FALSE) {
 		$userID = DBLastInsertID();
-		DBDo("
+		$res = DBDo("
 			INSERT INTO 
 					user_attributes (UserID,Name,Operator,Value) 
 			VALUES 
@@ -186,29 +201,47 @@ function createWiSPUser($params) {
 				'==',
 				$params[0]['Password'])
 		);
+		if ($res !== FALSE) {
+			$res = "Failed to add 'User-Password' attribute";
+		}
 	}
 
 	# Link users ID to make user a wisp user
 	if ($res !== FALSE) {
-		DBDo("INSERT INTO wisp_userdata (UserID) VALUES (?)",array($userID));
+		$res = DBDo("INSERT INTO wisp_userdata (UserID) VALUES (?)",array($userID));
+		if ($res !== FALSE) {
+			$res = "Failed to link to wisp users";
+		}
 	}
 
 	# Personal information is optional when adding
 	if ($res !== FALSE && isset($params[0]['Firstname'])) {
 		$res = DBDo("UPDATE wisp_userdata SET FirstName = ? WHERE UserID = ?",array($params[0]['Firstname'],$userID));
+		if ($res !== FALSE) {
+			$res = "Failed to add 'Firstname'";
+		}
 	}
 	if ($res !== FALSE && isset($params[0]['Lastname'])) {
 		$res = DBDo("UPDATE wisp_userdata SET LastName = ? WHERE UserID = ?",array($params[0]['Lastname'],$userID));
+		if ($res !== FALSE) {
+			$res = "Failed to add 'Lastname'";
+		}
 	}
 	if ($res !== FALSE && isset($params[0]['Phone'])) {
 		$res = DBDo("UPDATE wisp_userdata SET Phone = ? WHERE UserID = ?",array($params[0]['Phone'],$userID));
+		if ($res !== FALSE) {
+			$res = "Failed to add 'Phone'";
+		}
 	}
 	if ($res !== FALSE && isset($params[0]['Email'])) {
 		$res = DBDo("UPDATE wisp_userdata SET Email = ? WHERE UserID = ?",array($params[0]['Email'],$userID));
+		if ($res !== FALSE) {
+			$res = "Failed to add 'Email'";
+		}
 	}
 
 	# Grab each attribute and add it's details to the database
-	if ($res !== FALSE) {
+	if ($res !== FALSE && isset($params[0]['Attributes'])) {
 		foreach ($params[0]['Attributes'] as $attr) {
 			$res = DBDo("
 						INSERT INTO 
@@ -221,8 +254,68 @@ function createWiSPUser($params) {
 							$attr['Operator'],
 							$attr['Value'])
 			);
+			if ($res !== FALSE) {
+				$res = "Failed to add 'Attribute'";
+			}
 		}
 	}
+
+	# Link user to groups if any selected
+	if (isset($params[0]['Groups'])) {
+		$refinedGroups = array();
+
+		# Filter out unique group ID's
+		foreach ($params[0]['Groups'] as $groupID) {
+			$refinedGroups[$groupID] = $groupID;
+		}
+		foreach ($refinedGroups as $groupID) {
+			if ($res !== FALSE) {
+				$res = DBDo("INSERT INTO users_to_groups (UserID,GroupID) VALUES (?,?)",array($userID,$groupID['Name']));
+				if ($res !== FALSE) {
+					$res = "Failed to add 'Group'";
+				}
+			}
+		}
+	}
+
+	# Commit changes if all was successful, else break
+	if ($res === TRUE) {
+		DBCommit();
+		return NULL;
+	} else {
+		DBRollback();
+	}
+
+	return $res;
+}
+
+# Edit admin group
+function updateWiSPUser($params) {
+	global $db;
+
+	DBBegin();
+	$res = DBDo("UPDATE users SET Username = ? WHERE ID = ?",array($params[0]['Username'],$params[0]['ID']));
+	if ($res !== FALSE) {
+		DBDo("UPDATE user_attributes SET User-Password = ? WHERE UserID = ?",array($params[0]['Username'],$params[0]['ID']));
+	}
+	if ($res !== FALSE) {
+		DBDo("
+			UPDATE
+				wisp_userdata
+			SET
+				FirstName = ?,
+				LastName = ?,
+				Phone = ?,
+				Email = ?
+			WHERE
+				UserID = ?",
+			array($params[0]['Firstname'],
+			$params[0]['Lastname'],
+			$params[0]['Phone'],
+			$params[0]['Email'],
+			$params[0]['ID'])
+		);
+	}	
 
 	# Commit changes if all was successful, else break
 	if ($res !== FALSE) {
@@ -235,16 +328,4 @@ function createWiSPUser($params) {
 	return NULL;
 }
 
-# Edit admin group
-function updateWiSPUser($params) {
-	global $db;
-
-	$res = DBDo("UPDATE users SET Username = ? WHERE ID = ?",array($params[0]['Username'],$params[0]['ID']));
-	if (!is_numeric($res)) {
-		return $res;
-	}
-
-	return NULL;
-}
-
-?>
+# vim: ts=4
