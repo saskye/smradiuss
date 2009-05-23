@@ -31,7 +31,7 @@ function printFooter()
 		</tr>
 
 		<tr>
-			<td id="footer">SMRadius - Copyright &copy; 2007-2009, <a href="http://www.allworldit.com" ?>AllWorldIT</a></td>
+			<td id="footer">SMRadius - Copyright &copy; 2007-2009, <a href="http://www.allworldit.com">AllWorldIT</a></td>
 		</tr>
 		<tr>
 			<td>
