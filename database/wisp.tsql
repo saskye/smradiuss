@@ -20,8 +20,8 @@ CREATE TABLE @PREFIX@wisp_userdata (
 	FOREIGN KEY (UserID) REFERENCES @PREFIX@users(ID),
 	FOREIGN KEY (LocationID) REFERENCES @PREFIX@wisp_locations(ID)
 )  @CREATE_TABLE_SUFFIX@;
-CREATE INDEX @PREFIX@userdata_idx1 ON @PREFIX@userdata (UserID);
-CREATE INDEX @PREFIX@userdata_idx2 ON @PREFIX@userdata (LocationID);
+CREATE INDEX @PREFIX@wisp_userdata_idx1 ON @PREFIX@wisp_userdata (UserID);
+CREATE INDEX @PREFIX@wisp_userdata_idx2 ON @PREFIX@wisp_userdata (LocationID);
 
 
 /* User Locations */
