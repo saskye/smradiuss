@@ -6,7 +6,6 @@ include_once("include/db.php");
 function removeWiSPLocationMember($params) {
 	global $db;
 
-	var_dump($params);
 	$res = DBDo("UPDATE wisp_userdata SET LocationID = NULL WHERE UserID = ?",array($params[0]));
 	if (!is_numeric($res)) {
 		return $res;
