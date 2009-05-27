@@ -26,7 +26,6 @@ use smradius::logging;
 use smradius::dblayer;
 use smradius::util;
 use smradius::attributes;
-use Data::Dumper;
 
 # Exporter stuff
 require Exporter;
@@ -68,6 +67,7 @@ sub init
 	# Default configs...
 	$config->{'get_topups_query'} = '
 		SELECT 
+				@TP@topups.Type,
 				@TP@topups.ValidFrom,
 				@TP@topups.ValidTo,
 				@TP@topups.Value
@@ -120,13 +120,19 @@ sub getTopups
 	}
 
 	# Fetch items 
-	my $topupTotal = 0;
 	while (my $row = $sth->fetchrow_hashref()) {
-		$topupTotal += $row->{'value'};
+		if ($row->{'type'} == 1) {
+			# Add traffic topup to ConfigAttributes
+			processConfigAttribute($server,$user->{'ConfigAttributes'},{ 'Name' => 'SMRadius-Capping-Traffic-Topup', 
+					'Operator' => ':=', 'Value' => $row->{'value'} });
+		}
+		if ($row->{'type'} == 2) {
+			# Add uptime topup to ConfigAttributes
+			processConfigAttribute($server,$user->{'ConfigAttributes'},{ 'Name' => 'SMRadius-Capping-Uptime-Topup', 
+					'Operator' => ':=', 'Value' => $row->{'value'} });
+		}
 	}
 
-	# Add to ConfigAttributes
-	processConfigAttribute($server,$user->{'ConfigAttributes'},{ 'Name' => 'SMRadius-Capping-Traffic-Topup', 'Operator' => ':=', 'Value' => $topupTotal });
 
 	DBFreeRes($sth);
 

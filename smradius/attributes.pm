@@ -49,7 +49,7 @@ my @attributeCheckIgnoreList = (
 my @attributeReplyIgnoreList = (
 	'User-Password',
 	'SMRadius-Capping-Traffic-Limit',
-	'SMRadius-Capping-Time-Limit',
+	'SMRadius-Capping-Uptime-Limit',
 	'SMRadius-Validity-ValidFrom',
 	'SMRadius-Validity-ValidTo'
 );
