@@ -110,6 +110,7 @@ EOT
 [system]
 plugins=<<EOT
 mod_config_sql
+mod_config_sql_topups
 EOT
 
 

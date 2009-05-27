@@ -24,6 +24,7 @@ use warnings;
 use smradius::constants;
 use smradius::logging;
 use smradius::util;
+use Date::Parse;
 
 # Exporter stuff
 require Exporter;
@@ -40,7 +41,7 @@ our (@ISA,@EXPORT,@EXPORT_OK);
 our $pluginInfo = {
 	Name => "User Capping Feature",
 	Init => \&init,
-	
+
 	# Authentication hook
 	'Feature_Post-Authentication_hook' => \&post_auth_hook,
 
@@ -52,7 +53,7 @@ our $pluginInfo = {
 # Some constants
 my $TRAFFIC_LIMIT_KEY = 'SMRadius-Capping-Traffic-Limit';
 my $UPTIME_LIMIT_KEY = 'SMRadius-Capping-UpTime-Limit';
-
+my $TRAFFIC_TOPUPS_KEY = 'SMRadius-Capping-Traffic-Topup';
 
 ## @internal
 # Initialize module
@@ -75,9 +76,9 @@ sub post_auth_hook
 	my ($server,$user,$packet) = @_;
 
 	$server->log(LOG_DEBUG,"[MOD_FEATURE_CAPPING] POST AUTH HOOK");
-	
+
 	my ($trafficLimit,$timeLimit);
-	
+
 	# Compare uptime limit
 	if (defined($user->{'Attributes'}->{$UPTIME_LIMIT_KEY})) {
 		$server->log(LOG_DEBUG,"[MOD_FEATURE_CAPPING] '".$UPTIME_LIMIT_KEY."' is defined");
@@ -87,15 +88,17 @@ sub post_auth_hook
 			if ($user->{'Attributes'}->{$UPTIME_LIMIT_KEY}->{':='}->{'Value'} =~ /^[0-9]+$/) {
 				$timeLimit = $user->{'Attributes'}->{$UPTIME_LIMIT_KEY};
 			} else {
-				$server->log(LOG_NOTICE,"[MOD_FEATURE_CAPPING] '".$user->{'Attributes'}->{$UPTIME_LIMIT_KEY}->{':='}->{'Value'}."' is NOT a numeric value");
+				$server->log(LOG_NOTICE,"[MOD_FEATURE_CAPPING] '".$user->{'Attributes'}->{$UPTIME_LIMIT_KEY}->{':='}->{'Value'}.
+						"' is NOT a numeric value");
 			}
 		} else {
-			$server->log(LOG_NOTICE,"[MOD_FEATURE_CAPPING] No valid operators for attribute '".$user->{'Attributes'}->{$UPTIME_LIMIT_KEY}."'");
+			$server->log(LOG_NOTICE,"[MOD_FEATURE_CAPPING] No valid operators for attribute '".
+					$user->{'Attributes'}->{$UPTIME_LIMIT_KEY}."'");
 		}
 	}
 
 
-	# Compare SMRadius-Capping-Traffic-Limit
+	# Compare traffic limit
 	if (defined($user->{'Attributes'}->{$TRAFFIC_LIMIT_KEY})) {
 		$server->log(LOG_DEBUG,"[MOD_FEATURE_CAPPING] '".$TRAFFIC_LIMIT_KEY."' is defined");
 		# Operator: +=
@@ -104,14 +107,16 @@ sub post_auth_hook
 			if ($user->{'Attributes'}->{$TRAFFIC_LIMIT_KEY}->{':='}->{'Value'} =~ /^[0-9]+$/) {
 				$trafficLimit = $user->{'Attributes'}->{$TRAFFIC_LIMIT_KEY};
 			} else {
-				$server->log(LOG_NOTICE,"[MOD_FEATURE_CAPPING] '".$user->{'Attributes'}->{$TRAFFIC_LIMIT_KEY}->{':='}->{'Value'}."' is NOT a numeric value");
+				$server->log(LOG_NOTICE,"[MOD_FEATURE_CAPPING] '".$user->{'Attributes'}->{$TRAFFIC_LIMIT_KEY}->{':='}->{'Value'}.
+						"' is NOT a numeric value");
 			}
 		} else {
-			$server->log(LOG_NOTICE,"[MOD_FEATURE_CAPPING] No valid operators for attribute '".$user->{'Attributes'}->{$TRAFFIC_LIMIT_KEY}."'");
+			$server->log(LOG_NOTICE,"[MOD_FEATURE_CAPPING] No valid operators for attribute '".
+					$user->{'Attributes'}->{$TRAFFIC_LIMIT_KEY}."'");
 		}
 	}
 
-	# Check if we need to get the users' usage	
+	# Check if we need to get the users' usage
 	my $accountingUsage;
 	if (defined($timeLimit) || defined($trafficLimit)) {
 		# Loop with plugins to find anyting supporting getting of usage
@@ -134,15 +139,48 @@ sub post_auth_hook
 	# Check values against limits
 	if (defined($timeLimit)) {
 		if ($accountingUsage->{'TotalTimeUsage'} >= $timeLimit->{':='}->{'Value'}) {
-			$server->log(LOG_DEBUG,"[MOD_FEATURE_CAPPING] Usage exceeds ".$timeLimit->{':='}->{'Value'}.", returning [NACK]");
+			$server->log(LOG_DEBUG,"[MOD_FEATURE_CAPPING] Usage exceeds ".$timeLimit->{':='}->{'Value'}.", rejecting");
 			# Exceeding maximum, must be disconnected
 			return MOD_RES_NACK;
 		}
 	}
+
+	my $topupAmount = 0;
 	if (defined($trafficLimit)) {
-		if ($accountingUsage->{'TotalDataUsage'} >= $trafficLimit->{':='}->{'Value'}) {
-			$server->log(LOG_DEBUG,"[MOD_FEATURE_CAPPING] Usage exceeds ".$trafficLimit->{':='}->{'Value'}.", returning [NACK]");
-			# Exceeding maximum, must be disconnected
+
+		# Get topups
+		if (defined($user->{'ConfigAttributes'}->{$TRAFFIC_TOPUPS_KEY})) {
+			$server->log(LOG_DEBUG,"[MOD_FEATURE_CAPPING] '".$TRAFFIC_TOPUPS_KEY."' is defined");
+			# Operator: +=
+			if (defined($user->{'ConfigAttributes'}->{$TRAFFIC_TOPUPS_KEY}->[0])) {
+				# Is it a number?
+				if ($user->{'ConfigAttributes'}->{$TRAFFIC_TOPUPS_KEY}->[0] =~ /^[0-9]+$/) {
+					$topupAmount = $user->{'ConfigAttributes'}->{$TRAFFIC_TOPUPS_KEY}->[0];
+				} else {
+					$server->log(LOG_NOTICE,"[MOD_FEATURE_CAPPING] '".$user->{'ConfigAttributes'}->{$TRAFFIC_TOPUPS_KEY}->[0].
+							"' is NOT a numeric value");
+				}
+			} else {
+				$server->log(LOG_NOTICE,"[MOD_FEATURE_CAPPING] '".$TRAFFIC_TOPUPS_KEY."' has no value");
+			}
+		}
+
+		# Set allowed traffic usage
+		my $alteredTrafficLimit;
+		if ($topupAmount > 0) {
+			$alteredTrafficLimit = $trafficLimit->{':='}->{'Value'} + $topupAmount;
+		} else {
+			$alteredTrafficLimit = $trafficLimit->{':='}->{'Value'};
+		}
+
+		# Bandwidth usage
+		$server->log(LOG_DEBUG,"[MOD_FEATURE_CAPPING] Bandwidth => Usage total: ".$accountingUsage->{'TotalDataUsage'}.
+				"Mb (Cap: ".$trafficLimit->{':='}->{'Value'}."Mb, Topups: ".$topupAmount."Mb)");
+
+		# If bandwidth limit exceeded, cap user
+		if ($accountingUsage->{'TotalDataUsage'} >= $alteredTrafficLimit) {
+			$server->log(LOG_DEBUG,"[MOD_FEATURE_CAPPING] Usage of ".$accountingUsage->{'TotalDataUsage'}.
+					"Mb exceeds allowed limit of ".$alteredTrafficLimit."Mb. Capped.");
 			return MOD_RES_NACK;
 		}
 	}
@@ -163,6 +201,10 @@ sub post_acct_hook
 {
 	my ($server,$user,$packet) = @_;
 
+
+	# Exceeding maximum, must be disconnected
+	return MOD_RES_SKIP if ($packet->attr('Acct-Status-Type') ne "Alive");
+
 	$server->log(LOG_DEBUG,"[MOD_FEATURE_CAPPING] POST ACCT HOOK");
 
 	my ($trafficLimit,$timeLimit);
@@ -176,10 +218,12 @@ sub post_acct_hook
 			if ($user->{'Attributes'}->{$UPTIME_LIMIT_KEY}->{':='}->{'Value'} =~ /^[0-9]+$/) {
 				$timeLimit = $user->{'Attributes'}->{$UPTIME_LIMIT_KEY};
 			} else {
-				$server->log(LOG_NOTICE,"[MOD_FEATURE_CAPPING] '".$user->{'Attributes'}->{$UPTIME_LIMIT_KEY}->{':='}->{'Value'}."' is NOT a numeric value");
+				$server->log(LOG_NOTICE,"[MOD_FEATURE_CAPPING] '".$user->{'Attributes'}->{$UPTIME_LIMIT_KEY}->{':='}->{'Value'}.
+						"' is NOT a numeric value");
 			}
 		} else {
-			$server->log(LOG_NOTICE,"[MOD_FEATURE_CAPPING] No valid operators for attribute '".$user->{'Attributes'}->{$UPTIME_LIMIT_KEY}."'");
+			$server->log(LOG_NOTICE,"[MOD_FEATURE_CAPPING] No valid operators for attribute '".
+					$user->{'Attributes'}->{$UPTIME_LIMIT_KEY}."'");
 		}
 	}
 
@@ -193,14 +237,16 @@ sub post_acct_hook
 			if ($user->{'Attributes'}->{$TRAFFIC_LIMIT_KEY}->{':='}->{'Value'} =~ /^[0-9]+$/) {
 				$trafficLimit = $user->{'Attributes'}->{$TRAFFIC_LIMIT_KEY};
 			} else {
-				$server->log(LOG_NOTICE,"[MOD_FEATURE_CAPPING] '".$user->{'Attributes'}->{$TRAFFIC_LIMIT_KEY}->{':='}->{'Value'}."' is NOT a numeric value");
+				$server->log(LOG_NOTICE,"[MOD_FEATURE_CAPPING] '".$user->{'Attributes'}->{$TRAFFIC_LIMIT_KEY}->{':='}->{'Value'}.
+						"' is NOT a numeric value");
 			}
 		} else {
-			$server->log(LOG_NOTICE,"[MOD_FEATURE_CAPPING] No valid operators for attribute '".$user->{'Attributes'}->{$TRAFFIC_LIMIT_KEY}."'");
+			$server->log(LOG_NOTICE,"[MOD_FEATURE_CAPPING] No valid operators for attribute '".
+					$user->{'Attributes'}->{$TRAFFIC_LIMIT_KEY}."'");
 		}
 	}
 
-	# Check if we need to get the users' usage	
+	# Check if we need to get the users' usage
 	my $accountingUsage;
 	if (defined($timeLimit) || defined($trafficLimit)) {
 		# Loop with plugins to find anyting supporting getting of usage
@@ -223,18 +269,48 @@ sub post_acct_hook
 	# Check values against limits
 	if (defined($timeLimit)) {
 		if ($accountingUsage->{'TotalTimeUsage'} >= $timeLimit->{':='}->{'Value'}) {
-			$server->log(LOG_DEBUG,"[MOD_FEATURE_CAPPING] Usage exceeds ".$timeLimit->{':='}->{'Value'}.", returning [NACK]");
+			$server->log(LOG_DEBUG,"[MOD_FEATURE_CAPPING] Usage exceeds ".$timeLimit->{':='}->{'Value'}.", rejecting");
 			# Exceeding maximum, must be disconnected
 			return MOD_RES_NACK;
 		}
 	}
+	my $topupAmount = 0;
 	if (defined($trafficLimit)) {
-		if ($accountingUsage->{'TotalDataUsage'} >= $trafficLimit->{':='}->{'Value'}) {
-			$server->log(LOG_DEBUG,"[MOD_FEATURE_CAPPING] Usage exceeds ".$trafficLimit->{':='}->{'Value'}.", returning [NACK]");
-			# Exceeding maximum, must be disconnected
-			if ($packet->attr('Acct-Status-Type') eq "Alive") {
-				return MOD_RES_NACK;
+
+		# Get topups
+		if (defined($user->{'ConfigAttributes'}->{$TRAFFIC_TOPUPS_KEY})) {
+			$server->log(LOG_DEBUG,"[MOD_FEATURE_CAPPING] '".$TRAFFIC_TOPUPS_KEY."' is defined");
+			# Operator: +=
+			if (defined($user->{'ConfigAttributes'}->{$TRAFFIC_TOPUPS_KEY}->[0])) {
+				# Is it a number?
+				if ($user->{'ConfigAttributes'}->{$TRAFFIC_TOPUPS_KEY}->[0] =~ /^[0-9]+$/) {
+					$topupAmount = $user->{'ConfigAttributes'}->{$TRAFFIC_TOPUPS_KEY}->[0];
+				} else {
+					$server->log(LOG_NOTICE,"[MOD_FEATURE_CAPPING] '".$user->{'ConfigAttributes'}->{$TRAFFIC_TOPUPS_KEY}->[0].
+							"' is NOT a numeric value");
+				}
+			} else {
+				$server->log(LOG_NOTICE,"[MOD_FEATURE_CAPPING] '".$TRAFFIC_TOPUPS_KEY."' has no value");
 			}
+		}
+
+		# Set allowed traffic usage
+		my $alteredTrafficLimit;
+		if ($topupAmount > 0) {
+			$alteredTrafficLimit = $trafficLimit->{':='}->{'Value'} + $topupAmount;
+		} else {
+			$alteredTrafficLimit = $trafficLimit->{':='}->{'Value'};
+		}
+
+		# Bandwidth usage
+		$server->log(LOG_DEBUG,"[MOD_FEATURE_CAPPING] Bandwidth => Usage total: ".$accountingUsage->{'TotalDataUsage'}.
+				"Mb (Cap: ".$trafficLimit->{':='}->{'Value'}."Mb, Topups: ".$topupAmount."Mb)");
+
+		# If bandwidth limit exceeded, cap user
+		if ($accountingUsage->{'TotalDataUsage'} >= $alteredTrafficLimit) {
+			$server->log(LOG_DEBUG,"[MOD_FEATURE_CAPPING] Usage of ".$accountingUsage->{'TotalDataUsage'}.
+					"Mb exceeds allowed limit of ".$alteredTrafficLimit."Mb. Capped.");
+			return MOD_RES_NACK;
 		}
 	}
 
