@@ -43,8 +43,17 @@ use smradius::util;
 
 
 # Attributes we do not handle
-my @attributeIgnoreList = (
+my @attributeCheckIgnoreList = (
 	'User-Password'
+);
+my @attributeReplyIgnoreList = (
+	'User-Password',
+	'SMRadius-Capping-Traffic-Limit',
+	'SMRadius-Capping-Time-Limit',
+	'SMRadius-Validity-ValidFrom',
+	'SMRadius-Validity-ValidTo'
+);
+my @attributeVReplyIgnoreList = (
 );
 
 
@@ -94,7 +103,7 @@ sub checkAuthAttribute
 
 
 	# Check ignore list
-	foreach my $ignoredAttr (@attributeIgnoreList) {
+	foreach my $ignoredAttr (@attributeCheckIgnoreList) {
 		# 2 = IGNORE, so return IGNORE for all ignored items
 		return 2 if ($attribute->{'Name'} eq $ignoredAttr);
 	}
@@ -323,7 +332,7 @@ sub setReplyAttribute
 
 	
 	# Check ignore list
-	foreach my $ignoredAttr (@attributeIgnoreList) {
+	foreach my $ignoredAttr (@attributeReplyIgnoreList) {
 		# 2 = IGNORE, so return IGNORE for all ignored items
 		return 2 if ($attribute->{'Name'} eq $ignoredAttr);
 	}
@@ -415,7 +424,7 @@ sub setReplyVAttribute
 
 	
 	# Check ignore list
-	foreach my $ignoredAttr (@attributeIgnoreList) {
+	foreach my $ignoredAttr (@attributeVReplyIgnoreList) {
 		# 2 = IGNORE, so return IGNORE for all ignored items
 		return 2 if ($attribute->{'Name'} eq $ignoredAttr);
 	}
