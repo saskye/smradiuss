@@ -27,6 +27,7 @@ use smradius::logging;
 use smradius::util;
 
 use POSIX qw(ceil);
+use DateTime;
 
 
 # Exporter stuff
@@ -44,6 +45,9 @@ our (@ISA,@EXPORT,@EXPORT_OK);
 our $pluginInfo = {
 	Name => "SQL Accounting Database",
 	Init => \&init,
+
+	# Cleanup run by smadmin
+	Cleanup => \&cleanup,
 	
 	# Accounting database
 	Accounting_log => \&acct_log,
@@ -244,13 +248,13 @@ sub getUsage
 		$totalData += $usageData->{'inputoctets'} / 1024 / 1024;
 	}
 	if (defined($usageData->{'inputgigawords'}) && $usageData->{'inputgigawords'} > 0) {
-		$totalData += $usageData->{'InputGigawords'} * 4096;
+		$totalData += $usageData->{'inputgigawords'} * 4096;
 	}
 	# Add up output
 	if (defined($usageData->{'outputoctets'}) && $usageData->{'outputoctets'} > 0) {
 		$totalData += $usageData->{'outputoctets'} / 1024 / 1024;
 	}
-	if (defined($usageData->{'outputGigawords'}) && $usageData->{'outputgigawords'} > 0) {
+	if (defined($usageData->{'outputgigawords'}) && $usageData->{'outputgigawords'} > 0) {
 		$totalData += $usageData->{'outputgigawords'} * 4096;
 	}
 
@@ -331,6 +335,118 @@ sub acct_log
 	}
 
 	return MOD_RES_ACK;
+}
+
+
+# Add up totals function
+sub cleanup
+{
+	my ($server) = @_;
+	my ($prevYear,$prevMonth);
+
+	# The datetime now..
+	my $now = DateTime->now;
+
+	# If this is a new year
+	if ($now->month == 1) {
+		$prevYear = $now->year - 1;
+		$prevMonth = 12;
+	} else {
+		$prevYear = $now->year;
+		$prevMonth = $now->month - 1;
+	}
+
+	# New datetime
+	my $lastMonth = DateTime->new( year => $prevYear, month => $prevMonth, day => 1 );
+
+	# Update totals for last month
+	my $sth = DBSelect('
+		SELECT
+			Username,
+			SUM(AcctSessionTime) as AcctSessionTime,
+			SUM(AcctInputOctets) as AcctInputOctets,
+			SUM(AcctInputGigawords) as AcctInputGigawords,
+			SUM(AcctOutputOctets) as AcctOutputOctets,
+			SUM(AcctOutputGigawords) as AcctOutputGigawords
+		FROM
+			@TP@accounting
+		WHERE
+			EventTimestamp > ?
+		GROUP BY
+			Username
+		',
+		$lastMonth->ymd
+	);
+
+	if (!$sth) {
+		$server->log(LOG_ERR,"[MOD_ACCOUNTING_SQL] Cleanup => Failed to select accounting record: ".
+				smradius::dblayer::Error());
+		return;
+	}
+
+	# Set blank array
+	my @allRecords = ();
+
+	my $i = 0;
+	# Load items into array
+	while (my $usageTotals = $sth->fetchrow_hashref()) {
+
+		# Set array blank
+		my @recordRow = ();
+
+		# Set array items
+		@recordRow = (
+			$usageTotals->{'username'},
+			$lastMonth->year."-".$lastMonth->month,
+			$usageTotals->{'acctsessiontime'},
+			$usageTotals->{'acctinputoctets'},
+			$usageTotals->{'acctinputgigawords'},
+			$usageTotals->{'acctoutputoctets'},
+			$usageTotals->{'acctoutputgigawords'}
+		);
+
+		# Add record ontp @allRecords
+		@{$allRecords[$i]} = @recordRow;
+
+		# Increate array size
+		$i++;
+	}
+
+	# Begin transaction
+	DBBegin();
+
+	my @dbDoParams = ();
+	my $count = length(@allRecords);
+
+	# Update totals for last month
+	for ($i = 0; $i < $count; $i++) {
+		@dbDoParams = ('
+			INSERT INTO
+				@TP@accounting_summary (Username,PeriodKey,AcctSessionTime,AcctInputOctets,AcctInputGigawords,
+						AcctOutputOctets,AcctOutputGigawords)
+			VALUES
+				(?,?,?,?,?,?,?)
+			',
+			@{$allRecords[$i]}
+		);
+
+		if ($sth) {
+			# Do query
+			$sth = DBDo(@dbDoParams);
+		}
+	}
+
+	# Rollback with error if failed
+	if (!$sth) {
+		DBRollback();
+		$server->log(LOG_ERR,"[MOD_ACCOUNTING_SQL] Cleanup => Failed to insert accounting record: ".
+				smradius::dblayer::Error());
+		return;
+	}
+
+	# Commit if succeeded
+	DBCommit();
+	$server->log(LOG_NOTICE,"[MOD_ACCOUNTING_SQL] Cleanup => Totals have been updated");
 }
 
 
