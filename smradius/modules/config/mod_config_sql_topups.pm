@@ -394,7 +394,7 @@ sub cleanup
 							VALUES
 								(?,?,?)
 							',
-							$topup->{'ID'},$thisMonth,$trafficRemaining
+							$topup->{'ID'},$thisMonth->year."-".$thisMonth->month,$trafficRemaining
 						);
 						if (!$sth) {
 							$server->log(LOG_ERR,"[MOD_CONFIG_SQL_TOPUPS] Cleanup => Failed to update topup summary: ".
@@ -432,7 +432,7 @@ sub cleanup
 							VALUES
 								(?,?,?)
 							',
-							$topup->{'ID'},$thisMonth,$uptimeRemaining
+							$topup->{'ID'},$thisMonth->year."-".$thisMonth->month,$uptimeRemaining
 						);
 						if (!$sth) {
 							$server->log(LOG_ERR,"[MOD_CONFIG_SQL_TOPUPS] Cleanup => Failed to update topups: ".
