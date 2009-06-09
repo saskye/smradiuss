@@ -1,0 +1,318 @@
+#!/usr/bin/perl
+# SMRadius administration tool
+# Copyright (C) 2009, AllWorldIT
+# 
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License along
+# with this program; if not, write to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+
+
+use strict;
+use warnings;
+
+
+# Set library directory
+use lib qw(
+	../ ./ 
+	smradius/modules/authentication
+	smradius/modules/userdb
+	smradius/modules/accounting
+	smradius/modules/features
+	smradius/modules/config
+);
+
+
+use Config::IniFiles;
+use Getopt::Long;
+
+use smradius::logging;
+use smradius::version;
+
+	
+print("SMRadius Admin Tool v".VERSION." - Copyright (c) 2008-2009 AllWorldIT\n");
+
+# Fire up commandline processing...
+my %opts;
+GetOptions(
+	\%opts,
+	"help",
+	"config:s",
+	"cleanup",
+	"debug",
+);
+
+# Check for some args
+if ($opts{'help'}) {
+	displayHelp();
+	exit 0;
+}
+
+# Set defaults
+my $cfg;
+$cfg->{'config_file'} = "smradiusd.conf.testing";
+
+# Check if we must override
+if (defined($opts{'config'}) && $opts{'config'} ne "") {
+	$cfg->{'config_file'} = $opts{'config'};
+}
+
+# Check config file exists
+if (! -f $cfg->{'config_file'}) {
+	print(STDERR "ERROR: No configuration file '".$cfg->{'config_file'}."' found!\n");
+	displayHelp();
+	exit 1;
+}
+
+# Use config file, ignore case
+tie my %inifile, 'Config::IniFiles', (
+		-file => $cfg->{'config_file'},
+		-nocase => 1
+) or die "Failed to open config file '".$cfg->{'config_file'}."': $!";
+# Copy config
+my %config = %inifile;
+# FIXME: This now generates a warning as Config::Inifiles doesn't implement UNTIE
+# untie(%inifile);
+
+
+# Our fake server...
+my $server;
+
+
+#
+# Check what to do
+#
+
+# We must cleanup
+if ($opts{'cleanup'}) {
+	loadModules();
+
+	# Loop with modules
+	foreach my $module ( @{$server->{'modules'}} ) {
+		$server->log(LOG_INFO,"Module: " . $module->{'Name'});
+		# If we have a cleanup module, run it
+		if (defined($module->{'Cleanup'})) {
+			$server->log(LOG_INFO,"  -> running cleanup...");
+			$module->{'Cleanup'}($server);
+		}
+	}
+
+# Huh, nothing todo...
+} else {
+	print(STDERR "ERROR: Nothing to do!\n");
+	displayHelp();
+	exit 1;
+}
+
+
+#
+# Misc functions
+# 
+
+
+# Register plugin info
+sub plugin_register {
+	my ($self,$module,$info) = @_;
+
+
+	# If no info, return
+	if (!defined($info)) {
+		$server->log(LOG_ERR,"Plugin info not found for module => $module");
+		return -1;
+	}
+
+	# Set real module name & save
+	$info->{'Module'} = $module;
+	push(@{$self->{'modules'}},$info);
+
+	# If we should, init the module
+	if (defined($info->{'init'})) {
+		$info->{'init'}($self);
+	}
+
+
+	return 0;
+}
+
+
+# Function to load our modules
+sub loadModules
+{
+
+# FIXME HERE - START
+	#
+	# System plugins
+	#
+	my @system_params = (
+			'plugins',
+	);
+	my $system;
+	foreach my $param (@system_params) {
+		$system->{$param} = $config{'system'}{$param} if (defined($config{'system'}{$param}));
+	}
+
+	if (!defined($system->{'plugins'})) {
+		$server->log(LOG_ERR,"[SMRADIUS] System configuration error: System plugins not found");
+		exit 1;
+	}
+
+	#
+	# Authentication plugins
+	#
+	my @auth_params = (
+			'mechanisms',
+			'users',
+	);
+	my $auth;
+	foreach my $param (@auth_params) {
+		$auth->{$param} = $config{'authentication'}{$param} if (defined($config{'authentication'}{$param}));
+	}
+
+	if (!defined($auth->{'users'})) {
+		$server->log(LOG_ERR,"[SMRADIUS] Authentication configuration error: Userdb plugins not found");
+		exit 1;
+	}
+
+	#
+	# Accounting plugins
+	#
+	my @acct_params = (
+			'plugins',
+	);
+	my $acct;
+	foreach my $param (@acct_params) {
+		$acct->{$param} = $config{'accounting'}{$param} if (defined($config{'accounting'}{$param}));
+	}
+
+	if (!defined($acct->{'plugins'})) {
+		$server->log(LOG_ERR,"[SMRADIUS] Accounting configuration error: Plugins not found");
+		exit 1;
+	}
+
+	#
+	# Feature plugins
+	#
+	my $features;
+	$features->{'plugins'} = [ ];
+	$features->{'plugins'} = $config{'features'}{'plugins'} if (defined($config{'features'}{'plugins'}));
+
+# FIXME HERE = END
+
+
+
+
+	my $pluginlist = [ 
+		@{$auth->{'mechanisms'}},
+		@{$auth->{'users'}},
+		@{$acct->{'plugins'}},
+		@{$features->{'plugins'}}, 
+		@{$system->{'plugins'}}
+	];
+
+	# use Data::Dumper; print STDERR Dumper($pluginlist);
+
+
+	
+	# Emulate server
+	$server = new smserver;
+	$server->{'inifile'} = \%config; 
+	# Init everything
+	$server->init();
+	
+	# Load plugins
+	foreach my $plugin (@{$pluginlist}) {
+		# Load plugin
+		my $res = eval("
+			use $plugin;
+			plugin_register(\$server,\"$plugin\",\$${plugin}::pluginInfo);
+		");
+		if ($@ || (defined($res) && $res != 0)) {
+			$server->log(LOG_ERR,"WARNING: Error loading plugin $plugin ($@)");
+		}
+	}
+}
+
+
+
+
+
+
+# Display help
+sub displayHelp {
+	print(<<EOF);
+
+Usage: $0 [args]
+    --config=<file>        Configuration file
+    --debug                Put into debug mode
+    --cleanup              Cleanup database records
+
+EOF
+}
+
+
+
+
+# Server emulation
+package smserver;
+
+use strict;
+use warnings;
+
+use smradius::logging;
+use smradius::config;
+use smradius::dbilayer;
+use smradius::dblayer;
+
+# Return oursevles
+sub new
+{
+	my $class = shift;
+
+	my $self = {
+	};
+	
+	bless $self, $class;
+	return $self;
+};
+
+sub init
+{
+	my $self = shift;
+
+	# Init config
+	smradius::config::Init($self);
+
+	# Init system stuff
+	$self->{'client'}->{'dbh'} = smradius::dbilayer::Init($self);
+	if (!defined($self->{'client'}->{'dbh'})) {
+		$self->log(LOG_WARN,"Failed to Initialize: ".smradius::dbilayer::internalErr()." ($$)");
+		die;
+	}
+	if ($self->{'client'}->{'dbh'}->connect()) {
+		$self->log(LOG_WARN,"Failed to connect to database: ".$self->{'client'}->{'dbh'}->Error()." ($$)");
+		die;
+	}
+	# Setup database handle
+	smradius::dblayer::setHandle($self->{'client'}->{'dbh'});
+}
+
+sub log
+{
+	my ($self,$level,@msg) = @_;
+
+	# FIXME: we shouldn't ignore $level
+    print(@msg, "\n");
+}
+
+
+
+# vim: ts=4
