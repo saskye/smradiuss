@@ -90,6 +90,8 @@ CREATE TABLE @PREFIX@topups (
 
 	UserID			@SERIAL_REF_TYPE@ NOT NULL,
 
+	Timestamp		DATETIME,
+
 				/* 1 = traffic topup, 2 = uptime topup */
 	Type			@INT_UNSIGNED@,
 
@@ -97,6 +99,8 @@ CREATE TABLE @PREFIX@topups (
 	ValidTo			DATETIME,
 
 	Value			@INT_UNSIGNED@,
+
+	Depleted		SMALLINT NOT NULL DEFAULT '0',
 
 	FOREIGN KEY (UserID) REFERENCES @PREFIX@users(ID)
 ) @CREATE_TABLE_SUFFIX@;
@@ -132,6 +136,45 @@ CREATE TABLE @PREFIX@realm_attributes (
 
 
 
+/* Topups Summary */
+CREATE TABLE @PREFIX@topups_summary (
+	ID			@SERIAL_TYPE@,
+
+	TopupID			@SERIAL_REF_TYPE@ NOT NULL,
+
+	PeriodKey		DATETIME, 
+
+	Balance			@INT_UNSIGNED@,
+
+	Depleted		SMALLINT NOT NULL DEFAULT '0',
+
+	FOREIGN KEY (TopupID) REFERENCES @PREFIX@topups(ID)
+) @CREATE_TABLE_SUFFIX@;
+
+
+/* Accounting Summary */
+CREATE TABLE @PREFIX@accounting_summary (
+	ID			@SERIAL_TYPE@,
+
+	Username		VARCHAR(255),
+
+	PeriodKey		DATETIME,
+
+	AcctSessionTime		@INT_UNSIGNED@,
+
+	AcctInputOctets		@INT_UNSIGNED@,
+
+	AcctInputGigawords	@INT_UNSIGNED@,
+
+	AcctInputPackets	@INT_UNSIGNED@,
+
+	AcctOutputOctets	@INT_UNSIGNED@,
+
+	AcctOutputGigawords	@INT_UNSIGNED@
+) @CREATE_TABLE_SUFFIX@;
+
+
+
 /* Accounting */
 CREATE TABLE @PREFIX@accounting (
 	ID			@SERIAL_TYPE@,
@@ -143,7 +186,7 @@ CREATE TABLE @PREFIX@accounting (
 	FramedProtocol		@INT_UNSIGNED@, 
 
 	NASPort			VARCHAR(255),
-		
+
 	NASPortType		@INT_UNSIGNED@,
 
 	CallingStationID	VARCHAR(255), 
@@ -153,14 +196,14 @@ CREATE TABLE @PREFIX@accounting (
 	NASPortID		VARCHAR(255),
 
 	AcctSessionID		VARCHAR(255),
-	
+
 	FramedIPAddress		VARCHAR(16),
 
 	AcctAuthentic		@INT_UNSIGNED@,
 
 	EventTimestamp		DATETIME,
 
-	NASIdentifier		VARCHAR(255),	
+	NASIdentifier		VARCHAR(255),
 
 	NASIPAddress		VARCHAR(16),
 
@@ -172,7 +215,7 @@ CREATE TABLE @PREFIX@accounting (
 
 	AcctInputGigawords	@INT_UNSIGNED@,
 
-	AcctInputPackets	@INT_UNSIGNED@,	
+	AcctInputPackets	@INT_UNSIGNED@,
 
 	AcctOutputOctets	@INT_UNSIGNED@,
 
