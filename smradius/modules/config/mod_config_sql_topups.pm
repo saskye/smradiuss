@@ -74,25 +74,51 @@ sub init
 	}
 
 	# Default configs...
+	$config->{'get_topups_summary_query'} = '
+		SELECT 
+			@TP@topups_summary.Depleted,
+			@TP@topups_summary.Balance,
+			@TP@topups.Type
+		FROM 
+			@TP@topups_summary,
+			@TP@topups,
+			@TP@users
+		WHERE
+			@TP@topups.ID = @TP@topups_summary.TopupID
+			AND @TP@topups.UserID = @TP@users.ID
+			AND @TP@topups_summary.PeriodKey = ?
+			AND @TP@topups.Depleted = 0
+			AND @TP@users.Username = ?
+	';
+
 	$config->{'get_topups_query'} = '
 		SELECT 
 			@TP@topups.Type,
-			@TP@topups.ValidFrom,
-			@TP@topups.ValidTo,
 			@TP@topups.Value
 		FROM 
 			@TP@topups,
 			@TP@users
 		WHERE
 			@TP@topups.UserID = @TP@users.ID
-		AND
-			@TP@users.Username = ?
+			AND @TP@topups.ValidFrom >= ?
+			AND @TP@topups.ValidTo >= ?
+			AND @TP@topups.Depleted = 0
+			AND @TP@users.Username = ?
 	';
 	
 
 	# Setup SQL queries
 	if (defined($scfg->{'mod_topups_sql'})) {
 		# Pull in queries
+		if (defined($scfg->{'mod_topups_sql'}->{'get_topups_summary_query'}) &&
+				$scfg->{'mod_topups_sql'}->{'get_topups_summary_query'} ne "") {
+			if (ref($scfg->{'mod_topups_sql'}->{'get_topups_summary_query'}) eq "ARRAY") {
+				$config->{'get_topups_summary_query'} = join(' ',@{$scfg->{'mod_config_sql'}->{'get_topups_summary_query'}});
+			} else {
+				$config->{'get_topups_summary_query'} = $scfg->{'mod_config_sql'}->{'get_topups_summary_query'};
+			}
+		}
+
 		if (defined($scfg->{'mod_topups_sql'}->{'get_config_query'}) &&
 				$scfg->{'mod_topups_sql'}->{'get_config_query'} ne "") {
 			if (ref($scfg->{'mod_topups_sql'}->{'get_config_query'}) eq "ARRAY") {
@@ -118,8 +144,16 @@ sub getTopups
 {
 	my ($server,$user,$packet) = @_;
 
+	# Make time for month begin
+	my $now = DateTime->from_epoch( epoch => $user->{'_Internal'}->{'Timestamp-Unix'} );
+	my $thisMonth = DateTime->new( year => $now->year, month => $now->month, day => 1 );
+
+	# Format period key
+	my $periodKey = $thisMonth->strftime("%Y-%m");
+
+
 	# Set up dbDoParams
-	my @dbDoParams = ($config->{'get_topups_query'},$packet->attr('User-Name'));
+	my @dbDoParams = ($config->{'get_topups_summary_query'},$periodKey,$packet->attr('User-Name'));
 
 	# Query database
 	my $sth = DBSelect(@dbDoParams);
@@ -128,22 +162,69 @@ sub getTopups
 		return MOD_RES_NACK;
 	}
 
-	# Fetch items 
+	# Array of config items
+	my (@trafficTopups, @uptimeTopups);
+
+	# Fetch topups from summary
 	while (my $row = $sth->fetchrow_hashref()) {
 		if ($row->{'type'} == 1) {
 			# Add traffic topup to ConfigAttributes
-			processConfigAttribute($server,$user->{'ConfigAttributes'},{ 'Name' => 'SMRadius-Capping-Traffic-Topup', 
-					'Operator' => ':=', 'Value' => $row->{'value'} });
+			push(@trafficTopups, $row->{'balance'});
 		}
 		if ($row->{'type'} == 2) {
 			# Add uptime topup to ConfigAttributes
-			processConfigAttribute($server,$user->{'ConfigAttributes'},{ 'Name' => 'SMRadius-Capping-Uptime-Topup', 
-					'Operator' => ':=', 'Value' => $row->{'value'} });
+			push(@uptimeTopups, $row->{'balance'});
+		}
+	}
+	DBFreeRes($sth);
+
+
+	# Set up dbDoParams
+	@dbDoParams = ($config->{'get_topups_query'},$thisMonth,$now,$packet->attr('User-Name'));
+
+	# Query database
+	$sth = DBSelect(@dbDoParams);
+	if (!$sth) {
+		$server->log(LOG_ERR,"Failed to get topup information: ".smradius::dblayer::Error());
+		return MOD_RES_NACK;
+	}
+
+	# Fetch all other topups 
+	while (my $row = $sth->fetchrow_hashref()) {
+		if ($row->{'type'} == 1) {
+			# Add traffic topup to array
+			push(@trafficTopups, $row->{'value'});
+		}
+		if ($row->{'type'} == 2) {
+			# Add uptime topup to array
+			push(@uptimeTopups, $row->{'value'});
+		}
+	}
+	DBFreeRes($sth);
+
+	# Add up traffic topup
+	my $totalTraffic = 0;
+	foreach my $topupItem (@trafficTopups) {
+		if (defined($topupItem) && $topupItem =~ /^[0-9]+$/) {
+			$totalTraffic += $topupItem;
 		}
 	}
 
+	# Add up uptime topup
+	my $totalUptime = 0;
+	foreach my $topupItem (@uptimeTopups) {
+		if (defined($topupItem) && $topupItem =~ /^[0-9]+$/) {
+			$totalUptime += $topupItem;
+		}
+	}
 
-	DBFreeRes($sth);
+	# Process traffic topups
+	processConfigAttribute($server,$user->{'ConfigAttributes'},{ 'Name' => 'SMRadius-Capping-Traffic-Topup', 
+			'Operator' => ':=', 'Value' => $totalTraffic });
+
+	# Process uptime topups
+	processConfigAttribute($server,$user->{'ConfigAttributes'},{ 'Name' => 'SMRadius-Capping-Uptime-Topup', 
+			'Operator' => ':=', 'Value' => $totalUptime });
 
 	return MOD_RES_ACK;
 }
@@ -177,7 +258,7 @@ sub cleanup
 
 	# The datetime now
 	my $now = DateTime->now;
-	# Make datetime for a month ago
+	# Make datetime
 	my $thisMonth = DateTime->new( year => $now->year, month => $now->month, day => 1 );
 
 	# Get begin date of last month
@@ -363,8 +444,6 @@ sub cleanup
 			}
 		}
 
-		#my %topups = ( Traffic => \@trafficTopups, Uptime => \@uptimeTopups );
-
 		# Finished for now
 		DBFreeRes($sth);
 
@@ -387,6 +466,9 @@ sub cleanup
 
 					if ($topup->{'ValidTo'} >= $unix_nextMonth) {
 
+						# Format period key
+						my $periodKey = $thisMonth->strftime("%Y-%m");
+
 						# Set users depleted topups
 						$sth = DBDo('
 							INSERT INTO
@@ -394,7 +476,7 @@ sub cleanup
 							VALUES
 								(?,?,?)
 							',
-							$topup->{'ID'},$thisMonth->year."-".$thisMonth->month,$trafficRemaining
+							$topup->{'ID'},$periodKey,$trafficRemaining
 						);
 						if (!$sth) {
 							$server->log(LOG_ERR,"[MOD_CONFIG_SQL_TOPUPS] Cleanup => Failed to update topup summary: ".
@@ -425,6 +507,9 @@ sub cleanup
 
 					if ($topup->{'ValidTo'} >= $unix_nextMonth) {
 
+						# Format period key
+						my $periodKey = $thisMonth->strftime("%Y-%m");
+
 						# Set users depleted topups
 						$sth = DBDo('
 							INSERT INTO
@@ -432,7 +517,7 @@ sub cleanup
 							VALUES
 								(?,?,?)
 							',
-							$topup->{'ID'},$thisMonth->year."-".$thisMonth->month,$uptimeRemaining
+							$topup->{'ID'},$periodKey,$uptimeRemaining
 						);
 						if (!$sth) {
 							$server->log(LOG_ERR,"[MOD_CONFIG_SQL_TOPUPS] Cleanup => Failed to update topups: ".
