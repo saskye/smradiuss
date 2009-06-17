@@ -171,7 +171,7 @@
 			$res = new json_response;
 			$res->setID('ID');
 			$res->addField('ID','int');
-			$res->addField('Name','string');
+			$res->addField('Username','string');
 			$res->addField('Disabled','boolean');
 			$res->parseArray($rawData);
 			$res->setDatasetSize($numResults);
