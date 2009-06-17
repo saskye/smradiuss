@@ -43,7 +43,7 @@ function getAdminUserGroups($params) {
 			FROM 
 				users_to_groups, groups 
 			WHERE 
-				groups.ID = users_to_groups.GroupID 
+				users_to_groups.GroupID = groups.ID
 				AND users_to_groups.UserID = ".DBQuote($params[0])."
 		",$params[1],$filtersorts,$filtersorts);
 

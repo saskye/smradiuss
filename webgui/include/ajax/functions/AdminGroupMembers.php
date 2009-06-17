@@ -21,17 +21,19 @@ function getAdminGroupMembers($params) {
 	# Filters and sorts are the same here
 	$filtersorts = array(
 		'ID' => 'users_to_groups.ID',
-		'Name' => 'group_attributes.Name',
+		'Username' => 'group_attributes.Username',
 		'Disabled' => 'group_attributes.Disabled'
 	);
 
 	$res = DBSelectSearch("
 			SELECT 
-				ID, Name, Operator, Value, Disabled 
+				users_to_groups.ID, users.Username, users.Disabled 
 			FROM 
-				group_attributes 
+				users_to_groups, users
 			WHERE 
-				GroupID = ".DBQuote($params[0])."
+				users.ID = users_to_groups.UserID
+			AND
+				users_to_groups.GroupID = ".DBQuote($params[0])."
 		",$params[1],$filtersorts,$filtersorts);
 
 	$sth = $res[0]; $numResults = $res[1];
@@ -47,7 +49,7 @@ function getAdminGroupMembers($params) {
 		$item = array();
 
 		$item['ID'] = $row->id;
-		$item['Name'] = $row->name;
+		$item['Username'] = $row->username;
 		$item['Disabled'] = $row->disabled;
 
 		# push this row onto array

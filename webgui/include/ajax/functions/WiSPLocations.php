@@ -9,8 +9,8 @@ function getWiSPLocations($params) {
 
 	# Filters and sorts are the same here
 	$filtersorts = array(
-		'ID' => 'groups.ID',
-		'Name' => 'groups.Name'
+		'ID' => 'wisp_locations.ID',
+		'Name' => 'wisp_locations.Name'
 	);
 
 	$res = DBSelectSearch("SELECT ID, Name FROM wisp_locations",$params[1],$filtersorts,$filtersorts);
