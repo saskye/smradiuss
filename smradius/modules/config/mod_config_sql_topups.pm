@@ -26,7 +26,7 @@ use smradius::logging;
 use smradius::dblayer;
 use smradius::util;
 use smradius::attributes;
-	
+
 use POSIX qw(ceil);
 use DateTime;
 use Date::Parse;
@@ -76,9 +76,9 @@ sub init
 	# Default configs...
 	$config->{'get_topups_summary_query'} = '
 		SELECT 
-			@TP@topups_summary.Depleted,
 			@TP@topups_summary.Balance,
-			@TP@topups.Type
+			@TP@topups.Type,
+			@TP@topups.ID
 		FROM 
 			@TP@topups_summary,
 			@TP@topups,
@@ -93,6 +93,7 @@ sub init
 
 	$config->{'get_topups_query'} = '
 		SELECT 
+			@TP@topups.ID,
 			@TP@topups.Type,
 			@TP@topups.Value
 		FROM 
@@ -151,95 +152,119 @@ sub getTopups
 	# Format period key
 	my $periodKey = $thisMonth->strftime("%Y-%m");
 
-
-	# Set up dbDoParams
-	my @dbDoParams = ($config->{'get_topups_summary_query'},$periodKey,$packet->attr('User-Name'));
-
 	# Query database
-	my $sth = DBSelect(@dbDoParams);
+	my $sth = DBSelect($config->{'get_topups_summary_query'},$periodKey,$packet->attr('User-Name'));
 	if (!$sth) {
 		$server->log(LOG_ERR,"Failed to get topup information: ".smradius::dblayer::Error());
 		return MOD_RES_NACK;
 	}
 
-	# Array of config items
-	my (@trafficTopups, @uptimeTopups);
-
-	# Fetch topups from summary
+	# Fetch all summaries
+	my (@trafficSummary,@uptimeSummary);
 	while (my $row = $sth->fetchrow_hashref()) {
 		if ($row->{'type'} == 1) {
-			# Add traffic topup to ConfigAttributes
-			push(@trafficTopups, $row->{'balance'});
+			# Add to traffic summary list
+			push(@trafficSummary, { Value => $row->{'balance'}, ID => $row->{'id'} });
 		}
 		if ($row->{'type'} == 2) {
-			# Add uptime topup to ConfigAttributes
-			push(@uptimeTopups, $row->{'balance'});
+			# Add to uptime summary list
+			push(@uptimeSummary, { Value => $row->{'balance'}, ID => $row->{'id'} });
 		}
 	}
 	DBFreeRes($sth);
 
-
-	# Set up dbDoParams
-	@dbDoParams = ($config->{'get_topups_query'},$thisMonth,$now,$packet->attr('User-Name'));
-
 	# Query database
-	$sth = DBSelect(@dbDoParams);
+	$sth = DBSelect($config->{'get_topups_query'},$thisMonth,$now,$packet->attr('User-Name'));
 	if (!$sth) {
 		$server->log(LOG_ERR,"Failed to get topup information: ".smradius::dblayer::Error());
 		return MOD_RES_NACK;
 	}
 
-	# Fetch all other topups 
+	# Fetch all new topups 
+	my (@trafficTopups,@uptimeTopups);
 	while (my $row = $sth->fetchrow_hashref()) {
 		if ($row->{'type'} == 1) {
-			# Add traffic topup to array
-			push(@trafficTopups, $row->{'value'});
+			# Add topup to traffic array
+			push(@trafficTopups, { Value => $row->{'value'}, ID => $row->{'id'} });
 		}
 		if ($row->{'type'} == 2) {
-			# Add uptime topup to array
-			push(@uptimeTopups, $row->{'value'});
+			# Add topup to uptime array
+			push(@uptimeTopups, { Value => $row->{'value'}, ID => $row->{'id'} });
 		}
 	}
+
 	DBFreeRes($sth);
 
-	# Add up traffic topup
-	my $totalTraffic = 0;
-	foreach my $topupItem (@trafficTopups) {
-		if (defined($topupItem) && $topupItem =~ /^[0-9]+$/) {
-			$totalTraffic += $topupItem;
+	# Add up traffic
+	my $totalTopupTraffic = 0;
+	# Traffic topups..
+	foreach my $topup (@trafficTopups) {
+		# Use only if numeric
+		if ($topup->{'Value'} =~ /^[0-9]+$/) {
+			$totalTopupTraffic += $topup->{'Value'};
+		} else {
+			$server->log(LOG_DEBUG,"[MOD_CONFIG_SQL_TOPUPS] Topup with ID '".niceUndef($topup->{'ID'}).
+					"' is not a numeric value");
+			return MOD_RES_NACK;
+		}
+	}
+	# Traffic summaries..
+	foreach my $summary (@trafficSummary) {
+		# Use only if numeric
+		if ($summary->{'Value'} =~ /^[0-9]+$/) {
+			$totalTopupTraffic += $summary->{'Value'};
+		} else {
+			$server->log(LOG_DEBUG,"[MOD_CONFIG_SQL_TOPUPS] Topup with ID '".niceUndef($summary->{'ID'}).
+					"' is not a numeric value");
+			return MOD_RES_NACK;
 		}
 	}
 
-	# Add up uptime topup
-	my $totalUptime = 0;
-	foreach my $topupItem (@uptimeTopups) {
-		if (defined($topupItem) && $topupItem =~ /^[0-9]+$/) {
-			$totalUptime += $topupItem;
+	# Add up uptime
+	my $totalTopupUptime = 0;
+	# Uptime topups..
+	foreach my $topup (@uptimeTopups) {
+		# Use only if numeric
+		if ($topup->{'Value'} =~ /^[0-9]+$/) {
+			$totalTopupUptime += $topup->{'Value'};
+		} else {
+			$server->log(LOG_DEBUG,"[MOD_CONFIG_SQL_TOPUPS] Topup with ID '".niceUndef($topup->{'ID'}).
+					"' is not a numeric value");
+			return MOD_RES_NACK;
+		}
+	}
+	# Uptime summaries..
+	foreach my $summary (@uptimeSummary) {
+		# Use only if numeric
+		if ($summary->{'Value'} =~ /^[0-9]+$/) {
+			$totalTopupUptime += $summary->{'Value'};
+		} else {
+			$server->log(LOG_DEBUG,"[MOD_CONFIG_SQL_TOPUPS] Topup with ID '".niceUndef($summary->{'ID'}).
+					"' is not a numeric value");
+			return MOD_RES_NACK;
 		}
 	}
 
 	# Process traffic topups
-	processConfigAttribute($server,$user->{'ConfigAttributes'},{ 'Name' => 'SMRadius-Capping-Traffic-Topup', 
-			'Operator' => ':=', 'Value' => $totalTraffic });
+	processConfigAttribute($server,$user->{'ConfigAttributes'},{ 'Name' => 'SMRadius-Capping-Traffic-Topup',
+			'Operator' => ':=', 'Value' => $totalTopupTraffic });
 
 	# Process uptime topups
-	processConfigAttribute($server,$user->{'ConfigAttributes'},{ 'Name' => 'SMRadius-Capping-Uptime-Topup', 
-			'Operator' => ':=', 'Value' => $totalUptime });
+	processConfigAttribute($server,$user->{'ConfigAttributes'},{ 'Name' => 'SMRadius-Capping-Uptime-Topup',
+			'Operator' => ':=', 'Value' => $totalTopupUptime });
 
 	return MOD_RES_ACK;
 }
 
 
-# Topup summary function 
+# Topup summary function
 sub cleanup
 {
 	my ($server) = @_;
-	my $sth;
-
 
 	# TODO - be more dynamic, we may not be using SQL users
 	# Get all usernames
-	$sth = DBSelect('SELECT ID, Username FROM @TP@users');
+	my $sth = DBSelect('SELECT ID, Username FROM @TP@users');
 
 	if (!$sth) {
 		$server->log(LOG_ERR,"[MOD_CONFIG_SQL_TOPUPS] Cleanup => Failed to select from users: ".
@@ -287,13 +312,14 @@ sub cleanup
 	# Start of multiple queries
 	DBBegin();
 
-	# Loop through users and check each topup, setting it to default if needed and updating summary
+	# Loop through users
 	foreach my $userID (keys %users) {
 		my $userName = $users{$userID};
 
 		# TODO - in future we must be more dynamic, we may not be using SQL accunting
-		# Get current usage
-		$sth = DBSelect('
+
+		# Get traffic and uptime usage for last month
+		my $sth = DBSelect('
 			SELECT
 				Username,
 				SUM(AcctSessionTime) as AcctSessionTime,
@@ -318,10 +344,9 @@ sub cleanup
 			goto FAIL_ROLLBACK;
 		}
 
-		# Pull data
 		my $row = $sth->fetchrow_hashref();
 
-		# Total up input
+		# Add up traffic
 		my $totalData = 0; 
 		if (defined($row->{'acctinputoctets'}) && $row->{'acctinputoctets'} > 0) {
 			$totalData += $row->{'acctinputoctets'} / 1024 / 1024;
@@ -329,7 +354,6 @@ sub cleanup
 		if (defined($row->{'acctinputgigawords'}) && $row->{'acctinputgigawords'} > 0) {
 			$totalData += $row->{'acctinputgigawords'} * 4096;
 		}
-		# Add up output
 		if (defined($row->{'acctoutputoctets'}) && $row->{'acctoutputoctets'} > 0) {
 			$totalData += $row->{'acctoutputoctets'} / 1024 / 1024;
 		}
@@ -344,17 +368,17 @@ sub cleanup
 		}
 
 		# Rounding up
-		my %res;
-		$res{'TotalTrafficUsage'} = ceil($totalData);
-		$res{'TotalUptimeUsage'} = ceil($totalTime);
+		my $totalTrafficUsage = ceil($totalData);
+		my $totalUptimeUsage = ceil($totalTime);
 
 		# Finished for now
 		DBFreeRes($sth);
 
+
 		# TODO?
 		# FIXME - support for groups and realm config?
 
-		# Get users caps
+		# Get user traffic and uptime limits
 		$sth = DBSelect('
 			SELECT
 					@TP@user_attributes.Name, @TP@user_attributes.Value
@@ -372,7 +396,7 @@ sub cleanup
 			goto FAIL_ROLLBACK;
 		}
 
-		# Add cap limits to capRecord hash
+		# Store limits in capRecord hash
 		my %capRecord;
 		while ($row = $sth->fetchrow_hashref()) {
 			if ($row->{'name'} eq 'SMRadius-Capping-Traffic-Limit') {
@@ -386,17 +410,69 @@ sub cleanup
 		# Finished for now
 		DBFreeRes($sth);
 
-		# Set excess traffic / uptime used
-		my $excessUptime = 0;
-		my $excessTraffic = 0;
-		if (defined($capRecord{'TrafficLimit'})) {
-			$excessTraffic = $res{'TotalTrafficUsage'} - $capRecord{'TrafficLimit'};
-		}
-		if (defined($capRecord{'UptimeLimit'})) {
-			$excessUptime = $res{'TotalUptimeUsage'} - $capRecord{'UptimeLimit'};
+
+		# Get users topups that are still valid from topups_summary, must not be depleted
+		my $prevPeriodKey = $lastMonth->strftime("%Y-%m");
+		$sth = DBSelect('
+			SELECT
+				@TP@topups_summary.TopupID,
+				@TP@topups_summary.Balance,
+				@TP@topups.Value,
+				@TP@topups.ValidTo,
+				@TP@topups.Type
+			FROM
+				@TP@topups_summary, @TP@topups, @TP@users
+			WHERE
+				@TP@topups_summary.Depleted = 0
+				AND @TP@topups_summary.TopupID = @TP@topups.ID
+				AND @TP@users.ID = @TP@topups.UserID
+				AND @TP@users.Username = ?
+				AND @TP@topups_summary.PeriodKey = ?
+			ORDER BY
+				@TP@topups.Timestamp
+			',
+			$userName, $prevPeriodKey
+		);
+
+		if (!$sth) {
+			$server->log(LOG_ERR,"[MOD_CONFIG_SQL_TOPUPS] Cleanup => Failed to select topup summaries: ".
+					smradius::dblayer::Error());
+			goto FAIL_ROLLBACK;
 		}
 
-		# Get users topups not depleted
+
+		# Add previous valid topups to lists
+		my @trafficSummary = ();
+		my @uptimeSummary = ();
+		while (my $row = $sth->fetchrow_hashref()) {
+			if (defined($row->{'validto'})) {
+				# Convert string to unix time
+				my $unix_validTo = str2time($row->{'validto'});
+				if ($row->{'type'} == 1) {
+					push(@trafficSummary, { 
+							TopupID => $row->{'topupid'},
+							Balance => $row->{'balance'},
+							Value => $row->{'value'},
+							ValidTo => $unix_validTo,
+							Type => $row->{'type'}
+					});
+				} elsif ($row->{'type'} == 2) {
+					push(@uptimeSummary, { 
+							TopupID => $row->{'topupid'},
+							Balance => $row->{'balance'},
+							Value => $row->{'value'},
+							ValidTo => $unix_validTo,
+							Type => $row->{'type'}
+					});
+				}
+			}
+		}
+
+		# Finished for now
+		DBFreeRes($sth);
+
+
+		# Get topups from last month
 		$sth = DBSelect('
 			SELECT
 				@TP@topups.ID, @TP@topups.Value, @TP@topups.Type, @TP@topups.ValidTo
@@ -405,7 +481,7 @@ sub cleanup
 			WHERE
 				@TP@topups.Depleted = 0
 				AND @TP@topups.UserID = @TP@users.ID
-				AND	@TP@users.Username = ?
+				AND @TP@users.Username = ?
 				AND @TP@topups.ValidFrom <= ?
 				AND @TP@topups.ValidTo >= ?
 			ORDER BY
@@ -421,25 +497,24 @@ sub cleanup
 		}
 
 		# Loop with the topups and push them into arrays
-		my @trafficTopups = ();
-		my @uptimeTopups = ();
+		my (@trafficTopups,@uptimeTopups);
 		while (my $row = $sth->fetchrow_hashref()) {
 			# Convert string to unix time
-			my $unix_validto = str2time($row->{'validto'});
+			my $unix_validTo = str2time($row->{'validto'});
 			# If this is a traffic topup ...
 			if ($row->{'type'} == 1) {
-				push(@trafficTopups, { 
-					ID => $row->{'id'}, 
+				push(@trafficTopups, {
+					ID => $row->{'id'},
 					Value => $row->{'value'},
-					ValidTo => $unix_validto
+					ValidTo => $unix_validTo
 				});
 
 			# Or a uptime topup...
 			} elsif ($row->{'type'} == 2) {
 				push(@uptimeTopups, {
-					ID => $row->{'id'}, 
+					ID => $row->{'id'},
 					Value => $row->{'value'},
-					ValidTo => $unix_validto
+					ValidTo => $unix_validTo
 				});
 			}
 		}
@@ -447,94 +522,259 @@ sub cleanup
 		# Finished for now
 		DBFreeRes($sth);
 
-		# List of topups to be set depleted
+		# List of summaries depleted
+		my @depletedSummary = ();
+		# Summaries to be edited/repeated
+		my @summaryTopups = ();
+		# List of depleted topups, looping through summaries may
+		# deplete a topup and topups table must be updated too
 		my @depletedTopups = ();
 
-		# Working with traffic
-		if (defined($excessTraffic) && $excessTraffic gt 0) {
+		# Format this month period key
+		my $periodKey = $thisMonth->strftime("%Y-%m");
+
+		my $uptimeOverUsage = 0;
+		my $trafficOverUsage = 0;
+		if (defined($capRecord{'TrafficLimit'})) {
+			# Check traffic used against cap 
+			$trafficOverUsage = $totalTrafficUsage - $capRecord{'TrafficLimit'};
+		# If there is no limit, this may be a prepaid user
+		} else {
+			$capRecord{'TrafficLimit'} = 0;
+			foreach my $prevTopup (@trafficSummary) {
+				$capRecord{'TrafficLimit'} += $prevTopup->{'Balance'};
+			}
 			foreach my $topup (@trafficTopups) {
+				$capRecord{'TrafficLimit'} += $topup->{'Value'};
+			}
+			$trafficOverUsage = $totalTrafficUsage - $capRecord{'TrafficLimit'};
+		}
+
+		# User has started using topup bandwidth..
+		if ($trafficOverUsage > 0) {
+
+			# Loop with previous topups, setting them depleted or repeating as necessary
+			foreach my $summaryItem (@trafficSummary) {
+				# Summary has not been used, if valid add to list to be repeated
+				if ($trafficOverUsage <= 0 && $summaryItem->{'ValidTo'} >= $unix_nextMonth) {
+					push(@summaryTopups, {
+							ID => $summaryItem->{'TopupID'},
+							PeriodKey => $periodKey,
+							Balance => $summaryItem->{'Value'}
+					});
+					# This topup has not been touched and will be carried over
+					next;
+				# Topup summary depleted
+				} elsif ($summaryItem->{'Balance'} <= $trafficOverUsage) {
+					push(@depletedSummary, $summaryItem->{'TopupID'});
+					push(@depletedTopups, $summaryItem->{'TopupID'});
+
+					# Excess traffic remaining
+					$trafficOverUsage -= $summaryItem->{'Balance'};
+
+				# Topup summary still alive
+				} else {
+					my $trafficRemaining = $summaryItem->{'Balance'} - $trafficOverUsage;
+					if ($summaryItem->{'ValidTo'} >= $unix_nextMonth) {
+						push(@summaryTopups, {
+								ID => $summaryItem->{'TopupID'},
+								PeriodKey => $periodKey,
+								Balance => $trafficRemaining
+						});
+					}
+					# All excess traffic has been "paid" for
+					$trafficOverUsage = 0;
+				}
+			}
+
+			# Loop with topups, setting them depleted or adding summary as necessary
+			foreach my $topup (@trafficTopups) {
+				# Topup has not been used, if valid add to summary
+				if ($trafficOverUsage <= 0 && $topup->{'ValidTo'} >= $unix_nextMonth) {
+					push(@summaryTopups, {
+							ID => $topup->{'ID'},
+							PeriodKey => $periodKey,
+							Balance => $topup->{'Value'}
+					});
+					# This topup has not been touched and will be carried over
+					next;
 				# Topup depleted
-				if ($topup->{'Value'} < $excessTraffic) {
-					# Add topup ID to depleted list
+				} elsif ($topup->{'Value'} <= $trafficOverUsage) {
 					push(@depletedTopups, $topup->{'ID'});
 					# Excess traffic remaining
-					$excessTraffic -= $topup->{'Value'};
-
+					$trafficOverUsage -= $topup->{'Value'};
 				# Topup still alive
 				} else {
-					my $trafficRemaining = $topup->{'Value'} - $excessTraffic;
-
+					# Check if this summary exists in the list
+					my $trafficRemaining = $topup->{'Value'} - $trafficOverUsage;
 					if ($topup->{'ValidTo'} >= $unix_nextMonth) {
-
-						# Format period key
-						my $periodKey = $thisMonth->strftime("%Y-%m");
-
-						# Set users depleted topups
-						$sth = DBDo('
-							INSERT INTO
-								@TP@topups_summary (TopupID,PeriodKey,Balance)
-							VALUES
-								(?,?,?)
-							',
-							$topup->{'ID'},$periodKey,$trafficRemaining
-						);
-						if (!$sth) {
-							$server->log(LOG_ERR,"[MOD_CONFIG_SQL_TOPUPS] Cleanup => Failed to update topup summary: ".
-									smradius::dblayer::Error());
-							goto FAIL_ROLLBACK;
-						}
+						push(@summaryTopups, {
+								ID => $topup->{'ID'},
+								PeriodKey => $periodKey,
+								Balance => $trafficRemaining
+						});
 					}
+					# All excess traffic has been "paid" for
+					$trafficOverUsage = 0;
+				}
+			}
 
-					# We dont want to continue if a non depleted topup found
-					last;
+		# User has not used up cap but may have topups to carry over
+		} else {
+			# Check for summaries
+			foreach my $summaryItem (@trafficSummary) {
+				# Add summary
+				if ($summaryItem->{'ValidTo'} >= $unix_nextMonth) {
+					push(@summaryTopups, {
+							ID => $summaryItem->{'TopupID'},
+							PeriodKey => $periodKey,
+							Balance => $summaryItem->{'Value'}
+					});
+				}
+			}
+			# Check for topups
+			foreach my $topup (@trafficTopups) {
+				# Add to summaries
+				if ($topup->{'ValidTo'} >= $unix_nextMonth) {
+					push(@summaryTopups, {
+							ID => $topup->{'ID'},
+							PeriodKey => $periodKey,
+							Balance => $topup->{'Value'}
+					});
 				}
 			}
 		}
 
-		# Working with uptime
-		if (defined($excessUptime) && $excessUptime gt 0) {
+
+		if (defined($capRecord{'UptimeLimit'})) {
+			# Check traffic used against cap
+			$uptimeOverUsage = $totalUptimeUsage - $capRecord{'UptimeLimit'};
+		# If there is no limit, this may be a prepaid user
+		} else {
+			$capRecord{'UptimeLimit'} = 0;
+			foreach my $prevTopup (@uptimeSummary) {
+				$capRecord{'UptimeLimit'} += $prevTopup->{'Balance'};
+			}
 			foreach my $topup (@uptimeTopups) {
+				$capRecord{'UptimeLimit'} += $topup->{'Value'};
+			}
+			$uptimeOverUsage = $totalUptimeUsage - $capRecord{'UptimeLimit'};
+		}
+
+		# User has started using topup uptime..
+		if ($uptimeOverUsage > 0) {
+
+			# Loop with previous topups, setting them depleted or repeating as necessary
+			foreach my $summaryItem (@uptimeSummary) {
+				# Summary has not been used, if valid add to list to be repeated
+				if ($uptimeOverUsage <= 0 && $summaryItem->{'ValidTo'} >= $unix_nextMonth) {
+					push(@summaryTopups, {
+							ID => $summaryItem->{'TopupID'},
+							PeriodKey => $periodKey,
+							Balance => $summaryItem->{'Value'}
+					});
+					# This topup has not been touched and will be carried over
+					next;
+				# Topup summary depleted
+				} elsif ($summaryItem->{'Balance'} <= $uptimeOverUsage) {
+					push(@depletedSummary, $summaryItem->{'TopupID'});
+					push(@depletedTopups, $summaryItem->{'TopupID'});
+
+					# Excess uptime remaining
+					$uptimeOverUsage -= $summaryItem->{'Balance'};
+
+				# Topup summary still alive
+				} else {
+					my $uptimeRemaining = $summaryItem->{'Balance'} - $uptimeOverUsage;
+					if ($summaryItem->{'ValidTo'} >= $unix_nextMonth) {
+						push(@summaryTopups, {
+								ID => $summaryItem->{'TopupID'},
+								PeriodKey => $periodKey,
+								Balance => $uptimeRemaining
+						});
+					}
+					# All excess uptime has been "paid" for
+					$uptimeOverUsage = 0;
+				}
+			}
+
+			# Loop with topups, setting them depleted or adding summary as necessary
+			foreach my $topup (@uptimeTopups) {
+				# Topup has not been used, if valid add to summary
+				if ($uptimeOverUsage <= 0 && $topup->{'ValidTo'} >= $unix_nextMonth) {
+					push(@summaryTopups, {
+							ID => $topup->{'ID'},
+							PeriodKey => $periodKey,
+							Balance => $topup->{'Value'}
+					});
+					# This topup has not been touched and will be carried over
+					next;
 				# Topup depleted
-				if ($topup->{'Value'} < $excessUptime) {
-					# Add topup ID to depleted list
+				} elsif ($topup->{'Value'} <= $uptimeOverUsage) {
 					push(@depletedTopups, $topup->{'ID'});
 					# Excess uptime remaining
-					$excessUptime -= $topup->{'Value'};
-
+					$uptimeOverUsage -= $topup->{'Value'};
 				# Topup still alive
 				} else {
-					my $uptimeRemaining = $topup->{'Value'} - $excessUptime;
-
+					my $uptimeRemaining = $topup->{'Value'} - $uptimeOverUsage;
 					if ($topup->{'ValidTo'} >= $unix_nextMonth) {
-
-						# Format period key
-						my $periodKey = $thisMonth->strftime("%Y-%m");
-
-						# Set users depleted topups
-						$sth = DBDo('
-							INSERT INTO
-								@TP@topups_summary (TopupID,PeriodKey,Balance)
-							VALUES
-								(?,?,?)
-							',
-							$topup->{'ID'},$periodKey,$uptimeRemaining
-						);
-						if (!$sth) {
-							$server->log(LOG_ERR,"[MOD_CONFIG_SQL_TOPUPS] Cleanup => Failed to update topups: ".
-									smradius::dblayer::Error());
-							goto FAIL_ROLLBACK;
-						}
+						push(@summaryTopups, {
+								ID => $topup->{'ID'},
+								PeriodKey => $periodKey,
+								Balance => $uptimeRemaining
+						});
 					}
-
-					# We dont want to continue if a non depleted topup found
-					last;
+					# All excess uptime has been "paid" for
+					$uptimeOverUsage = 0;
 				}
+			}
+
+		# User has not used up cap but may have topups to carry over
+		} else {
+			# Check for summaries
+			foreach my $summaryItem (@uptimeSummary) {
+				# Add summary
+				if ($summaryItem->{'ValidTo'} >= $unix_nextMonth) {
+					push(@summaryTopups, {
+							ID => $summaryItem->{'TopupID'},
+							PeriodKey => $periodKey,
+							Balance => $summaryItem->{'Value'}
+					});
+				}
+			}
+			# Check for topups
+			foreach my $topup (@uptimeTopups) {
+				# Check if summary exists
+				if ($topup->{'ValidTo'} >= $unix_nextMonth) {
+					push(@summaryTopups, {
+							ID => $topup->{'ID'},
+							PeriodKey => $periodKey,
+							Balance => $topup->{'Value'}
+					});
+				}
+			}
+		}
+
+		# Loop through summary topups
+		foreach my $summaryTopup (@summaryTopups) {
+			# Set users depleted topups
+			$sth = DBDo('
+				INSERT INTO
+					@TP@topups_summary (TopupID,PeriodKey,Balance)
+				VALUES
+					(?,?,?)
+				',
+				$summaryTopup->{'ID'},$periodKey,$summaryTopup->{'Balance'}
+			);
+			if (!$sth) {
+				$server->log(LOG_ERR,"[MOD_CONFIG_SQL_TOPUPS] Cleanup => Failed to update topups_summary: ".
+						smradius::dblayer::Error());
+				goto FAIL_ROLLBACK;
 			}
 		}
 
 		# Loop through topups that are depleted
-		my $topupID;
-		foreach $topupID (@depletedTopups) {
+		foreach my $topupID (@depletedTopups) {
 			# Set users depleted topups
 			$sth = DBSelect('
 				UPDATE
@@ -542,12 +782,32 @@ sub cleanup
 				SET
 					Depleted = 1
 				WHERE
-					ID = ? 
+					ID = ?
 				',
 				$topupID
 			);
 			if (!$sth) {
 				$server->log(LOG_ERR,"[MOD_CONFIG_SQL_TOPUPS] Cleanup => Failed to update topups: ".
+						smradius::dblayer::Error());
+				goto FAIL_ROLLBACK;
+			}
+		}
+
+		# Loop through topup summary items that are depleted
+		foreach my $topupID (@depletedSummary) {
+			# Set users depleted topup summaries
+			$sth = DBSelect('
+				UPDATE
+					@TP@topups_summary
+				SET
+					Depleted = 1
+				WHERE
+					TopupID = ?
+				',
+				$topupID
+			);
+			if (!$sth) {
+				$server->log(LOG_ERR,"[MOD_CONFIG_SQL_TOPUPS] Cleanup => Failed to update topups_summary: ".
 						smradius::dblayer::Error());
 				goto FAIL_ROLLBACK;
 			}
