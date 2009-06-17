@@ -54,9 +54,9 @@ function showAdminGroupMembersWindow(groupID) {
 					dataIndex: 'ID'
 				},
 				{
-					header: "Name",
+					header: "Username",
 					sortable: true,
-					dataIndex: 'Name'
+					dataIndex: 'Username'
 				},
 				{
 					header: "Disabled",
@@ -64,7 +64,7 @@ function showAdminGroupMembersWindow(groupID) {
 					dataIndex: 'Disabled'
 				}
 			]),
-			autoExpandColumn: 'Name'
+			autoExpandColumn: 'Username'
 		},
 		// Store config
 		{
@@ -82,7 +82,7 @@ function showAdminGroupMembersWindow(groupID) {
 		{
 			filters: [
 				{type: 'numeric',  dataIndex: 'ID'},
-				{type: 'string',  dataIndex: 'Name'},
+				{type: 'string',  dataIndex: 'Username'},
 				{type: 'boolean', dataIndex: 'Disabled'}
 			]
 		}
