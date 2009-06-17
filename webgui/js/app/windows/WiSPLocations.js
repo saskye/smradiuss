@@ -199,8 +199,6 @@ function showWiSPLocationAddEditWindow(id) {
 				{
 					fieldLabel: 'Name',
 					name: 'Name',
-					vtype: 'usernamePart',
-					maskRe: usernamePartRe,
 					allowBlank: false
 				},
 			],

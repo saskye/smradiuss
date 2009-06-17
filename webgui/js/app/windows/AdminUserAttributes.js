@@ -199,8 +199,8 @@ function showAdminUserAttributeAddEditWindow(userID,attrID) {
 				{
 					fieldLabel: 'Name',
 					name: 'Name',
-					vtype: 'usernamePart',
-					maskRe: usernamePartRe,
+					//vtype: 'usernamePart',
+					//maskRe: usernamePartRe,
 					allowBlank: false
 				},
 				{

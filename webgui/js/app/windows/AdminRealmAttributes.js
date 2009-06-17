@@ -199,8 +199,6 @@ function showAdminRealmAttributeAddEditWindow(realmID,attrID) {
 				{
 					fieldLabel: 'Name',
 					name: 'Name',
-					vtype: 'usernamePart',
-					maskRe: usernamePartRe,
 					allowBlank: false
 				},
 				{
