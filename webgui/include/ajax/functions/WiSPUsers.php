@@ -184,9 +184,6 @@ function createWiSPUser($params) {
 	DBBegin();
 	# Insert username
 	$res = DBDo("INSERT INTO users (Username) VALUES (?)",array($params[0]['Username']));
-	if ($res !== FALSE) {
-		$res = "Failed to add 'Username'";
-	}
 
 	# Continue with others if successful
 	if ($res !== FALSE) {
@@ -201,43 +198,25 @@ function createWiSPUser($params) {
 				'==',
 				$params[0]['Password'])
 		);
-		if ($res !== FALSE) {
-			$res = "Failed to add 'User-Password' attribute";
-		}
 	}
 
 	# Link users ID to make user a wisp user
 	if ($res !== FALSE) {
 		$res = DBDo("INSERT INTO wisp_userdata (UserID) VALUES (?)",array($userID));
-		if ($res !== FALSE) {
-			$res = "Failed to link to wisp users";
-		}
 	}
 
 	# Personal information is optional when adding
 	if ($res !== FALSE && isset($params[0]['Firstname'])) {
 		$res = DBDo("UPDATE wisp_userdata SET FirstName = ? WHERE UserID = ?",array($params[0]['Firstname'],$userID));
-		if ($res !== FALSE) {
-			$res = "Failed to add 'Firstname'";
-		}
 	}
 	if ($res !== FALSE && isset($params[0]['Lastname'])) {
 		$res = DBDo("UPDATE wisp_userdata SET LastName = ? WHERE UserID = ?",array($params[0]['Lastname'],$userID));
-		if ($res !== FALSE) {
-			$res = "Failed to add 'Lastname'";
-		}
 	}
 	if ($res !== FALSE && isset($params[0]['Phone'])) {
 		$res = DBDo("UPDATE wisp_userdata SET Phone = ? WHERE UserID = ?",array($params[0]['Phone'],$userID));
-		if ($res !== FALSE) {
-			$res = "Failed to add 'Phone'";
-		}
 	}
 	if ($res !== FALSE && isset($params[0]['Email'])) {
 		$res = DBDo("UPDATE wisp_userdata SET Email = ? WHERE UserID = ?",array($params[0]['Email'],$userID));
-		if ($res !== FALSE) {
-			$res = "Failed to add 'Email'";
-		}
 	}
 
 	# Grab each attribute and add it's details to the database
@@ -254,39 +233,34 @@ function createWiSPUser($params) {
 							$attr['Operator'],
 							$attr['Value'])
 			);
-			if ($res !== FALSE) {
-				$res = "Failed to add 'Attribute'";
-			}
 		}
 	}
 
 	# Link user to groups if any selected
-	if (isset($params[0]['Groups'])) {
+	if ($res !== FALSE && isset($params[0]['Groups'])) {
 		$refinedGroups = array();
 
 		# Filter out unique group ID's
-		foreach ($params[0]['Groups'] as $groupID) {
-			$refinedGroups[$groupID] = $groupID;
-		}
-		foreach ($refinedGroups as $groupID) {
-			if ($res !== FALSE) {
-				$res = DBDo("INSERT INTO users_to_groups (UserID,GroupID) VALUES (?,?)",array($userID,$groupID['Name']));
-				if ($res !== FALSE) {
-					$res = "Failed to add 'Group'";
-				}
+		foreach ($params[0]['Groups'] as $group) {
+			foreach ($group as $ID=>$value) {
+				$refinedGroups[$value] = $value;
 			}
+		}
+		# Loop through groups
+		foreach ($refinedGroups as $groupID) {
+			$res = DBDo("INSERT INTO users_to_groups (UserID,GroupID) VALUES (?,?)",array($userID,$groupID));
 		}
 	}
 
 	# Commit changes if all was successful, else break
-	if ($res === TRUE) {
+	if ($res !== FALSE) {
 		DBCommit();
-		return NULL;
+		return $res;
 	} else {
 		DBRollback();
 	}
 
-	return $res;
+	return NULL;
 }
 
 # Edit admin group
