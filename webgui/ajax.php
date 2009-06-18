@@ -804,38 +804,4 @@
 
 	exit;
 
-	# Connect via soap
-	$soap = new SoapClient(null,
-		array(
-			'location' => "http://localhost:1080/?Auth=$authType",
-			'uri'      => $module,
-			'login' => $username,
-			'password' => $password
-		)
-	);
-
-	# Try soap call
-	try {
-		$soapRes = $soap->__call($function,$soapParams);
-
-	} catch (Exception $e) {
-		# Build msg string
-		if (is_soap_fault($e)) {
-			header("$SERVER_PROTOCOL 500 Internal Server Error");
-			$msg = "SOAP Fault: ".$e->faultstring;
-			if (!empty($e->detail)) {
-				$msg .= " (".$e->detail.")";
-			}
-		} else {
-			header("$SERVER_PROTOCOL 400 Bad Request");
-			$msg = "Fault: ".$e->getMessage();
-		}
-
-		ajaxException($msg);
-	}
-
-
-	echo json_encode($soapRes);
-
-
 # vim: ts=4
