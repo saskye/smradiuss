@@ -8,10 +8,10 @@ function showWiSPResellersWindow() {
 			title: "Resellers",
 			
 			width: 400,
-			height: 325,
+			height: 335,
 		
 			minWidth: 400,
-			minHeight: 325,
+			minHeight: 335,
 		},
 		// Grid config
 		{
@@ -157,10 +157,10 @@ function showWiSPResellerEditWindow(id) {
 			title: "Reseller Information",
 
 			width: 300,
-			height: 325,
+			height: 348,
 
 			minWidth: 300,
-			minHeight: 325
+			minHeight: 348
 		},
 		// Form panel config
 		{
