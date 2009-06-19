@@ -276,7 +276,7 @@ function showWiSPUserAddEditWindow(id) {
 	// Build the attribute editor grid
 	var attributeEditor = new Ext.grid.EditorGridPanel({
 		plain: true,
-		height: 150,
+		height: 120,
 		autoScroll: true,
 
 		// Set row selection model
@@ -418,7 +418,7 @@ function showWiSPUserAddEditWindow(id) {
 	// Build the group editor grid
 	var groupEditor = new Ext.grid.EditorGridPanel({
 		plain: true,
-		height: 150,
+		height: 120,
 		autoScroll: true,
 
 		// Set row selection model
@@ -508,10 +508,10 @@ function showWiSPUserAddEditWindow(id) {
 			title: "User Information",
 
 			width: 700,
-			height: 392,
+			height: 342,
 
 			minWidth: 700,
-			minHeight: 392
+			minHeight: 342
 		},
 		// Form panel config
 		{
@@ -542,7 +542,7 @@ function showWiSPUserAddEditWindow(id) {
 					plain: 'true',
 					deferredRender: false, // Load all panels!
 					activeTab: 0,
-					height: 250,
+					height: 200,
 					defaults: {
 						layout: 'form',
 						bodyStyle: 'padding: 10px;'
@@ -583,7 +583,7 @@ function showWiSPUserAddEditWindow(id) {
 									fieldLabel: 'Location',
 									name: 'Location',
 									allowBlank: false,
-									width: 160,
+									width: 140,
 
 									store: new Ext.ux.JsonStore({
 										sortInfo: { field: "Name", direction: "ASC" },
