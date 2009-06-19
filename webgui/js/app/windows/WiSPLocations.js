@@ -85,7 +85,7 @@ function showWiSPLocationWindow() {
 				{
 					text:'Members',
 					tooltip:'List members',
-					iconCls:'remove',
+					iconCls:'groups',
 					handler: function() {
 						var selectedItem = WiSPLocationWindow.getComponent('gridpanel').getSelectionModel().getSelected();
 						// Check if we have selected item

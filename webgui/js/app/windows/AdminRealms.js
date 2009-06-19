@@ -84,7 +84,7 @@ function showAdminRealmWindow() {
 				{
 					text:'Attributes',
 					tooltip:'Realm attributes',
-					iconCls:'logs',
+					iconCls:'attributes',
 					handler: function() {
 						var selectedItem = AdminRealmWindow.getComponent('gridpanel').getSelectionModel().getSelected();
 						// Check if we have selected item

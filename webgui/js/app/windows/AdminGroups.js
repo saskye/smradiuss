@@ -85,7 +85,7 @@ function showAdminGroupWindow() {
 				{
 					text:'Attributes',
 					tooltip:'Group attributes',
-					iconCls:'logs',
+					iconCls:'attributes',
 					handler: function() {
 						var selectedItem = AdminGroupWindow.getComponent('gridpanel').getSelectionModel().getSelected();
 						// Check if we have selected item
@@ -113,7 +113,7 @@ function showAdminGroupWindow() {
 				{
 					text:'Members',
 					tooltip:'Group members',
-					iconCls:'topups',
+					iconCls:'groups',
 					handler: function() {
 						var selectedItem = AdminGroupWindow.getComponent('gridpanel').getSelectionModel().getSelected();
 						// Check if we have selected item
