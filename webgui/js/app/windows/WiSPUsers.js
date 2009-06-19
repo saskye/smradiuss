@@ -241,6 +241,7 @@ function showWiSPUserAddEditWindow(id) {
 					'0:Lastname,'+
 					'0:Phone,'+
 					'0:Email,'+
+					'0:LocationID,'+
 					'0:Attributes,'+
 					'0:Groups'
 			},
@@ -414,7 +415,7 @@ function showWiSPUserAddEditWindow(id) {
 		store: attributeStore
 	});
 
-	// Build the attribute editor grid
+	// Build the group editor grid
 	var groupEditor = new Ext.grid.EditorGridPanel({
 		plain: true,
 		height: 150,
@@ -575,7 +576,34 @@ function showWiSPUserAddEditWindow(id) {
 									fieldLabel: 'Email',
 									name: 'Email',
 									allowBlank: true
-								}
+								},
+								{
+									xtype: 'combo',
+									//id: 'combo',
+									fieldLabel: 'Location',
+									name: 'Location',
+									allowBlank: false,
+									width: 160,
+
+									store: new Ext.ux.JsonStore({
+										sortInfo: { field: "Name", direction: "ASC" },
+										baseParams: {
+											SOAPUsername: globalConfig.soap.username,
+											SOAPPassword: globalConfig.soap.password,
+											SOAPAuthType: globalConfig.soap.authtype,
+											SOAPModule: 'WiSPLocations',
+											SOAPFunction: 'getWiSPLocations',
+											SOAPParams: '__null,__search'
+										}
+									}),
+									displayField: 'Name',
+									valueField: 'ID',
+									hiddenName: 'LocationID',
+									forceSelection: true,
+									triggerAction: 'all',
+									allowBlank: true,
+									editable: false
+								},
 							]
 						},
 						{
