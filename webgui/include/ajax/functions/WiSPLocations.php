@@ -60,9 +60,24 @@ function getWiSPLocation($params) {
 function removeWiSPLocation($params) {
 	global $db;
 
-	$res = DBDo("DELETE FROM wisp_locations WHERE ID = ?",array($params[0][0]));
-	if (!is_numeric($res)) {
+	# Begin transaction
+	DBBegin();
+
+	# Unlink users from this location
+	$res = DBDo("UPDATE wisp_userdata SET LocationID = NULL WHERE LocationID = ?",array($params[0][0]));
+
+	# Delete location
+	if ($res !== FALSE) {
+		$res = DBDo("DELETE FROM wisp_locations WHERE ID = ?",array($params[0][0]));
+	}
+
+	# Commit changes if successful
+	if ($res !== FALSE) {
+		DBCommit();
 		return $res;
+	# Rollback database if error
+	} else {
+		DBRollback();
 	}
 
 	return NULL;
