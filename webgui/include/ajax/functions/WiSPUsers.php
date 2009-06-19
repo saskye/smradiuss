@@ -157,19 +157,32 @@ function getWiSPUser($params) {
 function removeWiSPUser($params) {
 	global $db;
 
+	# Begin transaction
 	DBBegin();
+
+	# Delete user information
 	$res = DBDo("DELETE FROM wisp_userdata WHERE UserID = ?",array($params[0]));
 
+	# Delete user attribtues
 	if ($res !== FALSE) {
-		$res = DBDo("DELETE FROM users WHERE ID = ?",array($params[0]));
-	} else {
-		DBRollback();
-		return $res;
+		$res = DBDo("DELETE FROM user_attributes WHERE UserID = ?",array($params[0]));
 	}
 
+	# Remove user from groups
+	if ($res !== FALSE) {
+		$res = DBDo("DELETE FROM users_to_groups WHERE UserID = ?",array($params[0]));
+	}
+	
+	# Delete user
+	if ($res !== FALSE) {
+		$res = DBDo("DELETE FROM users WHERE ID = ?",array($params[0]));
+	}
+
+	# Commit and return if successful
 	if ($res !== FALSE) {
 		DBCommit();
 		return $res;
+	# Else rollback database
 	} else {
 		DBRollback();
 	}
@@ -205,7 +218,7 @@ function createWiSPUser($params) {
 		$res = DBDo("INSERT INTO wisp_userdata (UserID) VALUES (?)",array($userID));
 	}
 
-	# Personal information is optional when adding
+	# Add personal information
 	if ($res !== FALSE && isset($params[0]['Firstname'])) {
 		$res = DBDo("UPDATE wisp_userdata SET FirstName = ? WHERE UserID = ?",array($params[0]['Firstname'],$userID));
 	}
@@ -222,16 +235,48 @@ function createWiSPUser($params) {
 	# Grab each attribute and add it's details to the database
 	if ($res !== FALSE && isset($params[0]['Attributes'])) {
 		foreach ($params[0]['Attributes'] as $attr) {
+
+			# Default value without modifier
+			$attrValue = $attr['Value'];
+
+			if ($attr['Name'] == 'SMRadius-Capping-Traffic-Limit' || $attr['Name'] == 'SMRadius-Capping-Uptime-Limit') {
+				# If modifier is set we need to work out attribute value
+				if (isset($attr['Modifier'])) {
+					switch ($attr['Modifier']) {
+						case "Seconds":
+							$attrValue = $attr['Value'] / 60;
+						case "Minutes":
+							$attrValue = $attr['Value'];
+						case "Hours":
+							$attrValue = $attr['Value'] * 60;
+						case "Days":
+							$attrValue = $attr['Value'] * 1440;
+						case "Weeks":
+							$attrValue = $attr['Value'] * 10080;
+						case "Months":
+							$attrValue = $attr['Value'] * 44640; 
+						case "MBytes":
+							$attrValue = $attr['Value'];
+						case "GBytes":
+							$attrValue = $attr['Value'] * 1024;
+						case "TBytes":
+							$attrValue = $attr['Value'] * 1048576;
+					}
+				}
+			}
+
+			# Add attribute
 			$res = DBDo("
-						INSERT INTO 
-								user_attributes (UserID,Name,Operator,Value) 
-						VALUES
-								(?,?,?,?)",
-						array(
-							$userID,
-							$attr['Name'],
-							$attr['Operator'],
-							$attr['Value'])
+					INSERT INTO 
+							user_attributes (UserID,Name,Operator,Value) 
+					VALUES
+							(?,?,?,?)",
+					array(
+						$userID,
+						$attr['Name'],
+						$attr['Operator'],
+						$attrValue
+					)
 			);
 		}
 	}
@@ -263,7 +308,7 @@ function createWiSPUser($params) {
 	return NULL;
 }
 
-# Edit admin group
+# Edit wisp user
 function updateWiSPUser($params) {
 	global $db;
 
