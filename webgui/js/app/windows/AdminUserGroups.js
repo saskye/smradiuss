@@ -7,10 +7,10 @@ function showAdminUserGroupsWindow(userID) {
 		{
 			title: "Groups",
 			
-			width: 600,
+			width: 400,
 			height: 335,
 		
-			minWidth: 600,
+			minWidth: 400,
 			minHeight: 335,
 		},
 		// Grid config
@@ -128,11 +128,11 @@ function showAdminUserGroupAddWindow(userID,id) {
 		{
 			title: "Group Information",
 
-			width: 475,
-			height: 260,
+			width: 310,
+			height: 113,
 
-			minWidth: 475,
-			minHeight: 260
+			minWidth: 310,
+			minHeight: 113
 		},
 		// Form panel config
 		{

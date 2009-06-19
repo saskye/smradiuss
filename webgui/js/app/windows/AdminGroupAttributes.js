@@ -180,11 +180,11 @@ function showAdminGroupAttributeAddEditWindow(groupID,attrID) {
 		{
 			title: "Attribute Information",
 
-			width: 475,
-			height: 260,
+			width: 310,
+			height: 200,
 
-			minWidth: 475,
-			minHeight: 260
+			minWidth: 310,
+			minHeight: 200
 		},
 		// Form panel config
 		{

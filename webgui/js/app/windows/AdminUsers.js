@@ -242,11 +242,11 @@ function showAdminUserAddEditWindow(id) {
 		{
 			title: "User Information",
 
-			width: 475,
-			height: 260,
+			width: 310,
+			height: 113,
 
-			minWidth: 475,
-			minHeight: 260
+			minWidth: 310,
+			minHeight: 113
 		},
 		// Form panel config
 		{
