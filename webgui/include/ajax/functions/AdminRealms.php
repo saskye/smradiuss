@@ -95,4 +95,4 @@ function updateAdminRealm($params) {
 	return NULL;
 }
 
-?>
+# vim: ts=4

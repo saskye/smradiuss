@@ -126,4 +126,4 @@ function getAdminUserAttributes($params) {
 	return array($resultArray,$numResults);
 }
 
-?>
+# vim: ts=4

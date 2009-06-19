@@ -94,4 +94,5 @@ function updateAdminUser($params) {
 
 	return NULL;
 }
-?>
+
+# vim: ts=4

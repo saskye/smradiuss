@@ -126,4 +126,4 @@ function getAdminGroupAttributes($params) {
 	return array($resultArray,$numResults);
 }
 
-?>
+# vim: ts=4
