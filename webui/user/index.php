@@ -112,6 +112,7 @@ function displayDetails() {
 
 	}
 
+	# Fetch user uptime and traffic cap
 	$sql = "
 			SELECT
 					Name, Value
@@ -123,32 +124,39 @@ function displayDetails() {
 
 	$res = $db->query($sql);
 
-	$userPhone = "Unavailable";
-	$userEmail = "Unavailable";
-	$userCap = "Unavailable";
-	$dataCap = "Unavailable";
-	$timeCap = "Unavailable";
-	$userService = "Unavailable";
-
+	$trafficCap = "None";
+	$uptimeCap = "None";
 	while ($row = $res->fetchObject()) {
-		if ($row->name == "SMRadius-Notify-Phone") {
-			$userPhone = $row->value;
-		}
-		if ($row->name == "SMRadius-Notify-Email") {
-			$userEmail = $row->value;
-		}
 		if ($row->name == "SMRadius-Capping-Traffic-Limit") {
-			$dataCap = $row->value;
+			$trafficCap = $row->value;
 		}
 		if ($row->name == "SMRadius-Capping-UpTime-Limit") {
-			$timeCap = $row->value;
-		}
-		if ($row->name == "SMRadius-User-Service") {
-			$userService = $row->value;
+			$uptimeCap = $row->value;
 		}
 	}
 
+	# Fetch user phone and email info
+	$sql = "
+			SELECT
+					Phone, Email
+			FROM
+					${DB_TABLE_PREFIX}wisp_userdata
+			WHERE
+					UserID = '$userID'
+			";
+
+	$res = $db->query($sql);
+
+	$userPhone = "Not set";
+	$userEmail = "Not set";
+	if ($res->rowCount() > 0) {
+		$row = $res->fetchObject();
+		$userPhone = $row->phone;
+		$userEmail = $row->email;
+	}
+
 	$isDialup = 0;
+	$userService = "Not set";
 
 ?>
 
@@ -180,7 +188,17 @@ function displayDetails() {
 				<td class="title">Used This Month</td>
 			</tr>
 			<tr>
-				<td class="value"><?php echo $dataCap; ?> MB</td>
+<?php
+				if (is_numeric($trafficCap)) {
+?>
+					<td class="value"><?php echo $trafficCap; ?> MB</td>
+<?php
+				} else {
+?>
+					<td class="value"><?php echo $trafficCap; ?></td>
+<?php
+				}
+?>
 				<td class="value"><?php printf('%.2f', $totalData); ?> MB</td>
 			</tr>
 			<tr>
@@ -188,7 +206,17 @@ function displayDetails() {
 				<td class="title">Used This Month</td>
 			</tr>
 			<tr>
-				<td class="value"><?php echo $timeCap; ?> Min</td>
+<?php
+				if (is_numeric($uptimeCap)) {
+?>
+				<td class="value"><?php echo $uptimeCap; ?> Min</td>
+<?php
+				} else {
+?>
+					<td class="value"><?php echo $uptimeCap; ?></td>
+<?php
+				}
+?>
 				<td class="value"><?php echo $totalSessionTime; ?> Min</td>
 			</tr>
 			<tr>
