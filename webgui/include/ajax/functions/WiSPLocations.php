@@ -64,11 +64,11 @@ function removeWiSPLocation($params) {
 	DBBegin();
 
 	# Unlink users from this location
-	$res = DBDo("UPDATE wisp_userdata SET LocationID = NULL WHERE LocationID = ?",array($params[0][0]));
+	$res = DBDo("UPDATE wisp_userdata SET LocationID = NULL WHERE LocationID = ?",array($params[0]));
 
 	# Delete location
 	if ($res !== FALSE) {
-		$res = DBDo("DELETE FROM wisp_locations WHERE ID = ?",array($params[0][0]));
+		$res = DBDo("DELETE FROM wisp_locations WHERE ID = ?",array($params[0]));
 	}
 
 	# Commit changes if successful
