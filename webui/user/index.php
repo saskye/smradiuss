@@ -30,8 +30,8 @@ function displayDetails() {
 	global $db;
 	global $DB_TABLE_PREFIX;
 
-	$userName = $_SESSION['username'];
-
+	$username = $_SESSION['username'];
+ 
 	# Get user's ID
 	$sql = "
 		SELECT
@@ -39,7 +39,7 @@ function displayDetails() {
 		FROM
 				${DB_TABLE_PREFIX}users
 		WHERE
-				Username = '$userName'
+				Username = '$username'
 		";
 
 	$res = $db->query($sql);
@@ -59,7 +59,7 @@ function displayDetails() {
 		FROM
 				${DB_TABLE_PREFIX}accounting
 		WHERE
-				Username = '$userName'
+				Username = '$username'
 		AND
 				EventTimestamp >= '$currentMonth'
 		ORDER BY
@@ -158,7 +158,7 @@ function displayDetails() {
 		</tr>
 		<tr>
 			<td class="title">Username</td>
-			<td class="value"><?php echo $userName; ?></td>
+			<td class="value"><?php echo $username; ?></td>
 		</tr>
 		<tr>
 			<td class="title">Service</td>
@@ -240,7 +240,7 @@ function displayDetails() {
 # If this is a post and we're updating
 if (isset($_POST['notifyUpdate']) && $_POST['notifyUpdate'] == "update") {
 
-	$userName = $_SESSION['username'];
+	$username = $_SESSION['username'];
 
 	# Get user's ID
 	$sql = "
@@ -249,7 +249,7 @@ if (isset($_POST['notifyUpdate']) && $_POST['notifyUpdate'] == "update") {
 		FROM
 				${DB_TABLE_PREFIX}users
 		WHERE
-				Username = '$userName'
+				Username = '$username'
 		";
 
 	$res = $db->query($sql);
