@@ -63,9 +63,34 @@ function getAdminUser($params) {
 function removeAdminUser($params) {
 	global $db;
 
-	$res = DBDo("DELETE FROM users WHERE ID = ?",array($params[0]));
-	if (!is_numeric($res)) {
+	# Begin transaction
+	DBBegin();
+
+	# Delete user information, if any
+	$res = DBDo("DELETE FROM wisp_userdata WHERE UserID = ?",array($params[0]));
+
+	# Delete user attribtues
+	if ($res !== FALSE) {
+		$res = DBDo("DELETE FROM user_attributes WHERE UserID = ?",array($params[0]));
+	}
+
+	# Remove user from groups
+	if ($res !== FALSE) {
+		$res = DBDo("DELETE FROM users_to_groups WHERE UserID = ?",array($params[0]));
+	}
+	
+	# Delete user
+	if ($res !== FALSE) {
+		$res = DBDo("DELETE FROM users WHERE ID = ?",array($params[0]));
+	}
+
+	# Commit and return if successful
+	if ($res !== FALSE) {
+		DBCommit();
 		return $res;
+	# Else rollback database
+	} else {
+		DBRollback();
 	}
 
 	return NULL;

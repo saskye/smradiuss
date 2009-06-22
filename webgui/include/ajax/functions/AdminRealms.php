@@ -63,9 +63,23 @@ function getAdminRealm($params) {
 function removeAdminRealm($params) {
 	global $db;
 
-	$res = DBDo("DELETE FROM realms WHERE ID = ?",array($params[0]));
-	if (!is_numeric($res)) {
+	# Begin transaction
+	DBBegin();
+
+	# Delete user attribtues
+	$res = DBDo("DELETE FROM realm_attributes WHERE RealmID = ?",array($params[0]));
+
+	if ($res !== FALSE) {
+		$res = DBDo("DELETE FROM realms WHERE ID = ?",array($params[0]));
+	}
+
+	# Commit and return if successful
+	if ($res !== FALSE) {
+		DBCommit();
 		return $res;
+	# Else rollback database
+	} else {
+		DBRollback();
 	}
 
 	return NULL;

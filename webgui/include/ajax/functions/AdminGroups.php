@@ -69,9 +69,29 @@ function getAdminGroup($params) {
 function removeAdminGroup($params) {
 	global $db;
 
-	$res = DBDo("DELETE FROM groups WHERE ID = ?",array($params[0]));
-	if (!is_numeric($res)) {
+	# Begin transaction
+	DBBegin();
+
+	# Unlink users from group
+	$res = DBDo("DELETE FROM users_to_groups WHERE GroupID = ?",array($params[0]));
+
+	# Delete group attribtues
+	if ($res !== FALSE) {
+		$res = DBDo("DELETE FROM group_attributes WHERE GroupID = ?",array($params[0]));
+	}
+
+	# Delete group
+	if ($res !== FALSE) {
+		$res = DBDo("DELETE FROM groups WHERE ID = ?",array($params[0]));
+	}
+
+	# Commit and return if successful
+	if ($res !== FALSE) {
+		DBCommit();
 		return $res;
+	# Else rollback database
+	} else {
+		DBRollback();
 	}
 
 	return NULL;
