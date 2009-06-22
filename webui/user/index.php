@@ -135,6 +135,7 @@ function displayDetails() {
 		}
 	}
 
+/*
 	# Fetch user phone and email info
 	$sql = "
 			SELECT
@@ -154,6 +155,7 @@ function displayDetails() {
 		$userPhone = $row->phone;
 		$userEmail = $row->email;
 	}
+*/
 
 	$isDialup = 0;
 	$userService = "Not set";
@@ -219,6 +221,7 @@ function displayDetails() {
 ?>
 				<td class="value"><?php echo $totalSessionTime; ?> Min</td>
 			</tr>
+<!--
 			<tr>
 				<td colspan="2" class="section">Notifications</td>
 			</tr>
@@ -226,16 +229,17 @@ function displayDetails() {
 			<tr>
 				<td class="title">Email Address</td>
 				<td class="value">
-					<input type="text" name="notifyMethodEmail"><?php echo $userEmail; ?></input>
+					<input type="text" name="notifyMethodEmail" value="php echo $userEmail; "></input>
 				</td>
 			</tr>
 			<tr>
 				<td class="title">Cell Number</td>
 				<td class="value">
-					<input type="text" name="notifyMethodCell"><?php echo $userPhone; ?></input>
+					<input type="text" name="notifyMethodCell" value="php echo $userPhone; "></input>
 				</td>
 			</tr>
 			</form>
+--!>
 
 <?php
 

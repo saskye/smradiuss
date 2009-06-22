@@ -35,7 +35,7 @@ function displayLogs() {
 	global $db;
 	global $DB_TABLE_PREFIX;
 
-	$getuser = $_SESSION['username'];
+	$username = $_SESSION['username'];
 
 ?>
 
@@ -45,9 +45,29 @@ function displayLogs() {
 				<form method="POST">
 					<p class="middle center">
 					Display logs between
-					<input type="text" name="searchFrom" size="11" /> 
+<?php
+					if (isset($_POST['searchFrom'])) {
+?>
+						<input type="text" name="searchFrom" size="11" value="<?php echo $_POST['searchFrom'] ?>"/> 
+<?php
+					} else {
+?>
+						<input type="text" name="searchFrom" size="11"/> 
+<?php
+					}
+?>
 					and 
-					<input type="text" name="searchTo"  size="11" />
+<?php
+					if (isset($_POST['searchTo'])) {
+?>
+						<input type="text" name="searchTo" size="11" value="<?php echo $_POST['searchTo'] ?>"/> 
+<?php
+					} else {
+?>
+						<input type="text" name="searchTo"  size="11"/>
+<?php
+					}
+?>
 					<input type="submit" value="search">
 					</p>
 				</form>
@@ -94,7 +114,7 @@ function displayLogs() {
 				FROM 
 						${DB_TABLE_PREFIX}accounting 
 				WHERE 
-						Username = '$getuser'
+						Username = '$username'
 						$extraSQL
 				ORDER BY
 						EventTimestamp
