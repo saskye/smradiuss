@@ -135,6 +135,66 @@ function displayDetails() {
 		}
 	}
 
+	# Fetch user uptime and traffic summary
+	$sql = "
+			SELECT
+				SUM(${DB_TABLE_PREFIX}topups_summary.Balance) AS Balance, ${DB_TABLE_PREFIX}topups.Type
+			FROM
+				${DB_TABLE_PREFIX}topups_summary,
+				${DB_TABLE_PREFIX}topups
+			WHERE
+				${DB_TABLE_PREFIX}topups_summary.TopupID = ${DB_TABLE_PREFIX}topups.ID
+				AND	${DB_TABLE_PREFIX}topups.UserID = '$userID'
+				AND ${DB_TABLE_PREFIX}topups_summary.PeriodKey = $currentMonth
+				AND ${DB_TABLE_PREFIX}topups_summary.Depleted = 0
+			GROUP BY
+				${DB_TABLE_PREFIX}topups.Type
+	";
+
+	$res = $db->query($sql);
+
+	$trafficTopups = 0;
+	$uptimeTopups = 0;
+	while ($row = $res->fetchObject()) {
+		if ($row->type == 1) {
+			$trafficTopups += $row->balance;
+		}
+		if ($row->type == 2) {
+			$uptimeTopups += $row->balance;
+		}
+	}
+
+	# Convert month to unix time
+	$thisMonthUnixTime = strtotime($currentMonth);
+	# Get time right now
+	$now = time();
+
+	# Fetch user uptime and traffic topups
+	$sql = "
+			SELECT
+				SUM(Value) AS Value, Type
+			FROM
+				${DB_TABLE_PREFIX}topups
+			WHERE
+				${DB_TABLE_PREFIX}topups.UserID = '$userID'
+				AND ${DB_TABLE_PREFIX}topups.ValidFrom >= $thisMonthUnixTime
+				AND ${DB_TABLE_PREFIX}topups.ValidTo > $now
+				AND ${DB_TABLE_PREFIX}topups.Depleted = 0
+			GROUP BY
+				${DB_TABLE_PREFIX}topups.Type
+	";
+
+	$res = $db->query($sql);
+
+	while ($row = $res->fetchObject()) {
+		if ($row->type == 1) {
+			$trafficTopups += $row->value;
+		}
+		if ($row->type == 2) {
+			$uptimeTopups += $row->value;
+		}
+	}
+
 /*
 	# Fetch user phone and email info
 	$sql = "
@@ -164,7 +224,7 @@ function displayDetails() {
 
 	<table class="blockcenter">
 		<tr>
-			<td colspan="2" class="section">Account Information</td>
+			<td colspan="3" class="section">Account Information</td>
 		</tr>
 		<tr>
 			<td class="title">Username</td>
@@ -183,10 +243,11 @@ function displayDetails() {
 ?>
 
 			<tr>
-				<td colspan="2" class="section">Usage Info</td>
+				<td colspan="3" class="section">Usage Info</td>
 			</tr>
 			<tr>
 				<td class="title">Bandwidth Cap</td>
+				<td class="title">Topups</td>
 				<td class="title">Used This Month</td>
 			</tr>
 			<tr>
@@ -201,13 +262,16 @@ function displayDetails() {
 <?php
 				}
 ?>
+				<td class="value"><?php echo $trafficTopups; ?> MB</td>
 				<td class="value"><?php printf('%.2f', $totalData); ?> MB</td>
 			</tr>
 			<tr>
 				<td class="title">Time Cap</td>
+				<td class="title">Topups</td>
 				<td class="title">Used This Month</td>
 			</tr>
 			<tr>
+<?php  ?>
 <?php
 				if (is_numeric($uptimeCap)) {
 ?>
@@ -219,7 +283,8 @@ function displayDetails() {
 <?php
 				}
 ?>
-				<td class="value"><?php echo $totalSessionTime; ?> Min</td>
+				<td class="value"><?php echo $uptimeTopups; ?> Min</td>
+				<td class="value"><?php printf('%.2f', $totalSessionTime); ?> Min</td>
 			</tr>
 <!--
 			<tr>
@@ -252,7 +317,7 @@ function displayDetails() {
 			<td></td>
 		</tr>
 		<tr>
-			<td colspan="2" align="center">
+			<td colspan="3" align="center">
 				<a href="logs.php">Usage Logs</a>
 			</td>
 		</tr>
