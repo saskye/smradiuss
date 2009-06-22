@@ -31,16 +31,16 @@ function displayDetails() {
 	global $DB_TABLE_PREFIX;
 
 	$username = $_SESSION['username'];
- 
+
 	# Get user's ID
 	$sql = "
 		SELECT
-				ID
+			ID
 		FROM
-				${DB_TABLE_PREFIX}users
+			${DB_TABLE_PREFIX}users
 		WHERE
-				Username = '$username'
-		";
+			Username = '$username'
+	";
 
 	$res = $db->query($sql);
 	$row = $res->fetchObject();
@@ -51,21 +51,21 @@ function displayDetails() {
 
 	$sql = "
 		SELECT
-				AcctSessionTime,
-				AcctInputOctets,
-				AcctInputGigawords,
-				AcctOutputOctets,
-				AcctOutputGigawords
+			AcctSessionTime,
+			AcctInputOctets,
+			AcctInputGigawords,
+			AcctOutputOctets,
+			AcctOutputGigawords
 		FROM
-				${DB_TABLE_PREFIX}accounting
+			${DB_TABLE_PREFIX}accounting
 		WHERE
-				Username = '$username'
+			Username = '$username'
 		AND
-				EventTimestamp >= '$currentMonth'
+			EventTimestamp >= '$currentMonth'
 		ORDER BY
-				EventTimestamp
+			EventTimestamp
 		DESC
-		";
+	";
 
 	$res = $db->query($sql);
 
@@ -114,13 +114,13 @@ function displayDetails() {
 
 	# Fetch user uptime and traffic cap
 	$sql = "
-			SELECT
-					Name, Value
-			FROM
-					${DB_TABLE_PREFIX}user_attributes
-			WHERE
-					UserID = '$userID'
-			";
+		SELECT
+			Name, Value
+		FROM
+			${DB_TABLE_PREFIX}user_attributes
+		WHERE
+			UserID = '$userID'
+	";
 
 	$res = $db->query($sql);
 
@@ -137,18 +137,18 @@ function displayDetails() {
 
 	# Fetch user uptime and traffic summary
 	$sql = "
-			SELECT
-				SUM(${DB_TABLE_PREFIX}topups_summary.Balance) AS Balance, ${DB_TABLE_PREFIX}topups.Type
-			FROM
-				${DB_TABLE_PREFIX}topups_summary,
-				${DB_TABLE_PREFIX}topups
-			WHERE
-				${DB_TABLE_PREFIX}topups_summary.TopupID = ${DB_TABLE_PREFIX}topups.ID
-				AND	${DB_TABLE_PREFIX}topups.UserID = '$userID'
-				AND ${DB_TABLE_PREFIX}topups_summary.PeriodKey = $currentMonth
-				AND ${DB_TABLE_PREFIX}topups_summary.Depleted = 0
-			GROUP BY
-				${DB_TABLE_PREFIX}topups.Type
+		SELECT
+			SUM(${DB_TABLE_PREFIX}topups_summary.Balance) AS Balance, ${DB_TABLE_PREFIX}topups.Type
+		FROM
+			${DB_TABLE_PREFIX}topups_summary,
+			${DB_TABLE_PREFIX}topups
+		WHERE
+			${DB_TABLE_PREFIX}topups_summary.TopupID = ${DB_TABLE_PREFIX}topups.ID
+			AND ${DB_TABLE_PREFIX}topups.UserID = '$userID'
+			AND ${DB_TABLE_PREFIX}topups_summary.PeriodKey = $currentMonth
+			AND ${DB_TABLE_PREFIX}topups_summary.Depleted = 0
+		GROUP BY
+			${DB_TABLE_PREFIX}topups.Type
 	";
 
 	$res = $db->query($sql);
@@ -171,17 +171,17 @@ function displayDetails() {
 
 	# Fetch user uptime and traffic topups
 	$sql = "
-			SELECT
-				SUM(Value) AS Value, Type
-			FROM
-				${DB_TABLE_PREFIX}topups
-			WHERE
-				${DB_TABLE_PREFIX}topups.UserID = '$userID'
-				AND ${DB_TABLE_PREFIX}topups.ValidFrom >= $thisMonthUnixTime
-				AND ${DB_TABLE_PREFIX}topups.ValidTo > $now
-				AND ${DB_TABLE_PREFIX}topups.Depleted = 0
-			GROUP BY
-				${DB_TABLE_PREFIX}topups.Type
+		SELECT
+			SUM(Value) AS Value, Type
+		FROM
+			${DB_TABLE_PREFIX}topups
+		WHERE
+			${DB_TABLE_PREFIX}topups.UserID = '$userID'
+			AND ${DB_TABLE_PREFIX}topups.ValidFrom >= $thisMonthUnixTime
+			AND ${DB_TABLE_PREFIX}topups.ValidTo > $now
+			AND ${DB_TABLE_PREFIX}topups.Depleted = 0
+		GROUP BY
+			${DB_TABLE_PREFIX}topups.Type
 	";
 
 	$res = $db->query($sql);
@@ -198,13 +198,13 @@ function displayDetails() {
 /*
 	# Fetch user phone and email info
 	$sql = "
-			SELECT
-					Phone, Email
-			FROM
-					${DB_TABLE_PREFIX}wisp_userdata
-			WHERE
-					UserID = '$userID'
-			";
+		SELECT
+				Phone, Email
+		FROM
+				${DB_TABLE_PREFIX}wisp_userdata
+		WHERE
+				UserID = '$userID'
+	";
 
 	$res = $db->query($sql);
 
@@ -271,7 +271,6 @@ function displayDetails() {
 				<td class="title">Used This Month</td>
 			</tr>
 			<tr>
-<?php  ?>
 <?php
 				if (is_numeric($uptimeCap)) {
 ?>
