@@ -105,11 +105,12 @@ function displayDetails() {
 		# Time calculation
 		$sessionTimeItem = 0;
 		if (!empty($row->acctsessiontime) && $row->acctsessiontime > 0) {
-			$sessionTimeItem += ($row->acctsessiontime - ($row->acctsessiontime % 60)) / 60;
+			$sessionTimeItem += $row->acctsessiontime;
 		}
 
 		$totalSessionTime += $sessionTimeItem;
-
+		# Round up
+		$totalSessionTime = ceil($totalSessionTime / 60);
 	}
 
 	# Fetch user uptime and traffic cap
