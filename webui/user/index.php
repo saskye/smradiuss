@@ -82,7 +82,7 @@ function displayDetails() {
 		if (!isset($row->acctinputoctets) && $row->acctinputoctets > 0) {
 			$inputDataItem += ($row->accinputoctets / 1024 / 1024);
 		}
-		if (!empty($row->acctinputgigawords) && $row->inputgigawords > 0) {
+		if (!empty($row->acctinputgigawords) && $row->acctinputgigawords > 0) {
 			$inputDataItem += ($row->acctinputgigawords * 4096);
 		}
 
@@ -190,13 +190,16 @@ function displayDetails() {
 		$topups[$i]['Limit'] = $row->value;
 		$i++;
 	}
-	# Set excess usage
+
+	# Set excess traffic usage
 	$excessTraffic = 0;
 	if (is_numeric($trafficCap) && $trafficCap > 0) {
 		$excessTraffic += $totalTraffic - $trafficCap;
 	} elseif (is_string($trafficCap)) {
 		$excessTraffic += $totalTraffic;
 	}
+
+	# Set excess uptime usage
 	$excessUptime = 0;
 	if (is_numeric($uptimeCap) && $uptimeCap > 0) {
 		$excessUptime += $totalUptime - $uptimeCap;
