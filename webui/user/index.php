@@ -70,10 +70,10 @@ function displayDetails() {
 	$res = $db->query($sql);
 
 	# Set total traffic and uptime used
-	$totalData = 0;
+	$totalTraffic = 0;
 	$totalInputData = 0;
 	$totalOutputData = 0;
-	$totalSessionTime = 0;
+	$totalUptime = 0;
 	while ($row = $res->fetchObject()) {
 
 		# Input
@@ -86,7 +86,7 @@ function displayDetails() {
 			$inputDataItem += ($row->acctinputgigawords * 4096);
 		}
 
-		$totalInputData += $inputDataItem;
+		$totalTraffic += $inputDataItem;
 
 		# Output
 		$outputDataItem = 0;
@@ -98,9 +98,8 @@ function displayDetails() {
 			$outputDataItem += ($row->acctoutputgigawords * 4096);
 		}
 
-		$totalOutputData += $outputDataItem;
+		$totalTraffic += $outputDataItem;
 
-		$totalData += $totalInputData + $totalOutputData;
 
 		# Time calculation
 		$sessionTimeItem = 0;
@@ -108,9 +107,9 @@ function displayDetails() {
 			$sessionTimeItem += $row->acctsessiontime;
 		}
 
-		$totalSessionTime += $sessionTimeItem;
+		$totalUptime += $sessionTimeItem;
 		# Round up
-		$totalSessionTime = ceil($totalSessionTime / 60);
+		$totalUptime = ceil($totalUptime / 60);
 	}
 
 	# Fetch user uptime and traffic cap
@@ -194,15 +193,15 @@ function displayDetails() {
 	# Set excess usage
 	$excessTraffic = 0;
 	if (is_numeric($trafficCap) && $trafficCap > 0) {
-		$excessTraffic += $totalData - $trafficCap;
+		$excessTraffic += $totalTraffic - $trafficCap;
 	} elseif (is_string($trafficCap)) {
-		$excessTraffic += $totalData;
+		$excessTraffic += $totalTraffic;
 	}
 	$excessUptime = 0;
 	if (is_numeric($uptimeCap) && $uptimeCap > 0) {
-		$excessUptime += $totalData - $uptimeCap;
+		$excessUptime += $totalUptime - $uptimeCap;
 	} elseif (is_string($uptimeCap)) {
-		$excessUptime += $totalData;
+		$excessUptime += $totalUptime;
 	}
 
 	# Loop through traffic topups and check for current topup, total topups not being used
@@ -383,7 +382,7 @@ function displayDetails() {
 <?php
 				}
 ?>
-				<td class="value"><?php printf('%.2f', $totalData); ?> MB</td>
+				<td class="value"><?php printf('%.2f', $totalTraffic); ?> MB</td>
 			</tr>
 			<tr>
 				<td rowspan="2" class="section">Uptime</td>
@@ -427,7 +426,7 @@ function displayDetails() {
 <?php
 				}
 ?>
-				<td class="value"><?php printf('%.2f', $totalSessionTime); ?> Min</td>
+				<td class="value"><?php printf('%.2f', $totalUptime); ?> Min</td>
 			</tr>
 <!--
 			<tr>
@@ -472,6 +471,7 @@ function displayDetails() {
 <?php
 }
 
+/*
 # If this is a post and we're updating
 if (isset($_POST['notifyUpdate']) && $_POST['notifyUpdate'] == "update") {
 
@@ -619,6 +619,7 @@ if (isset($_POST['notifyUpdate']) && $_POST['notifyUpdate'] == "update") {
 		}
 	}
 }
+*/
 
 displayDetails();
 
