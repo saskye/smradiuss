@@ -41,9 +41,10 @@ function displayDetails() {
 		WHERE
 			Username = '$username'
 	";
-
 	$res = $db->query($sql);
 	$row = $res->fetchObject();
+
+	# Set user ID
 	$userID = $row->id;
 
 	# Get accounting data
@@ -66,14 +67,13 @@ function displayDetails() {
 			EventTimestamp
 		DESC
 	";
-
 	$res = $db->query($sql);
 
+	# Set total traffic and uptime used
 	$totalData = 0;
 	$totalInputData = 0;
 	$totalOutputData = 0;
 	$totalSessionTime = 0;
-
 	while ($row = $res->fetchObject()) {
 
 		# Input
@@ -122,24 +122,26 @@ function displayDetails() {
 		WHERE
 			UserID = '$userID'
 	";
-
 	$res = $db->query($sql);
 
-	$trafficCap = "None";
-	$uptimeCap = "None";
+	# Set uptime and traffic cap
+	$trafficCap = "Prepaid";
+	$uptimeCap = "Prepaid";
 	while ($row = $res->fetchObject()) {
 		if ($row->name == "SMRadius-Capping-Traffic-Limit") {
-			$trafficCap = $row->value;
+			$trafficCap = (int)$row->value;
 		}
-		if ($row->name == "SMRadius-Capping-UpTime-Limit") {
-			$uptimeCap = $row->value;
+		if ($row->name == "SMRadius-Capping-Uptime-Limit") {
+			$uptimeCap = (int)$row->value;
 		}
 	}
 
 	# Fetch user uptime and traffic summary
 	$sql = "
 		SELECT
-			SUM(${DB_TABLE_PREFIX}topups_summary.Balance) AS Balance, ${DB_TABLE_PREFIX}topups.Type
+			${DB_TABLE_PREFIX}topups_summary.Balance,
+			${DB_TABLE_PREFIX}topups.Type,
+			${DB_TABLE_PREFIX}topups.Value
 		FROM
 			${DB_TABLE_PREFIX}topups_summary,
 			${DB_TABLE_PREFIX}topups
@@ -148,32 +150,28 @@ function displayDetails() {
 			AND ${DB_TABLE_PREFIX}topups.UserID = '$userID'
 			AND ${DB_TABLE_PREFIX}topups_summary.PeriodKey = $currentMonth
 			AND ${DB_TABLE_PREFIX}topups_summary.Depleted = 0
-		GROUP BY
-			${DB_TABLE_PREFIX}topups.Type
+		ORDER BY
+			${DB_TABLE_PREFIX}topups.Timestamp
 	";
-
 	$res = $db->query($sql);
 
-	$trafficTopups = 0;
-	$uptimeTopups = 0;
+	# Set summary topups
+	$topups = array();
+	$i = 0;
 	while ($row = $res->fetchObject()) {
-		if ($row->type == 1) {
-			$trafficTopups += $row->balance;
-		}
-		if ($row->type == 2) {
-			$uptimeTopups += $row->balance;
-		}
+		$topups[$i] = array();
+		$topups[$i]['Type'] = $row->type;
+		$topups[$i]['Limit'] = $row->balance;
+		$topups[$i]['OriginalLimit'] = $row->value;
+		$i++;
 	}
 
-	# Convert month to unix time
-	$thisMonthUnixTime = strtotime($currentMonth);
-	# Get time right now
-	$now = time();
-
 	# Fetch user uptime and traffic topups
+	$thisMonthUnixTime = strtotime($currentMonth);
+	$now = time();
 	$sql = "
 		SELECT
-			SUM(Value) AS Value, Type
+			Value, Type
 		FROM
 			${DB_TABLE_PREFIX}topups
 		WHERE
@@ -181,18 +179,119 @@ function displayDetails() {
 			AND ${DB_TABLE_PREFIX}topups.ValidFrom >= $thisMonthUnixTime
 			AND ${DB_TABLE_PREFIX}topups.ValidTo > $now
 			AND ${DB_TABLE_PREFIX}topups.Depleted = 0
-		GROUP BY
-			${DB_TABLE_PREFIX}topups.Type
+		ORDER BY
+			${DB_TABLE_PREFIX}topups.Timestamp
 	";
-
 	$res = $db->query($sql);
 
+	# Set normal topups
 	while ($row = $res->fetchObject()) {
-		if ($row->type == 1) {
-			$trafficTopups += $row->value;
+		$topups[$i] = array();
+		$topups[$i]['Type'] = $row->type;
+		$topups[$i]['Limit'] = $row->value;
+		$i++;
+	}
+	# Set excess usage
+	$excessTraffic = 0;
+	if (is_numeric($trafficCap) && $trafficCap > 0) {
+		$excessTraffic += $totalData - $trafficCap;
+	} elseif (is_string($trafficCap)) {
+		$excessTraffic += $totalData;
+	}
+	$excessUptime = 0;
+	if (is_numeric($uptimeCap) && $uptimeCap > 0) {
+		$excessUptime += $totalData - $uptimeCap;
+	} elseif (is_string($uptimeCap)) {
+		$excessUptime += $totalData;
+	}
+
+	# Loop through traffic topups and check for current topup, total topups not being used
+	if (is_string($trafficCap) || $trafficCap != 0) {
+		$currentTrafficTopup = array();
+		$topupTrafficRemaining = 0;
+		$i = 0;
+		# User is using traffic from topups
+		if ($excessTraffic > 0) {
+			foreach ($topups as $topupItem) {
+				if ($topupItem['Type'] == 1) {
+					if ($excessTraffic <= 0) {
+						$topupTrafficRemaining += $topupItem['Limit'];
+						next($topupItem);
+					} elseif ($excessTraffic >= $topupItem['Limit']) {
+						$excessTraffic -= $topupItem['Limit'];
+					} else {
+						if (isset($topupItem['OriginalLimit'])) {
+							$currentTrafficTopup['Cap'] = $topupItem['OriginalLimit'];
+						} else {
+							$currentTrafficTopup['Cap'] = $topupItem['Limit'];
+						}
+						$currentTrafficTopup['Used'] = $excessTraffic;
+						$excessTraffic -= $topupItem['Limit'];
+					}
+				}
+			}
+		# User has not used traffic topups yet
+		} else {
+			foreach ($topups as $topupItem) {
+				if ($topupItem['Type'] == 1) {
+					if ($i == 0) {
+						if (isset($topupItem['OriginalLimit'])) {
+							$currentTrafficTopup['Cap'] = $topupItem['OriginalLimit'];
+						} else {
+							$currentTrafficTopup['Cap'] = $topupItem['Limit'];
+						}
+						$i = 1;
+							$currentTrafficTopup['Used'] = 0;
+					} else {
+						$topupTrafficRemaining += $topupItem['Limit'];
+					}
+				}
+			}
 		}
-		if ($row->type == 2) {
-			$uptimeTopups += $row->value;
+	}
+
+	# Loop through uptime topups and check for current topup, total topups not being used
+	if (is_string($uptimeCap) || $uptimeCap != 0) {
+		$currentUptimeTopup = array();
+		$topupUptimeRemaining = 0;
+		$i = 0;
+		# User is using uptime from topups
+		if ($excessUptime > 0) {
+			foreach ($topups as $topupItem) {
+				if ($topupItem['Type'] == 2) {
+					if ($excessUptime <= 0) {
+						$topupUptimeRemaining += $topupItem['Limit'];
+						next($topupItem);
+					} elseif ($excessUptime >= $topupItem['Limit']) {
+						$excessUptime -= $topupItem['Limit'];
+					} else {
+						if (isset($topupItem['OriginalLimit'])) {
+							$currentUptimeTopup['Cap'] = $topupItem['OriginalLimit'];
+						} else {
+							$currentUptimeTopup['Cap'] = $topupItem['Limit'];
+						}
+						$currentUptimeTopup['Used'] = $excessUptime;
+						$excessUptime -= $topupItem['Limit'];
+					}
+				}
+			}
+		# User has not used uptime topups yet
+		} else {
+			foreach ($topups as $topupItem) {
+				if ($topupItem['Type'] == 2) {
+					if ($i == 0) {
+						if (isset($topupItem['OriginalLimit'])) {
+							$currentUptimeTopup['Cap'] = $topupItem['OriginalLimit'];
+						} else {
+							$currentUptimeTopup['Cap'] = $topupItem['Limit'];
+						}
+						$i = 1;
+							$currentUptimeTopup['Used'] = 0;
+					} else {
+						$topupUptimeRemaining += $topupItem['Limit'];
+					}
+				}
+			}
 		}
 	}
 
@@ -218,72 +317,116 @@ function displayDetails() {
 	}
 */
 
+	# These two items need fixing
 	$isDialup = 0;
 	$userService = "Not set";
 
 ?>
-
 	<table class="blockcenter">
 		<tr>
-			<td colspan="3" class="section">Account Information</td>
+			<td colspan="5" class="section">Account Information</td>
 		</tr>
 		<tr>
-			<td class="title">Username</td>
-			<td class="value"><?php echo $username; ?></td>
+			<td colspan="3" class="title">Username</td>
+			<td colspan="2" class="title">Service</td>
 		</tr>
 		<tr>
-			<td class="title">Service</td>
-			<td class="value"><?php echo $userService; ?></td>
+			<td colspan="3" class="value"><?php echo $username; ?></td>
+			<td colspan="2" class="value"><?php echo $userService; ?></td>
 		</tr>
-
 <?php
-
 		# Only display cap for DSL users
 		if (!$isDialup) {
-
 ?>
-
 			<tr>
-				<td colspan="3" class="section">Usage Info</td>
+				<td colspan="5" class="section">Usage Info</td>
 			</tr>
 			<tr>
-				<td class="title">Bandwidth Cap</td>
-				<td class="title">Topups</td>
+				<td rowspan="2" class="section">Traffic</td>
+				<td class="title">Traffic Cap</td>
+				<td class="title">Additional Topups</td>
+				<td class="title">Current Topup</td>
 				<td class="title">Used This Month</td>
 			</tr>
 			<tr>
 <?php
-				if (is_numeric($trafficCap)) {
+				if (is_numeric($trafficCap) && $trafficCap > 0) {
 ?>
 					<td class="value"><?php echo $trafficCap; ?> MB</td>
+<?php
+				} elseif (is_numeric($trafficCap) && $trafficCap == 0) {
+?>
+					<td class="value">Uncapped</td>
 <?php
 				} else {
 ?>
 					<td class="value"><?php echo $trafficCap; ?></td>
 <?php
 				}
+				if (is_numeric($trafficCap) && $trafficCap == 0) {
 ?>
-				<td class="value"><?php echo $trafficTopups; ?> MB</td>
+					<td class="value">N/A</td>
+<?php
+				} else {
+?>
+					<td class="value"><?php echo $topupTrafficRemaining; ?> MB</td>
+<?php
+				}
+				if (isset($currentTrafficTopup['Used']) && isset($currentTrafficTopup['Cap'])) {
+?>
+					<td class="value"><?php printf('%.2f', $currentTrafficTopup['Used']);
+							print("/".$currentTrafficTopup['Cap']); ?> MB</td>
+<?php
+				} else {
+?>
+					<td class="value">N/A</td>
+<?php
+				}
+?>
 				<td class="value"><?php printf('%.2f', $totalData); ?> MB</td>
 			</tr>
 			<tr>
-				<td class="title">Time Cap</td>
-				<td class="title">Topups</td>
+				<td rowspan="2" class="section">Uptime</td>
+				<td class="title">Uptime Cap</td>
+				<td class="title">Additional Topups</td>
+				<td class="title">Current Topup</td>
 				<td class="title">Used This Month</td>
 			</tr>
 			<tr>
 <?php
-				if (is_numeric($uptimeCap)) {
+				if (is_numeric($uptimeCap) && $uptimeCap > 0) {
 ?>
-				<td class="value"><?php echo $uptimeCap; ?> Min</td>
+					<td class="value"><?php echo $uptimeCap; ?> Min</td>
+<?php
+				} elseif (is_numeric($uptimeCap) && $uptimeCap == 0) {
+?>
+					<td class="value">Uncapped</td>
 <?php
 				} else {
 ?>
 					<td class="value"><?php echo $uptimeCap; ?></td>
 <?php
 				}
+				if (is_numeric($uptimeCap) && $uptimeCap == 0) {
 ?>
-				<td class="value"><?php echo $uptimeTopups; ?> Min</td>
+					<td class="value">N/A</td>
+<?php
+				} else {
+?>
+					<td class="value"><?php echo $topupUptimeRemaining; ?> Min</td>
+<?php
+				}
+				if (isset($currentUptimeTopup['Used']) && isset($currentTrafficTopup['Cap'])) {
+?>
+					<td class="value"><?php printf('%.2f', $currentUptimeTopup['Used']);
+							print("/".$currentUptimeTopup['Cap']); ?> Min</td>
+<?php
+				} else {
+?>
+					<td class="value">N/A</td>
+<?php
+				}
+?>
 				<td class="value"><?php printf('%.2f', $totalSessionTime); ?> Min</td>
 			</tr>
 <!--
@@ -307,17 +450,14 @@ function displayDetails() {
 --!>
 
 <?php
-
 		}
-
 ?>
-
 		<tr>
 			<td></td>
 			<td></td>
 		</tr>
 		<tr>
-			<td colspan="3" align="center">
+			<td colspan="5" align="center">
 				<a href="logs.php">Usage Logs</a>
 			</td>
 		</tr>
@@ -329,9 +469,7 @@ function displayDetails() {
 		Note:
 		<li>Please contact your ISP if you have any problem using this interface.</li>
 	</font>
-
 <?php
-
 }
 
 # If this is a post and we're updating
