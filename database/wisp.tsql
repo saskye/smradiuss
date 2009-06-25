@@ -28,8 +28,8 @@ CREATE INDEX @PREFIX@wisp_userdata_idx2 ON @PREFIX@wisp_userdata (LocationID);
 CREATE TABLE @PREFIX@wisp_locations (
 	ID			@SERIAL_TYPE@,
 
-	Location		VARCHAR(255) NOT NULL,
+	Name			VARCHAR(255) NOT NULL,
 
-	UNIQUE(Location)	
+	UNIQUE(Name)	
 )  @CREATE_TABLE_SUFFIX@;
 
