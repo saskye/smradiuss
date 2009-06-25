@@ -117,7 +117,7 @@ function displayDetails() {
 		FROM
 			${DB_TABLE_PREFIX}user_attributes
 		WHERE
-			UserID = '$userID'
+			UserID = ".$db->quote($userID)."
 	";
 	$res = $db->query($sql);
 
@@ -144,8 +144,8 @@ function displayDetails() {
 			${DB_TABLE_PREFIX}topups
 		WHERE
 			${DB_TABLE_PREFIX}topups_summary.TopupID = ${DB_TABLE_PREFIX}topups.ID
-			AND ${DB_TABLE_PREFIX}topups.UserID = '$userID'
-			AND ${DB_TABLE_PREFIX}topups_summary.PeriodKey = $currentMonth
+			AND ${DB_TABLE_PREFIX}topups.UserID = ".$db->quote($userID)."
+			AND ${DB_TABLE_PREFIX}topups_summary.PeriodKey = ".$db->quote($currentMonth)."
 			AND ${DB_TABLE_PREFIX}topups_summary.Depleted = 0
 		ORDER BY
 			${DB_TABLE_PREFIX}topups.Timestamp
@@ -172,9 +172,9 @@ function displayDetails() {
 		FROM
 			${DB_TABLE_PREFIX}topups
 		WHERE
-			${DB_TABLE_PREFIX}topups.UserID = '$userID'
-			AND ${DB_TABLE_PREFIX}topups.ValidFrom >= $thisMonthUnixTime
-			AND ${DB_TABLE_PREFIX}topups.ValidTo > $now
+			${DB_TABLE_PREFIX}topups.UserID = ".$db->quote($userID)."
+			AND ${DB_TABLE_PREFIX}topups.ValidFrom >= ".$db->quote($thisMonthUnixTime)."
+			AND ${DB_TABLE_PREFIX}topups.ValidTo > ".$db->quote($now)."
 			AND ${DB_TABLE_PREFIX}topups.Depleted = 0
 		ORDER BY
 			${DB_TABLE_PREFIX}topups.Timestamp
