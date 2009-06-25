@@ -35,10 +35,7 @@ function displayLogs() {
 	global $db;
 	global $DB_TABLE_PREFIX;
 
-	$username = $_SESSION['username'];
-
 ?>
-
 	<table class="blockcenter" width="750">
 		<tr>
 			<td colspan="4" class="title">
@@ -85,9 +82,7 @@ function displayLogs() {
 			<td class="section">Upload</td>
 			<td class="section">Download</td>
 		</tr>
-
 <?php
-
 		# Extra SQL
 		$extraSQL = "";
 		$extraSQLVals = array();
@@ -114,7 +109,7 @@ function displayLogs() {
 				FROM 
 						${DB_TABLE_PREFIX}accounting 
 				WHERE 
-						Username = '$username'
+						Username = ".$db->quote($_SESSION['username'])."
 						$extraSQL
 				ORDER BY
 						EventTimestamp
@@ -143,7 +138,6 @@ function displayLogs() {
 				}
 				$totalInputData += $inputDataItem;
 
-
 				# Output data calculation
 				$outputDataItem = 0;
 
@@ -157,7 +151,6 @@ function displayLogs() {
 
 				$totalData += $totalOutputData + $totalInputData;
 
-
 				# Time calculation
 				$sessionTimeItem = 0;
 				if (isset($row->acctsessiontime) && $row->acctsessiontime > 0) {
@@ -165,9 +158,7 @@ function displayLogs() {
 				}
 
 				$totalSessionTime += $sessionTimeItem;
-
 ?>
-
 				<tr>
 					<td class="desc"><?php echo $row->eventtimestamp; ?></td>
 					<td class="desc"><?php echo $row->acctsessiontime; ?></td>
@@ -178,24 +169,16 @@ function displayLogs() {
 					<td class="right desc"><?php printf('%.2f',$inputDataItem); ?></td>
 					<td class="right desc"><?php printf('%.2f',$outputDataItem); ?></td>
 				</tr>
-
 <?php
-
 			}
 			if ($res->rowCount() == 0) {
-
 ?>
-
 				<tr>
 					<td colspan="8" class="info">There are no logs for the selected dates</td>
-				</tr>	
-
+				</tr>
 <?php
-
 			} else {
-
 ?>
-
 				<tr>
 					<td colspan="6" class="right">Sub Total:</td>
 					<td class="right desc"><?php printf('%.2f',$totalInputData); ?></td>
@@ -205,42 +188,25 @@ function displayLogs() {
 					<td colspan="6" class="right">Total:</td>
 					<td colspan="2" class="center desc"><?php printf('%.2f',$totalData); ?></td>
 				</tr>
-
 <?php
-
 			}
 		} else {
-
 ?>
-
 			<tr>
 				<td colspan="8" class="info">Please specify dates above in YYYY-MM-DD format and click "search".</td>
 			</tr>
-
 <?php
-
 		}
-
 ?>
-
 	</table>
-
 <?php
-
 }
-
 ?>
-
 	<a href=".">Back</a><br>
-
 <?php
-
 displayLogs();
-
 ?>
-
 	<a href=".">Back</a><br><br>
-
 <?php
 
 
