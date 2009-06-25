@@ -62,10 +62,10 @@ function getAdminUserLogs($params) {
 		# Input
 		$acctInputMbyte = 0;
 
-		if (!empty($row->acctinputoctets) && $row->acctinputoctets > 0) {
+		if (isset($row->acctinputoctets) && $row->acctinputoctets > 0) {
 			$acctInputMbyte += ($row->acctinputoctets / 1024) / 1024;
 		}
-		if (!empty($row->acctinputgigawords) && $row->inputgigawords > 0) {
+		if (isset($row->acctinputgigawords) && $row->acctinputgigawords > 0) {
 			$acctInputMbyte += ($row->acctinputgigawords * 4096);
 		}
 
@@ -73,10 +73,10 @@ function getAdminUserLogs($params) {
 		# Output
 		$acctOutputMbyte = 0;
 
-		if (!empty($row->acctoutputoctets) && $row->acctoutputoctets > 0) {
+		if (isset($row->acctoutputoctets) && $row->acctoutputoctets > 0) {
 			$acctOutputMbyte += ($row->acctoutputoctets / 1024) / 1024;
 		}
-		if (!empty($row->acctoutputgigawords) && $row->acctoutputgigawords > 0) {
+		if (isset($row->acctoutputgigawords) && $row->acctoutputgigawords > 0) {
 			$acctOutputMbyte += ($row->acctoutputgigawords * 4096);
 		}
 
