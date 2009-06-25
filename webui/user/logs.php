@@ -135,10 +135,10 @@ function displayLogs() {
 				# Input data calculation
 				$inputDataItem = 0;
 
-				if (!empty($row->acctinputoctets) && $row->acctinputoctets > 0) {
+				if (isset($row->acctinputoctets) && $row->acctinputoctets > 0) {
 					$inputDataItem += ($row->acctinputoctets / 1024) / 1024;
 				}
-				if (!empty($row->acctinputgigawords) && $row->inputgigawords > 0) {
+				if (isset($row->acctinputgigawords) && $row->acctinputgigawords > 0) {
 					$inputDataItem += ($row->acctinputgigawords * 4096);
 				}
 				$totalInputData += $inputDataItem;
@@ -147,10 +147,10 @@ function displayLogs() {
 				# Output data calculation
 				$outputDataItem = 0;
 
-				if (!empty($row->acctoutputoctets) && $row->acctoutputoctets > 0) {
+				if (isset($row->acctoutputoctets) && $row->acctoutputoctets > 0) {
 					$outputDataItem += ($row->acctoutputoctets / 1024) / 1024;
 				}
-				if (!empty($row->acctoutputgigawords) && $row->acctoutputgigawords > 0) {
+				if (isset($row->acctoutputgigawords) && $row->acctoutputgigawords > 0) {
 					$outputDataItem += ($row->acctoutputgigawords * 4096);
 				}
 				$totalOutputData += $outputDataItem;
@@ -160,7 +160,7 @@ function displayLogs() {
 
 				# Time calculation
 				$sessionTimeItem = 0;
-				if (!empty($row->acctsessiontime) && $row->acctsessiontime > 0) {
+				if (isset($row->acctsessiontime) && $row->acctsessiontime > 0) {
 					$sessionTimeItem += ($row->acctsessiontime - ($row->acctsessiontime % 60)) / 60;
 				}
 

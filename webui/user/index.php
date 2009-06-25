@@ -69,39 +69,37 @@ function displayDetails() {
 
 	# Set total traffic and uptime used
 	$totalTraffic = 0;
-	$totalInputData = 0;
-	$totalOutputData = 0;
 	$totalUptime = 0;
 	while ($row = $res->fetchObject()) {
 
-		# Input
+		# Traffic in
 		$inputDataItem = 0;
 
-		if (!isset($row->acctinputoctets) && $row->acctinputoctets > 0) {
-			$inputDataItem += ($row->accinputoctets / 1024 / 1024);
+		if (isset($row->acctinputoctets) && $row->acctinputoctets > 0) {
+			$inputDataItem += ($row->acctinputoctets / 1024) / 1024;
 		}
-		if (!empty($row->acctinputgigawords) && $row->acctinputgigawords > 0) {
+		if (isset($row->acctinputgigawords) && $row->acctinputgigawords > 0) {
 			$inputDataItem += ($row->acctinputgigawords * 4096);
 		}
 
 		$totalTraffic += $inputDataItem;
 
-		# Output
+		# Traffic out
 		$outputDataItem = 0;
 
-		if (!empty($row->acctoutputoctets) && $row->acctoutputoctets > 0) {
-			$outputDataItem += ($row->acctoutputoctets / 1024 / 1024);
+		if (isset($row->acctoutputoctets) && $row->acctoutputoctets > 0) {
+			$outputDataItem += ($row->acctoutputoctets / 1024) / 1024;
 		}
-		if (!empty($row->acctoutputgigawords) && $row->acctoutputgigawords > 0) {
+		if (isset($row->acctoutputgigawords) && $row->acctoutputgigawords > 0) {
 			$outputDataItem += ($row->acctoutputgigawords * 4096);
 		}
 
 		$totalTraffic += $outputDataItem;
 
 
-		# Time calculation
+		# Uptime
 		$sessionTimeItem = 0;
-		if (!empty($row->acctsessiontime) && $row->acctsessiontime > 0) {
+		if (isset($row->acctsessiontime) && $row->acctsessiontime > 0) {
 			$sessionTimeItem += $row->acctsessiontime;
 		}
 
@@ -454,6 +452,8 @@ function displayDetails() {
 ?>
 		<tr>
 			<td></td>
+		</tr>
+		<tr>
 			<td></td>
 		</tr>
 		<tr>
