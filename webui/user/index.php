@@ -30,8 +30,6 @@ function displayDetails() {
 	global $db;
 	global $DB_TABLE_PREFIX;
 
-	$username = $_SESSION['username'];
-
 	# Get user's ID
 	$sql = "
 		SELECT
@@ -39,7 +37,7 @@ function displayDetails() {
 		FROM
 			${DB_TABLE_PREFIX}users
 		WHERE
-			Username = '$username'
+			Username = ".$db->quote($_SESSION['username'])."
 	";
 	$res = $db->query($sql);
 	$row = $res->fetchObject();
@@ -60,9 +58,9 @@ function displayDetails() {
 		FROM
 			${DB_TABLE_PREFIX}accounting
 		WHERE
-			Username = '$username'
+			Username = ".$db->quote($_SESSION['username'])."
 		AND
-			EventTimestamp >= '$currentMonth'
+			EventTimestamp >= ".$db->quote($currentMonth)."
 		ORDER BY
 			EventTimestamp
 		DESC
@@ -154,7 +152,7 @@ function displayDetails() {
 	";
 	$res = $db->query($sql);
 
-	# Set summary topups
+	# Store summary topups
 	$topups = array();
 	$i = 0;
 	while ($row = $res->fetchObject()) {
@@ -183,7 +181,7 @@ function displayDetails() {
 	";
 	$res = $db->query($sql);
 
-	# Set normal topups
+	# Store normal topups
 	while ($row = $res->fetchObject()) {
 		$topups[$i] = array();
 		$topups[$i]['Type'] = $row->type;
@@ -333,7 +331,7 @@ function displayDetails() {
 			<td colspan="2" class="title">Service</td>
 		</tr>
 		<tr>
-			<td colspan="3" class="value"><?php echo $username; ?></td>
+			<td colspan="3" class="value"><?php echo $_SESSION['username']; ?></td>
 			<td colspan="2" class="value"><?php echo $userService; ?></td>
 		</tr>
 <?php
@@ -346,7 +344,7 @@ function displayDetails() {
 			<tr>
 				<td rowspan="2" class="section">Traffic</td>
 				<td class="title">Traffic Cap</td>
-				<td class="title">Additional Topups</td>
+				<td class="title">Topup remaining</td>
 				<td class="title">Current Topup</td>
 				<td class="title">Used This Month</td>
 			</tr>
@@ -390,7 +388,7 @@ function displayDetails() {
 			<tr>
 				<td rowspan="2" class="section">Uptime</td>
 				<td class="title">Uptime Cap</td>
-				<td class="title">Additional Topups</td>
+				<td class="title">Topup remaining</td>
 				<td class="title">Current Topup</td>
 				<td class="title">Used This Month</td>
 			</tr>
