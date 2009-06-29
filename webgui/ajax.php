@@ -15,9 +15,10 @@
 	include_once("include/ajax/functions/AdminRealms.php");
 	include_once("include/ajax/functions/AdminRealmAttributes.php");
 
+	include_once("include/ajax/functions/WiSPUsers.php");
 	include_once("include/ajax/functions/WiSPLocations.php");
 	include_once("include/ajax/functions/WiSPLocationMembers.php");
-	include_once("include/ajax/functions/WiSPUsers.php");
+	include_once("include/ajax/functions/WiSPUserLogs.php");
 
 	include_once("include/radiuscodes.php");
 
@@ -503,6 +504,35 @@
 			echo json_encode($res->export());
 			break;
 
+		# WiSPUserLogs.js functions
+		case "getWiSPUserLogs":
+
+			$res = getWiSPUserLogs($soapParams);
+			$rawData = $res[0]; $numResults = $res[1];
+
+			$res = new json_response;
+			$res->setID('ID');
+			$res->addField('ID','int');
+			$res->addField('EventTimestamp','string');
+			$res->addField('AcctStatusType','int');
+			$res->addField('ServiceType','int');
+			$res->addField('FramedProtocol','int');
+			$res->addField('NASPortType','int');
+			$res->addField('NASPortID','string');
+			$res->addField('CallingStationID','string');
+			$res->addField('CalledStationID','string');
+			$res->addField('AcctSessionID','string');
+			$res->addField('FramedIPAddress','string');
+			$res->addField('AcctInputMbyte','int');
+			$res->addField('AcctOutputMbyte','int');
+			$res->addField('ConnectTermReason','string');
+			$res->parseArray($rawData);
+			$res->setDatasetSize($numResults);
+
+			echo json_encode($res->export());
+
+			break;
+	
 		# WiSPLocationMembers.js functions
 		case "getWiSPLocationMembers":
 
