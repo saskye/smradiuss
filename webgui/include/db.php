@@ -257,12 +257,10 @@ function DBSelectSearch($query,$search,$filters,$sorts) {
 					} elseif ($data['comparison'] == "eq") {
 						$match = "=";
 					}
-					# Convert to ISO format	
-					# FIXME
-#					$unixtime = str2time($data['value']);
-#					$date = DateTime->from_epoch( epoch => $unixtime );
-#					$value = $db->quote($date->ymd());
 
+					# Convert to ISO format	
+					$date = new DateTime($data['value']);
+					$value = $db->quote($date->format('Y-m-d'));
 
 				} elseif ($data['type'] == "list") {
 					# Quote all values
