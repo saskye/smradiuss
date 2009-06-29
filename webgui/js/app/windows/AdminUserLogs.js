@@ -27,7 +27,7 @@ function showAdminUserLogsWindow(id) {
 					frame: true,
 					defaultType: 'datefield',
 					height: 180,
-					width: 300,
+					width: 320,
 					labelWidth: 100,
 					items: [
 						{
@@ -35,17 +35,17 @@ function showAdminUserLogsWindow(id) {
 							name: 'after',
 							width: 180,
 							fieldLabel: 'From',
-//							vtype: 'daterange',
+							vtype: 'daterange',
 							format: 'Y-m-d',
 							value: firstOfMonth,
-							endDateField: 'before',
+							endDateField: 'before'
 						},
 						{
 							id: 'before',
 							name: 'before',
 							width: 180,
 							fieldLabel: 'To',
-//							vtype: 'daterange',
+							vtype: 'daterange',
 							format: 'Y-m-d',
 							value: firstOfNext,
 							startDateField: 'after'
@@ -101,8 +101,8 @@ function showAdminUserLogsWindow(id) {
 							id: 'summaryTotal',
 							name: 'summaryTotal',
 							readOnly: true,
-							height: 135,
-							width: 200,
+							height: 139,
+							width: 275,
 							fieldLabel: 'Summary',
 							fieldClass: 'font-family: monospace; font-size: 10px;',
 							value: ''
@@ -116,13 +116,6 @@ function showAdminUserLogsWindow(id) {
 			region: 'south',
 			width: 700,
 			border: true,
-			tbar: [
-				{
-					text: 'Add Port Lock',
-					tooltip: 'Add port lock',
-					iconCls: 'add'
-				}	
-			],
 			// Column model
 			colModel: new Ext.grid.ColumnModel([
 				{
@@ -206,14 +199,15 @@ function showAdminUserLogsWindow(id) {
 		{
 			filters: [
 				{type: 'numeric', dataIndex: 'ID'},
-				/*{
+				{
 					type: 'date',  
+					format: 'Y-m-d H:i:s',
 					dataIndex: 'EventTimestamp', 
 					value: {
 						after: firstOfMonth,
 						before: firstOfNext
 					}
-				},*/
+				},
 				{type: 'numeric',  dataIndex: 'AcctStatusType'},
 				{type: 'numeric',  dataIndex: 'ServiceType'},
 				{type: 'numeric',  dataIndex: 'FramedProtocol'},

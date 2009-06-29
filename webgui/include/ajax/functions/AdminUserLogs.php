@@ -83,7 +83,12 @@ function getAdminUserLogs($params) {
 		$item = array();
 
 		$item['ID'] = $row->id;
-		$item['EventTimestamp'] = $row->eventtimestamp;
+
+		# Convert to ISO format	
+		$date = new DateTime($row->eventtimestamp);
+		$value = $date->format("Y-m-d H:i:s");
+		$item['EventTimestamp'] = $value;
+
 		$item['AcctStatusType'] = $row->acctstatustype;
 		$item['ServiceType'] = $row->servicetype;
 		$item['FramedProtocol'] = $row->framedprotocol;

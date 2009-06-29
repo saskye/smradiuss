@@ -198,7 +198,7 @@
 			$res = new json_response;
 			$res->setID('ID');
 			$res->addField('ID','int');
-			$res->addField('EventTimestamp','int');
+			$res->addField('EventTimestamp','string');
 			$res->addField('AcctStatusType','int');
 			$res->addField('ServiceType','int');
 			$res->addField('FramedProtocol','int');
