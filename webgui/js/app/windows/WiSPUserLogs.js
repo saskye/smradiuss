@@ -248,3 +248,5 @@ function showWiSPUserLogsWindow(id) {
 	});
 	wispUserLogsWindow.show();				
 }
+
+// vim: ts=4

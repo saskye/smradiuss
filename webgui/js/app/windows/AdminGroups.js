@@ -314,3 +314,5 @@ function showAdminGroupRemoveWindow(parent,id) {
 	});
 }
 
+
+// vim: ts=4

@@ -280,3 +280,4 @@ function showAdminGroupAttributeRemoveWindow(parent,id) {
 	});
 }
 
+// vim: ts=4

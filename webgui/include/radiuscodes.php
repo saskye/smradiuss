@@ -60,4 +60,5 @@ function strRadiusTermCode($errCode) {
 }
 
 
+# vim: ts=4
 ?> 

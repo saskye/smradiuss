@@ -280,3 +280,5 @@ function showAdminRealmAttributeRemoveWindow(parent,id) {
 	});
 }
 
+
+// vim: ts=4

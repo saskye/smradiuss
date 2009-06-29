@@ -263,3 +263,5 @@ function showWiSPLocationRemoveWindow(parent,id) {
 	});
 }
 
+
+// vim: ts=4

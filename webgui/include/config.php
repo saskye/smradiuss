@@ -40,4 +40,5 @@ $DB_TABLE_PREFIX="";
 #$DB_POSTFIX_USER="root";
 #$DB_POSTFIX_PASS="";
 
+# vim: ts=4
 ?>

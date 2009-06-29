@@ -292,3 +292,5 @@ function showWiSPUserTopupRemoveWindow(parent,id) {
 	});
 }
 
+
+// vim: ts=4

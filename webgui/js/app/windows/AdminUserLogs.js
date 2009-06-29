@@ -248,3 +248,5 @@ function showAdminUserLogsWindow(id) {
 	});
 	adminUserLogsWindow.show();				
 }
+
+// vim: ts=4

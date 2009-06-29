@@ -130,3 +130,5 @@ function showAdminGroupMemberRemoveWindow(parent,id) {
 	});
 }
 
+
+// vim: ts=4
