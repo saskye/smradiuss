@@ -271,7 +271,9 @@ function showWiSPUserAddEditWindow(id) {
 					'0:Email,'+
 					'0:LocationID,'+
 					'0:Attributes,'+
-					'0:Groups'
+					'0:Groups,'+
+					'0:Number,'+
+					'0:Prefix'
 			},
 
 			hook: function() {
@@ -556,14 +558,14 @@ function showWiSPUserAddEditWindow(id) {
 					name: 'Username',
 					vtype: 'usernamePart',
 					maskRe: usernamePartRe,
-					allowBlank: false,
+					allowBlank: true,
 				},
 				{
 					fieldLabel: 'Password',
 					name: 'Password',
 					vtype: 'usernamePart',
 					maskRe: usernamePartRe,
-					allowBlank: false,
+					allowBlank: true,
 				},
 				{
 					xtype: 'tabpanel',
@@ -658,15 +660,12 @@ function showWiSPUserAddEditWindow(id) {
 								{
 									fieldLabel: 'Prefix',
 									name: 'Prefix',
-									vtype: 'usernamePart',
-									maskRe: usernamePartRe,
 									allowBlank: true,
 								},
 								{
 									fieldLabel: 'Number',
 									name: 'Number',
-									vtype: 'usernamePart',
-									maskRe: usernamePartRe,
+									vtype: 'number',
 									allowBlank: true,
 								},
 							]
