@@ -164,6 +164,34 @@ function showAdminUserWindow() {
 							});
 						}
 					}
+				},
+				'-',
+				{
+					text:'Topups',
+					tooltip:'User topups',
+					iconCls:'logs',
+					handler: function() {
+						var selectedItem = AdminUserWindow.getComponent('gridpanel').getSelectionModel().getSelected();
+						// Check if we have selected item
+						if (selectedItem) {
+							// If so display window
+							showAdminUserTopupsWindow(selectedItem.data.ID);
+						} else {
+							AdminUserWindow.getEl().mask();
+
+							// Display error
+							Ext.Msg.show({
+								title: "Nothing selected",
+								msg: "No user selected",
+								icon: Ext.MessageBox.ERROR,
+								buttons: Ext.Msg.CANCEL,
+								modal: false,
+								fn: function() {
+									AdminUserWindow.getEl().unmask();
+								}
+							});
+						}
+					}
 				}
 			],
 			// Column model

@@ -7,6 +7,7 @@
 	include_once("include/ajax/functions/AdminUserAttributes.php");
 	include_once("include/ajax/functions/AdminUserGroups.php");
 	include_once("include/ajax/functions/AdminUserLogs.php");
+	include_once("include/ajax/functions/AdminUserTopups.php");
 
 	include_once("include/ajax/functions/AdminGroups.php");
 	include_once("include/ajax/functions/AdminGroupAttributes.php");
@@ -163,6 +164,69 @@
 
 
 	switch ($function) {
+
+		# AdminUserTopups.js functions
+		case "getAdminUserTopups":
+
+			$res = getAdminUserTopups($soapParams);
+			$rawData = $res[0]; $numResults = $res[1];
+
+			$res = new json_response;
+			$res->setID('ID');
+			$res->addField('ID','int');
+			$res->addField('Timestamp','date');
+			$res->addField('Type','int');
+			$res->addField('Value','int');
+			$res->addField('ValidFrom','string');
+			$res->addField('ValidTo','string');
+			$res->parseArray($rawData);
+			$res->setDatasetSize($numResults);
+
+			echo json_encode($res->export());
+
+			break;
+	
+		case "createAdminUserTopup":
+
+			$res = createAdminUserTopup($soapParams);
+			if (isset($res)) {
+				ajaxException($res);
+			}
+
+			break;
+
+		case "updateAdminUserTopup":
+
+			$res = updateAdminUserTopup($soapParams);
+			if (isset($res)) {
+				ajaxException($res);
+			}
+
+			break;
+
+		case "getAdminUserTopup":
+			$rawData = getAdminUserTopup($soapParams);
+
+			$res = new json_response;
+			$res->setID('ID');
+			$res->addField('ID','int');
+			$res->addField('Type','int');
+			$res->addField('Value','int');
+			$res->addField('ValidFrom','date');
+			$res->addField('ValidTo','date');
+			$res->parseHash($rawData);
+
+			echo json_encode($res->export());
+			break;
+
+		case "removeAdminUserTopup":
+
+			$res = removeAdminUserTopup($soapParams);
+			if (isset($res)) {
+				ajaxException($res);
+			}
+
+			break;
 
 		# WiSPUserTopups.js functions
 		case "getWiSPUserTopups":
