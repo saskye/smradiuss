@@ -19,6 +19,7 @@
 	include_once("include/ajax/functions/WiSPLocations.php");
 	include_once("include/ajax/functions/WiSPLocationMembers.php");
 	include_once("include/ajax/functions/WiSPUserLogs.php");
+	include_once("include/ajax/functions/WiSPUserTopups.php");
 
 	include_once("include/radiuscodes.php");
 
@@ -162,6 +163,69 @@
 
 
 	switch ($function) {
+
+		# WiSPUserTopups.js functions
+		case "getWiSPUserTopups":
+
+			$res = getWiSPUserTopups($soapParams);
+			$rawData = $res[0]; $numResults = $res[1];
+
+			$res = new json_response;
+			$res->setID('ID');
+			$res->addField('ID','int');
+			$res->addField('Timestamp','date');
+			$res->addField('Type','int');
+			$res->addField('Value','int');
+			$res->addField('ValidFrom','string');
+			$res->addField('ValidTo','string');
+			$res->parseArray($rawData);
+			$res->setDatasetSize($numResults);
+
+			echo json_encode($res->export());
+
+			break;
+	
+		case "createWiSPUserTopup":
+
+			$res = createWiSPUserTopup($soapParams);
+			if (isset($res)) {
+				ajaxException($res);
+			}
+
+			break;
+
+		case "updateWiSPUserTopup":
+
+			$res = updateWiSPUserTopup($soapParams);
+			if (isset($res)) {
+				ajaxException($res);
+			}
+
+			break;
+
+		case "getWiSPUserTopup":
+			$rawData = getWiSPUserTopup($soapParams);
+
+			$res = new json_response;
+			$res->setID('ID');
+			$res->addField('ID','int');
+			$res->addField('Type','int');
+			$res->addField('Value','int');
+			$res->addField('ValidFrom','date');
+			$res->addField('ValidTo','date');
+			$res->parseHash($rawData);
+
+			echo json_encode($res->export());
+			break;
+
+		case "removeWiSPUserTopup":
+
+			$res = removeWiSPUserTopup($soapParams);
+			if (isset($res)) {
+				ajaxException($res);
+			}
+
+			break;
 
 		# AdminGroupMembers.js functions
 		case "getAdminGroupMembers":

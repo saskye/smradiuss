@@ -108,6 +108,34 @@ function showWiSPUserWindow() {
 							});
 						}
 					}
+				},
+				'-',
+				{
+					text:'Topups',
+					tooltip:'User topups',
+					iconCls:'logs',
+					handler: function() {
+						var selectedItem = WiSPUserWindow.getComponent('gridpanel').getSelectionModel().getSelected();
+						// Check if we have selected item
+						if (selectedItem) {
+							// If so display window
+							showWiSPUserTopupsWindow(selectedItem.data.ID);
+						} else {
+							WiSPUserWindow.getEl().mask();
+
+							// Display error
+							Ext.Msg.show({
+								title: "Nothing selected",
+								msg: "No user selected",
+								icon: Ext.MessageBox.ERROR,
+								buttons: Ext.Msg.CANCEL,
+								modal: false,
+								fn: function() {
+									WiSPUserWindow.getEl().unmask();
+								}
+							});
+						}
+					}
 				}
 			],
 			// Column model

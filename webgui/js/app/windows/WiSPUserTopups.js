@@ -21,7 +21,7 @@ function showWiSPUserTopupsWindow(userID) {
 					tooltip:'Add topup',
 					iconCls:'add',
 					handler: function() {
-						showWiSPUserTopupEditWindow(userID,0);
+						showWiSPUserTopupAddEditWindow(userID,0);
 					}
 				}, 
 				'-', 
@@ -34,7 +34,7 @@ function showWiSPUserTopupsWindow(userID) {
 						// Check if we have selected item
 						if (selectedItem) {
 							// If so display window
-							showWiSPUserTopupEditWindow(userID,selectedItem.data.ID);
+							showWiSPUserTopupAddEditWindow(userID,selectedItem.data.ID);
 						} else {
 							wispUserTopupsWindow.getEl().mask();
 
@@ -91,9 +91,14 @@ function showWiSPUserTopupsWindow(userID) {
 					dataIndex: 'ID'
 				},
 				{
-					header: "Bandwidth",
+					header: "Type",
 					sortable: true,
-					dataIndex: 'Bandwidth'
+					dataIndex: 'Type'
+				},
+				{
+					header: "Value",
+					sortable: true,
+					dataIndex: 'Value'
 				},
 				{
 					header: "Timestamp",
@@ -110,12 +115,7 @@ function showWiSPUserTopupsWindow(userID) {
 					header: "ValidTo",
 					sortable: true,
 					dataIndex: 'ValidTo'
-				},
-				{
-					header: "AgentRef",
-					sortable: true,
-					dataIndex: 'AgentRef'
-				}
+				}			
 			]),
 		},
 		// Store config
@@ -134,11 +134,10 @@ function showWiSPUserTopupsWindow(userID) {
 		{
 			filters: [
 				{type: 'numeric',  dataIndex: 'ID'},
-				{type: 'numeric',  dataIndex: 'Bandwidth'},
 				{type: 'date',  dataIndex: 'Timestamp'},
+				{type: 'numeric',  dataIndex: 'Value'},
 				{type: 'date',  dataIndex: 'ValidFrom'},
-				{type: 'date',  dataIndex: 'ValidTo'},
-				{type: 'string',  dataIndex: 'AgentRef'}
+				{type: 'date',  dataIndex: 'ValidTo'}
 			]
 		}
 	);
@@ -148,7 +147,7 @@ function showWiSPUserTopupsWindow(userID) {
 
 
 // Display edit/add form
-function showWiSPUserTopupEditWindow(userID,topupID) {
+function showWiSPUserTopupAddEditWindow(userID,topupID) {
 	var today = new Date();
 	var firstOfMonth = today.getFirstDateOfMonth();
 	var firstOfNext = today.getLastDateOfMonth().add(Date.DAY, 1);
@@ -161,8 +160,8 @@ function showWiSPUserTopupEditWindow(userID,topupID) {
 			ID: topupID,
 			SOAPFunction: 'updateWiSPUserTopup',
 			SOAPParams: 
-				'0:ID,0:Bandwidth,'+
-				'0:Timestamp,0:ValidFrom,0:ValidTo,0:AgentRef'
+				'0:ID,0:Value,0:Type,'+
+				'0:ValidFrom,0:ValidTo'
 		};
 	// We doing an Add
 	} else {
@@ -170,8 +169,8 @@ function showWiSPUserTopupEditWindow(userID,topupID) {
 			UserID: userID,
 			SOAPFunction: 'createWiSPUserTopup',
 			SOAPParams: 
-				'0:UserID,0:Bandwidth,'+
-				'0:Timestamp,0:ValidFrom,0:ValidTo,0:AgentRef'
+				'0:UserID,0:Value,0:Type,'+
+				'0:ValidFrom,0:ValidTo'
 		};
 	}
 
@@ -198,8 +197,15 @@ function showWiSPUserTopupEditWindow(userID,topupID) {
 			items: [
 				{
 					xtype: 'numberfield',
-					fieldLabel: 'Bandwidth',
-					name: 'Bandwidth',
+					fieldLabel: 'Type',
+					name: 'Type',
+					minValue: 1,
+					allowBlank: false
+				},
+				{
+					xtype: 'numberfield',
+					fieldLabel: 'Value',
+					name: 'Value',
 					minValue: 1,
 					allowBlank: false
 				},
@@ -212,7 +218,6 @@ function showWiSPUserTopupEditWindow(userID,topupID) {
 					value: firstOfMonth,
 					format: 'Y-m-d',
 					endDateField: 'ValidTo'
-
 				},
 				{
 					xtype: 'datefield',
@@ -223,10 +228,6 @@ function showWiSPUserTopupEditWindow(userID,topupID) {
 					value: firstOfNext,
 					format: 'Y-m-d',
 					startDateField: 'ValidFrom'
-				},
-				{
-					fieldLabel: 'AgentRef',
-					name: 'AgentRef'
 				}
 			],
 		},
