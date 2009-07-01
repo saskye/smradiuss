@@ -793,6 +793,7 @@
 			$res->setID('ID');
 			$res->addField('ID','int');
 			$res->addField('Username','string');
+			$res->addField('Password','string');
 			$res->addField('Disabled','boolean');
 			$res->parseHash($rawData);
 

@@ -56,6 +56,17 @@ function getAdminUser($params) {
 	$resultArray['Username'] = $row->username;
 	$resultArray['Disabled'] = $row->disabled;
 
+	$res = DBSelect("SELECT Value FROM user_attributes WHERE Name = ? AND UserID = ?",
+			array('User-Password',$params[0])
+	);
+	if (!is_object($res)) {
+		return $res;
+	}
+
+	$row = $res->fetchObject();
+
+	$resultArray['Password'] = $row->value;
+
 	return $resultArray;
 }
 
@@ -78,7 +89,7 @@ function removeAdminUser($params) {
 	if ($res !== FALSE) {
 		$res = DBDo("DELETE FROM users_to_groups WHERE UserID = ?",array($params[0]));
 	}
-	
+
 	# Delete user
 	if ($res !== FALSE) {
 		$res = DBDo("DELETE FROM users WHERE ID = ?",array($params[0]));
@@ -100,9 +111,27 @@ function removeAdminUser($params) {
 function createAdminUser($params) {
 	global $db;
 
+	DBBegin();
 	$res = DBDo("INSERT INTO users (Username) VALUES (?)",array($params[0]['Username']));
-	if (!is_numeric($res)) {
+
+	if ($res !== FALSE) {
+		$lastInsertID = DBLastInsertID();
+		if (isset($lastInsertID)) {
+			$res = DBDo("INSERT INTO user_attributes (UserID,Name,Operator,Value) VALUES (?,?,?,?)",
+					array($lastInsertID,'User-Password','==',$params[0]['Password'])
+			);
+		} else {
+			$res = 0;
+		}
+	}
+
+	# Commit and return if successful
+	if ($res !== FALSE) {
+		DBCommit();
 		return $res;
+	# Else rollback database
+	} else {
+		DBRollback();
 	}
 
 	return NULL;
@@ -112,9 +141,22 @@ function createAdminUser($params) {
 function updateAdminUser($params) {
 	global $db;
 
+	DBBegin();
 	$res = DBDo("UPDATE users SET Username = ? WHERE ID = ?",array($params[0]['Username'],$params[0]['ID']));
-	if (!is_numeric($res)) {
+
+	if ($res !== FALSE) {
+		$res = DBDo("UPDATE user_attributes SET Value = ? WHERE Name = ? AND UserID = ?",
+				array($params[0]['Password'],'User-Password',$params[0]['ID'])
+		);
+	}
+
+	# Commit and return if successful
+	if ($res !== FALSE) {
+		DBCommit();
 		return $res;
+	# Else rollback database
+	} else {
+		DBRollback();
 	}
 
 	return NULL;
