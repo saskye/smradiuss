@@ -196,11 +196,21 @@ function showAdminUserTopupAddEditWindow(userID,topupID) {
 			},
 			items: [
 				{
-					xtype: 'numberfield',
+					xtype: 'combo',
 					fieldLabel: 'Type',
 					name: 'Type',
-					minValue: 1,
-					allowBlank: false
+					allowBlank: false,
+					width: 157,
+					store: [ 
+						[ '1', 'Traffic' ],
+						[ '2', 'Uptime' ]
+					],
+					displayField: 'Type',
+					valueField: 'Type',
+					hiddenName: 'Type',
+					forceSelection: true,
+					triggerAction: 'all',
+					editable: false
 				},
 				{
 					xtype: 'numberfield',

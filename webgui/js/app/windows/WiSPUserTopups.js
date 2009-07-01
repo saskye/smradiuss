@@ -200,7 +200,7 @@ function showWiSPUserTopupAddEditWindow(userID,topupID) {
 					fieldLabel: 'Type',
 					name: 'Type',
 					allowBlank: false,
-					width: 140,
+					width: 157,
 					store: [ 
 						[ '1', 'Traffic' ],
 						[ '2', 'Uptime' ]

@@ -202,9 +202,33 @@ function showAdminRealmAttributeAddEditWindow(realmID,attrID) {
 					allowBlank: false
 				},
 				{
-					fieldLabel: "Operator",
-					name: "Operator",
-					allowBlank: false
+					xtype: 'combo',
+					fieldLabel: 'Operator',
+					name: 'Operator',
+					allowBlank: false,
+					width: 157,
+					store: [ 
+						[ '=', '=' ], 
+						[ ':=', ':='  ],
+						[ '==', '==' ], 
+						[ '+=', '+=' ],
+						[ '!=', '!=' ],
+						[ '<', '<' ],
+						[ '>', '>' ],
+						[ '<=', '<=' ],
+						[ '>=', '>=' ],
+						[ '=~', '=~' ],
+						[ '!~', '!~' ],
+						[ '=*', '=*' ],
+						[ '!*', '!*' ],
+						[ '||==', '||==' ]
+					],
+					displayField: 'Operator',
+					valueField: 'Operator',
+					hiddenName: 'Operator',
+					forceSelection: true,
+					triggerAction: 'all',
+					editable: false
 				},
 				{
 					fieldLabel: "Value",
