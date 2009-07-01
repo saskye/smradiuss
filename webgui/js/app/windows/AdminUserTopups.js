@@ -23,8 +23,8 @@ function showAdminUserTopupsWindow(userID) {
 					handler: function() {
 						showAdminUserTopupAddEditWindow(userID,0);
 					}
-				}, 
-				'-', 
+				},
+				'-',
 				{
 					text:'Edit',
 					tooltip:'Edit topup',
@@ -115,7 +115,7 @@ function showAdminUserTopupsWindow(userID) {
 					header: "ValidTo",
 					sortable: true,
 					dataIndex: 'ValidTo'
-				}			
+				}
 			]),
 		},
 		// Store config
@@ -168,7 +168,7 @@ function showAdminUserTopupAddEditWindow(userID,topupID) {
 		submitAjaxConfig = {
 			UserID: userID,
 			SOAPFunction: 'createAdminUserTopup',
-			SOAPParams: 
+			SOAPParams:
 				'0:UserID,0:Value,0:Type,'+
 				'0:ValidFrom,0:ValidTo'
 		};
@@ -210,7 +210,7 @@ function showAdminUserTopupAddEditWindow(userID,topupID) {
 					allowBlank: false
 				},
 				{
-					xtype: 'datefield', 
+					xtype: 'datefield',
 					fieldLabel: 'ValidFrom',
 					name: 'ValidFrom',
 					id: 'ValidFrom',

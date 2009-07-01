@@ -24,7 +24,7 @@ function showWiSPUserTopupsWindow(userID) {
 						showWiSPUserTopupAddEditWindow(userID,0);
 					}
 				}, 
-				'-', 
+				'-',
 				{
 					text:'Edit',
 					tooltip:'Edit topup',
@@ -115,7 +115,7 @@ function showWiSPUserTopupsWindow(userID) {
 					header: "ValidTo",
 					sortable: true,
 					dataIndex: 'ValidTo'
-				}			
+				}
 			]),
 		},
 		// Store config
@@ -202,7 +202,7 @@ function showWiSPUserTopupAddEditWindow(userID,topupID) {
 					allowBlank: false,
 					width: 140,
 					store: [ 
-						[ '1', 'Traffic' ], 
+						[ '1', 'Traffic' ],
 						[ '2', 'Uptime' ]
 					],
 					displayField: 'Type',
@@ -220,7 +220,7 @@ function showWiSPUserTopupAddEditWindow(userID,topupID) {
 					allowBlank: false
 				},
 				{
-					xtype: 'datefield', 
+					xtype: 'datefield',
 					fieldLabel: 'ValidFrom',
 					name: 'ValidFrom',
 					id: 'ValidFrom',
