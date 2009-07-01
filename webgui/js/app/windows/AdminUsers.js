@@ -252,9 +252,7 @@ function showAdminUserAddEditWindow(id) {
 			SOAPFunction: 'updateAdminUser',
 			SOAPParams: 
 				'0:ID,'+
-				'0:Username,'+
-				'0:Password'
-
+				'0:Username'
 		};
 
 	// We doing an Add
@@ -262,8 +260,7 @@ function showAdminUserAddEditWindow(id) {
 		submitAjaxConfig = {
 			SOAPFunction: 'createAdminUser',
 			SOAPParams: 
-				'0:Username,'+
-				'0:Password'
+				'0:Username'
 		};
 	}
 
@@ -274,10 +271,10 @@ function showAdminUserAddEditWindow(id) {
 			title: "User Information",
 
 			width: 310,
-			height: 142,
+			height: 113,
 
 			minWidth: 310,
-			minHeight: 142
+			minHeight: 113
 		},
 		// Form panel config
 		{
@@ -294,11 +291,6 @@ function showAdminUserAddEditWindow(id) {
 					name: 'Username',
 					vtype: 'usernamePart',
 					maskRe: usernamePartRe,
-					allowBlank: false,
-				},
-				{
-					fieldLabel: 'Password',
-					name: 'Password',
 					allowBlank: false,
 				},
 			],
