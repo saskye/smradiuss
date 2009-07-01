@@ -50,7 +50,7 @@ function removeWiSPUserTopup($params) {
 
 	return NULL;
 }
-
+ 
 # Return specific topup row
 function getWiSPUserTopup($params) {
 	global $db;
@@ -96,7 +96,7 @@ function getWiSPUserTopups($params) {
 
 	$res = DBSelectSearch("
 			SELECT 
-				ID, Timestamp, Type, Value, ValidFrom, ValidTo
+				ID, Timestamp, Type, Value, ValidFrom, ValidTo 
 			FROM 
 				topups 
 			WHERE 

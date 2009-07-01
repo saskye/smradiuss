@@ -23,10 +23,10 @@ function getAdminUserLogs($params) {
 	);
 
 	$res = DBSelectSearch("
-				SELECT
+				SELECT 
 					accounting.ID,
-					accounting.EventTimestamp,
-					accounting.AcctStatusType,
+					accounting.EventTimestamp, 
+					accounting.AcctStatusType, 
 					accounting.ServiceType,
 					accounting.FramedProtocol,
 					accounting.NASPortType,
@@ -40,9 +40,9 @@ function getAdminUserLogs($params) {
 					accounting.AcctOutputOctets,
 					accounting.AcctOutputGigawords,
 					accounting.AcctTerminateCause
-				FROM
+				FROM 
 					accounting, users
-				WHERE
+				WHERE 
 					users.Username = accounting.Username
 				AND
 					users.ID = ".DBQuote($params[0])."

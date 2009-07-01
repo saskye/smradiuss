@@ -23,10 +23,10 @@ function getWiSPUserLogs($params) {
 	);
 
 	$res = DBSelectSearch("
-				SELECT
+				SELECT 
 					accounting.ID,
-					accounting.EventTimestamp,
-					accounting.AcctStatusType,
+					accounting.EventTimestamp, 
+					accounting.AcctStatusType, 
 					accounting.ServiceType,
 					accounting.FramedProtocol,
 					accounting.NASPortType,
@@ -40,9 +40,9 @@ function getWiSPUserLogs($params) {
 					accounting.AcctOutputOctets,
 					accounting.AcctOutputGigawords,
 					accounting.AcctTerminateCause
-				FROM
+				FROM 
 					accounting, users
-				WHERE
+				WHERE 
 					users.Username = accounting.Username
 				AND
 					users.ID = ".DBQuote($params[0])."
@@ -84,7 +84,7 @@ function getWiSPUserLogs($params) {
 
 		$item['ID'] = $row->id;
 
-		# Convert to ISO format
+		# Convert to ISO format	
 		$date = new DateTime($row->eventtimestamp);
 		$value = $date->format("Y-m-d H:i:s");
 		$item['EventTimestamp'] = $value;
