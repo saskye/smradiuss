@@ -50,7 +50,7 @@ function removeAdminUserTopup($params) {
 
 	return NULL;
 }
- 
+
 # Return specific topup row
 function getAdminUserTopup($params) {
 	global $db;
@@ -96,7 +96,7 @@ function getAdminUserTopups($params) {
 
 	$res = DBSelectSearch("
 			SELECT 
-				ID, Timestamp, Type, Value, ValidFrom, ValidTo 
+				ID, Timestamp, Type, Value, ValidFrom, ValidTo
 			FROM 
 				topups 
 			WHERE 
