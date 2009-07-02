@@ -626,6 +626,7 @@
 			$res->addField('Lastname','string');
 			$res->addField('Phone','string');
 			$res->addField('Email','string');
+			$res->addField('LocationID','int');
 			$res->parseHash($rawData);
 			$res->setDatasetSize($numResults);
 

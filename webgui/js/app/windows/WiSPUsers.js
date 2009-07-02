@@ -254,6 +254,7 @@ function showWiSPUserAddEditWindow(id) {
 				'0:Firstname,'+
 				'0:Lastname,'+
 				'0:Phone,'+
+				'0:LocationID,'+
 				'0:Email'
 		};
 
@@ -609,11 +610,10 @@ function showWiSPUserAddEditWindow(id) {
 								},
 								{
 									xtype: 'combo',
-									//id: 'combo',
 									fieldLabel: 'Location',
 									name: 'Location',
-									allowBlank: false,
-									width: 140,
+									allowBlank: true,
+									width: 160,
 
 									store: new Ext.ux.JsonStore({
 										sortInfo: { field: "Name", direction: "ASC" },
@@ -621,7 +621,7 @@ function showWiSPUserAddEditWindow(id) {
 											SOAPUsername: globalConfig.soap.username,
 											SOAPPassword: globalConfig.soap.password,
 											SOAPAuthType: globalConfig.soap.authtype,
-											SOAPModule: 'WiSPLocations',
+											SOAPModule: 'WiSPUsers',
 											SOAPFunction: 'getWiSPLocations',
 											SOAPParams: '__null,__search'
 										}
@@ -631,7 +631,6 @@ function showWiSPUserAddEditWindow(id) {
 									hiddenName: 'LocationID',
 									forceSelection: true,
 									triggerAction: 'all',
-									allowBlank: true,
 									editable: false
 								},
 							]

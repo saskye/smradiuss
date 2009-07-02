@@ -73,6 +73,7 @@ function getWiSPUser($params) {
 					wisp_userdata.LastName, 
 					wisp_userdata.Phone, 
 					wisp_userdata.Email, 
+					wisp_userdata.LocationID,
 					users.Username
 				FROM 
 					wisp_userdata, users
@@ -98,6 +99,7 @@ function getWiSPUser($params) {
 	$resultArray['Lastname'] = $row->lastname;
 	$resultArray['Phone'] = $row->phone;
 	$resultArray['Email'] = $row->email;
+	$resultArray['LocationID'] = $row->locationid;
 	$resultArray['Attributes'] = array();
 	
 	# Query to get user password
@@ -390,26 +392,28 @@ function updateWiSPUser($params) {
 	DBBegin();
 	$res = DBDo("UPDATE users SET Username = ? WHERE ID = ?",array($params[0]['Username'],$params[0]['ID']));
 	if ($res !== FALSE) {
-		DBDo("UPDATE user_attributes SET User-Password = ? WHERE UserID = ?",array($params[0]['Username'],$params[0]['ID']));
+		$res = DBDo("UPDATE user_attributes SET User-Password = ? WHERE UserID = ?",array($params[0]['Username'],$params[0]['ID']));
 	}
 	if ($res !== FALSE) {
-		DBDo("
-			UPDATE
-				wisp_userdata
-			SET
-				FirstName = ?,
-				LastName = ?,
-				Phone = ?,
-				Email = ?
-			WHERE
-				UserID = ?",
-			array($params[0]['Firstname'],
-			$params[0]['Lastname'],
-			$params[0]['Phone'],
-			$params[0]['Email'],
-			$params[0]['ID'])
+		$res = DBDo("
+				UPDATE
+					wisp_userdata
+				SET
+					FirstName = ?,
+					LastName = ?,
+					Phone = ?,
+					Email = ?,
+					LocationID = ?
+				WHERE
+					UserID = ?",
+				array($params[0]['Firstname'],
+				$params[0]['Lastname'],
+				$params[0]['Phone'],
+				$params[0]['Email'],
+				$params[0]['LocationID'],
+				$params[0]['ID'])
 		);
-	}	
+	}
 
 	# Commit changes if all was successful, else break
 	if ($res !== FALSE) {
