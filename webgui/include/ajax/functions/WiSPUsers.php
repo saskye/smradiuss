@@ -266,9 +266,9 @@ function createWiSPUser($params) {
 							case "MBytes":
 								$attrValue = $attr['Value'];
 							case "GBytes":
-								$attrValue = $attr['Value'] * 1024;
+								$attrValue = $attr['Value'] * 1000;
 							case "TBytes":
-								$attrValue = $attr['Value'] * 1048576;
+								$attrValue = $attr['Value'] * 1000000;
 						}
 					}
 				}
@@ -390,9 +390,9 @@ function createWiSPUser($params) {
 									case "MBytes":
 										$attrValue = $attr['Value'];
 									case "GBytes":
-										$attrValue = $attr['Value'] * 1024;
+										$attrValue = $attr['Value'] * 1000;
 									case "TBytes":
-										$attrValue = $attr['Value'] * 1048576;
+										$attrValue = $attr['Value'] * 1000000;
 								}
 							}
 						}

@@ -613,7 +613,7 @@ function showWiSPUserAddEditWindow(id) {
 									fieldLabel: 'Location',
 									name: 'Location',
 									allowBlank: true,
-									width: 160,
+									width: 140,
 
 									store: new Ext.ux.JsonStore({
 										sortInfo: { field: "Name", direction: "ASC" },
