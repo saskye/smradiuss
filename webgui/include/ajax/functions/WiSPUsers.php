@@ -195,6 +195,7 @@ function removeWiSPUser($params) {
 # Add wisp user
 function createWiSPUser($params) {
 	global $db;
+	global $adminEmails;
 
 	DBBegin();
 	$res = "Username & Password required for single user. For adding multiple users an integer is required.";
@@ -428,6 +429,7 @@ function createWiSPUser($params) {
 						$res = DBDo("INSERT INTO users_to_groups (UserID,GroupID) VALUES (?,?)",array($id,$groupID));
 					}
 				}
+
 				# Link to wisp users
 				if ($res !== FALSE) {
 					$res = DBDo("INSERT INTO wisp_userdata (UserID) VALUES (?)",
@@ -435,6 +437,49 @@ function createWiSPUser($params) {
 					);
 				}
 			}
+		}
+
+		# Email userlist to admin
+		if ($res !== FALSE && isset($adminEmails)) {
+
+			// multiple recipients
+			$to = $adminEmails;
+
+			// subject
+			$subject = count($wispUser).' WiSP users added';
+
+			// html
+			$html = '';
+
+			foreach ($wispUser as $key => $val) {
+				$html .= '<tr><td>'.$key.'</td><td>'.$val.'</td></tr>';
+			}
+
+			// message
+			$message = '
+			<html>
+				<head>
+					<title>User List</title>
+				</head>
+				<body>
+					<table cellspacing="10">
+						<tr>
+							<th>Username</th><th>Password</th>
+						</tr>'.$html.'
+					</table>
+				</body>
+			</html>
+			';
+
+			// To send HTML mail, the Content-type header must be set
+			$headers = 'MIME-Version: 1.0' . "\r\n";
+			$headers .= 'Content-type: text/html; charset=iso-8859-1' . "\r\n";
+
+			// Additional headers
+			$headers .= 'From: SMRadius';
+
+			// Mail it
+			$res = mail($to, $subject, $message, $headers);
 		}
 	}
 

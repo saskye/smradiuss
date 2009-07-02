@@ -32,8 +32,9 @@ $DB_PASS="root";
 $DB_TABLE_PREFIX="";
 
 
-# Admin email
-# $adminEmail = 'admin@example.com';
+# Email address/addresses to receive notifications
+# Seperated by commas, eg. "admin@example.org,admin@example.net"
+# $adminEmails="admin@example.org";
 
 
 
