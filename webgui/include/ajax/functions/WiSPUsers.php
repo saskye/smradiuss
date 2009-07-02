@@ -340,7 +340,7 @@ function createWiSPUser($params) {
 				);
 
 				# If there are no rows we may continue
-				if ($res->rowCount() == 0 && !defined($wispUser[$thisUsername])) {
+				if ($res->rowCount() == 0 && !isset($wispUser[$thisUsername])) {
 					$usernameReserved = 0;
 
 					# Generate random username
@@ -364,6 +364,70 @@ function createWiSPUser($params) {
 						array($id,'User-Password','==',$password)
 				);
 
+				# Grab each attribute and add it's details to the database
+				if ($res !== FALSE && isset($params[0]['Attributes'])) {
+					foreach ($params[0]['Attributes'] as $attr) {
+
+						# Default value without modifier
+						$attrValue = $attr['Value'];
+
+						if ($attr['Name'] == 'SMRadius-Capping-Traffic-Limit' || $attr['Name'] == 'SMRadius-Capping-Uptime-Limit') {
+							# If modifier is set we need to work out attribute value
+							if (isset($attr['Modifier'])) {
+								switch ($attr['Modifier']) {
+									case "Seconds":
+										$attrValue = $attr['Value'] / 60;
+									case "Minutes":
+										$attrValue = $attr['Value'];
+									case "Hours":
+										$attrValue = $attr['Value'] * 60;
+									case "Days":
+										$attrValue = $attr['Value'] * 1440;
+									case "Weeks":
+										$attrValue = $attr['Value'] * 10080;
+									case "Months":
+										$attrValue = $attr['Value'] * 44640; 
+									case "MBytes":
+										$attrValue = $attr['Value'];
+									case "GBytes":
+										$attrValue = $attr['Value'] * 1024;
+									case "TBytes":
+										$attrValue = $attr['Value'] * 1048576;
+								}
+							}
+						}
+
+						# Add attribute
+						$res = DBDo("
+								INSERT INTO 
+										user_attributes (UserID,Name,Operator,Value) 
+								VALUES
+										(?,?,?,?)",
+								array(
+									$id,
+									$attr['Name'],
+									$attr['Operator'],
+									$attrValue
+								)
+						);
+					}
+				}
+
+				# Link user to groups if any selected
+				if ($res !== FALSE && isset($params[0]['Groups'])) {
+					$refinedGroups = array();
+
+					# Filter out unique group ID's
+					foreach ($params[0]['Groups'] as $group) {
+						foreach ($group as $ID=>$value) {
+							$refinedGroups[$value] = $value;
+						}
+					}
+					# Loop through groups
+					foreach ($refinedGroups as $groupID) {
+						$res = DBDo("INSERT INTO users_to_groups (UserID,GroupID) VALUES (?,?)",array($id,$groupID));
+					}
+				}
 				# Link to wisp users
 				if ($res !== FALSE) {
 					$res = DBDo("INSERT INTO wisp_userdata (UserID) VALUES (?)",
