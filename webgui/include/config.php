@@ -32,6 +32,11 @@ $DB_PASS="root";
 $DB_TABLE_PREFIX="";
 
 
+# Admin email
+# $adminEmail = 'admin@example.com';
+
+
+
 #
 # THE BELOW SECTION IS UNSUPPORTED AND MEANT FOR THE ORIGINAL SPONSOR OF V2
 #
