@@ -13,50 +13,58 @@ function getAdminUsers($params) {
 		'Disabled' => 'users.Disabled',
 	);
 
+	# Perform query
 	$res = DBSelectSearch("SELECT ID, Username, Disabled FROM users",$params[1],$filtersorts,$filtersorts);
 	$sth = $res[0]; $numResults = $res[1];
+
 	# If STH is blank, return the error back to whoever requested the data
 	if (!isset($sth)) {
 		return $res;
 	}
 
+	# Loop through rows
 	$resultArray = array();
-
-	# loop through rows
 	while ($row = $sth->fetchObject()) {
+
+		# Array for this row
 		$item = array();
 
 		$item['ID'] = $row->id;
 		$item['Username'] = $row->username;
 		$item['Disabled'] = $row->disabled;
 
-		# push this row onto array
+		# Push this row onto main array
 		array_push($resultArray,$item);
 	}
 
+	# Return results
 	return array($resultArray,$numResults);
 }
 
-# Return specific group row
+# Return specific user
 function getAdminUser($params) {
 
+	# Perform query
 	$res = DBSelect("SELECT ID, Username, Disabled FROM users WHERE ID = ?",array($params[0]));
+
+	# Return error if failed
 	if (!is_object($res)) {
 		return $res;
 	}
 
+	# Build array of results
 	$resultArray = array();
-
 	$row = $res->fetchObject();
 
 	$resultArray['ID'] = $row->id;
 	$resultArray['Username'] = $row->username;
 	$resultArray['Disabled'] = $row->disabled;
 
+	# Return results
 	return $resultArray;
 }
 
-# Remove admin group
+# Remove admin user
 function removeAdminUser($params) {
 
 	# Begin transaction
@@ -92,10 +100,13 @@ function removeAdminUser($params) {
 	return NULL;
 }
 
-# Add admin group
+# Add admin user
 function createAdminUser($params) {
 
+	# Perform query
 	$res = DBDo("INSERT INTO users (Username) VALUES (?)",array($params[0]['Username']));
+
+	# Return result
 	if (!is_numeric($res)) {
 		return $res;
 	}
@@ -103,10 +114,13 @@ function createAdminUser($params) {
 	return NULL;
 }
 
-# Edit admin group
+# Edit admin user
 function updateAdminUser($params) {
 
+	# Perform query
 	$res = DBDo("UPDATE users SET Username = ? WHERE ID = ?",array($params[0]['Username'],$params[0]['ID']));
+
+	# Return result
 	if (!is_numeric($res)) {
 		return $res;
 	}

@@ -12,48 +12,56 @@ function getWiSPLocations($params) {
 		'Name' => 'wisp_locations.Name'
 	);
 
+	# Perform query
 	$res = DBSelectSearch("SELECT ID, Name FROM wisp_locations",$params[1],$filtersorts,$filtersorts);
 	$sth = $res[0]; $numResults = $res[1];
+
 	# If STH is blank, return the error back to whoever requested the data
 	if (!isset($sth)) {
 		return $res;
 	}
 
+	# Loop through rows
 	$resultArray = array();
-
-	# loop through rows
 	while ($row = $sth->fetchObject()) {
+
+		# Build array for this row
 		$item = array();
 
 		$item['ID'] = $row->id;
 		$item['Name'] = $row->name;
 
-		# push this row onto array
+		# Push this row onto array
 		array_push($resultArray,$item);
 	}
 
+	# Return results
 	return array($resultArray,$numResults);
 }
 
 # Return specific location row
 function getWiSPLocation($params) {
 
+	# Perform query
 	$res = DBSelect("SELECT ID, Name FROM wisp_locations WHERE ID = ?",array($params[0]));
+
+	# Return if error or nothing to return
 	if (!is_object($res)) {
 		return $res;
 	}
 
+	# Build array of results
 	$resultArray = array();
-
 	$row = $res->fetchObject();
 
 	$resultArray['ID'] = $row->id;
 	$resultArray['Name'] = $row->name;
 
+	# Return results
 	return $resultArray;
 }
 
-# Remove admin group
+# Remove wisp location
 function removeWiSPLocation($params) {
 
 	# Begin transaction
@@ -79,10 +87,13 @@ function removeWiSPLocation($params) {
 	return NULL;
 }
 
-# Add admin group
+# Add wisp location
 function createWiSPLocation($params) {
 
+	# Perform query
 	$res = DBDo("INSERT INTO wisp_locations (Name) VALUES (?)",array($params[0]['Name']));
+
+	# Return result
 	if (!is_numeric($res)) {
 		return $res;
 	}
@@ -90,10 +101,13 @@ function createWiSPLocation($params) {
 	return NULL;
 }
 
-# Edit admin group
+# Edit wisp location
 function updateWiSPLocation($params) {
 
+	# Perform query
 	$res = DBDo("UPDATE wisp_locations SET Name = ? WHERE ID = ?",array($params[0]['Name'],$params[0]['ID']));
+
+	# Return result
 	if (!is_numeric($res)) {
 		return $res;
 	}

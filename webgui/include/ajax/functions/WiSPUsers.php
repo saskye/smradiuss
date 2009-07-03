@@ -17,6 +17,7 @@ function getWiSPUsers($params) {
 		'Phone' => 'wisp_userdata.Phone'
 	);
 
+	# Perform query
 	$res = DBSelectSearch("
 		SELECT 
 			users.Username, 
@@ -32,17 +33,18 @@ function getWiSPUsers($params) {
 			wisp_userdata.UserID = users.ID
 		",$params[1],$filtersorts,$filtersorts
 	);
-
 	$sth = $res[0]; $numResults = $res[1];
+
 	# If STH is blank, return the error back to whoever requested the data
 	if (!isset($sth)) {
 		return $res;
 	}
 
+	# Loop through rows
 	$resultArray = array();
-
-	# loop through rows
 	while ($row = $sth->fetchObject()) {
+
+		# Array for this row
 		$item = array();
 
 		$item['ID'] = $row->userid;
@@ -53,10 +55,11 @@ function getWiSPUsers($params) {
 		$item['Email'] = $row->email;
 		$item['Phone'] = $row->phone;
 
-		# push this row onto array
+		# Push this row onto array
 		array_push($resultArray,$item);
 	}
 
+	# Return results
 	return array($resultArray,$numResults);
 }
 
@@ -82,12 +85,13 @@ function getWiSPUser($params) {
 					",array($params[0])
 	);
 
+	# Return if error
 	if (!is_object($res)) {
 		return $res;
 	}
 
+	# Build array of results
 	$resultArray = array();
-
 	$row = $res->fetchObject();
 
 	# Set userdata fields
@@ -113,6 +117,7 @@ function getWiSPUser($params) {
 					",array($params[0])
 	);
 
+	# Return if error
 	if (!is_object($res)) {
 		return $res;
 	}
@@ -135,12 +140,13 @@ function getWiSPUser($params) {
 					",array($params[0])
 	);
 
+	# Return if error
 	if (!is_object($res)) {
 		return $res;
 	}
 
-	$i = 0;
 	# Array for multiple attributes
+	$i = 0;
 	while ($row = $res->fetchObject()) {
 		$resultsArray['Attributes'][$i]['ID'] = $row->id;
 		$resultsArray['Attributes'][$i]['Name'] = $row->name;
@@ -149,7 +155,10 @@ function getWiSPUser($params) {
 		$i++;
 	}
 
+	# Get number of results
 	$numResults = $res->rowCount();
+
+	# Return results
 	return array($resultArray,$numResults);
 }
 
@@ -191,9 +200,12 @@ function removeWiSPUser($params) {
 
 # Add wisp user
 function createWiSPUser($params) {
+	# We need this to send notification
 	global $adminEmails;
 
+	# Begin transaction
 	DBBegin();
+	# Perform first query
 	$res = "Username & Password required for single user. For adding multiple users an integer is required.";
 	# If we adding single user
 	if (empty($params[0]['Number']) && !empty($params[0]['Password']) && !empty($params[0]['Username'])) {
@@ -494,10 +506,13 @@ function createWiSPUser($params) {
 function updateWiSPUser($params) {
 
 	DBBegin();
+	# Perform query
 	$res = DBDo("UPDATE users SET Username = ? WHERE ID = ?",array($params[0]['Username'],$params[0]['ID']));
+	# If successful, continue
 	if ($res !== FALSE) {
 		$res = DBDo("UPDATE user_attributes SET User-Password = ? WHERE UserID = ?",array($params[0]['Username'],$params[0]['ID']));
 	}
+	# If successful, continue
 	if ($res !== FALSE) {
 		$res = DBDo("
 				UPDATE

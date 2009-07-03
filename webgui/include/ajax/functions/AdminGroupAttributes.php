@@ -2,7 +2,7 @@
 
 include_once("include/db.php");
 
-# Add user attribute
+# Add group attribute
 function addAdminGroupAttribute($params) {
 
 	$res = DBDo("
@@ -24,7 +24,7 @@ function addAdminGroupAttribute($params) {
 	return NULL;
 }
 
-# Remove user attribute
+# Remove group attribute
 function removeAdminGroupAttribute($params) {
 
 	$res = DBDo("DELETE FROM group_attributes WHERE ID = ?",array($params[0]));
@@ -35,7 +35,7 @@ function removeAdminGroupAttribute($params) {
 	return NULL;
 }
 
-# Edit attribute
+# Edit group attribute
 function updateAdminGroupAttribute($params) {
 
 	$res = DBDo("UPDATE group_attributes SET Name = ?, Operator = ?, Value = ?, Disabled = ? WHERE ID = ?",
@@ -86,6 +86,7 @@ function getAdminGroupAttributes($params) {
 		'Disabled' => 'group_attributes.Disabled'
 	);
 
+	# Fetch attributes
 	$res = DBSelectSearch("
 			SELECT 
 				ID, Name, Operator, Value, Disabled 
@@ -103,7 +104,7 @@ function getAdminGroupAttributes($params) {
 
 	$resultArray = array();
 
-	# loop through rows
+	# Loop through rows
 	while ($row = $sth->fetchObject()) {
 		$item = array();
 
@@ -113,10 +114,11 @@ function getAdminGroupAttributes($params) {
 		$item['Value'] = $row->value;
 		$item['Disabled'] = $row->disabled;
 
-		# push this row onto array
+		# Push this row onto array
 		array_push($resultArray,$item);
 	}
 
+	# Return results
 	return array($resultArray,$numResults);
 }
 

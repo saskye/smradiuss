@@ -15,16 +15,17 @@ function getAdminGroups($params) {
 		'Comment' => 'groups.Comment'
 	);
 
+	# Perform query
 	$res = DBSelectSearch("SELECT ID, Name, Priority, Disabled, Comment FROM groups",$params[1],$filtersorts,$filtersorts);
 	$sth = $res[0]; $numResults = $res[1];
+
 	# If STH is blank, return the error back to whoever requested the data
 	if (!isset($sth)) {
 		return $res;
 	}
 
+	# Loop through rows
 	$resultArray = array();
-
-	# loop through rows
 	while ($row = $sth->fetchObject()) {
 		$item = array();
 
@@ -34,23 +35,27 @@ function getAdminGroups($params) {
 		$item['Disabled'] = $row->disabled;
 		$item['Comment'] = $row->comment;
 
-		# push this row onto array
+		# Push this row onto array
 		array_push($resultArray,$item);
 	}
 
+	# Return results
 	return array($resultArray,$numResults);
 }
 
 # Return specific group row
 function getAdminGroup($params) {
 
+	# Perform query
 	$res = DBSelect("SELECT ID, Name, Priority, Disabled, Comment FROM groups WHERE ID = ?",array($params[0]));
+
+	# Return error if failed
 	if (!is_object($res)) {
 		return $res;
 	}
 
+	# Build array of results
 	$resultArray = array();
-
 	$row = $res->fetchObject();
 
 	$resultArray['ID'] = $row->id;
@@ -59,6 +64,7 @@ function getAdminGroup($params) {
 	$resultArray['Disabled'] = $row->disabled;
 	$resultArray['Comment'] = $row->comment;
 
+	# Return results
 	return $resultArray;
 }
 
@@ -96,7 +102,10 @@ function removeAdminGroup($params) {
 # Add admin group
 function createAdminGroup($params) {
 
+	# Perform query
 	$res = DBDo("INSERT INTO groups (Name) VALUES (?)",array($params[0]['Name']));
+
+	# Return error if failed
 	if (!is_numeric($res)) {
 		return $res;
 	}
@@ -107,7 +116,10 @@ function createAdminGroup($params) {
 # Edit admin group
 function updateAdminGroup($params) {
 
+	# Perform query
 	$res = DBDo("UPDATE groups SET Name = ? WHERE ID = ?",array($params[0]['Name'],$params[0]['ID']));
+
+	# Return error if failed
 	if (!is_numeric($res)) {
 		return $res;
 	}

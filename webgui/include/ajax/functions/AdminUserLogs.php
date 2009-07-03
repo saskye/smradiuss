@@ -3,7 +3,7 @@
 include_once("include/db.php");
 
 
-# Return list of users
+# Return list of user logs
 function getAdminUserLogs($params) {
 
 	# Filters and sorts are the same here
@@ -21,6 +21,7 @@ function getAdminUserLogs($params) {
 		'FramedIPAddress' => 'accounting.FramedIPAddress',
 	);
 
+	# Perform query
 	$res = DBSelectSearch("
 				SELECT
 					accounting.ID,
@@ -46,16 +47,15 @@ function getAdminUserLogs($params) {
 				AND
 					users.ID = ".DBQuote($params[0])."
 					",$params[1],$filtersorts,$filtersorts);
-
 	$sth = $res[0]; $numResults = $res[1];
+
 	# If STH is blank, return the error back to whoever requested the data
 	if (!isset($sth)) {
 		return $res;
 	}
 
+	# Loop through rows
 	$resultArray = array();
-
-	# loop through rows
 	while ($row = $sth->fetchObject()) {
 
 		# Input
@@ -79,15 +79,14 @@ function getAdminUserLogs($params) {
 			$acctOutputMbyte += ($row->acctoutputgigawords * 4096);
 		}
 
+		# Build array for this row
 		$item = array();
 
 		$item['ID'] = $row->id;
-
 		# Convert to ISO format	
 		$date = new DateTime($row->eventtimestamp);
 		$value = $date->format("Y-m-d H:i:s");
 		$item['EventTimestamp'] = $value;
-
 		$item['AcctStatusType'] = $row->acctstatustype;
 		$item['ServiceType'] = $row->servicetype;
 		$item['FramedProtocol'] = $row->framedprotocol;
@@ -101,10 +100,11 @@ function getAdminUserLogs($params) {
 		$item['AcctOutputMbyte'] = $acctOutputMbyte;
 		$item['ConnectTermReason'] = strRadiusTermCode($row->servicetype);
 
-		# push this row onto array
+		# Push this row onto main array
 		array_push($resultArray,$item);
 	}
 
+	# Return results
 	return array($resultArray,$numResults);
 }
 

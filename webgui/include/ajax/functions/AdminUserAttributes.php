@@ -5,6 +5,7 @@ include_once("include/db.php");
 # Add user attribute
 function addAdminUserAttribute($params) {
 
+	# Perform query
 	$res = DBDo("
 				INSERT INTO 
 						user_attributes (UserID,Name,Operator,Value,Disabled) 
@@ -17,6 +18,7 @@ function addAdminUserAttribute($params) {
 						$params[0]['Disabled'])
 	);
 
+	# Return result
 	if (!is_numeric($res)) {
 		return $res;
 	}
@@ -27,7 +29,10 @@ function addAdminUserAttribute($params) {
 # Remove user attribute
 function removeAdminUserAttribute($params) {
 
+	# Perform query
 	$res = DBDo("DELETE FROM user_attributes WHERE ID = ?",array($params[0]));
+
+	# Return result
 	if (!is_numeric($res)) {
 		return $res;
 	}
@@ -38,6 +43,7 @@ function removeAdminUserAttribute($params) {
 # Edit attribute
 function updateAdminUserAttribute($params) {
 
+	# Perform query
 	$res = DBDo("UPDATE user_attributes SET Name = ?, Operator = ?, Value = ?, Disabled = ? WHERE ID = ?",
 				array($params[0]['Name'],
 				$params[0]['Operator'],
@@ -46,6 +52,7 @@ function updateAdminUserAttribute($params) {
 				$params[0]['ID'])
 	);
 
+	# Return result
 	if (!is_numeric($res)) {
 		return $res;
 	}
@@ -56,13 +63,16 @@ function updateAdminUserAttribute($params) {
 # Return specific attribute row
 function getAdminUserAttribute($params) {
 
+	# Perform query
 	$res = DBSelect("SELECT ID, Name, Operator, Value, Disabled FROM user_attributes WHERE ID = ?",array($params[0]));
+
+	# Return error if failed
 	if (!is_object($res)) {
 		return $res;
 	}
 
+	# Build array of results
 	$resultArray = array();
-
 	$row = $res->fetchObject();
 
 	$resultArray['ID'] = $row->id;
@@ -71,6 +81,7 @@ function getAdminUserAttribute($params) {
 	$resultArray['Value'] = $row->value;
 	$resultArray['Disabled'] = $row->disabled;
 
+	# Return results
 	return $resultArray;
 }
 
@@ -86,6 +97,7 @@ function getAdminUserAttributes($params) {
 		'Disabled' => 'user_attributes.Disabled'
 	);
 
+	# Perform query
 	$res = DBSelectSearch("
 			SELECT 
 				ID, Name, Operator, Value, Disabled 
@@ -94,16 +106,15 @@ function getAdminUserAttributes($params) {
 			WHERE 
 				UserID = ".DBQuote($params[0])."
 		",$params[1],$filtersorts,$filtersorts);
-
 	$sth = $res[0]; $numResults = $res[1];
+
 	# If STH is blank, return the error back to whoever requested the data
 	if (!isset($sth)) {
 		return $res;
 	}
 
+	# Loop through rows
 	$resultArray = array();
-
-	# loop through rows
 	while ($row = $sth->fetchObject()) {
 		$item = array();
 
@@ -113,10 +124,11 @@ function getAdminUserAttributes($params) {
 		$item['Value'] = $row->value;
 		$item['Disabled'] = $row->disabled;
 
-		# push this row onto array
+		# Push this row onto array
 		array_push($resultArray,$item);
 	}
 
+	# Return results
 	return array($resultArray,$numResults);
 }
 

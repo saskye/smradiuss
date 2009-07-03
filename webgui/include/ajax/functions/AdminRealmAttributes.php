@@ -2,9 +2,10 @@
 
 include_once("include/db.php");
 
-# Add user attribute
+# Add realm attribute
 function addAdminRealmAttribute($params) {
 
+	# Perform query
 	$res = DBDo("
 				INSERT INTO 
 						realm_attributes (RealmID,Name,Operator,Value,Disabled) 
@@ -17,6 +18,7 @@ function addAdminRealmAttribute($params) {
 						$params[0]['Disabled'])
 	);
 
+	# Return error if failed
 	if (!is_numeric($res)) {
 		return $res;
 	}
@@ -24,10 +26,13 @@ function addAdminRealmAttribute($params) {
 	return NULL;
 }
 
-# Remove user attribute
+# Remove realm attribute
 function removeAdminRealmAttribute($params) {
 
+	# Perform query
 	$res = DBDo("DELETE FROM realm_attributes WHERE ID = ?",array($params[0]));
+
+	# Return error if failed
 	if (!is_numeric($res)) {
 		return $res;
 	}
@@ -35,9 +40,10 @@ function removeAdminRealmAttribute($params) {
 	return NULL;
 }
 
-# Edit attribute
+# Edit realm attribute
 function updateAdminRealmAttribute($params) {
 
+	# Perform query
 	$res = DBDo("UPDATE realm_attributes SET Name = ?, Operator = ?, Value = ?, Disabled = ? WHERE ID = ?",
 				array($params[0]['Name'],
 				$params[0]['Operator'],
@@ -46,6 +52,7 @@ function updateAdminRealmAttribute($params) {
 				$params[0]['ID'])
 	);
 
+	# Return error if failed
 	if (!is_numeric($res)) {
 		return $res;
 	}
@@ -56,13 +63,16 @@ function updateAdminRealmAttribute($params) {
 # Return specific attribute row
 function getAdminRealmAttribute($params) {
 
+	# Perform query
 	$res = DBSelect("SELECT ID, Name, Operator, Value, Disabled FROM realm_attributes WHERE ID = ?",array($params[0]));
+
+	# Return error if failed
 	if (!is_object($res)) {
 		return $res;
 	}
 
+	# Build array of results
 	$resultArray = array();
-
 	$row = $res->fetchObject();
 
 	$resultArray['ID'] = $row->id;
@@ -71,6 +81,7 @@ function getAdminRealmAttribute($params) {
 	$resultArray['Value'] = $row->value;
 	$resultArray['Disabled'] = $row->disabled;
 
+	# Return results
 	return $resultArray;
 }
 
@@ -86,6 +97,7 @@ function getAdminRealmAttributes($params) {
 		'Disabled' => 'realm_attributes.Disabled'
 	);
 
+	# Perform query
 	$res = DBSelectSearch("
 			SELECT 
 				ID, Name, Operator, Value, Disabled 
@@ -94,16 +106,15 @@ function getAdminRealmAttributes($params) {
 			WHERE 
 				RealmID = ".DBQuote($params[0])."
 		",$params[1],$filtersorts,$filtersorts);
-
 	$sth = $res[0]; $numResults = $res[1];
+
 	# If STH is blank, return the error back to whoever requested the data
 	if (!isset($sth)) {
 		return $res;
 	}
 
+	# Loop through rows
 	$resultArray = array();
-
-	# loop through rows
 	while ($row = $sth->fetchObject()) {
 		$item = array();
 
@@ -113,10 +124,11 @@ function getAdminRealmAttributes($params) {
 		$item['Value'] = $row->value;
 		$item['Disabled'] = $row->disabled;
 
-		# push this row onto array
+		# Push this row onto array
 		array_push($resultArray,$item);
 	}
 
+	# Return results
 	return array($resultArray,$numResults);
 }
 

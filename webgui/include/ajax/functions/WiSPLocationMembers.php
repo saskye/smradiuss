@@ -2,10 +2,13 @@
 
 include_once("include/db.php");
 
-# Remove group attribute
+# Remove location member
 function removeWiSPLocationMember($params) {
 
+	# Perform query
 	$res = DBDo("UPDATE wisp_userdata SET LocationID = NULL WHERE UserID = ?",array($params[0]));
+
+	# Return result
 	if (!is_numeric($res)) {
 		return $res;
 	}
@@ -13,7 +16,7 @@ function removeWiSPLocationMember($params) {
 	return NULL;
 }
 
-# Return list of attributes
+# Return list of location members
 function getWiSPLocationMembers($params) {
 
 	# Filters and sorts are the same here
@@ -22,6 +25,7 @@ function getWiSPLocationMembers($params) {
 		'Username' => 'users.Username'
 	);
 
+	# Perform query
 	$res = DBSelectSearch("
 			SELECT 
 				users.ID, users.Username 
@@ -32,26 +36,28 @@ function getWiSPLocationMembers($params) {
 			AND
 				users.ID = wisp_userdata.UserID 
 		",$params[1],$filtersorts,$filtersorts);
-
 	$sth = $res[0]; $numResults = $res[1];
+
 	# If STH is blank, return the error back to whoever requested the data
 	if (!isset($sth)) {
 		return $res;
 	}
 
+	# Loop through rows
 	$resultArray = array();
-
-	# loop through rows
 	while ($row = $sth->fetchObject()) {
+
+		# Build array for this row
 		$item = array();
 
 		$item['ID'] = $row->id;
 		$item['Username'] = $row->username;
 
-		# push this row onto array
+		# Push this row onto array
 		array_push($resultArray,$item);
 	}
 
+	# Return results
 	return array($resultArray,$numResults);
 }
 

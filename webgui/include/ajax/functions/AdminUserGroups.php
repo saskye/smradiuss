@@ -6,7 +6,10 @@ include_once("include/db.php");
 # Link user to group
 function addAdminUserGroup($params) {
 
+	# Perform query
 	$res = DBDo("INSERT INTO users_to_groups (UserID,GroupID) VALUES (?,?)",array($params[0]['UserID'],$params[0]['GroupID']));
+
+	# Return result
 	if (!is_numeric($res)) {
 		return $res;
 	}
@@ -17,7 +20,10 @@ function addAdminUserGroup($params) {
 # Unlink user from group
 function removeAdminUserGroup($params) {
 
+	# Perform query
 	$res = DBDo("DELETE FROM users_to_groups WHERE ID = ?",array($params[0]));
+
+	# Return result
 	if (!is_numeric($res)) {
 		return $res;
 	}
@@ -34,6 +40,7 @@ function getAdminUserGroups($params) {
 		'Name' => 'groups.Name'
 	);
 
+	# Perform query
 	$res = DBSelectSearch("
 			SELECT 
 				users_to_groups.ID, groups.Name 
@@ -43,26 +50,26 @@ function getAdminUserGroups($params) {
 				users_to_groups.GroupID = groups.ID
 				AND users_to_groups.UserID = ".DBQuote($params[0])."
 		",$params[1],$filtersorts,$filtersorts);
-
 	$sth = $res[0]; $numResults = $res[1];
+
 	# If STH is blank, return the error back to whoever requested the data
 	if (!isset($sth)) {
 		return $res;
 	}
 
+	# Loop through rows
 	$resultArray = array();
-
-	# loop through rows
 	while ($row = $sth->fetchObject()) {
 		$item = array();
 
 		$item['ID'] = $row->id;
 		$item['Name'] = $row->name;
 
-		# push this row onto array
+		# Push this row onto array
 		array_push($resultArray,$item);
 	}
 
+	# Return results
 	return array($resultArray,$numResults);
 }
 

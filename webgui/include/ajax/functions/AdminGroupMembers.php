@@ -23,6 +23,7 @@ function getAdminGroupMembers($params) {
 		'Disabled' => 'group_attributes.Disabled'
 	);
 
+	# Fetch members
 	$res = DBSelectSearch("
 			SELECT 
 				users_to_groups.ID, users.Username, users.Disabled 
@@ -35,14 +36,15 @@ function getAdminGroupMembers($params) {
 		",$params[1],$filtersorts,$filtersorts);
 
 	$sth = $res[0]; $numResults = $res[1];
+
 	# If STH is blank, return the error back to whoever requested the data
 	if (!isset($sth)) {
 		return $res;
 	}
 
-	$resultArray = array();
 
-	# loop through rows
+	# Loop through rows
+	$resultArray = array();
 	while ($row = $sth->fetchObject()) {
 		$item = array();
 
@@ -50,7 +52,7 @@ function getAdminGroupMembers($params) {
 		$item['Username'] = $row->username;
 		$item['Disabled'] = $row->disabled;
 
-		# push this row onto array
+		# Push this row onto array
 		array_push($resultArray,$item);
 	}
 
