@@ -5,7 +5,6 @@ include_once("include/db.php");
 
 # Add new topup
 function createWiSPUserTopup($params) {
-	global $db;
 
 	$timestamp = date('Y-m-d H:i:s');
 	$res = DBDo("INSERT INTO topups (UserID,Timestamp,Type,Value,ValidFrom,ValidTo) VALUES (?,?,?,?,?,?)",
@@ -22,7 +21,6 @@ function createWiSPUserTopup($params) {
 
 # Edit topup
 function updateWiSPUserTopup($params) {
-	global $db;
 
 	$res = DBDo("UPDATE topups SET Value = ?, Type = ?, ValidFrom = ?, ValidTo = ? WHERE ID = ?",
 				array($params[0]['Value'],
@@ -41,7 +39,6 @@ function updateWiSPUserTopup($params) {
 
 # Delete user topup
 function removeWiSPUserTopup($params) {
-	global $db;
 
 	$res = DBDo("DELETE FROM topups WHERE ID = ?",array($params[0]));
 	if (!is_numeric($res)) {
@@ -53,7 +50,6 @@ function removeWiSPUserTopup($params) {
 
 # Return specific topup row
 function getWiSPUserTopup($params) {
-	global $db;
 
 	$res = DBSelect("SELECT ID, Type, Value, ValidFrom, ValidTo FROM topups WHERE ID = ?",array($params[0]));
 	if (!is_object($res)) {
@@ -83,7 +79,6 @@ function getWiSPUserTopup($params) {
 
 # Return list of topups
 function getWiSPUserTopups($params) {
-	global $db;
 
 	# Filters and sorts are the same here
 	$filtersorts = array(

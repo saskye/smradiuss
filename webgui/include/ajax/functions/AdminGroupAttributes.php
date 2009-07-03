@@ -4,7 +4,6 @@ include_once("include/db.php");
 
 # Add user attribute
 function addAdminGroupAttribute($params) {
-	global $db;
 
 	$res = DBDo("
 				INSERT INTO 
@@ -27,7 +26,6 @@ function addAdminGroupAttribute($params) {
 
 # Remove user attribute
 function removeAdminGroupAttribute($params) {
-	global $db;
 
 	$res = DBDo("DELETE FROM group_attributes WHERE ID = ?",array($params[0]));
 	if (!is_numeric($res)) {
@@ -39,7 +37,6 @@ function removeAdminGroupAttribute($params) {
 
 # Edit attribute
 function updateAdminGroupAttribute($params) {
-	global $db;
 
 	$res = DBDo("UPDATE group_attributes SET Name = ?, Operator = ?, Value = ?, Disabled = ? WHERE ID = ?",
 				array($params[0]['Name'],
@@ -58,8 +55,6 @@ function updateAdminGroupAttribute($params) {
 
 # Return specific attribute row
 function getAdminGroupAttribute($params) {
-	global $db;
-
 
 	$res = DBSelect("SELECT ID, Name, Operator, Value, Disabled FROM group_attributes WHERE ID = ?",array($params[0]));
 	if (!is_object($res)) {
@@ -81,7 +76,6 @@ function getAdminGroupAttribute($params) {
 
 # Return list of attributes
 function getAdminGroupAttributes($params) {
-	global $db;
 
 	# Filters and sorts are the same here
 	$filtersorts = array(

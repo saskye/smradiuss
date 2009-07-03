@@ -5,7 +5,6 @@ include_once("include/db.php");
 
 # Return list of locations
 function getWiSPLocations($params) {
-	global $db;
 
 	# Filters and sorts are the same here
 	$filtersorts = array(
@@ -38,8 +37,6 @@ function getWiSPLocations($params) {
 
 # Return specific location row
 function getWiSPLocation($params) {
-	global $db;
-
 
 	$res = DBSelect("SELECT ID, Name FROM wisp_locations WHERE ID = ?",array($params[0]));
 	if (!is_object($res)) {
@@ -58,7 +55,6 @@ function getWiSPLocation($params) {
 
 # Remove admin group
 function removeWiSPLocation($params) {
-	global $db;
 
 	# Begin transaction
 	DBBegin();
@@ -85,7 +81,6 @@ function removeWiSPLocation($params) {
 
 # Add admin group
 function createWiSPLocation($params) {
-	global $db;
 
 	$res = DBDo("INSERT INTO wisp_locations (Name) VALUES (?)",array($params[0]['Name']));
 	if (!is_numeric($res)) {
@@ -97,7 +92,6 @@ function createWiSPLocation($params) {
 
 # Edit admin group
 function updateWiSPLocation($params) {
-	global $db;
 
 	$res = DBDo("UPDATE wisp_locations SET Name = ? WHERE ID = ?",array($params[0]['Name'],$params[0]['ID']));
 	if (!is_numeric($res)) {

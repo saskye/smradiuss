@@ -4,7 +4,6 @@ include_once("include/db.php");
 
 # Remove group attribute
 function removeWiSPLocationMember($params) {
-	global $db;
 
 	$res = DBDo("UPDATE wisp_userdata SET LocationID = NULL WHERE UserID = ?",array($params[0]));
 	if (!is_numeric($res)) {
@@ -16,7 +15,6 @@ function removeWiSPLocationMember($params) {
 
 # Return list of attributes
 function getWiSPLocationMembers($params) {
-	global $db;
 
 	# Filters and sorts are the same here
 	$filtersorts = array(

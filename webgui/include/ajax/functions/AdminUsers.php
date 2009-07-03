@@ -5,7 +5,6 @@ include_once("include/db.php");
 
 # Return list of users
 function getAdminUsers($params) {
-	global $db;
 
 	# Filters and sorts are the same here
 	$filtersorts = array(
@@ -40,8 +39,6 @@ function getAdminUsers($params) {
 
 # Return specific group row
 function getAdminUser($params) {
-	global $db;
-
 
 	$res = DBSelect("SELECT ID, Username, Disabled FROM users WHERE ID = ?",array($params[0]));
 	if (!is_object($res)) {
@@ -61,7 +58,6 @@ function getAdminUser($params) {
 
 # Remove admin group
 function removeAdminUser($params) {
-	global $db;
 
 	# Begin transaction
 	DBBegin();
@@ -98,7 +94,6 @@ function removeAdminUser($params) {
 
 # Add admin group
 function createAdminUser($params) {
-	global $db;
 
 	$res = DBDo("INSERT INTO users (Username) VALUES (?)",array($params[0]['Username']));
 	if (!is_numeric($res)) {
@@ -110,7 +105,6 @@ function createAdminUser($params) {
 
 # Edit admin group
 function updateAdminUser($params) {
-	global $db;
 
 	$res = DBDo("UPDATE users SET Username = ? WHERE ID = ?",array($params[0]['Username'],$params[0]['ID']));
 	if (!is_numeric($res)) {

@@ -5,7 +5,6 @@ include_once("include/db.php");
 
 # Return list of users
 function getWiSPUserLogs($params) {
-	global $db;
 
 	# Filters and sorts are the same here
 	$filtersorts = array(

@@ -5,7 +5,6 @@ include_once("include/db.php");
 
 # Return list of wisp users
 function getWiSPUsers($params) {
-	global $db;
 
 	# Filters and sorts are the same here
 	$filtersorts = array(
@@ -63,7 +62,6 @@ function getWiSPUsers($params) {
 
 # Return specific wisp user row
 function getWiSPUser($params) {
-	global $db;
 
 	# Query for userdata and username
 	$res = DBSelect("
@@ -157,7 +155,6 @@ function getWiSPUser($params) {
 
 # Remove wisp user
 function removeWiSPUser($params) {
-	global $db;
 
 	# Begin transaction
 	DBBegin();
@@ -194,7 +191,6 @@ function removeWiSPUser($params) {
 
 # Add wisp user
 function createWiSPUser($params) {
-	global $db;
 	global $adminEmails;
 
 	DBBegin();
@@ -496,7 +492,6 @@ function createWiSPUser($params) {
 
 # Edit wisp user
 function updateWiSPUser($params) {
-	global $db;
 
 	DBBegin();
 	$res = DBDo("UPDATE users SET Username = ? WHERE ID = ?",array($params[0]['Username'],$params[0]['ID']));

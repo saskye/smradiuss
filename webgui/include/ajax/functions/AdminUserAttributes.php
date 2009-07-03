@@ -4,7 +4,6 @@ include_once("include/db.php");
 
 # Add user attribute
 function addAdminUserAttribute($params) {
-	global $db;
 
 	$res = DBDo("
 				INSERT INTO 
@@ -27,7 +26,6 @@ function addAdminUserAttribute($params) {
 
 # Remove user attribute
 function removeAdminUserAttribute($params) {
-	global $db;
 
 	$res = DBDo("DELETE FROM user_attributes WHERE ID = ?",array($params[0]));
 	if (!is_numeric($res)) {
@@ -39,7 +37,6 @@ function removeAdminUserAttribute($params) {
 
 # Edit attribute
 function updateAdminUserAttribute($params) {
-	global $db;
 
 	$res = DBDo("UPDATE user_attributes SET Name = ?, Operator = ?, Value = ?, Disabled = ? WHERE ID = ?",
 				array($params[0]['Name'],
@@ -58,8 +55,6 @@ function updateAdminUserAttribute($params) {
 
 # Return specific attribute row
 function getAdminUserAttribute($params) {
-	global $db;
-
 
 	$res = DBSelect("SELECT ID, Name, Operator, Value, Disabled FROM user_attributes WHERE ID = ?",array($params[0]));
 	if (!is_object($res)) {
@@ -81,7 +76,6 @@ function getAdminUserAttribute($params) {
 
 # Return list of attributes
 function getAdminUserAttributes($params) {
-	global $db;
 
 	# Filters and sorts are the same here
 	$filtersorts = array(

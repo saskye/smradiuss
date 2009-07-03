@@ -5,7 +5,6 @@ include_once("include/db.php");
 
 # Link user to group
 function addAdminUserGroup($params) {
-	global $db;
 
 	$res = DBDo("INSERT INTO users_to_groups (UserID,GroupID) VALUES (?,?)",array($params[0]['UserID'],$params[0]['GroupID']));
 	if (!is_numeric($res)) {
@@ -17,7 +16,6 @@ function addAdminUserGroup($params) {
 
 # Unlink user from group
 function removeAdminUserGroup($params) {
-	global $db;
 
 	$res = DBDo("DELETE FROM users_to_groups WHERE ID = ?",array($params[0]));
 	if (!is_numeric($res)) {
@@ -29,7 +27,6 @@ function removeAdminUserGroup($params) {
  
 # Return list of groups 
 function getAdminUserGroups($params) {
-	global $db;
 
 	# Filters and sorts are the same here
 	$filtersorts = array(

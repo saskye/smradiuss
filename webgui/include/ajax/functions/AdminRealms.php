@@ -5,7 +5,6 @@ include_once("include/db.php");
 
 # Return list of realms
 function getAdminRealms($params) {
-	global $db;
 
 	# Filters and sorts are the same here
 	$filtersorts = array(
@@ -40,8 +39,6 @@ function getAdminRealms($params) {
 
 # Return specific realm row
 function getAdminRealm($params) {
-	global $db;
-
 
 	$res = DBSelect("SELECT ID, Name, Disabled FROM realms WHERE ID = ?",array($params[0]));
 	if (!is_object($res)) {
@@ -61,7 +58,6 @@ function getAdminRealm($params) {
 
 # Remove admin realm
 function removeAdminRealm($params) {
-	global $db;
 
 	# Begin transaction
 	DBBegin();
@@ -87,7 +83,6 @@ function removeAdminRealm($params) {
 
 # Add admin realm
 function createAdminRealm($params) {
-	global $db;
 
 	$res = DBDo("INSERT INTO realms (Name) VALUES (?)",array($params[0]['Name']));
 	if (!is_numeric($res)) {
@@ -99,7 +94,6 @@ function createAdminRealm($params) {
 
 # Edit admin realm
 function updateAdminRealm($params) {
-	global $db;
 
 	$res = DBDo("UPDATE realms SET Name = ? WHERE ID = ?",array($params[0]['Name'],$params[0]['ID']));
 	if (!is_numeric($res)) {

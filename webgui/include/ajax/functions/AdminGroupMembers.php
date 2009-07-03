@@ -4,7 +4,6 @@ include_once("include/db.php");
 
 # Remove group member
 function removeAdminGroupMember($params) {
-	global $db;
 
 	$res = DBDo("DELETE FROM users_to_groups WHERE ID = ?",array($params[0]));
 	if (!is_numeric($res)) {
@@ -16,7 +15,6 @@ function removeAdminGroupMember($params) {
 
 # Return list of members
 function getAdminGroupMembers($params) {
-	global $db;
 
 	# Filters and sorts are the same here
 	$filtersorts = array(

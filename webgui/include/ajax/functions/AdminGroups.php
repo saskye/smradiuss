@@ -5,7 +5,6 @@ include_once("include/db.php");
 
 # Return list of groups
 function getAdminGroups($params) {
-	global $db;
 
 	# Filters and sorts are the same here
 	$filtersorts = array(
@@ -44,8 +43,6 @@ function getAdminGroups($params) {
 
 # Return specific group row
 function getAdminGroup($params) {
-	global $db;
-
 
 	$res = DBSelect("SELECT ID, Name, Priority, Disabled, Comment FROM groups WHERE ID = ?",array($params[0]));
 	if (!is_object($res)) {
@@ -67,7 +64,6 @@ function getAdminGroup($params) {
 
 # Remove admin group
 function removeAdminGroup($params) {
-	global $db;
 
 	# Begin transaction
 	DBBegin();
@@ -99,7 +95,6 @@ function removeAdminGroup($params) {
 
 # Add admin group
 function createAdminGroup($params) {
-	global $db;
 
 	$res = DBDo("INSERT INTO groups (Name) VALUES (?)",array($params[0]['Name']));
 	if (!is_numeric($res)) {
@@ -111,7 +106,6 @@ function createAdminGroup($params) {
 
 # Edit admin group
 function updateAdminGroup($params) {
-	global $db;
 
 	$res = DBDo("UPDATE groups SET Name = ? WHERE ID = ?",array($params[0]['Name'],$params[0]['ID']));
 	if (!is_numeric($res)) {

@@ -4,7 +4,6 @@ include_once("include/db.php");
 
 # Add user attribute
 function addAdminRealmAttribute($params) {
-	global $db;
 
 	$res = DBDo("
 				INSERT INTO 
@@ -27,7 +26,6 @@ function addAdminRealmAttribute($params) {
 
 # Remove user attribute
 function removeAdminRealmAttribute($params) {
-	global $db;
 
 	$res = DBDo("DELETE FROM realm_attributes WHERE ID = ?",array($params[0]));
 	if (!is_numeric($res)) {
@@ -39,7 +37,6 @@ function removeAdminRealmAttribute($params) {
 
 # Edit attribute
 function updateAdminRealmAttribute($params) {
-	global $db;
 
 	$res = DBDo("UPDATE realm_attributes SET Name = ?, Operator = ?, Value = ?, Disabled = ? WHERE ID = ?",
 				array($params[0]['Name'],
@@ -58,8 +55,6 @@ function updateAdminRealmAttribute($params) {
 
 # Return specific attribute row
 function getAdminRealmAttribute($params) {
-	global $db;
-
 
 	$res = DBSelect("SELECT ID, Name, Operator, Value, Disabled FROM realm_attributes WHERE ID = ?",array($params[0]));
 	if (!is_object($res)) {
@@ -81,7 +76,6 @@ function getAdminRealmAttribute($params) {
 
 # Return list of attributes
 function getAdminRealmAttributes($params) {
-	global $db;
 
 	# Filters and sorts are the same here
 	$filtersorts = array(
