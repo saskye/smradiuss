@@ -178,6 +178,10 @@ function showAdminUserLogsWindow(id) {
 					dataIndex: 'AcctOutputMbyte'
 				},
 				{
+					header: "Session Uptime",
+					dataIndex: 'AcctSessionTime'
+				},
+				{
 					header: "Term. Reason",
 					dataIndex: 'ConnectTermReason'
 				}
@@ -219,6 +223,7 @@ function showAdminUserLogsWindow(id) {
 				{type: 'string',  dataIndex: 'FramedIPAddress'},
 				{type: 'numeric',  dataIndex: 'AcctInputMbyte'},
 				{type: 'numeric',  dataIndex: 'AcctOutputMbyte'},
+				{type: 'numeric',  dataIndex: 'AcctSessionTime'},
 				{type: 'string',  dataIndex: 'ConnectTermReason'}
 			]
 		}
@@ -229,22 +234,89 @@ function showAdminUserLogsWindow(id) {
 	store.on('load',function() {
 		var inputTotal = store.sum('AcctInputMbyte');
 		var outputTotal = store.sum('AcctOutputMbyte');
+		var uptimeTotal = store.sum('AcctSessionTime');
 
-		var userCap = 3000;
-		var userTopups = 1000;
+		var searchForm = adminUserLogsWindow.getComponent('search-form');
+		var afterField = (searchForm.getForm().findField('after')).getValue();
+		var beforeField = (searchForm.getForm().findField('before')).getValue();
+
+		var trafficCap;
+		var uptimeCap;
+		var trafficTopups;
+		var uptimeTopups;
+
+		var response;
+
+		// Mask parent window
+		adminUserLogsWindow.getEl().mask();
+
+		uxAjaxRequest(
+			adminUserLogsWindow,
+			{
+				params: {
+						From: afterField,
+						To: beforeField,
+						ID: id,
+						SOAPUsername: globalConfig.soap.username,
+						SOAPPassword: globalConfig.soap.password,
+						SOAPAuthType: globalConfig.soap.authtype,
+						SOAPModule: 'AdminUserLogs',
+						SOAPFunction: 'getAdminUserLogsSummary',
+						SOAPParams: '0:ID,0:From,0:To'
+					},
+			customSuccess: function (result) { 
+				response = Ext.decode(result.responseText);
+
+				trafficCap = response.data.trafficCap;
+				uptimeCap = response.data.uptimeCap;
+				trafficTopups = response.data.trafficTopups;
+				uptimeTopups = response.data.uptimeTopups;
+
+				// Total up traffic 
+				var trafficTotalAllowed;
+				if (trafficCap < 0) {
+					trafficTotalAllowed = trafficTopups;
+				} else {
+					trafficTotalAllowed = trafficCap + trafficTopups;
+				}
+				var trafficUsage = inputTotal + outputTotal;
+				var trafficRemaining = trafficTotalAllowed - trafficUsage;
+
+				var form = adminUserLogsWindow.getComponent('summary-form');
+				var summaryTotal = form.getForm().findField('summaryTotal');
+
+				// Format string before printing
+				var summaryString = '';
+				if (trafficCap == -1) {
+					trafficCap = 'Prepaid';
+					summaryString += sprintf(
+						'Traffic Cap: %s Traffic Topups: %d\n------------------------------------\n'+
+						'Allowed: %d Used: %d\n-------------------------------\nRemaining: %d',
+						trafficCap,trafficTopups,trafficTotalAllowed,trafficUsage,trafficRemaining
+					);
+
+				} else if (trafficCap == 0) {
+					summaryString += sprintf(
+						'Traffic Cap: Uncapped\n---------------------------------\nUsed: %d',
+						trafficUsage
+					);
+
+				} else {
+					summaryString += sprintf(
+						'Traffic Cap: %d Traffic Topups: %d\n------------------------------------\n'+
+						'Allowed: %d Used: %d\n-------------------------------\nRemaining: %d',
+						trafficCap,trafficTopups,trafficTotalAllowed,trafficUsage,trafficRemaining
+					);
+				}
+
+alert(summaryString);
+				summaryTotal.setValue(summaryString);
+			},
+			failure: function (result) { 
+				Ext.MessageBox.alert('Failed', 'Couldn\'t fetch data: '+result.date); 
+			},
+		});
 		
-		// Total up into this ... 
-		
-		var userTotalAllowed = userCap + userTopups;
-		var userUsage = inputTotal + outputTotal;
-		var userLeft = userTotalAllowed - userUsage;
-
-		var form = adminUserLogsWindow.getComponent('summary-form');
-		var summaryTotal = form.getForm().findField('summaryTotal');
-
-		summaryTotal.setValue(
-				sprintf('Cap Total: %6d\nTopups   : %6d\n-----------------\n           %6d\n-----------------\nUsage    : %6d\n=================\nAvailable: %6d',userCap,userTopups,userTotalAllowed,userUsage,userLeft)
-		);
 	});
 	adminUserLogsWindow.show();				
 }
