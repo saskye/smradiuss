@@ -165,6 +165,48 @@
 
 	switch ($function) {
 
+		case "getWiSPUserLogsSummary":
+
+			$res = getWiSPUserLogsSummary($soapParams);
+			$rawData = $res[0]; $numResults = $res[1];
+
+			$res = new json_response;
+			$res->addField('uptimeCap','int');
+			$res->addField('trafficCap','int');
+			$res->addField('trafficCurrentTopupUsed','int');
+			$res->addField('trafficCurrentTopupCap','int');
+			$res->addField('uptimeCurrentTopupUsed','int');
+			$res->addField('uptimeCurrentTopupCap','int');
+			$res->addField('trafficTopupRemaining','int');
+			$res->addField('uptimeTopupRemaining','int');
+			$res->parseHash($rawData);
+			$res->setDatasetSize($numResults);
+
+			echo json_encode($res->export());
+
+			break;
+	
+		case "getAdminUserLogsSummary":
+
+			$res = getAdminUserLogsSummary($soapParams);
+			$rawData = $res[0]; $numResults = $res[1];
+
+			$res = new json_response;
+			$res->addField('uptimeCap','int');
+			$res->addField('trafficCap','int');
+			$res->addField('trafficCurrentTopupUsed','int');
+			$res->addField('trafficCurrentTopupCap','int');
+			$res->addField('uptimeCurrentTopupUsed','int');
+			$res->addField('uptimeCurrentTopupCap','int');
+			$res->addField('trafficTopupRemaining','int');
+			$res->addField('uptimeTopupRemaining','int');
+			$res->parseHash($rawData);
+			$res->setDatasetSize($numResults);
+
+			echo json_encode($res->export());
+
+			break;
+	
 		# AdminUserTopups.js functions
 		case "getAdminUserTopups":
 
@@ -339,6 +381,7 @@
 			$res->addField('FramedIPAddress','string');
 			$res->addField('AcctInputMbyte','int');
 			$res->addField('AcctOutputMbyte','int');
+			$res->addField('AcctSessionTime','int');
 			$res->addField('ConnectTermReason','string');
 			$res->parseArray($rawData);
 			$res->setDatasetSize($numResults);

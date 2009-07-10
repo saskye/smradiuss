@@ -178,6 +178,10 @@ function showWiSPUserLogsWindow(id) {
 					dataIndex: 'AcctOutputMbyte'
 				},
 				{
+					header: "Session Uptime",
+					dataIndex: 'AcctSessionTime'
+				},
+				{
 					header: "Term. Reason",
 					dataIndex: 'ConnectTermReason'
 				}
@@ -219,6 +223,7 @@ function showWiSPUserLogsWindow(id) {
 				{type: 'string',  dataIndex: 'FramedIPAddress'},
 				{type: 'numeric',  dataIndex: 'AcctInputMbyte'},
 				{type: 'numeric',  dataIndex: 'AcctOutputMbyte'},
+				{type: 'numeric',  dataIndex: 'AcctSessionTime'},
 				{type: 'string',  dataIndex: 'ConnectTermReason'}
 			]
 		}
@@ -229,21 +234,130 @@ function showWiSPUserLogsWindow(id) {
 	store.on('load',function() {
 		var inputTotal = store.sum('AcctInputMbyte');
 		var outputTotal = store.sum('AcctOutputMbyte');
+		var uptimeTotal = store.sum('AcctSessionTime');
 
-		var userCap = 3000;
-		var userTopups = 1000;
-		
-		// Total up into this ... 
-		
-		var userTotalAllowed = userCap + userTopups;
-		var userUsage = inputTotal + outputTotal;
-		var userLeft = userTotalAllowed - userUsage;
+		var searchForm = wispUserLogsWindow.getComponent('search-form');
+		var afterField = (searchForm.getForm().findField('after')).getValue();
+		var beforeField = (searchForm.getForm().findField('before')).getValue();
 
-		var form = wispUserLogsWindow.getComponent('summary-form');
-		var summaryTotal = form.getForm().findField('summaryTotal');
+		// Mask parent window
+		wispUserLogsWindow.getEl().mask();
 
-		summaryTotal.setValue(
-				sprintf('Cap Total: %6d\nTopups   : %6d\n-----------------\n           %6d\n-----------------\nUsage    : %6d\n=================\nAvailable: %6d',userCap,userTopups,userTotalAllowed,userUsage,userLeft)
+		uxAjaxRequest(
+			wispUserLogsWindow,
+			{
+				params: {
+					From: afterField,
+					To: beforeField,
+					ID: id,
+					SOAPUsername: globalConfig.soap.username,
+					SOAPPassword: globalConfig.soap.password,
+					SOAPAuthType: globalConfig.soap.authtype,
+					SOAPModule: 'WiSPUserLogs',
+					SOAPFunction: 'getWiSPUserLogsSummary',
+					SOAPParams: '0:ID,0:From,0:To'
+				},
+
+				customSuccess: function (result) {
+					response = Ext.decode(result.responseText);
+
+					// Traffic variables
+					var trafficCap = response.data.trafficCap; // value of -1: prepaid
+					
+					var trafficCurrentTopupUsed = response.data.trafficCurrentTopupUsed; // value of -1: no current topup
+					var trafficCurrentTopupCap = response.data.trafficCurrentTopupCap; // value of -1: no current topup
+					var trafficTopupRemaining = response.data.trafficTopupRemaining;
+
+					// Uptime variables
+					var uptimeCap = response.data.uptimeCap; // value of -1: prepaid
+
+					var uptimeCurrentTopupUsed = response.data.uptimeCurrentTopupUsed; // value of -1: no current topup
+					var uptimeCurrentTopupCap = response.data.uptimeCurrentTopupCap; // value of -1: no current topup
+					var uptimeTopupRemaining = response.data.uptimeTopupRemaining;
+
+					// Total up traffic
+					var trafficTotalAllowed;
+					var validTrafficTopups;
+					if (trafficCurrentTopupCap > 0) {
+						validTrafficTopups = trafficCurrentTopupCap;
+						validTrafficTopups += trafficTopupRemaining;
+					} else {
+						validTrafficTopups = trafficTopupRemaining;
+					}
+
+					if (trafficCap < 0) {
+						trafficTotalAllowed = validTrafficTopups;
+					} else {
+						trafficTotalAllowed = trafficCap + validTrafficTopups;
+					}
+
+					// Traffic usage
+					var trafficUsage = inputTotal + outputTotal;
+
+					// Total up uptime
+					var uptimeTotalAllowed;
+					var validUptimeTopups;
+					if (uptimeCurrentTopupCap > 0) {
+						validUptimeTopups = uptimeCurrentTopupCap;
+						validUptimeTopups += uptimeTopupRemaining;
+					} else {
+						validUptimeTopups = uptimeTopupRemaining;
+					}
+
+					if (uptimeCap < 0) {
+						uptimeTotalAllowed = validUptimeTopups;
+					} else {
+						uptimeTotalAllowed = uptimeCap + validUptimeTopups;
+					}
+
+					// Get summary field
+					var form = wispUserLogsWindow.getComponent('summary-form');
+					var summaryTotal = form.getForm().findField('summaryTotal');
+
+					// Format string before printing
+					var trafficString = '';
+					// Prepaid traffic
+					if (trafficCap == -1) {
+						trafficCap = 'Prepaid';
+						trafficString += sprintf('               Traffic\nCap: %s MB Topup: %d MB\n'+
+								'Usage: %d/%d MB\n=====================================\n',
+								trafficCap,validTrafficTopups,trafficUsage,trafficTotalAllowed);
+					// Uncapped traffic
+					} else if (trafficCap == 0) {
+						trafficString += sprintf('               Traffic\nCap: Uncapped Used: %d\n=====================================n',
+								trafficUsage);
+					// Capped traffic
+					} else {
+						trafficString += sprintf('               Traffic\nCap: %d MB Topup: %d MB\n'+
+								'Usage: %d/%d MB\n=====================================\n',
+								trafficCap,validTrafficTopups,trafficUsage,trafficTotalAllowed);
+					}
+
+					// Format string before printing
+					var uptimeString = '';
+					// Prepaid uptime
+					if (uptimeCap == -1) {
+						uptimeCap = 'Prepaid';
+						uptimeString += sprintf('               Uptime\nCap: %s MB Topup: %d MB\n'+
+								'Usage: %d/%d MB',
+								uptimeCap,validUptimeTopups,uptimeTotal,uptimeTotalAllowed);
+					// Uncapped uptime
+					} else if (uptimeCap == 0) {
+						uptimeString += sprintf('               Uptime\nCap: Uncapped Used: %d',
+								uptimeTotal);
+					// Capped uptime
+					} else {
+						uptimeString += sprintf('               Uptime\nCap: %d MB Topup: %d MB\n'+
+								'Usage: %d/%d MB',
+								uptimeCap,validUptimeTopups,uptimeTotal,uptimeTotalAllowed);
+					}
+
+					summaryTotal.setValue(trafficString+uptimeString);
+				},
+				failure: function (result) {
+					Ext.MessageBox.alert('Failed', 'Couldn\'t fetch data: '+result.date);
+				},
+			}
 		);
 	});
 	wispUserLogsWindow.show();				
