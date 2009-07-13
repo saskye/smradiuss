@@ -21,7 +21,7 @@
 
 
 
-package mod_auth_chap;
+package smradius::modules::authentication::mod_auth_chap;
 
 use strict;
 use warnings;

@@ -23,11 +23,7 @@ use warnings;
 # Set library directory
 use lib qw(
 	../ ./
-	smradius/modules/authentication
-	smradius/modules/userdb
-	smradius/modules/accounting
-	smradius/modules/features
-	smradius/modules/config
+	smradius
 	awitpt/db
 );
 
@@ -121,7 +117,7 @@ sub configure {
 	) or die "Failed to open config file '".$cfg->{'config_file'}."': $!";
 	# Copy config
 	my %config = %inifile;
-	untie(%inifile);
+	#untie(%inifile);
 
 	# Pull in params for the server
 	my @server_params = (
@@ -176,106 +172,125 @@ sub configure {
 	}
 
 	#
-	# System plugins
+	# System modules
 	#
-	my @system_params = (
-			'plugins',
-	);
-	my $system;
-	foreach my $param (@system_params) {
-		$system->{$param} = $config{'system'}{$param} if (defined($config{'system'}{$param}));
-	}
-
-	if (!defined($system->{'plugins'})) {
-		$self->log(LOG_ERR,"[SMRADIUS] System configuration error: System plugins not found");
-		exit 1;
-	}
-
-	#
-	# Authentication plugins
-	#
-	my @auth_params = (
-			'mechanisms',
-			'users',
-	);
-	my $auth;
-	foreach my $param (@auth_params) {
-		$auth->{$param} = $config{'authentication'}{$param} if (defined($config{'authentication'}{$param}));
-	}
-
-	if (!defined($auth->{'users'})) {
-		$self->log(LOG_ERR,"[SMRADIUS] Authentication configuration error: Userdb plugins not found");
-		exit 1;
+	if (ref($config{'system'}{'modules'}) eq "ARRAY") {
+		foreach my $module (@{$config{'system'}{'modules'}}) {
+			$module =~ s/\s+//g;
+	 		# Skip comments
+	 		next if ($module =~ /^#/);
+	 		$module = "system/$module";
+			push(@{$cfg->{'module_list'}},$module);
+		}
+	} else {
+		my @moduleList = split(/\s+/,$config{'system'}{'modules'});
+		foreach my $module (@moduleList) {
+			# Skip comments
+			next if ($module =~ /^#/);
+			$module = "system/$module";
+			push(@{$cfg->{'module_list'}},$module);
+		}
 	}
 
 	#
-	# Accounting plugins
+	# Feature modules
 	#
-	my @acct_params = (
-			'plugins',
-	);
-	my $acct;
-	foreach my $param (@acct_params) {
-		$acct->{$param} = $config{'accounting'}{$param} if (defined($config{'accounting'}{$param}));
+	if (ref($config{'features'}{'modules'}) eq "ARRAY") {
+		foreach my $module (@{$config{'features'}{'modules'}}) {
+			$module =~ s/\s+//g;
+	 		# Skip comments
+	 		next if ($module =~ /^#/);
+	 		$module = "features/$module";
+			push(@{$cfg->{'module_list'}},$module);
+		}
+	} else {
+		my @moduleList = split(/\s+/,$config{'features'}{'modules'});
+		foreach my $module (@moduleList) {
+			# Skip comments
+			next if ($module =~ /^#/);
+			$module = "features/$module";
+			push(@{$cfg->{'module_list'}},$module);
+		}
 	}
 
-	if (!defined($acct->{'plugins'})) {
-		$self->log(LOG_ERR,"[SMRADIUS] Accounting configuration error: Plugins not found");
-		exit 1;
+	#
+	# Authentication modules
+	#
+	if (ref($config{'authentication'}{'mechanisms'}) eq "ARRAY") {
+		foreach my $module (@{$config{'authentication'}{'mechanisms'}}) {
+			$module =~ s/\s+//g;
+	 		# Skip comments
+	 		next if ($module =~ /^#/);
+	 		$module = "authentication/$module";
+			push(@{$cfg->{'module_list'}},$module);
+		}
+	} else {
+		my @moduleList = split(/\s+/,$config{'authentication'}{'mechanisms'});
+		foreach my $module (@moduleList) {
+			# Skip comments
+			next if ($module =~ /^#/);
+			$module = "authentication/$module";
+			push(@{$cfg->{'module_list'}},$module);
+		}
+	}
+
+	if (ref($config{'authentication'}{'users'}) eq "ARRAY") {
+		foreach my $module (@{$config{'authentication'}{'users'}}) {
+			$module =~ s/\s+//g;
+	 		# Skip comments
+	 		next if ($module =~ /^#/);
+	 		$module = "userdb/$module";
+			push(@{$cfg->{'module_list'}},$module);
+		}
+	} else {
+		my @moduleList = split(/\s+/,$config{'authentication'}{'users'});
+		foreach my $module (@moduleList) {
+			# Skip comments
+			next if ($module =~ /^#/);
+			$module = "userdb/$module";
+			push(@{$cfg->{'module_list'}},$module);
+		}
 	}
 
 	#
-	# Feature plugins
+	# Accounting modules
 	#
-	my $features;
-	$features->{'plugins'} = [ ];
-	$features->{'plugins'} = $config{'features'}{'plugins'} if (defined($config{'features'}{'plugins'}));
+	if (ref($config{'accounting'}{'module_list'}) eq "ARRAY") {
+		foreach my $module (@{$config{'accounting'}{'module_list'}}) {
+			$module =~ s/\s+//g;
+	 		# Skip comments
+	 		next if ($module =~ /^#/);
+	 		$module = "accounting/$module";
+			push(@{$cfg->{'module_list'}},$module);
+		}
+	} else {
+		my @moduleList = split(/\s+/,$config{'accounting'}{'module_list'});
+		foreach my $module (@moduleList) {
+			# Skip comments
+			next if ($module =~ /^#/);
+			$module = "accounting/$module";
+			push(@{$cfg->{'module_list'}},$module);
+		}
+	}
 
 	#
 	# Dictionary configuration
 	#
-	my @dictionary_params = (
-			'load',
-	);
-	my $dictionary;
-	foreach my $param (@dictionary_params) {
-		$dictionary->{$param} = $config{'dictionary'}{$param} if (defined($config{'dictionary'}{$param}));
-	}
-
-	if (!defined($dictionary->{'load'})) {
-		$self->log(LOG_ERR,"[SMRADIUS] Dictionary configuration error: 'load' not found");
-		exit 1;
-	}
 	# Split off dictionaries to load
-	if (ref($dictionary->{'load'}) eq "ARRAY") {
-		foreach my $dict (@{$dictionary->{'load'}}) {
+	if (ref($config{'dictionary'}->{'load'}) eq "ARRAY") {
+		foreach my $dict (@{$config{'dictionary'}->{'load'}}) {
 			$dict =~ s/\s+//g;
 	 		# Skip comments
 	 		next if ($dict =~ /^#/);
 			push(@{$cfg->{'dictionary_list'}},$dict);
 		}
 	} else {
-		my @dictList = split(/\s+/,$dictionary->{'load'});
+		my @dictList = split(/\s+/,$config{'dictionary'}->{'load'});
 		foreach my $dict (@dictList) {
 			# Skip comments
 			next if ($dict =~ /^#/);
 			push(@{$cfg->{'dictionary_list'}},$dict);
 		}
-	}
-
-	$cfg->{'authentication'} = $auth;
-
-	$cfg->{'plugins'} = [
-		@{$auth->{'mechanisms'}},
-		@{$auth->{'users'}},
-		@{$acct->{'plugins'}},
-		@{$features->{'plugins'}},
-		@{$system->{'plugins'}}
-	];
-
-	# Clean up plugins
-	foreach my $plugin (@{$cfg->{'plugins'}}) {
-		$plugin =~ s/\s+//g;
 	}
 
 	# Save our config and stuff
@@ -305,31 +320,35 @@ sub post_configure_hook {
 		if (!$dict->readfile($df)) {
 			$self->log(LOG_WARN,"[SMRADIUS] Failed to load dictionary '$df': $!");
 		}
-		$self->log(LOG_DEBUG,"[SMRADIUS] Loaded plugin '$df'.");
+		$self->log(LOG_DEBUG,"[SMRADIUS] Loaded module '$df'.");
 	}
 	$self->log(LOG_NOTICE,"[SMRADIUS] Dictionaries initialized.");
 	# Store the dictionary
 	$self->{'radius'}->{'dictionary'} = $dict;
 
 	$self->log(LOG_NOTICE,"[SMRADIUS] Initializing modules...");
-	# Load plugins
-	foreach my $plugin (@{$config->{'plugins'}}) {
-		# Load plugin
+	# Load modules
+	foreach my $module (@{$config->{'module_list'}}) {
+		# Split off dir and mod name
+		$module =~ /^(\w+)\/(\w+)$/;
+		my ($mod_dir,$mod_name) = ($1,$2);
+
+		# Load module
 		my $res = eval("
-			use $plugin;
-			plugin_register(\$self,\"$plugin\",\$${plugin}::pluginInfo);
+			use smradius::modules::${mod_dir}::${mod_name};
+			plugin_register(\$self,\"${mod_name}\",\$smradius::modules::${mod_dir}::${mod_name}::pluginInfo);
 		");
 		if ($@ || (defined($res) && $res != 0)) {
-			$self->log(LOG_WARN,"[SMRADIUS] Error loading plugin $plugin ($@)");
+			$self->log(LOG_WARN,"[SMRADIUS] Error loading module $module ($@)");
 		} else {
-			$self->log(LOG_DEBUG,"[SMRADIUS] Plugin '$plugin' loaded.");
+			$self->log(LOG_DEBUG,"[SMRADIUS] Plugin '$module' loaded.");
 		}
 	}
 	$self->log(LOG_NOTICE,"[SMRADIUS] Plugins initialized.");
 
 	$self->log(LOG_NOTICE,"[SMRADIUS] Initializing system modules.");
 	# Init caching engine
-#	smradius::cache::Init($self);
+#	awitpt::cache::Init($self);
 	$self->log(LOG_NOTICE,"[SMRADIUS] System modules initialized.");
 
 }
@@ -349,7 +368,7 @@ sub plugin_register {
 
 	# Set real module name & save
 	$info->{'Module'} = $plugin;
-	push(@{$self->{'plugins'}},$info);
+	push(@{$self->{'module_list'}},$info);
 
 	# If we should, init the module
 	if (defined($info->{'Init'})) {
@@ -370,7 +389,7 @@ sub child_init_hook
 	$self->SUPER::child_init_hook();
 
 	$self->log(LOG_DEBUG,"[SMRADIUS] Starting up caching engine");
-	smradius::cache::connect($self);
+	awitpt::cache::connect($self);
 
 	# Do we need database support?
 	if ($self->{'smradius'}->{'database'}->{'enabled'}) {
@@ -379,7 +398,7 @@ sub child_init_hook
 		$self->{'client'}->{'dbh_status'} = time();
 
 		# Init core database support
-		$self->{'client'}->{'dbh'} = smradius::dbilayer::Init($self);
+		$self->{'client'}->{'dbh'} = awitpt::db::dbilayer::Init($self,'smradius');
 		if (defined($self->{'client'}->{'dbh'})) {
 			# Check if we succeeded
 			if (!($self->{'client'}->{'dbh'}->connect())) {
@@ -390,7 +409,7 @@ sub child_init_hook
 						" ($$)");
 			}
 		} else {
-			$self->log(LOG_WARN,"[SMRADIUS] Failed to Initialize: ".smradius::dbilayer::internalErr()." ($$)");
+			$self->log(LOG_WARN,"[SMRADIUS] Failed to Initialize: ".awitpt::db::dbilayer::internalError()." ($$)");
 		}
 	}
 
@@ -406,7 +425,7 @@ sub child_finish_hook {
 	$self->SUPER::child_finish_hook();
 
 	$self->log(LOG_DEBUG,"[SMRADIUS] Shutting down caching engine ($$)");
-	smradius::cache::disconnect($self);
+	awitpt::cache::disconnect($self);
 }
 
 
@@ -415,7 +434,7 @@ sub process_request {
 	my $self = shift;
 	my $server = $self->{'server'};
 	my $client = $self->{'client'};
-	my $log = defined($server->{'config'}{'logging'}{'modules'});
+	my $log = defined($server->{'config'}{'logging'}{'module_list'});
 
 
 	# Grab packet
@@ -490,7 +509,7 @@ sub process_request {
 	# GRAB & PROCESS CONFIG
 	#
 
-	foreach my $module (@{$self->{'plugins'}}) {
+	foreach my $module (@{$self->{'module_list'}}) {
 		# Try find config attribute
 		if ($module->{'Config_get'}) {
 
@@ -537,7 +556,7 @@ sub process_request {
 		#
 
 		# Loop with modules to try find user
-		foreach my $module (@{$self->{'plugins'}}) {
+		foreach my $module (@{$self->{'module_list'}}) {
 			# Try find user
 			if ($module->{'User_find'}) {
 				$self->log(LOG_INFO,"[SMRADIUS] FIND: Trying plugin '".$module->{'Name'}."' for username '".
@@ -591,7 +610,7 @@ sub process_request {
 		}
 
 		# Loop with modules to try something that handles accounting
-		foreach my $module (@{$self->{'plugins'}}) {
+		foreach my $module (@{$self->{'module_list'}}) {
 			# Try find user
 			if ($module->{'Accounting_log'}) {
 				$self->log(LOG_INFO,"[SMRADIUS] ACCT: Trying plugin '".$module->{'Name'}."'");
@@ -626,8 +645,8 @@ sub process_request {
 		# Are we going to POD the user?
 		my $PODUser = 0;
 
-		# Loop with features that have post-authentication hooks
-		foreach my $module (@{$self->{'plugins'}}) {
+		# Loop with modules that have post-authentication hooks
+		foreach my $module (@{$self->{'module_list'}}) {
 			# Try authenticate
 			if ($module->{'Feature_Post-Accounting_hook'}) {
 				$self->log(LOG_INFO,"[SMRADIUS] POST-ACCT: Trying plugin '".$module->{'Name'}."' for '".
@@ -747,7 +766,7 @@ sub process_request {
 		#
 
 		# Loop with authentication modules
-		foreach my $module (@{$self->{'plugins'}}) {
+		foreach my $module (@{$self->{'module_list'}}) {
 			# Try authenticate
 			if ($module->{'Authentication_try'}) {
 				$self->log(LOG_INFO,"[SMRADIUS] AUTH: Trying plugin '".$module->{'Name'}."' for '".$user->{'Username'}."'");
@@ -778,9 +797,9 @@ sub process_request {
 			}
 		}
 
-		# Loop with features that have post-authentication hooks
+		# Loop with modules that have post-authentication hooks
 		if ($authenticated) {
-			foreach my $module (@{$self->{'plugins'}}) {
+			foreach my $module (@{$self->{'module_list'}}) {
 				# Try authenticate
 				if ($module->{'Feature_Post-Authentication_hook'}) {
 					$self->log(LOG_INFO,"[SMRADIUS] POST-AUTH: Trying plugin '".$module->{'Name'}.
@@ -804,7 +823,7 @@ sub process_request {
 					} elsif ($res == MOD_RES_NACK) {
 						$self->log(LOG_NOTICE,"[SMRADIUS] POST-AUTH: Failed authentication by '".$module->{'Name'}."'");
 						$authenticated = 0;
-						# Do we want to run the other features ??
+						# Do we want to run the other modules ??
 						last;
 					}
 				}

@@ -24,7 +24,7 @@
 
 
 
-package mod_auth_mschap;
+package smradius::modules::authentication::mod_auth_mschap;
 
 use strict;
 use warnings;

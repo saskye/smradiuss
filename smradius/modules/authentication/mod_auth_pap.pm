@@ -18,7 +18,7 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-package mod_auth_pap;
+package smradius::modules::authentication::mod_auth_pap;
 
 use strict;
 use warnings;
