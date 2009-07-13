@@ -1,16 +1,16 @@
 # Attribute handling functions
 # Copyright (C) 2007-2009, AllWorldIT
-# 
+#
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; either version 2 of the License, or
 # (at your option) any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
@@ -33,7 +33,7 @@ our (@ISA,@EXPORT);
 	setReplyAttribute
 	setReplyVAttribute
 	processConfigAttribute
-	
+
 	getAttributeValue
 );
 
@@ -67,15 +67,15 @@ sub addAttribute
 {
 	my ($server,$attributes,$attribute) = @_;
 
-	# Check if this is an array 
+	# Check if this is an array
 	if ($attribute->{'Operator'} =~ s/^\|\|//) {
 		# Check if we've seen this before
-		if (defined($attributes->{$attribute->{'Name'}}->{$attribute->{'Operator'}}) && 
+		if (defined($attributes->{$attribute->{'Name'}}->{$attribute->{'Operator'}}) &&
 				ref($attributes->{$attribute->{'Name'}}->{$attribute->{'Operator'}}->{'Value'}) eq "ARRAY" ) {
 			# Then add value to end of array
 			push(@{$attributes->{$attribute->{'Name'}}->{$attribute->{'Operator'}}->{'Value'}}, $attribute->{'Value'});
 
-		# If we have not seen it before, initialize it	
+		# If we have not seen it before, initialize it
 		} else {
 			# Assign attribute
 			$attributes->{$attribute->{'Name'}}->{$attribute->{'Operator'}} = $attribute;
@@ -117,16 +117,16 @@ sub checkAuthAttribute
 		@attrValues = @{$attribute->{'Value'}};
 	} else {
 		@attrValues = ( $attribute->{'Value'} );
-	}	
+	}
 
 	# Get packet attribute value
 	my $attrVal = $packetAttributes->{$attribute->{'Name'}};
 
 	$server->log(LOG_DEBUG,"[ATTRIBUTES] Processing CHECK attribute value ".niceUndef($attrVal)." against: '".
 			$attribute->{'Name'}."' ".$attribute->{'Operator'}." '".join("','",@attrValues)."'");
-	
+
 	# Loop with all the test attribute values
-	foreach my $tattrVal (@attrValues) { 	
+	foreach my $tattrVal (@attrValues) {
 		# Operator: ==
 		#
 		# Use: Attribute == Value
@@ -138,7 +138,7 @@ sub checkAuthAttribute
 			if (defined($attrVal) && $attrVal eq $tattrVal) {
 				$matched = 1;
 			}
-	
+
 		# Operator: >
 		#
 		# Use: Attribute > Value
@@ -146,7 +146,7 @@ sub checkAuthAttribute
 		# with a value greater than the one given.
 		#
 		# Not allowed as a reply item.
-	
+
 		} elsif ($attribute->{'Operator'} eq '>') {
 			if (defined($attrVal) && $attrVal =~ /^[0-9]+$/) {
 				# Check for correct value
@@ -156,7 +156,7 @@ sub checkAuthAttribute
 			} else {
 				$server->log(LOG_WARN,"[ATTRIBUTES] - Attribute '".$attribute->{'Name'}."' is NOT a number!");
 			}
-	
+
 		# Operator: <
 		#
 		# Use: Attribute < Value
@@ -164,13 +164,13 @@ sub checkAuthAttribute
 		# with a value less than the one given.
 		#
 		# Not allowed as a reply item.
-	
+
 		} elsif ($attribute->{'Operator'} eq '<') {
 			# Check for correct value
 			if (defined($attrVal) && $attrVal < $tattrVal) {
 				$matched = 1;
 			}
-	
+
 		# Operator: <=
 		#
 		# Use: Attribute <= Value
@@ -178,13 +178,13 @@ sub checkAuthAttribute
 		# with a value less than, or equal to the one given.
 		#
 		# Not allowed as a reply item.
-	
+
 		} elsif ($attribute->{'Operator'} eq '<=') {
 			# Check for correct value
 			if (defined($attrVal) && $attrVal <= $tattrVal) {
 				$matched = 1;
 			}
-	
+
 		# Operator: >=
 		#
 		# Use: Attribute >= Value
@@ -192,13 +192,13 @@ sub checkAuthAttribute
 		# with a value greater than, or equal to the one given.
 		#
 		# Not allowed as a reply item.
-	
+
 		} elsif ($attribute->{'Operator'} eq '>=') {
 			# Check for correct value
 			if (defined($attrVal) && $attrVal >= $tattrVal) {
 				$matched = 1;
 			}
-	
+
 		# Operator: =*
 		#
 		# Use: Attribute =* Value
@@ -206,13 +206,13 @@ sub checkAuthAttribute
 		# no matter what the value is.
 		#
 		# Not allowed as a reply item.
-	
+
 		} elsif ($attribute->{'Operator'} eq '=*') {
 			# Check for matching value
 			if (defined($attrVal)) {
 				$matched = 1;
 			}
-	
+
 		# Operator !=
 		#
 		# Use: Attribute != Value
@@ -220,13 +220,13 @@ sub checkAuthAttribute
 		# request, AND does not have the given value.
 		#
 		# Not allowed as a reply item.
-	
+
 		} elsif ($attribute->{'Operator'} eq '!=') {
 			# Check for correct value
 			if (defined($attrVal) && $attrVal ne $tattrVal) {
 				$matched = 1;
 			}
-	
+
 		# Operator: !*
 		#
 		# Use: Attribute !* Value
@@ -234,13 +234,13 @@ sub checkAuthAttribute
 		# what the value is.
 		#
 		# Not allowed as a reply item.
-	
+
 		} elsif ($attribute->{'Operator'} eq '!*') {
 			# Skip if value not defined
 			if (!defined($attrVal)) {
 				$matched = 1;
 			}
-	
+
 		# Operator: =~
 		#
 		# Use: Attribute =~ Value
@@ -248,13 +248,13 @@ sub checkAuthAttribute
 		# This operator may only be applied to string packetAttributes.
 		#
 		# Not allowed as a reply item.
-	
+
 		} elsif ($attribute->{'Operator'} eq '=~') {
 			# Check for correct value
 			if (defined($attrVal) && $attrVal =~ /$tattrVal/) {
 				$matched = 1;
 			}
-	
+
 		# Operator: !~
 		#
 		# Use: Attribute !~ Value
@@ -263,13 +263,13 @@ sub checkAuthAttribute
 		# what the value is.
 		#
 		# Not allowed as a reply item.
-	
+
 		} elsif ($attribute->{'Operator'} eq '!~') {
 			# Check for correct value
 			if (defined($attrVal) && !($attrVal =~ /$tattrVal/)) {
 				$matched = 1;
 			}
-	
+
 		# Operator: +=
 		#
 		# Use: Attribute += Value
@@ -278,25 +278,22 @@ sub checkAuthAttribute
 		#
 		# As a reply item, it has an itendtical meaning, but the
 		# attribute is added to the reply items.
-	
+
 		} elsif ($attribute->{'Operator'} eq '+=') {
 			# FIXME - Add to config items
 			$matched = 1;
-	
+
 		# FIXME
 		# Operator: :=
 		#
 		# Use: Attribute := Value
-		# Always matches as a check item, and replaces in the configuration items any attribute of the same name. 
-		# If no attribute of that name appears in the request, then this attribute is added.
-		#
-		# As a reply item, it has an itendtical meaning, but for the reply items, instead of the request items.
-	
+		# Always matches as a check item, and replaces in the configuration items any attribute of the same name.
+
 		} elsif ($attribute->{'Operator'} eq ':=') {
 			# FIXME - Add or replace config items
 			# FIXME - Add attribute to request
 			$matched = 1;
-	
+
 		# Attributes that are not defined
 		} else {
 			# Ignore
@@ -305,7 +302,7 @@ sub checkAuthAttribute
 		}
 	}
 
-	# Some debugging info	
+	# Some debugging info
 	if ($matched == 1) {
 		$server->log(LOG_DEBUG,"[ATTRIBUTES] - Attribute '".$attribute->{'Name'}."' matched");
 	} elsif ($matched == 2) {
@@ -330,7 +327,7 @@ sub setReplyAttribute
 {
 	my ($server,$attributes,$attribute) = @_;
 
-	
+
 	# Check ignore list
 	foreach my $ignoredAttr (@attributeReplyIgnoreList) {
 		# 2 = IGNORE, so return IGNORE for all ignored items
@@ -343,11 +340,11 @@ sub setReplyAttribute
 		@attrValues = @{$attribute->{'Value'}};
 	} else {
 		@attrValues = ( $attribute->{'Value'} );
-	}	
+	}
 
 	$server->log(LOG_DEBUG,"[ATTRIBUTES] Processing REPLY attribute: '".
 			$attribute->{'Name'}."' ".$attribute->{'Operator'}." '".join("','",@attrValues)."'");
-	
+
 
 	# Operator: =
 	#
@@ -358,7 +355,7 @@ sub setReplyAttribute
 	#
 	# As a reply item, it means "add the item to the reply list, but only if there is
 	# no other item of the same attribute.
-	
+
 	if ($attribute->{'Operator'} eq '=') {
 		# If item does not exist
 		if (!defined($attributes->{$attribute->{'Name'}})) {
@@ -368,22 +365,22 @@ sub setReplyAttribute
 			@{$attributes->{$attribute->{'Name'}}} = @attrValues;
 		}
 
-	
+
 	# Operator: :=
 	#
 	# Use: Attribute := Value
-	# Always matches as a check item, and replaces in the configuration items any attribute of the same name. 
+	# Always matches as a check item, and replaces in the configuration items any attribute of the same name.
 	# If no attribute of that name appears in the request, then this attribute is added.
 	#
 	# As a reply item, it has an itendtical meaning, but for the reply items, instead of the request items.
-	
+
 	} elsif ($attribute->{'Operator'} eq ':=') {
 		# Overwrite
 		$server->log(LOG_DEBUG,"[ATTRIBUTES] - Attribute '".$attribute->{'Name'}.
 					"' setting attribute value to '".join("','",@attrValues)."'");
 		@{$attributes->{$attribute->{'Name'}}} = @attrValues;
 
-	
+
 	# Operator: +=
 	#
 	# Use: Attribute += Value
@@ -392,13 +389,13 @@ sub setReplyAttribute
 	#
 	# As a reply item, it has an itendtical meaning, but the
 	# attribute is added to the reply items.
-	
+
 	} elsif ($attribute->{'Operator'} eq '+=') {
 		# Then add
 		$server->log(LOG_DEBUG,"[ATTRIBUTES] - Attribute '".$attribute->{'Name'}.
 				"' appending values '".join("','",@attrValues)."'");
 		push(@{$attributes->{$attribute->{'Name'}}},@attrValues);
-	
+
 	# Attributes that are not defined
 	} else {
 		# Ignore and b0rk out
@@ -422,7 +419,7 @@ sub setReplyVAttribute
 {
 	my ($server,$attributes,$attribute) = @_;
 
-	
+
 	# Check ignore list
 	foreach my $ignoredAttr (@attributeVReplyIgnoreList) {
 		# 2 = IGNORE, so return IGNORE for all ignored items
@@ -438,11 +435,11 @@ sub setReplyVAttribute
 		@attrValues = @{$attribute->{'Value'}};
 	} else {
 		@attrValues = ( $attribute->{'Value'} );
-	}	
+	}
 
 	$server->log(LOG_DEBUG,"[VATTRIBUTES] Processing REPLY attribute: '".
 			$attribute->{'Name'}."' ".$attribute->{'Operator'}." '".join("','",@attrValues)."'");
-	
+
 
 	# Operator: =
 	#
@@ -453,7 +450,7 @@ sub setReplyVAttribute
 	#
 	# As a reply item, it means "add the item to the reply list, but only if there is
 	# no other item of the same attribute.
-	
+
 	if ($attribute->{'Operator'} eq '=') {
 		# If item does not exist
 		if (!defined($attributes->{$attribute->{'Vendor'}}->{$attribute->{'Name'}})) {
@@ -463,22 +460,22 @@ sub setReplyVAttribute
 			@{$attributes->{$attribute->{'Vendor'}}->{$attribute->{'Name'}}} = @attrValues;
 		}
 
-	
+
 	# Operator: :=
 	#
 	# Use: Attribute := Value
-	# Always matches as a check item, and replaces in the configuration items any attribute of the same name. 
+	# Always matches as a check item, and replaces in the configuration items any attribute of the same name.
 	# If no attribute of that name appears in the request, then this attribute is added.
 	#
 	# As a reply item, it has an itendtical meaning, but for the reply items, instead of the request items.
-	
+
 	} elsif ($attribute->{'Operator'} eq ':=') {
 		# Overwrite
 		$server->log(LOG_DEBUG,"[VATTRIBUTES] - Attribute '".$attribute->{'Name'}.
 					"' setting attribute value to '".join("','",@attrValues)."'");
 		@{$attributes->{$attribute->{'Vendor'}}->{$attribute->{'Name'}}} = @attrValues;
 
-	
+
 	# Operator: +=
 	#
 	# Use: Attribute += Value
@@ -487,13 +484,13 @@ sub setReplyVAttribute
 	#
 	# As a reply item, it has an itendtical meaning, but the
 	# attribute is added to the reply items.
-	
+
 	} elsif ($attribute->{'Operator'} eq '+=') {
 		# Then add
 		$server->log(LOG_DEBUG,"[VATTRIBUTES] - Attribute '".$attribute->{'Name'}.
 				"' appending values '".join("','",@attrValues)."'");
 		push(@{$attributes->{$attribute->{'Vendor'}}->{$attribute->{'Name'}}},@attrValues);
-	
+
 	# Attributes that are not defined
 	} else {
 		# Ignore and b0rk out
@@ -527,11 +524,11 @@ sub processConfigAttribute
 		@attrValues = @{$attribute->{'Value'}};
 	} else {
 		@attrValues = ( $attribute->{'Value'} );
-	}	
+	}
 
 	$server->log(LOG_DEBUG,"[ATTRIBUTES] Processing CONFIG attribute: '".$attribute->{'Name'}."' ".
 			$attribute->{'Operator'}." '".join("','",@attrValues)."'");
-	
+
 	# Operator: +=
 	#
 	# Use: Attribute += Value
@@ -548,7 +545,7 @@ sub processConfigAttribute
 	# Operator: :=
 	#
 	# Use: Attribute := Value
-	# Always matches as a check item, and replaces in the configuration items any attribute of the same name. 
+	# Always matches as a check item, and replaces in the configuration items any attribute of the same name.
 	# If no attribute of that name appears in the request, then this attribute is added.
 	#
 	# As a reply item, it has an itendtical meaning, but for the reply items, instead of the request items.
@@ -585,6 +582,7 @@ sub getAttributeValue
 
 	return $value;
 }
+
 
 
 1;
