@@ -1,17 +1,17 @@
 #!/usr/bin/perl
 # Radius daemon
 # Copyright (C) 2007-2009, AllWorldIT
-# 
+#
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; either version 2 of the License, or
 # (at your option) any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
@@ -22,7 +22,7 @@ use warnings;
 
 # Set library directory
 use lib qw(
-	../ ./ 
+	../ ./
 	smradius/modules/authentication
 	smradius/modules/userdb
 	smradius/modules/accounting
@@ -81,7 +81,7 @@ sub configure {
 	$server->{'host'} = "*";
 	$server->{'port'} = [ 1812, 1813 ];
 	$server->{'proto'} = 'udp';
-			
+
 	$server->{'min_servers'} = 4;
 	$server->{'min_spare_servers'} = 4;
 	$server->{'max_spare_servers'} = 12;
@@ -98,7 +98,7 @@ sub configure {
 			"debug",
 			"fg",
 	) or die "Error parsing commandline arguments";
-	
+
 	# Check for some args
 	if ($cmdline->{'help'}) {
 		$self->displayHelp();
@@ -112,7 +112,7 @@ sub configure {
 	if (! -f $cfg->{'config_file'}) {
 		die("No configuration file '".$cfg->{'config_file'}."' found!\n");
 	}
-	
+
 	# Use config file, ignore case
 	tie my %inifile, 'Config::IniFiles', (
 			-file => $cfg->{'config_file'},
@@ -128,11 +128,11 @@ sub configure {
 #			'port',   - We don't want to override this do we?
 			'host',
 			'cidr_allow', 'cidr_deny',
-			'pid_file', 
+			'pid_file',
 			'user', 'group',
 			'timeout',
 			'background',
-			'min_servers',     
+			'min_servers',
 			'min_spare_servers',
 			'max_spare_servers',
 			'max_servers',
@@ -173,7 +173,7 @@ sub configure {
 			$cfg->{'logging'}{$detail} = 1;
 		}
 	}
-	
+
 	#
 	# System plugins
 	#
@@ -249,15 +249,15 @@ sub configure {
 	foreach my $fn (@{$dictionary->{'load'}}) {
 		$fn =~ s/\s+//g;
 	}
-	
+
 	$cfg->{'authentication'} = $auth;
 	$cfg->{'dictionary'} = $dictionary;
 
-	$cfg->{'plugins'} = [ 
+	$cfg->{'plugins'} = [
 		@{$auth->{'mechanisms'}},
 		@{$auth->{'users'}},
 		@{$acct->{'plugins'}},
-		@{$features->{'plugins'}}, 
+		@{$features->{'plugins'}},
 		@{$system->{'plugins'}}
 	];
 
@@ -319,7 +319,7 @@ sub post_configure_hook {
 	# Init caching engine
 #	smradius::cache::Init($self);
 	$self->log(LOG_NOTICE,"[SMRADIUS] System modules initialized.");
-	
+
 }
 
 
@@ -344,7 +344,6 @@ sub plugin_register {
 		$info->{'Init'}($self);
 	}
 
-
 	return 0;
 }
 
@@ -355,12 +354,12 @@ sub child_init_hook
 	my $self = shift;
 	my $config = $self->{'config'};
 
-	
+
 	$self->SUPER::child_init_hook();
-	
+
 	$self->log(LOG_DEBUG,"[SMRADIUS] Starting up caching engine");
 	smradius::cache::connect($self);
-	
+
 	# Do we need database support?
 	if ($self->{'smradius'}->{'database'}->{'enabled'}) {
 		# This is the database connection timestamp, if we connect, it resets to 0
@@ -375,13 +374,14 @@ sub child_init_hook
 			# If we succeeded, record OK
 				$self->{'client'}->{'dbh_status'} = 0;
 			} else {
-				$self->log(LOG_WARN,"[SMRADIUS] Failed to connect to database: ".$self->{'client'}->{'dbh'}->Error()." ($$)");
+				$self->log(LOG_WARN,"[SMRADIUS] Failed to connect to database: ".$self->{'client'}->{'dbh'}->Error().
+						" ($$)");
 			}
 		} else {
 			$self->log(LOG_WARN,"[SMRADIUS] Failed to Initialize: ".smradius::dbilayer::internalErr()." ($$)");
 		}
 	}
-	
+
 }
 
 
@@ -392,7 +392,7 @@ sub child_finish_hook {
 	my $server = $self->{'server'};
 
 	$self->SUPER::child_finish_hook();
-	
+
 	$self->log(LOG_DEBUG,"[SMRADIUS] Shutting down caching engine ($$)");
 	smradius::cache::disconnect($self);
 }
@@ -429,14 +429,15 @@ sub process_request {
 		$self->log(LOG_WARN,"[SMRADIUS] Client in BYPASS mode due to DB connection failure!");
 		# Check bypass mode
 		if (!defined($self->{'inifile'}{'database'}{'bypass_mode'})) {
-			$self->log(LOG_ERR,"[SMRADIUS] No bypass_mode specified for failed database connections, defaulting to tempfail");
+			$self->log(LOG_ERR,
+					"[SMRADIUS] No bypass_mode specified for failed database connections, defaulting to tempfail");
 			$action = "tempfail";
 		# Check for "tempfail"
 		} elsif (lc($self->{'inifile'}{'database'}{'bypass_mode'}) eq "tempfail") {
 		# And for "bypass"
 		} elsif (lc($self->{'inifile'}{'database'}{'bypass_mode'}) eq "pass") {
 		}
-		
+
 		# Check if we need to reconnect or not
 		my $timeout = $self->{'inifile'}{'database'}{'bypass_timeout'};
 		if (!defined($timeout)) {
@@ -450,46 +451,14 @@ sub process_request {
 			$self->log(LOG_NOTICE,"[SMRADIUS] Client BYPASS timeout exceeded, reconnecting...");
 			exit 0;
 		} else {
-			$self->log(LOG_NOTICE,"[SMRADIUS] Client still in BYPASS mode, ".( $timeout - $timepassed )."s left till next reconnect");
+			$self->log(LOG_NOTICE,"[SMRADIUS] Client still in BYPASS mode, ".( $timeout - $timepassed ).
+					"s left till next reconnect");
 			return;
 		}
 	}
 
 	# Setup database handle
 	smradius::dblayer::setHandle($self->{'client'}->{'dbh'});
-
-
-#LOGIN
-#Service-Type:        Login-User
-#User-Name:           joe
-#User-Password:       \x{d3}\x{df}\x{10}\x{8c}\x{a0}r.\x{fd}=\x{ff}\x{96}\x{a}\x{86}\x{91}\x{e}c
-#Calling-Station-Id:  10.254.254.242
-#NAS-Identifier:      lbsd-test
-#NAS-IP-Address:      10.254.254.239
-
-#PPPOE:
-#Service-Type:        Framed-User
-#Framed-Protocol:     PPP
-#NAS-Port:            19
-#NAS-Port-Type:       Ethernet
-#User-Name:           nigel
-#Calling-Station-Id:  00:E0:4D:2A:72:35
-#Called-Station-Id:   pppoe-24
-#NAS-Port-Id:         ether1
-#NAS-Identifier:      lbsd-test
-#NAS-IP-Address:      10.254.254.239
-
-#PPTP
-#Service-Type:        Framed-User
-#Framed-Protocol:     PPP
-#NAS-Port:            49
-#NAS-Port-Type:       Virtual
-#User-Name:           johnsmith
-#Calling-Station-Id:  10.254.254.242
-#Called-Station-Id:   10.254.254.239
-#NAS-Identifier:      lbsd-test
-#NAS-IP-Address:      10.254.254.239
-
 
 	# Main user hash with everything in
 	my $user;
@@ -506,7 +475,7 @@ sub process_request {
 
 
 	#
-	# GRAB & PROCESS CONFIG 
+	# GRAB & PROCESS CONFIG
 	#
 
 	foreach my $module (@{$self->{'plugins'}}) {
@@ -550,9 +519,7 @@ sub process_request {
 	if ($pkt->code eq "Accounting-Request" || $pkt->code eq "Access-Request") {
 		# Set username
 		$user->{'Username'} = $pkt->attr('User-Name');
-	
-$pkt->dump();
-	
+
 		#
 		# FIND USER
 		#
@@ -636,7 +603,7 @@ $pkt->dump();
 				}
 			}
 		}
-		# Tell the NAS we got its packet	
+		# Tell the NAS we got its packet
 		my $resp = Radius::Packet->new($self->{'radius'}->{'dictionary'});
 	   	$resp->set_code('Accounting-Response');
 		$resp->set_identifier($pkt->identifier);
@@ -644,8 +611,9 @@ $pkt->dump();
 		$udp_packet = auth_resp($resp->pack, getAttributeValue($user->{'ConfigAttributes'},"SMRadius-Config-Secret"));
 		$server->{'client'}->send($udp_packet);
 
-		my $killConnection = 0;
-				
+		# Are we going to POD the user?
+		my $PODUser = 0;
+
 		# Loop with features that have post-authentication hooks
 		foreach my $module (@{$self->{'plugins'}}) {
 			# Try authenticate
@@ -669,60 +637,64 @@ $pkt->dump();
 				# Or a negative result
 				} elsif ($res == MOD_RES_NACK) {
 					$self->log(LOG_NOTICE,"[SMRADIUS] POST-ACCT: Failed post accounting hook by '".$module->{'Name'}."'");
-					#$authenticated = 0;
-					# Do we want to run the other features ??
-					#last;
-
-					$killConnection = 1;
+					$PODUser = 1;
 				}
 			}
 		}
 
-	if ($killConnection == 1) {
+		# Check if we must POD the user
+		if ($PODUser) {
+			$self->log(LOG_DEBUG,"[SMRADIUS] POST-ACCT: Trying to disconnect user...");
 
-		$self->log(LOG_DEBUG,"[SMRADIUS] POST-ACCT: Trying to disconnect user...");
+			my $resp = Radius::Packet->new($self->{'radius'}->{'dictionary'});
 
-		my $resp = Radius::Packet->new($self->{'radius'}->{'dictionary'});
+		 	$resp->set_code('Disconnect-Request');
+			my $id = $$ & 0xff;
+			$resp->set_identifier( $id );
 
-	 	$resp->set_code('Disconnect-Request');
-		my $id = $$ & 0xff;
-		$resp->set_identifier( $id );
+			$resp->set_attr('User-Name',$pkt->attr('User-Name'));
+			$resp->set_attr('Framed-IP-Address',$pkt->attr('Framed-IP-Address'));
+			$resp->set_attr('NAS-IP-Address',$pkt->attr('NAS-IP-Address'));
 
-		$resp->set_attr('User-Name',$pkt->attr('User-Name'));
-		$resp->set_attr('Framed-IP-Address',$pkt->attr('Framed-IP-Address'));
-		$resp->set_attr('NAS-IP-Address',$pkt->attr('NAS-IP-Address'));
+			$udp_packet = auth_resp($resp->pack, getAttributeValue($user->{'ConfigAttributes'},"SMRadius-Config-Secret"));
 
-		$udp_packet = auth_resp($resp->pack, getAttributeValue($user->{'ConfigAttributes'},"SMRadius-Config-Secret"));
+			# Create socket to send packet out on
+			my $podServer = "10.254.254.239";
+			my $podServerPort = "1700";
+			my $podServerTimeout = "10";  # 10 second timeout
+			my $podSock = new IO::Socket::INET(
+					PeerAddr => $podServer,
+					PeerPort => $podServerPort,
+					Type => SOCK_DGRAM,
+					Proto => 'udp',
+					TimeOut => $podServerTimeout,
+			) or return $self->log(LOG_ERR,"[SMRADIUS] POST-ACCT: Failed to create socket to send POD on: $!");
 
-		# Create socket to send packet out on
-		my $podServer = "10.254.254.239";
-		my $podServerPort = "1700";
-		my $podServerTimeout = "10";  # 10 second timeout	
-		my $podSock = new IO::Socket::INET(
-				PeerAddr => $podServer,
-				PeerPort => $podServerPort,
-				Type => SOCK_DGRAM,
-				Proto => 'udp',
-				TimeOut => $podServerTimeout,
-		) or return $self->log(LOG_ERR,"[SMRADIUS] POST-ACCT: Failed to create socket to send POD on: $!");
-		$podSock->send ($udp_packet) || return $self->log(LOG_ERR,"[SMRADIUS] POST-ACCT: Failed to send data on socket: $!");
+			# Check if we sent the packet...
+			if (!$podSock->send($udp_packet)) {
+				return $self->log(LOG_ERR,"[SMRADIUS] POST-ACCT: Failed to send data on socket: $!");
+			}
 
-		# Once sent, we need to get a response back
-		my $sh = new IO::Select($podSock) or return $self->log(LOG_ERR,"[SMRADIUS] POST-ACCT: Failed to select data on socket: $!");
-		$sh->can_read($podServerTimeout) or return $self->log(LOG_ERR,"[SMRADIUS] POST-ACCT: Failed to receive data on socket: $!");
+			# Once sent, we need to get a response back
+			my $sh = new IO::Select($podSock) 
+					or return $self->log(LOG_ERR,"[SMRADIUS] POST-ACCT: Failed to select data on socket: $!");
 
-		my $data;
-		$podSock->recv($data, 65536) or return $self->log(LOG_ERR,"[SMRADIUS] POST-ACCT: Receive data failed: $!");
-#		my @stuff = unpack('C C n a16 a*', $data);
-#		$self->log(LOG_DEBUG,"STUFF: ".Dumper(\@stuff));
-	}
+			$sh->can_read($podServerTimeout) 
+					or return $self->log(LOG_ERR,"[SMRADIUS] POST-ACCT: Failed to receive data on socket: $!");
+
+			my $data;
+			$podSock->recv($data, 65536) 
+					or return $self->log(LOG_ERR,"[SMRADIUS] POST-ACCT: Receive data failed: $!");
+#			my @stuff = unpack('C C n a16 a*', $data);
+#			$self->log(LOG_DEBUG,"STUFF: ".Dumper(\@stuff));
+		}
 
 	# Or maybe a access request
 	} elsif ($pkt->code eq "Access-Request") {
-	
-	
+
+
 		$self->log(LOG_DEBUG,"[SMRADIUS] Access Request Packet");
-	
+
 		# Authentication variables
 		my $authenticated = 0;
 		my $mechanism;
@@ -746,7 +718,8 @@ $pkt->dump();
 
 			# Check result
 			if (!defined($res) || ref($res) ne "HASH") {
-				$self->log(LOG_WARN,"[SMRADIUS] GET: No data returned from '".$userdb->{'Name'}."' for username '".$user->{'Username'}."'");
+				$self->log(LOG_WARN,"[SMRADIUS] GET: No data returned from '".$userdb->{'Name'}.
+						"' for username '".$user->{'Username'}."'");
 				goto CHECK_RESULT;
 			}
 			# Setup user dataw
@@ -798,7 +771,9 @@ $pkt->dump();
 			foreach my $module (@{$self->{'plugins'}}) {
 				# Try authenticate
 				if ($module->{'Feature_Post-Authentication_hook'}) {
-					$self->log(LOG_INFO,"[SMRADIUS] POST-AUTH: Trying plugin '".$module->{'Name'}."' for '".$user->{'Username'}."'");
+					$self->log(LOG_INFO,"[SMRADIUS] POST-AUTH: Trying plugin '".$module->{'Name'}.
+							"' for '".$user->{'Username'}."'");
+
 					my $res = $module->{'Feature_Post-Authentication_hook'}($self,$user,$pkt);
 
 					# Check result
@@ -923,7 +898,7 @@ sub server_exit
 {
 	my $self = shift;
 
-	
+
 	$self->log(LOG_DEBUG,"Destroying system modules.");
 	# Destroy cache
 #	cbp::cache::Destroy($self);
@@ -952,7 +927,7 @@ sub log
 		$logtxt = "WARNING";
 	} elsif ($level == LOG_ERR) {
 		$logtxt = "ERROR";
-	} 
+	}
 
 	# Parse message nicely
 	if ($msg =~ /^(\[[^\]]+\]) (.*)/s) {
