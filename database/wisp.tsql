@@ -15,7 +15,7 @@ CREATE TABLE @PREFIX@wisp_userdata (
 
 	Email			VARCHAR(255),
 	Phone			VARCHAR(255),
-	
+
 	UNIQUE (UserID),
 	FOREIGN KEY (UserID) REFERENCES @PREFIX@users(ID),
 	FOREIGN KEY (LocationID) REFERENCES @PREFIX@wisp_locations(ID)
@@ -30,6 +30,6 @@ CREATE TABLE @PREFIX@wisp_locations (
 
 	Name			VARCHAR(255) NOT NULL,
 
-	UNIQUE(Name)	
+	UNIQUE(Name)
 )  @CREATE_TABLE_SUFFIX@;
 
