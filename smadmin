@@ -1,17 +1,17 @@
 #!/usr/bin/perl
 # SMRadius administration tool
 # Copyright (C) 2009, AllWorldIT
-# 
+#
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; either version 2 of the License, or
 # (at your option) any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
@@ -23,7 +23,7 @@ use warnings;
 
 # Set library directory
 use lib qw(
-	../ ./ 
+	../ ./
 	smradius/modules/authentication
 	smradius/modules/userdb
 	smradius/modules/accounting
@@ -38,7 +38,7 @@ use Getopt::Long;
 use smradius::logging;
 use smradius::version;
 
-	
+
 print("SMRadius Admin Tool v".VERSION." - Copyright (c) 2008-2009 AllWorldIT\n");
 
 # Fire up commandline processing...
@@ -116,7 +116,7 @@ if ($opts{'cleanup'}) {
 
 #
 # Misc functions
-# 
+#
 
 
 # Register plugin info
@@ -210,24 +210,21 @@ sub loadModules
 
 
 
-	my $pluginlist = [ 
+	my $pluginlist = [
 		@{$auth->{'mechanisms'}},
 		@{$auth->{'users'}},
 		@{$acct->{'plugins'}},
-		@{$features->{'plugins'}}, 
+		@{$features->{'plugins'}},
 		@{$system->{'plugins'}}
 	];
 
-	# use Data::Dumper; print STDERR Dumper($pluginlist);
 
-
-	
 	# Emulate server
 	$server = new smserver;
-	$server->{'inifile'} = \%config; 
+	$server->{'inifile'} = \%config;
 	# Init everything
 	$server->init();
-	
+
 	# Load plugins
 	foreach my $plugin (@{$pluginlist}) {
 		# Load plugin
@@ -279,10 +276,11 @@ sub new
 
 	my $self = {
 	};
-	
+
 	bless $self, $class;
 	return $self;
 };
+
 
 sub init
 {
@@ -304,6 +302,7 @@ sub init
 	# Setup database handle
 	smradius::dblayer::setHandle($self->{'client'}->{'dbh'});
 }
+
 
 sub log
 {
