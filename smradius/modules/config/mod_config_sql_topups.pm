@@ -23,7 +23,7 @@ use warnings;
 # Modules we need
 use smradius::constants;
 use smradius::logging;
-use smradius::dblayer;
+use awitpt::db::dblayer;
 use smradius::util;
 use smradius::attributes;
 
@@ -155,7 +155,7 @@ sub getTopups
 	# Query database
 	my $sth = DBSelect($config->{'get_topups_summary_query'},$periodKey,$packet->attr('User-Name'));
 	if (!$sth) {
-		$server->log(LOG_ERR,"Failed to get topup information: ".smradius::dblayer::Error());
+		$server->log(LOG_ERR,"Failed to get topup information: ".awitpt::db::dblayer::Error());
 		return MOD_RES_NACK;
 	}
 
@@ -176,7 +176,7 @@ sub getTopups
 	# Query database
 	$sth = DBSelect($config->{'get_topups_query'},$thisMonth,$now,$packet->attr('User-Name'));
 	if (!$sth) {
-		$server->log(LOG_ERR,"Failed to get topup information: ".smradius::dblayer::Error());
+		$server->log(LOG_ERR,"Failed to get topup information: ".awitpt::db::dblayer::Error());
 		return MOD_RES_NACK;
 	}
 
@@ -268,7 +268,7 @@ sub cleanup
 
 	if (!$sth) {
 		$server->log(LOG_ERR,"[MOD_CONFIG_SQL_TOPUPS] Cleanup => Failed to select from users: ".
-				smradius::dblayer::Error());
+				awitpt::db::dblayer::Error());
 		return;
 	}
 
@@ -340,7 +340,7 @@ sub cleanup
 
 		if (!$sth) {
 			$server->log(LOG_ERR,"[MOD_CONFIG_SQL_TOPUPS] Cleanup => Failed to select accounting records: ".
-					smradius::dblayer::Error());
+					awitpt::db::dblayer::Error());
 			goto FAIL_ROLLBACK;
 		}
 
@@ -392,7 +392,7 @@ sub cleanup
 
 		if (!$sth) {
 			$server->log(LOG_ERR,"[MOD_CONFIG_SQL_TOPUPS] Cleanup => Failed to select usage caps: ".
-					smradius::dblayer::Error());
+					awitpt::db::dblayer::Error());
 			goto FAIL_ROLLBACK;
 		}
 
@@ -436,7 +436,7 @@ sub cleanup
 
 		if (!$sth) {
 			$server->log(LOG_ERR,"[MOD_CONFIG_SQL_TOPUPS] Cleanup => Failed to select topup summaries: ".
-					smradius::dblayer::Error());
+					awitpt::db::dblayer::Error());
 			goto FAIL_ROLLBACK;
 		}
 
@@ -492,7 +492,7 @@ sub cleanup
 
 		if (!$sth) {
 			$server->log(LOG_ERR,"[MOD_CONFIG_SQL_TOPUPS] Cleanup => Failed to select topups: ".
-					smradius::dblayer::Error());
+					awitpt::db::dblayer::Error());
 			goto FAIL_ROLLBACK;
 		}
 
@@ -768,7 +768,7 @@ sub cleanup
 			);
 			if (!$sth) {
 				$server->log(LOG_ERR,"[MOD_CONFIG_SQL_TOPUPS] Cleanup => Failed to update topups_summary: ".
-						smradius::dblayer::Error());
+						awitpt::db::dblayer::Error());
 				goto FAIL_ROLLBACK;
 			}
 		}
@@ -788,7 +788,7 @@ sub cleanup
 			);
 			if (!$sth) {
 				$server->log(LOG_ERR,"[MOD_CONFIG_SQL_TOPUPS] Cleanup => Failed to update topups: ".
-						smradius::dblayer::Error());
+						awitpt::db::dblayer::Error());
 				goto FAIL_ROLLBACK;
 			}
 		}
@@ -808,7 +808,7 @@ sub cleanup
 			);
 			if (!$sth) {
 				$server->log(LOG_ERR,"[MOD_CONFIG_SQL_TOPUPS] Cleanup => Failed to update topups_summary: ".
-						smradius::dblayer::Error());
+						awitpt::db::dblayer::Error());
 				goto FAIL_ROLLBACK;
 			}
 		}

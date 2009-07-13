@@ -1,16 +1,16 @@
 # SQL config database support
 # Copyright (C) 2007-2009, AllWorldIT
-# 
+#
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; either version 2 of the License, or
 # (at your option) any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
@@ -23,7 +23,7 @@ use warnings;
 # Modules we need
 use smradius::constants;
 use smradius::logging;
-use smradius::dblayer;
+use awitpt::db::dblayer;
 use smradius::util;
 use smradius::attributes;
 
@@ -42,7 +42,7 @@ our (@ISA,@EXPORT,@EXPORT_OK);
 our $pluginInfo = {
 	Name => "SQL Config Database",
 	Init => \&init,
-	
+
 	# User database
 	Config_get => \&getConfig,
 };
@@ -66,10 +66,10 @@ sub init
 
 	# Default configs...
 	$config->{'get_config_query'} = '
-		SELECT 
+		SELECT
 			Name, Operator, Value
-		FROM 
-			@TP@realm_attributes 
+		FROM
+			@TP@realm_attributes
 	';
 
 	# Setup SQL queries
@@ -82,7 +82,7 @@ sub init
 			} else {
 				$config->{'get_config_query'} = $scfg->{'mod_config_sql'}->{'get_config_query'};
 			}
-			
+
 		}
 	}
 }
@@ -106,10 +106,10 @@ sub getConfig
 	# Query database
 	my $sth = DBSelect(@dbDoParams);
 	if (!$sth) {
-		$server->log(LOG_ERR,"Failed to get config attributes: ".smradius::dblayer::Error());
+		$server->log(LOG_ERR,"Failed to get config attributes: ".awitpt::db::dblayer::Error());
 		return MOD_RES_NACK;
 	}
-	
+
 	# Loop with user attributes
 	while (my $row = $sth->fetchrow_hashref()) {
 		processConfigAttribute($server,$user->{'ConfigAttributes'},hashifyLCtoMC($row,qw(Name Operator Value)));

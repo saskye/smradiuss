@@ -28,6 +28,7 @@ use lib qw(
 	smradius/modules/accounting
 	smradius/modules/features
 	smradius/modules/config
+	awitpt/db
 );
 
 package radiusd;
@@ -43,8 +44,8 @@ use smradius::version;
 use smradius::constants;
 use smradius::logging;
 use smradius::config;
-use smradius::dbilayer;
-use smradius::cache;
+use awitpt::db::dbilayer;
+use awitpt::cache;
 use smradius::util;
 use smradius::attributes;
 
@@ -246,12 +247,23 @@ sub configure {
 		exit 1;
 	}
 	# Split off dictionaries to load
-	foreach my $fn (@{$dictionary->{'load'}}) {
-		$fn =~ s/\s+//g;
+	if (ref($dictionary->{'load'}) eq "ARRAY") {
+		foreach my $dict (@{$dictionary->{'load'}}) {
+			$dict =~ s/\s+//g;
+	 		# Skip comments
+	 		next if ($dict =~ /^#/);
+			push(@{$cfg->{'dictionary_list'}},$dict);
+		}
+	} else {
+		my @dictList = split(/\s+/,$dictionary->{'load'});
+		foreach my $dict (@dictList) {
+			# Skip comments
+			next if ($dict =~ /^#/);
+			push(@{$cfg->{'dictionary_list'}},$dict);
+		}
 	}
 
 	$cfg->{'authentication'} = $auth;
-	$cfg->{'dictionary'} = $dictionary;
 
 	$cfg->{'plugins'} = [
 		@{$auth->{'mechanisms'}},
@@ -288,12 +300,12 @@ sub post_configure_hook {
 	# Load dictionaries
 	$self->log(LOG_NOTICE,"[SMRADIUS] Initializing dictionaries...");
 	my $dict = new Radius::Dictionary;
-	foreach my $fn (@{$config->{'dictionary'}->{'load'}}) {
+	foreach my $df (@{$config->{'dictionary_list'}}) {
 		# Load dictionary
-		if (!$dict->readfile($fn)) {
-			$self->log(LOG_WARN,"[SMRADIUS] Failed to load dictionary '$fn': $!");
+		if (!$dict->readfile($df)) {
+			$self->log(LOG_WARN,"[SMRADIUS] Failed to load dictionary '$df': $!");
 		}
-		$self->log(LOG_DEBUG,"[SMRADIUS] Loaded plugin '$fn'.");
+		$self->log(LOG_DEBUG,"[SMRADIUS] Loaded plugin '$df'.");
 	}
 	$self->log(LOG_NOTICE,"[SMRADIUS] Dictionaries initialized.");
 	# Store the dictionary

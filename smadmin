@@ -29,6 +29,7 @@ use lib qw(
 	smradius/modules/accounting
 	smradius/modules/features
 	smradius/modules/config
+	awitpt/db
 );
 
 

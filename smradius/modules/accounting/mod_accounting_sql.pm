@@ -22,7 +22,7 @@ use warnings;
 
 # Modules we need
 use smradius::constants;
-use smradius::dblayer;
+use awitpt::db::dblayer;
 use smradius::logging;
 use smradius::util;
 
@@ -225,7 +225,7 @@ sub getUsage
 	# Fetch data
 	my $sth = DBSelect(@dbDoParams);
 	if (!$sth) {
-		$server->log(LOG_ERR,"[MOD_ACCOUNTING_SQL] Database query failed: ".smradius::dblayer::Error());
+		$server->log(LOG_ERR,"[MOD_ACCOUNTING_SQL] Database query failed: ".awitpt::db::dblayer::Error());
 		return;
 	}
 
@@ -306,7 +306,7 @@ sub acct_log
 		my $sth = DBDo(@dbDoParams);
 		if (!$sth) {
 			$server->log(LOG_ERR,"[MOD_ACCOUNTING_SQL] Failed to insert accounting START record: ".
-					smradius::dblayer::Error());
+					awitpt::db::dblayer::Error());
 			return MOD_RES_NACK;
 		}
 
@@ -318,7 +318,7 @@ sub acct_log
 		my $sth = DBDo(@dbDoParams);
 		if (!$sth) {
 			$server->log(LOG_ERR,"[MOD_ACCOUNTING_SQL] Failed to update accounting ALIVE record: ".
-					smradius::dblayer::Error());
+					awitpt::db::dblayer::Error());
 			return MOD_RES_NACK;
 		}
 
@@ -329,7 +329,7 @@ sub acct_log
 		# Update database
 		my $sth = DBDo(@dbDoParams);
 		if (!$sth) {
-			$server->log(LOG_ERR,"[MOD_ACCOUNTING_SQL] Failed to update accounting STOP record: ".smradius::dblayer::Error());
+			$server->log(LOG_ERR,"[MOD_ACCOUNTING_SQL] Failed to update accounting STOP record: ".awitpt::db::dblayer::Error());
 			return MOD_RES_NACK;
 		}
 	}
@@ -380,7 +380,7 @@ sub cleanup
 
 	if (!$sth) {
 		$server->log(LOG_ERR,"[MOD_ACCOUNTING_SQL] Cleanup => Failed to select accounting record: ".
-				smradius::dblayer::Error());
+				awitpt::db::dblayer::Error());
 		return;
 	}
 
@@ -440,7 +440,7 @@ sub cleanup
 	if (!$sth) {
 		DBRollback();
 		$server->log(LOG_ERR,"[MOD_ACCOUNTING_SQL] Cleanup => Failed to insert accounting record: ".
-				smradius::dblayer::Error());
+				awitpt::db::dblayer::Error());
 		return;
 	}
 

@@ -23,7 +23,7 @@ use warnings;
 # Modules we need
 use smradius::constants;
 use smradius::logging;
-use smradius::dblayer;
+use awitpt::db::dblayer;
 use smradius::util;
 use smradius::attributes;
 
@@ -155,7 +155,7 @@ sub find
 
 	my $sth = DBSelect(@dbDoParams);
 	if (!$sth) {
-		$server->log(LOG_ERR,"[MOD_USERDB_SQL] Failed to find user data: ".smradius::dblayer::Error());
+		$server->log(LOG_ERR,"[MOD_USERDB_SQL] Failed to find user data: ".awitpt::db::dblayer::Error());
 		return MOD_RES_SKIP;
 	}
 
@@ -209,7 +209,7 @@ sub get
 	# Query database
 	my $sth = DBSelect(@dbDoParams);
 	if (!$sth) {
-		$server->log(LOG_ERR,"Failed to get group attributes: ".smradius::dblayer::Error());
+		$server->log(LOG_ERR,"Failed to get group attributes: ".awitpt::db::dblayer::Error());
 		return -1;
 	}
 	
@@ -227,7 +227,7 @@ sub get
 	# Query database
 	$sth = DBSelect(@dbDoParams);
 	if (!$sth) {
-		$server->log(LOG_ERR,"Failed to get user attributes: ".smradius::dblayer::Error());
+		$server->log(LOG_ERR,"Failed to get user attributes: ".awitpt::db::dblayer::Error());
 		return -1;
 	}
 	
