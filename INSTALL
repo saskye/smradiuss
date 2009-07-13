@@ -6,6 +6,12 @@ Installing SMRadius.
 - Net::Server >= 0.96
 - Config::IniFiles (Debian based: libconfig-inifiles-perl, RPM based: perl-Config-IniFiles)
 - Cache::FastMmap (Debian based: libcache-fastmmap-perl, RPM based: perl-Cache-FastMmap)
+- DateTime
+- TimeDate
+- Crypt::DES
+- Crytpt::RC4
+- Digest::SHA1
+- Digest::MD4
 
 * Requirements for webui
 - PHP v5+
