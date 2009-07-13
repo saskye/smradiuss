@@ -71,7 +71,6 @@ sub init
 		FROM 
 			@TP@realm_attributes 
 	';
-	
 
 	# Setup SQL queries
 	if (defined($scfg->{'mod_config_sql'})) {
