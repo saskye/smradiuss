@@ -255,8 +255,8 @@ sub configure {
 	#
 	# Accounting modules
 	#
-	if (ref($config{'accounting'}{'module_list'}) eq "ARRAY") {
-		foreach my $module (@{$config{'accounting'}{'module_list'}}) {
+	if (ref($config{'accounting'}{'modules'}) eq "ARRAY") {
+		foreach my $module (@{$config{'accounting'}{'modules'}}) {
 			$module =~ s/\s+//g;
 	 		# Skip comments
 	 		next if ($module =~ /^#/);
@@ -264,7 +264,7 @@ sub configure {
 			push(@{$cfg->{'module_list'}},$module);
 		}
 	} else {
-		my @moduleList = split(/\s+/,$config{'accounting'}{'module_list'});
+		my @moduleList = split(/\s+/,$config{'accounting'}{'modules'});
 		foreach my $module (@moduleList) {
 			# Skip comments
 			next if ($module =~ /^#/);
