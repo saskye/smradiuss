@@ -489,7 +489,7 @@ sub process_request {
 	}
 
 	# Setup database handle
-	smradius::dblayer::setHandle($self->{'client'}->{'dbh'});
+	awitpt::db::dblayer::setHandle($self->{'client'}->{'dbh'});
 
 	# Main user hash with everything in
 	my $user;
