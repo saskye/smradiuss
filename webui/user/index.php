@@ -322,14 +322,14 @@ function displayDetails() {
 ?>
 	<table class="blockcenter">
 		<tr>
-			<td colspan="5" class="section">Account Information</td>
+			<td colspan="4" class="section">Account Information</td>
 		</tr>
 		<tr>
-			<td colspan="3" class="title">Username</td>
+			<td colspan="2" class="title">Username</td>
 			<td colspan="2" class="title">Service</td>
 		</tr>
 		<tr>
-			<td colspan="3" class="value"><?php echo $_SESSION['username']; ?></td>
+			<td colspan="2" class="value"><?php echo $_SESSION['username']; ?></td>
 			<td colspan="2" class="value"><?php echo $userService; ?></td>
 		</tr>
 <?php
@@ -337,12 +337,11 @@ function displayDetails() {
 		if (!$isDialup) {
 ?>
 			<tr>
-				<td colspan="5" class="section">Usage Info</td>
+				<td colspan="4" class="section">Traffic Usage</td>
 			</tr>
 			<tr>
-				<td rowspan="2" class="section">Traffic</td>
 				<td class="title">Traffic Cap</td>
-				<td class="title">Topup remaining</td>
+				<td class="title">Unused Topup</td>
 				<td class="title">Current Topup</td>
 				<td class="title">Used This Month</td>
 			</tr>
@@ -383,10 +382,26 @@ function displayDetails() {
 ?>
 				<td class="value"><?php printf('%.2f', $totalTraffic); ?> MB</td>
 			</tr>
+<?php
+			if (isset($currentTrafficTopup['Used']) && isset($currentTrafficTopup['Cap'])) {
+				$topupPercent = ceil(($currentTrafficTopup['Used'] / $currentTrafficTopup['Cap']) * 100);
+?>
+				<tr>
+					<td colspan="4">
+					<div class="graph">
+						<strong class="bar" style="width: <?php echo $topupPercent.'%'; ?>"><?php echo $topupPercent.'%' ?></strong>
+					</div>
+					</td>
+				</tr>
+<?php
+			}
+?>
 			<tr>
-				<td rowspan="2" class="section">Uptime</td>
+				<td colspan="4" class="section">Uptime Usage</td>
+			</tr>
+			<tr>
 				<td class="title">Uptime Cap</td>
-				<td class="title">Topup remaining</td>
+				<td class="title">Unused Topup</td>
 				<td class="title">Current Topup</td>
 				<td class="title">Used This Month</td>
 			</tr>
@@ -414,7 +429,7 @@ function displayDetails() {
 					<td class="value"><?php echo $topupUptimeRemaining; ?> Min</td>
 <?php
 				}
-				if (isset($currentUptimeTopup['Used']) && isset($currentTrafficTopup['Cap'])) {
+				if (isset($currentUptimeTopup['Used']) && isset($currentUptimeTopup['Cap'])) {
 ?>
 					<td class="value"><?php printf('%.2f', $currentUptimeTopup['Used']);
 							print("/".$currentUptimeTopup['Cap']); ?> Min</td>
@@ -427,6 +442,20 @@ function displayDetails() {
 ?>
 				<td class="value"><?php printf('%.2f', $totalUptime); ?> Min</td>
 			</tr>
+<?php
+			if (isset($currentUptimeTopup['Used']) && isset($currentUptimeTopup['Cap'])) {
+				$topupPercent = ceil(($currentUptimeTopup['Used'] / $currentUptimeTopup['Cap']) * 100);
+?>
+				<tr>
+					<td colspan="4">
+					<div class="graph">
+						<strong class="bar" style="width: <?php echo $topupPercent.'%'; ?>"><?php echo $topupPercent.'%' ?></strong>
+					</div>
+					</td>
+				</tr>
+<?php
+			}
+?>
 <!--
 			<tr>
 				<td colspan="2" class="section">Notifications</td>
@@ -457,7 +486,7 @@ function displayDetails() {
 			<td></td>
 		</tr>
 		<tr>
-			<td colspan="5" align="center">
+			<td colspan="4" align="center">
 				<a href="logs.php">Usage Logs</a>
 			</td>
 		</tr>
