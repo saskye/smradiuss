@@ -77,12 +77,12 @@ sub init
 
 	$config->{'userdb_get_group_attributes_query'} = '
 		SELECT
-			group_attributes.Name, group_attributes.Operator, group_attributes.Value
+			@TP@group_attributes.Name, @TP@group_attributes.Operator, @TP@group_attributes.Value
 		FROM
 			@TP@group_attributes, @TP@users_to_groups
 		WHERE
-			users_to_groups.UserID = %{userdb.id}
-			AND group_attributes.GroupID = users_to_groups.GroupID
+			@TP@users_to_groups.UserID = %{userdb.id}
+			AND @TP@group_attributes.GroupID = @TP@users_to_groups.GroupID
 	';
 
 	$config->{'userdb_get_user_attributes_query'} = '
