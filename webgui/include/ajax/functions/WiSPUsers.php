@@ -521,16 +521,20 @@ function updateWiSPUser($params) {
 					FirstName = ?,
 					LastName = ?,
 					Phone = ?,
-					Email = ?,
-					LocationID = ?
+					Email = ?
 				WHERE
 					UserID = ?",
 				array($params[0]['Firstname'],
 				$params[0]['Lastname'],
 				$params[0]['Phone'],
 				$params[0]['Email'],
-				$params[0]['LocationID'],
 				$params[0]['ID'])
+		);
+	}
+	# If successful, add location if any
+	if ($res !== FALSE && !empty($params[0]['LocationID'])) {
+		$res = DBDo("UPDATE wisp_userdata SET LocationID = ? WHERE UserID = ?",
+				array($params[0]['LocationID'],$params[0]['ID'])
 		);
 	}
 
