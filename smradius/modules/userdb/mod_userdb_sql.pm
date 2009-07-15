@@ -42,7 +42,7 @@ our (@ISA,@EXPORT,@EXPORT_OK);
 our $pluginInfo = {
 	Name => "SQL User Database",
 	Init => \&init,
-	
+
 	# User database
 	User_find => \&find,
 	User_get => \&get,
@@ -67,30 +67,30 @@ sub init
 
 	# Default configs...
 	$config->{'userdb_find_query'} = '
-		SELECT 
-			ID 
-		FROM 
-			@TP@users 
-		WHERE 
-			UserName = %{requet.User-Name}
+		SELECT
+			ID
+		FROM
+			@TP@users
+		WHERE
+			Username = %{request.User-Name}
 	';
-	
+
 	$config->{'userdb_get_group_attributes_query'} = '
-		SELECT 
+		SELECT
 			group_attributes.Name, group_attributes.Operator, group_attributes.Value
-		FROM 
-			@TP@group_attributes, @TP@users_to_groups 
-		WHERE 
+		FROM
+			@TP@group_attributes, @TP@users_to_groups
+		WHERE
 			users_to_groups.UserID = %{userdb.id}
 			AND group_attributes.GroupID = users_to_groups.GroupID
 	';
-	
+
 	$config->{'userdb_get_user_attributes_query'} = '
-		SELECT 
+		SELECT
 			Name, Operator, Value
-		FROM 
-			@TP@user_attributes 
-		WHERE 
+		FROM
+			@TP@user_attributes
+		WHERE
 			UserID = %{userdb.ID}
 	';
 	
@@ -212,7 +212,7 @@ sub get
 		$server->log(LOG_ERR,"Failed to get group attributes: ".awitpt::db::dblayer::Error());
 		return -1;
 	}
-	
+
 	# Loop with group attributes
 	while (my $row = $sth->fetchrow_hashref()) {
 		addAttribute($server,\%attributes,hashifyLCtoMC($row,qw(Name Operator Value)));
@@ -230,7 +230,7 @@ sub get
 		$server->log(LOG_ERR,"Failed to get user attributes: ".awitpt::db::dblayer::Error());
 		return -1;
 	}
-	
+
 	# Loop with group attributes
 	while (my $row = $sth->fetchrow_hashref()) {
 		addAttribute($server,\%attributes,hashifyLCtoMC($row,qw(Name Operator Value)));

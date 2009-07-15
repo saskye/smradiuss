@@ -48,7 +48,7 @@ our $pluginInfo = {
 
 	# Cleanup run by smadmin
 	Cleanup => \&cleanup,
-	
+
 	# Accounting database
 	Accounting_log => \&acct_log,
 	Accounting_getUsage => \&getUsage
@@ -76,92 +76,95 @@ sub init
 
 	# Default configs...
 	$config->{'accounting_start_query'} = '
-		INSERT INTO @TP@accounting 
-				(
-					Username,
-					ServiceType,
-					FramedProtocol,
-					NASPort,
-					NASPortType,
-					CallingStationID,
-					CalledStationID,
-					NASPortID,
-					AcctSessionID,
-					FramedIPAddress,
-					AcctAuthentic,
-					EventTimestamp,
-					AcctStatusType,
-					NASIdentifier,
-					NASIPAddress,
-					AcctDelayTime
-				)
-			VALUES
-				(
-					%{request.User-Name},
-					%{request.Service-Type},
-					%{request.Framed-Protocol},
-					%{request.NAS-Port},
-					%{request.NAS-Port-Type},
-					%{request.Calling-Station-Id},
-					%{request.Called-Station-Id},
-					%{request.NAS-Port-Id},
-					%{request.Acct-Session-Id},
-					%{request.Framed-IP-Address},
-					%{request.Acct-Authentic},
-					%{request.Timestamp},
-					%{request.Acct-Status-Type},
-					%{request.NAS-Identifier},
-					%{request.NAS-IP-Address},
-					%{request.Acct-Delay-Time}
-				)
+		INSERT INTO
+			@TP@accounting
+		(
+			Username,
+			ServiceType,
+			FramedProtocol,
+			NASPort,
+			NASPortType,
+			CallingStationID,
+			CalledStationID,
+			NASPortID,
+			AcctSessionID,
+			FramedIPAddress,
+			AcctAuthentic,
+			EventTimestamp,
+			AcctStatusType,
+			NASIdentifier,
+			NASIPAddress,
+			AcctDelayTime
+		)
+		VALUES
+		(
+			%{request.User-Name},
+			%{request.Service-Type},
+			%{request.Framed-Protocol},
+			%{request.NAS-Port},
+			%{request.NAS-Port-Type},
+			%{request.Calling-Station-Id},
+			%{request.Called-Station-Id},
+			%{request.NAS-Port-Id},
+			%{request.Acct-Session-Id},
+			%{request.Framed-IP-Address},
+			%{request.Acct-Authentic},
+			%{request.Timestamp},
+			%{request.Acct-Status-Type},
+			%{request.NAS-Identifier},
+			%{request.NAS-IP-Address},
+			%{request.Acct-Delay-Time}
+		)
 	';
 
 	$config->{'accounting_update_query'} = '
-		UPDATE @TP@accounting
-			SET
-					AcctSessionTime = %{request.Acct-Session-Time},
-					AcctInputOctets = %{request.Acct-Input-Octets},
-					AcctInputGigawords = %{request.Acct-Input-Gigawords},
-					AcctInputPackets = %{request.Acct-Input-Packets},
-					AcctOutputOctets = %{request.Acct-Output-Octets},
-					AcctOutputGigawords = %{request.Acct-Output-Gigawords},
-					AcctOutputPackets = %{request.Acct-Output-Packets},
-					AcctStatusType = %{request.Acct-Status-Type}
-			WHERE
-					UserName = %{request.User-Name}
-					AND AcctSessionID = %{request.Acct-Session-Id}
-					AND NASIPAddress = %{request.NAS-IP-Address}
+		UPDATE
+			@TP@accounting
+		SET
+			AcctSessionTime = %{request.Acct-Session-Time},
+			AcctInputOctets = %{request.Acct-Input-Octets},
+			AcctInputGigawords = %{request.Acct-Input-Gigawords},
+			AcctInputPackets = %{request.Acct-Input-Packets},
+			AcctOutputOctets = %{request.Acct-Output-Octets},
+			AcctOutputGigawords = %{request.Acct-Output-Gigawords},
+			AcctOutputPackets = %{request.Acct-Output-Packets},
+			AcctStatusType = %{request.Acct-Status-Type}
+		WHERE
+			Username = %{request.User-Name}
+			AND AcctSessionID = %{request.Acct-Session-Id}
+			AND NASIPAddress = %{request.NAS-IP-Address}
 	';
 
 	$config->{'accounting_stop_query'} = '
-		UPDATE @TP@accounting
-			SET
-					AcctSessionTime = %{request.Acct-Session-Time},
-					AcctInputOctets = %{request.Acct-Input-Octets},
-					AcctInputGigawords = %{request.Acct-Input-Gigawords},
-					AcctInputPackets = %{request.Acct-Input-Packets},
-					AcctOutputOctets = %{request.Acct-Output-Octets},
-					AcctOutputGigawords = %{request.Acct-Output-Gigawords},
-					AcctOutputPackets = %{request.Acct-Output-Packets},
-					AcctStatusType = %{request.Acct-Status-Type},
-					AcctTerminateCause = %{request.Acct-Terminate-Cause}
-			WHERE
-					UserName = %{request.User-Name}
-					AND AcctSessionID = %{request.Acct-Session-Id}
-					AND NASIPAddress = %{request.NAS-IP-Address}
+		UPDATE
+			@TP@accounting
+		SET
+			AcctSessionTime = %{request.Acct-Session-Time},
+			AcctInputOctets = %{request.Acct-Input-Octets},
+			AcctInputGigawords = %{request.Acct-Input-Gigawords},
+			AcctInputPackets = %{request.Acct-Input-Packets},
+			AcctOutputOctets = %{request.Acct-Output-Octets},
+			AcctOutputGigawords = %{request.Acct-Output-Gigawords},
+			AcctOutputPackets = %{request.Acct-Output-Packets},
+			AcctStatusType = %{request.Acct-Status-Type},
+			AcctTerminateCause = %{request.Acct-Terminate-Cause}
+		WHERE
+			Username = %{request.User-Name}
+			AND AcctSessionID = %{request.Acct-Session-Id}
+			AND NASIPAddress = %{request.NAS-IP-Address}
 	';
 
 	$config->{'accounting_usage_query'} = '
-			SELECT 
-					SUM(AcctInputOctets) AS InputOctets, 
-					SUM(AcctOutputOctets) AS OutputOctets,
-					SUM(AcctInputGigawords) AS InputGigawords,
-					SUM(AcctOutputGigawords) AS OutputGigawords,
-					SUM(AcctSessionTime) AS SessionTime
-			FROM 
-					@TP@accounting 
-			WHERE 
-					Username = %{request.User-Name}
+		SELECT
+			SUM(AcctInputOctets) AS InputOctets,
+			SUM(AcctOutputOctets) AS OutputOctets,
+			SUM(AcctInputGigawords) AS InputGigawords,
+			SUM(AcctOutputGigawords) AS OutputGigawords,
+			SUM(AcctSessionTime) AS SessionTime
+		FROM
+			@TP@accounting
+		WHERE
+			Username = %{request.User-Name}
 	';
 
 	# Setup SQL queries
@@ -422,8 +425,16 @@ sub cleanup
 	for ($i = 0; $i < $count; $i++) {
 		@dbDoParams = ('
 			INSERT INTO
-				@TP@accounting_summary (Username,PeriodKey,AcctSessionTime,AcctInputOctets,AcctInputGigawords,
-						AcctOutputOctets,AcctOutputGigawords)
+				@TP@accounting_summary
+			(
+				Username,
+				PeriodKey,
+				AcctSessionTime,
+				AcctInputOctets,
+				AcctInputGigawords,
+				AcctOutputOctets,
+				AcctOutputGigawords
+			)
 			VALUES
 				(?,?,?,?,?,?,?)
 			',

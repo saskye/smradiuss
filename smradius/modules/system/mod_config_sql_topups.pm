@@ -75,11 +75,11 @@ sub init
 
 	# Default configs...
 	$config->{'get_topups_summary_query'} = '
-		SELECT 
+		SELECT
 			@TP@topups_summary.Balance,
 			@TP@topups.Type,
 			@TP@topups.ID
-		FROM 
+		FROM
 			@TP@topups_summary,
 			@TP@topups,
 			@TP@users
@@ -92,11 +92,11 @@ sub init
 	';
 
 	$config->{'get_topups_query'} = '
-		SELECT 
+		SELECT
 			@TP@topups.ID,
 			@TP@topups.Type,
 			@TP@topups.Value
-		FROM 
+		FROM
 			@TP@topups,
 			@TP@users
 		WHERE
@@ -381,11 +381,11 @@ sub cleanup
 		# Get user traffic and uptime limits
 		$sth = DBSelect('
 			SELECT
-					@TP@user_attributes.Name, @TP@user_attributes.Value
+				@TP@user_attributes.Name, @TP@user_attributes.Value
 			FROM
-					@TP@user_attributes, @TP@users
+				@TP@user_attributes, @TP@users
 			WHERE
-					@TP@users.Username = ?
+				@TP@users.Username = ?
 			',
 			$userName
 		);
