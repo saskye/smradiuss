@@ -245,7 +245,7 @@ function createWiSPUser($params) {
 		if ($res !== FALSE && isset($params[0]['Email'])) {
 			$res = DBDo("UPDATE wisp_userdata SET Email = ? WHERE UserID = ?",array($params[0]['Email'],$userID));
 		}
-		if ($res !== FALSE && isset($params[0]['LocationID'])) {
+		if ($res !== FALSE && !empty($params[0]['LocationID'])) {
 			$res = DBDo("UPDATE wisp_userdata SET LocationID = ? WHERE UserID = ?",array($params[0]['LocationID'],$userID));
 		}
 
