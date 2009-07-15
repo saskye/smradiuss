@@ -36,12 +36,12 @@ var wispMenu = new Ext.menu.Menu({
 			}
 		},
 
-		{
-			text: 'Resellers',
-			handler: function() {
-				showWiSPResellersWindow();
-			}
-		},
+//		{
+//			text: 'Resellers',
+//			handler: function() {
+//				showWiSPResellersWindow();
+//			}
+//		},
 
 		{
 			text: 'Locations',
