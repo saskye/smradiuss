@@ -10,7 +10,7 @@ function addAdminUserGroup($params) {
 	$res = DBDo("INSERT INTO users_to_groups (UserID,GroupID) VALUES (?,?)",array($params[0]['UserID'],$params[0]['GroupID']));
 
 	# Return result
-	if (!is_numeric($res)) {
+	if (is_bool($res)) {
 		return $res;
 	}
 
@@ -24,7 +24,7 @@ function removeAdminUserGroup($params) {
 	$res = DBDo("DELETE FROM users_to_groups WHERE ID = ?",array($params[0]));
 
 	# Return result
-	if (!is_numeric($res)) {
+	if (is_bool($res)) {
 		return $res;
 	}
 

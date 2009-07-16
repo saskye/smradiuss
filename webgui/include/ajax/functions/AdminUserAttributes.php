@@ -19,7 +19,7 @@ function addAdminUserAttribute($params) {
 	);
 
 	# Return result
-	if (!is_numeric($res)) {
+	if (is_bool($res)) {
 		return $res;
 	}
 
@@ -33,7 +33,7 @@ function removeAdminUserAttribute($params) {
 	$res = DBDo("DELETE FROM user_attributes WHERE ID = ?",array($params[0]));
 
 	# Return result
-	if (!is_numeric($res)) {
+	if (is_bool($res)) {
 		return $res;
 	}
 
@@ -53,7 +53,7 @@ function updateAdminUserAttribute($params) {
 	);
 
 	# Return result
-	if (!is_numeric($res)) {
+	if (is_bool($res)) {
 		return $res;
 	}
 

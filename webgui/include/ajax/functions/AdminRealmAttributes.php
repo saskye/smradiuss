@@ -18,8 +18,8 @@ function addAdminRealmAttribute($params) {
 						$params[0]['Disabled'])
 	);
 
-	# Return error if failed
-	if (!is_numeric($res)) {
+	# Return result
+	if (is_bool($res)) {
 		return $res;
 	}
 
@@ -32,8 +32,8 @@ function removeAdminRealmAttribute($params) {
 	# Perform query
 	$res = DBDo("DELETE FROM realm_attributes WHERE ID = ?",array($params[0]));
 
-	# Return error if failed
-	if (!is_numeric($res)) {
+	# Return result
+	if (is_bool($res)) {
 		return $res;
 	}
 
@@ -52,8 +52,8 @@ function updateAdminRealmAttribute($params) {
 				$params[0]['ID'])
 	);
 
-	# Return error if failed
-	if (!is_numeric($res)) {
+	# Return result
+	if (is_bool($res)) {
 		return $res;
 	}
 

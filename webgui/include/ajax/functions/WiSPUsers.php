@@ -230,7 +230,7 @@ function removeWiSPUser($params) {
 	}
 
 	# Commit and return if successful
-	if ($res !== FALSE) {
+	if (is_bool($res)) {
 		DBCommit();
 		return $res;
 	# Else rollback database
@@ -535,7 +535,7 @@ function createWiSPUser($params) {
 	}
 
 	# Commit changes if all was successful, else rollback
-	if ($res !== FALSE) {
+	if (is_bool($res)) {
 		DBCommit();
 		return $res;
 	} else {
@@ -582,7 +582,7 @@ function updateWiSPUser($params) {
 	}
 
 	# Commit changes if all was successful, else break
-	if ($res !== FALSE) {
+	if (is_bool($res)) {
 		DBCommit();
 		return $res;
 	} else {

@@ -9,7 +9,7 @@ function removeWiSPLocationMember($params) {
 	$res = DBDo("UPDATE wisp_userdata SET LocationID = NULL WHERE UserID = ?",array($params[0]));
 
 	# Return result
-	if (!is_numeric($res)) {
+	if (is_bool($res)) {
 		return $res;
 	}
 

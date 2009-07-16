@@ -88,7 +88,7 @@ function removeAdminGroup($params) {
 	}
 
 	# Commit and return if successful
-	if ($res !== FALSE) {
+	if (is_bool($res)) {
 		DBCommit();
 		return $res;
 	# Else rollback database
@@ -105,8 +105,8 @@ function createAdminGroup($params) {
 	# Perform query
 	$res = DBDo("INSERT INTO groups (Name) VALUES (?)",array($params[0]['Name']));
 
-	# Return error if failed
-	if (!is_numeric($res)) {
+	# Return result
+	if (is_bool($res)) {
 		return $res;
 	}
 
@@ -119,8 +119,8 @@ function updateAdminGroup($params) {
 	# Perform query
 	$res = DBDo("UPDATE groups SET Name = ? WHERE ID = ?",array($params[0]['Name'],$params[0]['ID']));
 
-	# Return error if failed
-	if (!is_numeric($res)) {
+	# Return result
+	if (is_bool($res)) {
 		return $res;
 	}
 

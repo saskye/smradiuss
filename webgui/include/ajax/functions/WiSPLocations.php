@@ -76,7 +76,7 @@ function removeWiSPLocation($params) {
 	}
 
 	# Commit changes if successful
-	if ($res !== FALSE) {
+	if (is_bool($res)) {
 		DBCommit();
 		return $res;
 	# Rollback database if error
@@ -94,7 +94,7 @@ function createWiSPLocation($params) {
 	$res = DBDo("INSERT INTO wisp_locations (Name) VALUES (?)",array($params[0]['Name']));
 
 	# Return result
-	if (!is_numeric($res)) {
+	if (is_bool($res)) {
 		return $res;
 	}
 
@@ -108,7 +108,7 @@ function updateWiSPLocation($params) {
 	$res = DBDo("UPDATE wisp_locations SET Name = ? WHERE ID = ?",array($params[0]['Name'],$params[0]['ID']));
 
 	# Return result
-	if (!is_numeric($res)) {
+	if (is_bool($res)) {
 		return $res;
 	}
 

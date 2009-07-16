@@ -17,7 +17,8 @@ function addAdminGroupAttribute($params) {
 						$params[0]['Disabled'])
 	);
 
-	if (!is_numeric($res)) {
+	# Return result
+	if (is_bool($res)) {
 		return $res;
 	}
 
@@ -28,7 +29,9 @@ function addAdminGroupAttribute($params) {
 function removeAdminGroupAttribute($params) {
 
 	$res = DBDo("DELETE FROM group_attributes WHERE ID = ?",array($params[0]));
-	if (!is_numeric($res)) {
+
+	# Return result
+	if (is_bool($res)) {
 		return $res;
 	}
 
@@ -46,7 +49,8 @@ function updateAdminGroupAttribute($params) {
 				$params[0]['ID'])
 	);
 
-	if (!is_numeric($res)) {
+	# Return result
+	if (is_bool($res)) {
 		return $res;
 	}
 

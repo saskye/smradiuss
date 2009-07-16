@@ -77,7 +77,7 @@ function removeAdminRealm($params) {
 	}
 
 	# Commit and return if successful
-	if ($res !== FALSE) {
+	if (is_bool($res)) {
 		DBCommit();
 		return $res;
 	# Else rollback database
@@ -95,7 +95,7 @@ function createAdminRealm($params) {
 	$res = DBDo("INSERT INTO realms (Name) VALUES (?)",array($params[0]['Name']));
 
 	# Return result
-	if (!is_numeric($res)) {
+	if (is_bool($res)) {
 		return $res;
 	}
 
@@ -109,7 +109,7 @@ function updateAdminRealm($params) {
 	$res = DBDo("UPDATE realms SET Name = ? WHERE ID = ?",array($params[0]['Name'],$params[0]['ID']));
 
 	# Return result
-	if (!is_numeric($res)) {
+	if (is_bool($res)) {
 		return $res;
 	}
 

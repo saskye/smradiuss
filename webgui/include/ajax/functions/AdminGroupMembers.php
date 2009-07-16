@@ -6,7 +6,9 @@ include_once("include/db.php");
 function removeAdminGroupMember($params) {
 
 	$res = DBDo("DELETE FROM users_to_groups WHERE ID = ?",array($params[0]));
-	if (!is_numeric($res)) {
+
+	# Return result
+	if (is_bool($res)) {
 		return $res;
 	}
 

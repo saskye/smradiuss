@@ -103,9 +103,10 @@ function removeAdminUser($params) {
 			while ($row = $res->fetchObject()) {
 				array_push($topupList,$row->topupid);
 			}
+			$res = TRUE;
 		}
 
-		if ($res !== FALSE && sizeof($topupList) > 0) {
+		if (sizeof($topupList) > 0 && $res !== FALSE) {
 			# Remove topup summaries
 			foreach ($topupList as $id) {
 				if ($res !== FALSE) {
@@ -132,7 +133,7 @@ function removeAdminUser($params) {
 	}
 
 	# Commit and return if successful
-	if ($res !== FALSE) {
+	if (is_bool($res)) {
 		DBCommit();
 		return $res;
 	# Else rollback database
@@ -150,7 +151,7 @@ function createAdminUser($params) {
 	$res = DBDo("INSERT INTO users (Username) VALUES (?)",array($params[0]['Username']));
 
 	# Return result
-	if (!is_numeric($res)) {
+	if (is_bool($res)) {
 		return $res;
 	}
 
@@ -164,7 +165,7 @@ function updateAdminUser($params) {
 	$res = DBDo("UPDATE users SET Username = ? WHERE ID = ?",array($params[0]['Username'],$params[0]['ID']));
 
 	# Return result
-	if (!is_numeric($res)) {
+	if (is_bool($res)) {
 		return $res;
 	}
 
