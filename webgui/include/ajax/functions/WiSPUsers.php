@@ -181,6 +181,49 @@ function removeWiSPUser($params) {
 		$res = DBDo("DELETE FROM users_to_groups WHERE UserID = ?",array($params[0]));
 	}
 	
+	# Get list of topups and delete summaries
+	if ($res !== FALSE) {
+		$topupList = array();
+		$res = DBSelect("
+			SELECT
+				topups_summary.TopupID
+			FROM
+				topups_summary, topups
+			WHERE
+				topups_summary.TopupID = topups.ID
+				AND topups.UserID = ?",
+				array($params[0])
+		);
+
+		if (!is_object($res)) {
+			$res = FALSE;
+		} else {
+			while ($row = $res->fetchObject()) {
+				array_push($topupList,$row->topupid);
+			}
+		}
+
+		if ($res !== FALSE && sizeof($topupList) > 0) {
+			# Remove topup summaries
+			foreach ($topupList as $id) {
+				if ($res !== FALSE) {
+					$res = DBDo("
+						DELETE FROM
+							topups_summary
+						WHERE
+							TopupID = ?",
+							array($id)
+					);
+				}
+			}
+		}
+	}
+
+	# Remove topups
+	if ($res !== FALSE) {
+		$res = DBDo("DELETE FROM topups WHERE UserID = ?",array($params[0]));
+	}
+
 	# Delete user
 	if ($res !== FALSE) {
 		$res = DBDo("DELETE FROM users WHERE ID = ?",array($params[0]));
