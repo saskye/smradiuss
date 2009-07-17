@@ -14,8 +14,6 @@ CREATE TABLE @PREFIX@users (
 ) @CREATE_TABLE_SUFFIX@;
 CREATE INDEX @PREFIX@users_idx1 ON @PREFIX@users (Username);
 
-
-
 /* User attributes */
 CREATE TABLE @PREFIX@user_attributes (
 	ID			@SERIAL_TYPE@,
@@ -48,8 +46,6 @@ CREATE TABLE @PREFIX@groups (
 )  @CREATE_TABLE_SUFFIX@;
 CREATE INDEX @PREFIX@groups_idx1 ON @PREFIX@groups (Name);
 
-
-
 /* Group attributes */
 CREATE TABLE @PREFIX@group_attributes (
 	ID			@SERIAL_TYPE@,
@@ -64,8 +60,6 @@ CREATE TABLE @PREFIX@group_attributes (
 
 	FOREIGN KEY (GroupID) REFERENCES @PREFIX@groups(ID)
 ) @CREATE_TABLE_SUFFIX@;
-
-
 
 /* User to group mapping */
 CREATE TABLE @PREFIX@users_to_groups (
@@ -82,6 +76,35 @@ CREATE TABLE @PREFIX@users_to_groups (
 	FOREIGN KEY (GroupID) REFERENCES @PREFIX@groups(ID)
 )  @CREATE_TABLE_SUFFIX@;
 CREATE INDEX @PREFIX@users_to_groups_idx1 ON @PREFIX@users_to_groups (UserID,GroupID);
+
+
+
+/* Realms */
+CREATE TABLE @PREFIX@realms (
+	ID			@SERIAL_TYPE@,
+
+	Name			VARCHAR(255) NOT NULL,
+
+	Disabled		SMALLINT NOT NULL DEFAULT '0'
+
+)  @CREATE_TABLE_SUFFIX@;
+CREATE INDEX @PREFIX@realms_idx1 ON @PREFIX@realms (Name);
+
+/* Realm attributes */
+CREATE TABLE @PREFIX@realm_attributes (
+	ID			@SERIAL_TYPE@,
+
+	RealmID			@SERIAL_REF_TYPE@ NOT NULL,
+
+	Name			VARCHAR(255) NOT NULL,
+	Operator		VARCHAR(4) NOT NULL,
+	Value			VARCHAR(255),
+
+	Disabled		SMALLINT NOT NULL DEFAULT '0',
+
+	FOREIGN KEY (RealmID) REFERENCES @PREFIX@realms(ID)
+) @CREATE_TABLE_SUFFIX@;
+
 
 
 /* Topups */
@@ -105,37 +128,6 @@ CREATE TABLE @PREFIX@topups (
 	FOREIGN KEY (UserID) REFERENCES @PREFIX@users(ID)
 ) @CREATE_TABLE_SUFFIX@;
 
-
-/* Realms */
-CREATE TABLE @PREFIX@realms (
-	ID			@SERIAL_TYPE@,
-
-	Name			VARCHAR(255) NOT NULL,
-
-	Disabled		SMALLINT NOT NULL DEFAULT '0'
-
-)  @CREATE_TABLE_SUFFIX@;
-CREATE INDEX @PREFIX@realms_idx1 ON @PREFIX@realms (Name);
-
-
-
-/* Realm attributes */
-CREATE TABLE @PREFIX@realm_attributes (
-	ID			@SERIAL_TYPE@,
-
-	RealmID			@SERIAL_REF_TYPE@ NOT NULL,
-
-	Name			VARCHAR(255) NOT NULL,
-	Operator		VARCHAR(4) NOT NULL,
-	Value			VARCHAR(255),
-
-	Disabled		SMALLINT NOT NULL DEFAULT '0',
-
-	FOREIGN KEY (RealmID) REFERENCES @PREFIX@realms(ID)
-) @CREATE_TABLE_SUFFIX@;
-
-
-
 /* Topups Summary */
 CREATE TABLE @PREFIX@topups_summary (
 	ID			@SERIAL_TYPE@,
@@ -149,28 +141,6 @@ CREATE TABLE @PREFIX@topups_summary (
 	Depleted		SMALLINT NOT NULL DEFAULT '0',
 
 	FOREIGN KEY (TopupID) REFERENCES @PREFIX@topups(ID)
-) @CREATE_TABLE_SUFFIX@;
-
-
-/* Accounting Summary */
-CREATE TABLE @PREFIX@accounting_summary (
-	ID			@SERIAL_TYPE@,
-
-	Username		VARCHAR(255),
-
-	PeriodKey		DATETIME,
-
-	AcctSessionTime		@INT_UNSIGNED@,
-
-	AcctInputOctets		@INT_UNSIGNED@,
-
-	AcctInputGigawords	@INT_UNSIGNED@,
-
-	AcctInputPackets	@INT_UNSIGNED@,
-
-	AcctOutputOctets	@INT_UNSIGNED@,
-
-	AcctOutputGigawords	@INT_UNSIGNED@
 ) @CREATE_TABLE_SUFFIX@;
 
 
@@ -228,3 +198,26 @@ CREATE TABLE @PREFIX@accounting (
 	AcctTerminateCause	@INT_UNSIGNED@
 ) @CREATE_TABLE_SUFFIX@;
 CREATE INDEX @PREFIX@accounting_idx1 ON @PREFIX@accounting (Username);
+
+
+
+/* Accounting Summary */
+CREATE TABLE @PREFIX@accounting_summary (
+	ID			@SERIAL_TYPE@,
+
+	Username		VARCHAR(255),
+
+	PeriodKey		DATETIME,
+
+	AcctSessionTime		@INT_UNSIGNED@,
+
+	AcctInputOctets		@INT_UNSIGNED@,
+
+	AcctInputGigawords	@INT_UNSIGNED@,
+
+	AcctInputPackets	@INT_UNSIGNED@,
+
+	AcctOutputOctets	@INT_UNSIGNED@,
+
+	AcctOutputGigawords	@INT_UNSIGNED@
+) @CREATE_TABLE_SUFFIX@;
