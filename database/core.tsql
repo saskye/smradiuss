@@ -105,6 +105,50 @@ CREATE TABLE @PREFIX@realm_attributes (
 	FOREIGN KEY (RealmID) REFERENCES @PREFIX@realms(ID)
 ) @CREATE_TABLE_SUFFIX@;
 
+/* Client to realm mapping */
+CREATE TABLE @PREFIX@clients_to_realms (
+	ID			@SERIAL_TYPE@,
+
+	ClientID		@SERIAL_REF_TYPE@ NOT NULL,
+	RealmID			@SERIAL_REF_TYPE@ NOT NULL,
+
+	Disabled		SMALLINT NOT NULL DEFAULT '0',
+	Comment			VARCHAR(1024),
+
+	UNIQUE (ClientID,RealmID),
+	FOREIGN KEY (ClientID) REFERENCES @PREFIX@clients(ID),
+	FOREIGN KEY (RealmID) REFERENCES @PREFIX@realms(ID)
+)  @CREATE_TABLE_SUFFIX@;
+
+
+
+/* Clients */
+CREATE TABLE @PREFIX@clients (
+	ID			@SERIAL_TYPE@,
+
+	Name			VARCHAR(255) NOT NULL,
+	AccessList		VARCHAR(255),
+
+	Disabled		SMALLINT NOT NULL DEFAULT '0',
+
+	UNIQUE (Name)
+) @CREATE_TABLE_SUFFIX@;
+
+/* Client attributes */
+CREATE TABLE @PREFIX@client_attributes (
+	ID			@SERIAL_TYPE@,
+
+	ClientID		@SERIAL_REF_TYPE@ NOT NULL,
+
+	Name			VARCHAR(255) NOT NULL,
+	Operator		VARCHAR(4) NOT NULL,
+	Value			VARCHAR(255),
+
+	Disabled		SMALLINT NOT NULL DEFAULT '0',
+
+	FOREIGN KEY (ClientID) REFERENCES @PREFIX@clients(ID)
+) @CREATE_TABLE_SUFFIX@;
+
 
 
 /* Topups */
