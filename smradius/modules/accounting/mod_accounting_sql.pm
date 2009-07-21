@@ -239,7 +239,10 @@ sub getUsage
 	}
 
 	# Pull data
-	my $usageData = $sth->fetchrow_hashref();
+	my $usageData = hashifyLCtoMC(
+		$sth->fetchrow_hashref(),
+		qw(InputOctets OutputOctets InputGigawords OutputGigawords SessionTime)
+	);
 
 	DBFreeRes($sth);
 
@@ -247,24 +250,24 @@ sub getUsage
 
 	# Total up input
 	my $totalData = 0; 
-	if (defined($usageData->{'inputoctets'}) && $usageData->{'inputoctets'} > 0) {
-		$totalData += $usageData->{'inputoctets'} / 1024 / 1024;
+	if (defined($usageData->{'Inputoctets'}) && $usageData->{'Inputoctets'} > 0) {
+		$totalData += $usageData->{'Inputoctets'} / 1024 / 1024;
 	}
-	if (defined($usageData->{'inputgigawords'}) && $usageData->{'inputgigawords'} > 0) {
-		$totalData += $usageData->{'inputgigawords'} * 4096;
+	if (defined($usageData->{'Inputgigawords'}) && $usageData->{'Inputgigawords'} > 0) {
+		$totalData += $usageData->{'Inputgigawords'} * 4096;
 	}
 	# Add up output
-	if (defined($usageData->{'outputoctets'}) && $usageData->{'outputoctets'} > 0) {
-		$totalData += $usageData->{'outputoctets'} / 1024 / 1024;
+	if (defined($usageData->{'Outputoctets'}) && $usageData->{'Outputoctets'} > 0) {
+		$totalData += $usageData->{'Outputoctets'} / 1024 / 1024;
 	}
-	if (defined($usageData->{'outputgigawords'}) && $usageData->{'outputgigawords'} > 0) {
-		$totalData += $usageData->{'outputgigawords'} * 4096;
+	if (defined($usageData->{'Outputgigawords'}) && $usageData->{'Outputgigawords'} > 0) {
+		$totalData += $usageData->{'Outputgigawords'} * 4096;
 	}
 
 	# Add up time
 	my $totalTime = 0; 
-	if (defined($usageData->{'sessiontime'}) && $usageData->{'sessiontime'} > 0) {
-		$totalTime = $usageData->{'sessiontime'} / 60;
+	if (defined($usageData->{'Sessiontime'}) && $usageData->{'Sessiontime'} > 0) {
+		$totalTime = $usageData->{'Sessiontime'} / 60;
 	}
 	
 	# Rounding up
@@ -393,19 +396,23 @@ sub cleanup
 	my $i = 0;
 	# Load items into array
 	while (my $usageTotals = $sth->fetchrow_hashref()) {
+		$usageTotals = hashifyLCtoMC(
+			$usageTotals,
+			qw(Username AcctSessionTime AcctInputOctets AcctInputGigawords AcctOutputOctets AcctOutputGigawords)
+		);
 
 		# Set array blank
 		my @recordRow = ();
 
 		# Set array items
 		@recordRow = (
-			$usageTotals->{'username'},
+			$usageTotals->{'Username'},
 			$lastMonth->year."-".$lastMonth->month,
-			$usageTotals->{'acctsessiontime'},
-			$usageTotals->{'acctinputoctets'},
-			$usageTotals->{'acctinputgigawords'},
-			$usageTotals->{'acctoutputoctets'},
-			$usageTotals->{'acctoutputgigawords'}
+			$usageTotals->{'AcctSessionTime'},
+			$usageTotals->{'AcctInputOctets'},
+			$usageTotals->{'AcctInputGigawords'},
+			$usageTotals->{'AcctOutputOctets'},
+			$usageTotals->{'AcctOutputGigawords'}
 		);
 
 		# Add record ontp @allRecords

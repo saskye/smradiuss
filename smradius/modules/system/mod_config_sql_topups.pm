@@ -162,13 +162,15 @@ sub getTopups
 	# Fetch all summaries
 	my (@trafficSummary,@uptimeSummary);
 	while (my $row = $sth->fetchrow_hashref()) {
-		if ($row->{'type'} == 1) {
+		$row = hashifyLCtoMC($row, qw(Balance Type ID));
+
+		if ($row->{'Type'} == 1) {
 			# Add to traffic summary list
-			push(@trafficSummary, { Value => $row->{'balance'}, ID => $row->{'id'} });
+			push(@trafficSummary, { Value => $row->{'Balance'}, ID => $row->{'ID'} });
 		}
-		if ($row->{'type'} == 2) {
+		if ($row->{'Type'} == 2) {
 			# Add to uptime summary list
-			push(@uptimeSummary, { Value => $row->{'balance'}, ID => $row->{'id'} });
+			push(@uptimeSummary, { Value => $row->{'Balance'}, ID => $row->{'ID'} });
 		}
 	}
 	DBFreeRes($sth);
@@ -183,13 +185,15 @@ sub getTopups
 	# Fetch all new topups 
 	my (@trafficTopups,@uptimeTopups);
 	while (my $row = $sth->fetchrow_hashref()) {
-		if ($row->{'type'} == 1) {
+		$row = hashifyLCtoMC($row, qw(ID Type Value));
+
+		if ($row->{'Type'} == 1) {
 			# Add topup to traffic array
-			push(@trafficTopups, { Value => $row->{'value'}, ID => $row->{'id'} });
+			push(@trafficTopups, { Value => $row->{'Value'}, ID => $row->{'ID'} });
 		}
-		if ($row->{'type'} == 2) {
+		if ($row->{'Type'} == 2) {
 			# Add topup to uptime array
-			push(@uptimeTopups, { Value => $row->{'value'}, ID => $row->{'id'} });
+			push(@uptimeTopups, { Value => $row->{'Value'}, ID => $row->{'ID'} });
 		}
 	}
 
@@ -275,7 +279,8 @@ sub cleanup
 	# Create hash of usernames
 	my %users;
 	while (my $user = $sth->fetchrow_hashref()) {
-		$users{$user->{'id'}} = $user->{'username'};
+		$user = hashifyLCtoMC($user, qw(ID Username));
+		$users{$user->{'ID'}} = $user->{'Username'};
 	}
 
 	# Finished for now
@@ -345,26 +350,32 @@ sub cleanup
 		}
 
 		my $row = $sth->fetchrow_hashref();
+		if ($sth->rows > 0) {
+			$row = hashifyLCtoMC(
+				$row,
+				qw(Username AcctSessionTime AcctInputOctets AcctInputGigawords AcctOutputOctets AcctOutputGigawords)
+			);
+		}
 
 		# Add up traffic
 		my $totalData = 0; 
-		if (defined($row->{'acctinputoctets'}) && $row->{'acctinputoctets'} > 0) {
-			$totalData += $row->{'acctinputoctets'} / 1024 / 1024;
+		if (defined($row->{'AcctInputOctets'}) && $row->{'AcctInputOctets'} > 0) {
+			$totalData += $row->{'AcctInputOctets'} / 1024 / 1024;
 		}
-		if (defined($row->{'acctinputgigawords'}) && $row->{'acctinputgigawords'} > 0) {
-			$totalData += $row->{'acctinputgigawords'} * 4096;
+		if (defined($row->{'AcctInputGigawords'}) && $row->{'AcctInputGigawords'} > 0) {
+			$totalData += $row->{'AcctInputGigawords'} * 4096;
 		}
-		if (defined($row->{'acctoutputoctets'}) && $row->{'acctoutputoctets'} > 0) {
-			$totalData += $row->{'acctoutputoctets'} / 1024 / 1024;
+		if (defined($row->{'AcctOutputOctets'}) && $row->{'AcctOutputOctets'} > 0) {
+			$totalData += $row->{'AcctOutputOctets'} / 1024 / 1024;
 		}
-		if (defined($row->{'acctoutputgigawords'}) && $row->{'acctoutputgigawords'} > 0) {
-			$totalData += $row->{'acctoutputgigawords'} * 4096;
+		if (defined($row->{'AcctOutputGigawords'}) && $row->{'AcctOutputGigawords'} > 0) {
+			$totalData += $row->{'AcctOutputGigawords'} * 4096;
 		}
 
 		# Add up uptime
 		my $totalTime = 0; 
-		if (defined($row->{'acctsessiontime'}) && $row->{'acctsessiontime'} > 0) {
-			$totalTime = $row->{'acctsessiontime'} / 60;
+		if (defined($row->{'AcctSessionTime'}) && $row->{'AcctSessionTime'} > 0) {
+			$totalTime = $row->{'AcctSessionTime'} / 60;
 		}
 
 		# Rounding up
@@ -399,11 +410,16 @@ sub cleanup
 		# Store limits in capRecord hash
 		my %capRecord;
 		while ($row = $sth->fetchrow_hashref()) {
-			if ($row->{'name'} eq 'SMRadius-Capping-Traffic-Limit') {
-				$capRecord{'TrafficLimit'} = $row->{'value'};
+			$row = hashifyLCtoMC(
+				$row,
+				qw(Name Value)
+			);
+
+			if ($row->{'Name'} eq 'SMRadius-Capping-Traffic-Limit') {
+				$capRecord{'TrafficLimit'} = $row->{'Value'};
 			}
-			if ($row->{'name'} eq 'SMRadius-Capping-Uptime-Limit') {
-				$capRecord{'UptimeLimit'} = $row->{'value'};
+			if ($row->{'Name'} eq 'SMRadius-Capping-Uptime-Limit') {
+				$capRecord{'UptimeLimit'} = $row->{'Value'};
 			}
 		}
 
@@ -445,24 +461,29 @@ sub cleanup
 		my @trafficSummary = ();
 		my @uptimeSummary = ();
 		while (my $row = $sth->fetchrow_hashref()) {
-			if (defined($row->{'validto'})) {
+			$row = hashifyLCtoMC(
+				$row,
+				qw(TopupID Balance Value ValidTo Type)
+			);
+
+			if (defined($row->{'ValidTo'})) {
 				# Convert string to unix time
-				my $unix_validTo = str2time($row->{'validto'});
-				if ($row->{'type'} == 1) {
+				my $unix_validTo = str2time($row->{'ValidTo'});
+				if ($row->{'Type'} == 1) {
 					push(@trafficSummary, { 
-							TopupID => $row->{'topupid'},
-							Balance => $row->{'balance'},
-							Value => $row->{'value'},
+							TopupID => $row->{'TopupID'},
+							Balance => $row->{'Balance'},
+							Value => $row->{'Value'},
 							ValidTo => $unix_validTo,
-							Type => $row->{'type'}
+							Type => $row->{'Type'}
 					});
-				} elsif ($row->{'type'} == 2) {
+				} elsif ($row->{'Type'} == 2) {
 					push(@uptimeSummary, { 
-							TopupID => $row->{'topupid'},
-							Balance => $row->{'balance'},
-							Value => $row->{'value'},
+							TopupID => $row->{'TopupID'},
+							Balance => $row->{'Balance'},
+							Value => $row->{'Value'},
 							ValidTo => $unix_validTo,
-							Type => $row->{'type'}
+							Type => $row->{'Type'}
 					});
 				}
 			}
@@ -499,21 +520,26 @@ sub cleanup
 		# Loop with the topups and push them into arrays
 		my (@trafficTopups,@uptimeTopups);
 		while (my $row = $sth->fetchrow_hashref()) {
+			$row = hashifyLCtoMC(
+				$row,
+				qw(ID Value Type ValidTo)
+			);
+
 			# Convert string to unix time
-			my $unix_validTo = str2time($row->{'validto'});
+			my $unix_validTo = str2time($row->{'ValidTo'});
 			# If this is a traffic topup ...
-			if ($row->{'type'} == 1) {
+			if ($row->{'Type'} == 1) {
 				push(@trafficTopups, {
-					ID => $row->{'id'},
-					Value => $row->{'value'},
+					ID => $row->{'ID'},
+					Value => $row->{'Value'},
 					ValidTo => $unix_validTo
 				});
 
 			# Or a uptime topup...
-			} elsif ($row->{'type'} == 2) {
+			} elsif ($row->{'Type'} == 2) {
 				push(@uptimeTopups, {
-					ID => $row->{'id'},
-					Value => $row->{'value'},
+					ID => $row->{'ID'},
+					Value => $row->{'Value'},
 					ValidTo => $unix_validTo
 				});
 			}
