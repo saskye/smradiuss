@@ -504,6 +504,8 @@ sub process_request {
 	my $eventTimestamp = DateTime->from_epoch( epoch => $user->{'_Internal'}->{'Timestamp-Unix'} );
 	$user->{'_Internal'}->{'Timestamp'} = $eventTimestamp->strftime('%Y-%m-%d %H:%M:%S');
 
+	# Set username
+	$user->{'Username'} = $pkt->attr('User-Name');
 
 	#
 	# GRAB & PROCESS CONFIG
@@ -548,8 +550,6 @@ sub process_request {
 
 	# Common stuff for multiple codes....
 	if ($pkt->code eq "Accounting-Request" || $pkt->code eq "Access-Request") {
-		# Set username
-		$user->{'Username'} = $pkt->attr('User-Name');
 
 		#
 		# FIND USER
