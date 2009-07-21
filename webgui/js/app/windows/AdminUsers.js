@@ -307,8 +307,8 @@ function showAdminUserAddEditWindow(id) {
 				{
 					fieldLabel: 'Username',
 					name: 'Username',
-					vtype: 'usernamePart',
-					maskRe: usernamePartRe,
+					vtype: 'usernameRadius',
+					maskRe: usernameRadiusPartRe,
 					allowBlank: false,
 				},
 			],
