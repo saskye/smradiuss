@@ -250,24 +250,24 @@ sub getUsage
 
 	# Total up input
 	my $totalData = 0; 
-	if (defined($usageData->{'Inputoctets'}) && $usageData->{'Inputoctets'} > 0) {
-		$totalData += $usageData->{'Inputoctets'} / 1024 / 1024;
+	if (defined($usageData->{'InputOctets'}) && $usageData->{'InputOctets'} > 0) {
+		$totalData += $usageData->{'InputOctets'} / 1024 / 1024;
 	}
-	if (defined($usageData->{'Inputgigawords'}) && $usageData->{'Inputgigawords'} > 0) {
-		$totalData += $usageData->{'Inputgigawords'} * 4096;
+	if (defined($usageData->{'InputGigawords'}) && $usageData->{'InputGigawords'} > 0) {
+		$totalData += $usageData->{'InputGigawords'} * 4096;
 	}
 	# Add up output
-	if (defined($usageData->{'Outputoctets'}) && $usageData->{'Outputoctets'} > 0) {
-		$totalData += $usageData->{'Outputoctets'} / 1024 / 1024;
+	if (defined($usageData->{'OutputOctets'}) && $usageData->{'OutputOctets'} > 0) {
+		$totalData += $usageData->{'OutputOctets'} / 1024 / 1024;
 	}
-	if (defined($usageData->{'Outputgigawords'}) && $usageData->{'Outputgigawords'} > 0) {
-		$totalData += $usageData->{'Outputgigawords'} * 4096;
+	if (defined($usageData->{'OutputGigawords'}) && $usageData->{'OutputGigawords'} > 0) {
+		$totalData += $usageData->{'OutputGigawords'} * 4096;
 	}
 
 	# Add up time
 	my $totalTime = 0; 
-	if (defined($usageData->{'Sessiontime'}) && $usageData->{'Sessiontime'} > 0) {
-		$totalTime = $usageData->{'Sessiontime'} / 60;
+	if (defined($usageData->{'SessionTime'}) && $usageData->{'SessionTime'} > 0) {
+		$totalTime = $usageData->{'SessionTime'} / 60;
 	}
 	
 	# Rounding up
