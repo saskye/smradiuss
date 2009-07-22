@@ -49,7 +49,7 @@ function showAdminGroupAttributesWindow(groupID) {
 					tooltip:'Edit attribute',
 					iconCls:'edit',
 					handler: function() {
-						var selectedItem = AdminGroupAttributesWindow.getComponent('gridpanel').getSelectionModel().getSelected();
+						var selectedItem = Ext.getCmp(AdminGroupAttributesWindow.gridPanelID).getSelectionModel().getSelected();
 						// Check if we have selected item
 						if (selectedItem) {
 							// If so display window
@@ -77,7 +77,7 @@ function showAdminGroupAttributesWindow(groupID) {
 					tooltip:'Remove attribute',
 					iconCls:'remove',
 					handler: function() {
-						var selectedItem = AdminGroupAttributesWindow.getComponent('gridpanel').getSelectionModel().getSelected();
+						var selectedItem = Ext.getCmp(AdminGroupAttributesWindow.gridPanelID).getSelectionModel().getSelected();
 						// Check if we have selected item
 						if (selectedItem) {
 							// If so display window
@@ -267,7 +267,7 @@ function showAdminGroupAttributeAddEditWindow(groupID,attrID) {
 	adminGroupAttributesFormWindow.show();
 
 	if (attrID) {
-		adminGroupAttributesFormWindow.getComponent('formpanel').load({
+		Ext.getCmp(adminGroupAttributesFormWindow.formPanelID).load({
 			params: {
 				ID: attrID,
 				SOAPUsername: globalConfig.soap.username,

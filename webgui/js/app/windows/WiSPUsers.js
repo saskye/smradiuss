@@ -49,7 +49,7 @@ function showWiSPUserWindow() {
 					tooltip:'Edit user',
 					iconCls:'option',
 					handler: function() {
-						var selectedItem = WiSPUserWindow.getComponent('gridpanel').getSelectionModel().getSelected();
+						var selectedItem = Ext.getCmp(WiSPUserWindow.gridPanelID).getSelectionModel().getSelected();
 						// Check if we have selected item
 						if (selectedItem) {
 							// If so display window
@@ -77,7 +77,7 @@ function showWiSPUserWindow() {
 					tooltip:'Remove user',
 					iconCls:'remove',
 					handler: function() {
-						var selectedItem = WiSPUserWindow.getComponent('gridpanel').getSelectionModel().getSelected();
+						var selectedItem = Ext.getCmp(WiSPUserWindow.gridPanelID).getSelectionModel().getSelected();
 						// Check if we have selected item
 						if (selectedItem) {
 							// If so display window
@@ -105,7 +105,7 @@ function showWiSPUserWindow() {
 					tooltip:'User logs',
 					iconCls:'logs',
 					handler: function() {
-						var selectedItem = WiSPUserWindow.getComponent('gridpanel').getSelectionModel().getSelected();
+						var selectedItem = Ext.getCmp(WiSPUserWindow.gridPanelID).getSelectionModel().getSelected();
 						// Check if we have selected item
 						if (selectedItem) {
 							// If so display window
@@ -133,7 +133,7 @@ function showWiSPUserWindow() {
 					tooltip:'User topups',
 					iconCls:'logs',
 					handler: function() {
-						var selectedItem = WiSPUserWindow.getComponent('gridpanel').getSelectionModel().getSelected();
+						var selectedItem = Ext.getCmp(WiSPUserWindow.gridPanelID).getSelectionModel().getSelected();
 						// Check if we have selected item
 						if (selectedItem) {
 							// If so display window
@@ -697,7 +697,7 @@ function showWiSPUserAddEditWindow(id) {
 	wispUserFormWindow.show();
 
 	if (id) {
-		wispUserFormWindow.getComponent('formpanel').load({
+		Ext.getCmp(wispUserFormWindow.formPanelID).load({
 			params: {
 				ID: id,
 				SOAPUsername: globalConfig.soap.username,

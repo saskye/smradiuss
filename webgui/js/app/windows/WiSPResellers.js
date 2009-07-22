@@ -49,7 +49,7 @@ function showWiSPResellersWindow() {
 					tooltip:'Edit Reseller',
 					iconCls:'option',
 					handler: function() {
-						var selectedItem = WiSPResellerWindow.getComponent('gridpanel').getSelectionModel().getSelected();
+						var selectedItem = Ext.getCmp(WiSPResellerWindow.gridPanelID).getSelectionModel().getSelected();
 						// Check if we have selected item
 						if (selectedItem) {
 							// If so display window
@@ -77,7 +77,7 @@ function showWiSPResellersWindow() {
 					tooltip:'Remove Reseller',
 					iconCls:'remove',
 					handler: function() {
-						var selectedItem = WiSPResellerWindow.getComponent('gridpanel').getSelectionModel().getSelected();
+						var selectedItem = Ext.getCmp(WiSPResellerWindow.gridPanelID).getSelectionModel().getSelected();
 						// Check if we have selected item
 						if (selectedItem) {
 							// If so display window
@@ -281,7 +281,7 @@ function showWiSPResellerEditWindow(id) {
 	WiSPResellerFormWindow.show();
 
 	if (id) {
-		WiSPResellerFormWindow.getComponent('formpanel').load({
+		Ext.getCmp(WiSPResellerFormWindow.formPanelID).load({
 			params: {
 				id: id,
 				SOAPUsername: globalConfig.soap.username,

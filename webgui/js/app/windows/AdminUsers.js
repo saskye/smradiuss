@@ -49,7 +49,7 @@ function showAdminUserWindow() {
 					tooltip:'Edit user',
 					iconCls:'option',
 					handler: function() {
-						var selectedItem = AdminUserWindow.getComponent('gridpanel').getSelectionModel().getSelected();
+						var selectedItem = Ext.getCmp(AdminUserWindow.gridPanelID).getSelectionModel().getSelected();
 						// Check if we have selected item
 						if (selectedItem) {
 							// If so display window
@@ -77,7 +77,7 @@ function showAdminUserWindow() {
 					tooltip:'Remove user',
 					iconCls:'remove',
 					handler: function() {
-						var selectedItem = AdminUserWindow.getComponent('gridpanel').getSelectionModel().getSelected();
+						var selectedItem = Ext.getCmp(AdminUserWindow.gridPanelID).getSelectionModel().getSelected();
 						// Check if we have selected item
 						if (selectedItem) {
 							// If so display window
@@ -105,7 +105,7 @@ function showAdminUserWindow() {
 					tooltip:'User attributes',
 					iconCls:'attributes',
 					handler: function() {
-						var selectedItem = AdminUserWindow.getComponent('gridpanel').getSelectionModel().getSelected();
+						var selectedItem = Ext.getCmp(AdminUserWindow.gridPanelID).getSelectionModel().getSelected();
 						// Check if we have selected item
 						if (selectedItem) {
 							// If so display window
@@ -133,7 +133,7 @@ function showAdminUserWindow() {
 					tooltip:'User logs',
 					iconCls:'logs',
 					handler: function() {
-						var selectedItem = AdminUserWindow.getComponent('gridpanel').getSelectionModel().getSelected();
+						var selectedItem = Ext.getCmp(AdminUserWindow.gridPanelID).getSelectionModel().getSelected();
 						// Check if we have selected item
 						if (selectedItem) {
 							// If so display window
@@ -161,7 +161,7 @@ function showAdminUserWindow() {
 					tooltip:'User groups',
 					iconCls:'groups',
 					handler: function() {
-						var selectedItem = AdminUserWindow.getComponent('gridpanel').getSelectionModel().getSelected();
+						var selectedItem = Ext.getCmp(AdminUserWindow.gridPanelID).getSelectionModel().getSelected();
 						// Check if we have selected item
 						if (selectedItem) {
 							// If so display window
@@ -189,7 +189,7 @@ function showAdminUserWindow() {
 					tooltip:'User topups',
 					iconCls:'logs',
 					handler: function() {
-						var selectedItem = AdminUserWindow.getComponent('gridpanel').getSelectionModel().getSelected();
+						var selectedItem = Ext.getCmp(AdminUserWindow.gridPanelID).getSelectionModel().getSelected();
 						// Check if we have selected item
 						if (selectedItem) {
 							// If so display window
@@ -320,7 +320,7 @@ function showAdminUserAddEditWindow(id) {
 	adminUserFormWindow.show();
 
 	if (id) {
-		adminUserFormWindow.getComponent('formpanel').load({
+		Ext.getCmp(adminUserFormWindow.formPanelID).load({
 			params: {
 				ID: id,
 				SOAPUsername: globalConfig.soap.username,

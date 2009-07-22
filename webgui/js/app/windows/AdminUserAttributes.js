@@ -49,7 +49,7 @@ function showAdminUserAttributesWindow(userID) {
 					tooltip:'Edit attribute',
 					iconCls:'edit',
 					handler: function() {
-						var selectedItem = AdminUserAttributesWindow.getComponent('gridpanel').getSelectionModel().getSelected();
+						var selectedItem = Ext.getCmp(AdminUserAttributesWindow.gridPanelID).getSelectionModel().getSelected();
 						// Check if we have selected item
 						if (selectedItem) {
 							// If so display window
@@ -77,7 +77,7 @@ function showAdminUserAttributesWindow(userID) {
 					tooltip:'Remove attribute',
 					iconCls:'remove',
 					handler: function() {
-						var selectedItem = AdminUserAttributesWindow.getComponent('gridpanel').getSelectionModel().getSelected();
+						var selectedItem = Ext.getCmp(AdminUserAttributesWindow.gridPanelID).getSelectionModel().getSelected();
 						// Check if we have selected item
 						if (selectedItem) {
 							// If so display window
@@ -269,7 +269,7 @@ function showAdminUserAttributeAddEditWindow(userID,attrID) {
 	adminGroupFormWindow.show();
 
 	if (attrID) {
-		adminGroupFormWindow.getComponent('formpanel').load({
+		Ext.getCmp(adminGroupFormWindow.formPanelID).load({
 			params: {
 				ID: attrID,
 				SOAPUsername: globalConfig.soap.username,

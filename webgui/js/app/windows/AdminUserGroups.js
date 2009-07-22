@@ -49,7 +49,7 @@ function showAdminUserGroupsWindow(userID) {
 					tooltip:'Remove group',
 					iconCls:'remove',
 					handler: function() {
-						var selectedItem = AdminUserGroupsWindow.getComponent('gridpanel').getSelectionModel().getSelected();
+						var selectedItem = Ext.getCmp(AdminUserGroupsWindow.gridPanelID).getSelectionModel().getSelected();
 						// Check if we have selected item
 						if (selectedItem) {
 							// If so display window
@@ -197,7 +197,7 @@ function showAdminUserGroupAddWindow(userID,id) {
 	adminGroupFormWindow.show();
 
 	if (id) {
-		adminGroupFormWindow.getComponent('formpanel').load({
+		Ext.getCmp(adminGroupFormWindow.formPanelID).load({
 			params: {
 				ID: id,
 				SOAPUsername: globalConfig.soap.username,

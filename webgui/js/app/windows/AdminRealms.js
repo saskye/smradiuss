@@ -49,7 +49,7 @@ function showAdminRealmWindow() {
 					tooltip:'Edit realm',
 					iconCls:'edit',
 					handler: function() {
-						var selectedItem = AdminRealmWindow.getComponent('gridpanel').getSelectionModel().getSelected();
+						var selectedItem = Ext.getCmp(AdminRealmWindow.gridPanelID).getSelectionModel().getSelected();
 						// Check if we have selected item
 						if (selectedItem) {
 							// If so display window
@@ -76,7 +76,7 @@ function showAdminRealmWindow() {
 					tooltip:'Remove realm',
 					iconCls:'remove',
 					handler: function() {
-						var selectedItem = AdminRealmWindow.getComponent('gridpanel').getSelectionModel().getSelected();
+						var selectedItem = Ext.getCmp(AdminRealmWindow.gridPanelID).getSelectionModel().getSelected();
 						// Check if we have selected item
 						if (selectedItem) {
 							// If so display window
@@ -104,7 +104,7 @@ function showAdminRealmWindow() {
 					tooltip:'Realm attributes',
 					iconCls:'attributes',
 					handler: function() {
-						var selectedItem = AdminRealmWindow.getComponent('gridpanel').getSelectionModel().getSelected();
+						var selectedItem = Ext.getCmp(AdminRealmWindow.gridPanelID).getSelectionModel().getSelected();
 						// Check if we have selected item
 						if (selectedItem) {
 							// If so display window
@@ -236,7 +236,7 @@ function showAdminRealmAddEditWindow(id) {
 	adminRealmFormWindow.show();
 
 	if (id) {
-		adminRealmFormWindow.getComponent('formpanel').load({
+		Ext.getCmp(adminRealmFormWindow.formPanelID).load({
 			params: {
 				ID: id,
 				SOAPUsername: globalConfig.soap.username,

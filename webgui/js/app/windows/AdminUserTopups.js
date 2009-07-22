@@ -48,7 +48,7 @@ function showAdminUserTopupsWindow(userID) {
 					tooltip:'Edit topup',
 					iconCls:'option',
 					handler: function() {
-						var selectedItem = adminUserTopupsWindow.getComponent('gridpanel').getSelectionModel().getSelected();
+						var selectedItem = Ext.getCmp(adminUserTopupsWindow.gridPanelID).getSelectionModel().getSelected();
 						// Check if we have selected item
 						if (selectedItem) {
 							// If so display window
@@ -76,7 +76,7 @@ function showAdminUserTopupsWindow(userID) {
 					tooltip:'Remove topup',
 					iconCls:'remove',
 					handler: function() {
-						var selectedItem = adminUserTopupsWindow.getComponent('gridpanel').getSelectionModel().getSelected();
+						var selectedItem = Ext.getCmp(adminUserTopupsWindow.gridPanelID).getSelectionModel().getSelected();
 						// Check if we have selected item
 						if (selectedItem) {
 							// If so display window
@@ -266,7 +266,7 @@ function showAdminUserTopupAddEditWindow(userID,topupID) {
 	adminUserTopupFormWindow.show();
 
 	if (topupID) {
-		adminUserTopupFormWindow.getComponent('formpanel').load({
+		Ext.getCmp(adminUserTopupFormWindow.formPanelID).load({
 			params: {
 				id: topupID,
 				SOAPUsername: globalConfig.soap.username,

@@ -40,7 +40,7 @@ function showAdminGroupMembersWindow(groupID) {
 					tooltip:'Remove member',
 					iconCls:'remove',
 					handler: function() {
-						var selectedItem = AdminGroupMembersWindow.getComponent('gridpanel').getSelectionModel().getSelected();
+						var selectedItem = Ext.getCmp(AdminGroupMembersWindow.gridPanelID).getSelectionModel().getSelected();
 						// Check if we have selected item
 						if (selectedItem) {
 							// If so display window

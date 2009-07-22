@@ -40,7 +40,7 @@ function showWiSPLocationMembersWindow(locationID) {
 					tooltip:'Remove member',
 					iconCls:'remove',
 					handler: function() {
-						var selectedItem = WiSPLocationMembersWindow.getComponent('gridpanel').getSelectionModel().getSelected();
+						var selectedItem = Ext.getCmp(WiSPLocationMembersWindow.gridPanelID).getSelectionModel().getSelected();
 						// Check if we have selected item
 						if (selectedItem) {
 							// If so display window

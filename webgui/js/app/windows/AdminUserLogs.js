@@ -76,7 +76,7 @@ function showAdminUserLogsWindow(id) {
 							handler: function() {
 								// Pull in window, grid & form	
 								var mainWindow = this.ownerCt.ownerCt;
-								var grid = mainWindow.getComponent('gridpanel');
+								var grid = Ext.getCmp(mainWindow.gridPanelID);
 								var form = mainWindow.getComponent('search-form');
 
 								// Grab store
@@ -247,7 +247,7 @@ function showAdminUserLogsWindow(id) {
 		}
 	);
 	// Grab store
-	var store = adminUserLogsWindow.getComponent('gridpanel').getStore();
+	var store = Ext.getCmp(adminUserLogsWindow.gridPanelID).getStore();
 
 	store.on('load',function() {
 		var inputTotal = store.sum('AcctInputMbyte');

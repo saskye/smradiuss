@@ -49,7 +49,7 @@ function showAdminRealmAttributesWindow(realmID) {
 					tooltip:'Edit attribute',
 					iconCls:'edit',
 					handler: function() {
-						var selectedItem = AdminRealmAttributesWindow.getComponent('gridpanel').getSelectionModel().getSelected();
+						var selectedItem = Ext.getCmp(AdminRealmAttributesWindow.gridPanelID).getSelectionModel().getSelected();
 						// Check if we have selected item
 						if (selectedItem) {
 							// If so display window
@@ -77,7 +77,7 @@ function showAdminRealmAttributesWindow(realmID) {
 					tooltip:'Remove attribute',
 					iconCls:'remove',
 					handler: function() {
-						var selectedItem = AdminRealmAttributesWindow.getComponent('gridpanel').getSelectionModel().getSelected();
+						var selectedItem = Ext.getCmp(AdminRealmAttributesWindow.gridPanelID).getSelectionModel().getSelected();
 						// Check if we have selected item
 						if (selectedItem) {
 							// If so display window
@@ -267,7 +267,7 @@ function showAdminRealmAttributeAddEditWindow(realmID,attrID) {
 	adminRealmAttributesFormWindow.show();
 
 	if (attrID) {
-		adminRealmAttributesFormWindow.getComponent('formpanel').load({
+		Ext.getCmp(adminRealmAttributesFormWindow.formPanelID).load({
 			params: {
 				ID: attrID,
 				SOAPUsername: globalConfig.soap.username,

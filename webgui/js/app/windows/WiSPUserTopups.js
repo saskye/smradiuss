@@ -48,7 +48,7 @@ function showWiSPUserTopupsWindow(userID) {
 					tooltip:'Edit topup',
 					iconCls:'option',
 					handler: function() {
-						var selectedItem = wispUserTopupsWindow.getComponent('gridpanel').getSelectionModel().getSelected();
+						var selectedItem = Ext.getCmp(wispUserTopupsWindow.gridPanelID).getSelectionModel().getSelected();
 						// Check if we have selected item
 						if (selectedItem) {
 							// If so display window
@@ -76,7 +76,7 @@ function showWiSPUserTopupsWindow(userID) {
 					tooltip:'Remove topup',
 					iconCls:'remove',
 					handler: function() {
-						var selectedItem = wispUserTopupsWindow.getComponent('gridpanel').getSelectionModel().getSelected();
+						var selectedItem = Ext.getCmp(wispUserTopupsWindow.gridPanelID).getSelectionModel().getSelected();
 						// Check if we have selected item
 						if (selectedItem) {
 							// If so display window
@@ -266,7 +266,7 @@ function showWiSPUserTopupAddEditWindow(userID,topupID) {
 	wispUserTopupFormWindow.show();
 
 	if (topupID) {
-		wispUserTopupFormWindow.getComponent('formpanel').load({
+		Ext.getCmp(wispUserTopupFormWindow.formPanelID).load({
 			params: {
 				id: topupID,
 				SOAPUsername: globalConfig.soap.username,

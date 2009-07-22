@@ -49,7 +49,7 @@ function showAdminGroupWindow() {
 					tooltip:'Edit group',
 					iconCls:'edit',
 					handler: function() {
-						var selectedItem = AdminGroupWindow.getComponent('gridpanel').getSelectionModel().getSelected();
+						var selectedItem = Ext.getCmp(AdminGroupWindow.gridPanelID).getSelectionModel().getSelected();
 						// Check if we have selected item
 						if (selectedItem) {
 							// If so display window
@@ -77,7 +77,7 @@ function showAdminGroupWindow() {
 					tooltip:'Remove group',
 					iconCls:'remove',
 					handler: function() {
-						var selectedItem = AdminGroupWindow.getComponent('gridpanel').getSelectionModel().getSelected();
+						var selectedItem = Ext.getCmp(AdminGroupWindow.gridPanelID).getSelectionModel().getSelected();
 						// Check if we have selected item
 						if (selectedItem) {
 							// If so display window
@@ -105,7 +105,7 @@ function showAdminGroupWindow() {
 					tooltip:'Group attributes',
 					iconCls:'attributes',
 					handler: function() {
-						var selectedItem = AdminGroupWindow.getComponent('gridpanel').getSelectionModel().getSelected();
+						var selectedItem = Ext.getCmp(AdminGroupWindow.gridPanelID).getSelectionModel().getSelected();
 						// Check if we have selected item
 						if (selectedItem) {
 							// If so display window
@@ -133,7 +133,7 @@ function showAdminGroupWindow() {
 					tooltip:'Group members',
 					iconCls:'groups',
 					handler: function() {
-						var selectedItem = AdminGroupWindow.getComponent('gridpanel').getSelectionModel().getSelected();
+						var selectedItem = Ext.getCmp(AdminGroupWindow.gridPanelID).getSelectionModel().getSelected();
 						// Check if we have selected item
 						if (selectedItem) {
 							// If so display window
@@ -277,7 +277,7 @@ function showAdminGroupAddEditWindow(id) {
 	adminGroupFormWindow.show();
 
 	if (id) {
-		adminGroupFormWindow.getComponent('formpanel').load({
+		Ext.getCmp(adminGroupFormWindow.formPanelID).load({
 			params: {
 				ID: id,
 				SOAPUsername: globalConfig.soap.username,

@@ -49,7 +49,7 @@ function showWiSPLocationWindow() {
 					tooltip:'Edit location',
 					iconCls:'edit',
 					handler: function() {
-						var selectedItem = WiSPLocationWindow.getComponent('gridpanel').getSelectionModel().getSelected();
+						var selectedItem = Ext.getCmp(WiSPLocationWindow.gridPanelID).getSelectionModel().getSelected();
 						// Check if we have selected item
 						if (selectedItem) {
 							// If so display window
@@ -77,7 +77,7 @@ function showWiSPLocationWindow() {
 					tooltip:'Remove location',
 					iconCls:'remove',
 					handler: function() {
-						var selectedItem = WiSPLocationWindow.getComponent('gridpanel').getSelectionModel().getSelected();
+						var selectedItem = Ext.getCmp(WiSPLocationWindow.gridPanelID).getSelectionModel().getSelected();
 						// Check if we have selected item
 						if (selectedItem) {
 							// If so display window
@@ -105,7 +105,7 @@ function showWiSPLocationWindow() {
 					tooltip:'List members',
 					iconCls:'groups',
 					handler: function() {
-						var selectedItem = WiSPLocationWindow.getComponent('gridpanel').getSelectionModel().getSelected();
+						var selectedItem = Ext.getCmp(WiSPLocationWindow.gridPanelID).getSelectionModel().getSelected();
 						// Check if we have selected item
 						if (selectedItem) {
 							// If so display window
@@ -228,7 +228,7 @@ function showWiSPLocationAddEditWindow(id) {
 	wispLocationFormWindow.show();
 
 	if (id) {
-		wispLocationFormWindow.getComponent('formpanel').load({
+		Ext.getCmp(wispLocationFormWindow.formPanelID).load({
 			params: {
 				ID: id,
 				SOAPUsername: globalConfig.soap.username,
