@@ -540,6 +540,7 @@ function createWiSPUser($params) {
 		return $res;
 	} else {
 		DBRollback();
+		return $res;
 	}
 
 	return NULL;
@@ -549,8 +550,13 @@ function createWiSPUser($params) {
 function updateWiSPUser($params) {
 
 	DBBegin();
+
+	$res = TRUE;
+
 	# Perform query
-	$res = DBDo("UPDATE users SET Username = ? WHERE ID = ?",array($params[0]['Username'],$params[0]['ID']));
+	if (!empty($params[0]['Username'])) {
+		$res = DBDo("UPDATE users SET Username = ? WHERE ID = ?",array($params[0]['Username'],$params[0]['ID']));
+	}
 	# If successful, continue
 	if ($res !== FALSE) {
 		$res = DBDo("UPDATE user_attributes SET User-Password = ? WHERE UserID = ?",array($params[0]['Username'],$params[0]['ID']));
