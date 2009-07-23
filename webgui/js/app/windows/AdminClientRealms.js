@@ -24,6 +24,7 @@ function showAdminClientRealmsWindow(clientID) {
 		// Window config
 		{
 			title: "Realms",
+			iconCls: 'silk-world',
 			
 			width: 400,
 			height: 335,
@@ -38,7 +39,7 @@ function showAdminClientRealmsWindow(clientID) {
 				{
 					text:'Add',
 					tooltip:'Add realm',
-					iconCls:'add',
+					iconCls: 'silk-world_add',
 					handler: function() {
 						showAdminClientRealmAddWindow(clientID);
 					}
@@ -47,7 +48,7 @@ function showAdminClientRealmsWindow(clientID) {
 				{
 					text:'Remove',
 					tooltip:'Remove realm',
-					iconCls:'remove',
+					iconCls: 'silk-world_delete',
 					handler: function() {
 						var selectedItem = Ext.getCmp(AdminClientRealmsWindow.gridPanelID).getSelectionModel().getSelected();
 						// Check if we have selected item
@@ -117,10 +118,11 @@ function showAdminClientRealmsWindow(clientID) {
 function showAdminClientRealmAddWindow(clientID,id) {
 
 	var submitAjaxConfig;
-
+	var icon;
 
 	// We doing an update
 	if (id) {
+		icon = 'silk-world_edit',
 		submitAjaxConfig = {
 			ID: id,
 			SOAPFunction: 'updateAdminRealm',
@@ -131,6 +133,7 @@ function showAdminClientRealmAddWindow(clientID,id) {
 
 	// We doing an Add
 	} else {
+		icon = 'silk-world_add',
 		submitAjaxConfig = {
 			ClientID: clientID,
 			SOAPFunction: 'addAdminClientRealm',
@@ -145,6 +148,7 @@ function showAdminClientRealmAddWindow(clientID,id) {
 		// Window config
 		{
 			title: "Realm Information",
+			iconCls: icon,
 
 			width: 310,
 			height: 113,

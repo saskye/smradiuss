@@ -38,7 +38,7 @@ function showAdminClientWindow() {
 				{
 					text:'Add',
 					tooltip:'Add client',
-					iconCls:'add',
+					iconCls:'silk-server_add',
 					handler: function() {
 						showAdminClientAddEditWindow();
 					}
@@ -47,7 +47,7 @@ function showAdminClientWindow() {
 				{
 					text:'Edit',
 					tooltip:'Edit client',
-					iconCls:'edit',
+					iconCls:'silk-server_edit',
 					handler: function() {
 						var selectedItem = Ext.getCmp(AdminClientWindow.gridPanelID).getSelectionModel().getSelected();
 						// Check if we have selected item
@@ -74,7 +74,7 @@ function showAdminClientWindow() {
 				{
 					text:'Remove',
 					tooltip:'Remove client',
-					iconCls:'remove',
+					iconCls:'silk-server_delete',
 					handler: function() {
 						var selectedItem = Ext.getCmp(AdminClientWindow.gridPanelID).getSelectionModel().getSelected();
 						// Check if we have selected item
@@ -102,7 +102,7 @@ function showAdminClientWindow() {
 				{
 					text:'Attributes',
 					tooltip:'Client attributes',
-					iconCls:'attributes',
+					iconCls:'silk-table',
 					handler: function() {
 						var selectedItem = Ext.getCmp(AdminClientWindow.gridPanelID).getSelectionModel().getSelected();
 						// Check if we have selected item
@@ -130,7 +130,7 @@ function showAdminClientWindow() {
 				{
 					text:'Realms',
 					tooltip:'Realms',
-					iconCls:'realms',
+					iconCls:'silk-world',
 					handler: function() {
 						var selectedItem = Ext.getCmp(AdminClientWindow.gridPanelID).getSelectionModel().getSelected();
 						// Check if we have selected item
@@ -205,10 +205,11 @@ function showAdminClientWindow() {
 function showAdminClientAddEditWindow(id) {
 
 	var submitAjaxConfig;
-
+	var icon;
 
 	// We doing an update
 	if (id) {
+		icon = 'silk-server_edit';
 		submitAjaxConfig = {
 			ID: id,
 			SOAPFunction: 'updateAdminClient',
@@ -220,6 +221,7 @@ function showAdminClientAddEditWindow(id) {
 
 	// We doing an Add
 	} else {
+		icon = 'silk-server_add';
 		submitAjaxConfig = {
 			SOAPFunction: 'createAdminClient',
 			SOAPParams: 
@@ -233,6 +235,7 @@ function showAdminClientAddEditWindow(id) {
 		// Window config
 		{
 			title: "Client Information",
+			iconCls: icon,
 
 			width: 310,
 			height: 143,

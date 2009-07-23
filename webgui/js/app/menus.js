@@ -46,6 +46,7 @@ var radiusMenu = new Ext.menu.Menu({
 	
 		{
 			text: 'Clients',
+			iconCls: 'silk-server',
 			handler: function() {
 				showAdminClientWindow();
 			}
