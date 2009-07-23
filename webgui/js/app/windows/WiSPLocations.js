@@ -24,6 +24,7 @@ function showWiSPLocationWindow() {
 		// Window config
 		{
 			title: "Locations",
+			iconCls: 'silk-map',
 			
 			width: 600,
 			height: 335,
@@ -38,7 +39,7 @@ function showWiSPLocationWindow() {
 				{
 					text:'Add',
 					tooltip:'Add location',
-					iconCls:'add',
+					iconCls:'silk-map_add',
 					handler: function() {
 						showWiSPLocationAddEditWindow();
 					}
@@ -47,7 +48,7 @@ function showWiSPLocationWindow() {
 				{
 					text:'Edit',
 					tooltip:'Edit location',
-					iconCls:'edit',
+					iconCls:'silk-map_edit',
 					handler: function() {
 						var selectedItem = Ext.getCmp(WiSPLocationWindow.gridPanelID).getSelectionModel().getSelected();
 						// Check if we have selected item
@@ -75,7 +76,7 @@ function showWiSPLocationWindow() {
 				{
 					text:'Remove',
 					tooltip:'Remove location',
-					iconCls:'remove',
+					iconCls:'silk-map_delete',
 					handler: function() {
 						var selectedItem = Ext.getCmp(WiSPLocationWindow.gridPanelID).getSelectionModel().getSelected();
 						// Check if we have selected item
@@ -103,7 +104,7 @@ function showWiSPLocationWindow() {
 				{
 					text:'Members',
 					tooltip:'List members',
-					iconCls:'groups',
+					iconCls:'silk-user',
 					handler: function() {
 						var selectedItem = Ext.getCmp(WiSPLocationWindow.gridPanelID).getSelectionModel().getSelected();
 						// Check if we have selected item
@@ -172,9 +173,11 @@ function showWiSPLocationWindow() {
 function showWiSPLocationAddEditWindow(id) {
 
 	var submitAjaxConfig;
+	var icon;
 
 	// We doing an update
 	if (id) {
+		icon = 'silk-map_edit';
 		submitAjaxConfig = {
 			ID: id,
 			SOAPFunction: 'updateWiSPLocation',
@@ -185,6 +188,7 @@ function showWiSPLocationAddEditWindow(id) {
 
 	// We doing an Add
 	} else {
+		icon = 'silk-map_add';
 		submitAjaxConfig = {
 			SOAPFunction: 'createWiSPLocation',
 			SOAPParams: 
@@ -197,6 +201,7 @@ function showWiSPLocationAddEditWindow(id) {
 		// Window config
 		{
 			title: "Location Information",
+			iconCls: icon,
 
 			width: 310,
 			height: 113,
