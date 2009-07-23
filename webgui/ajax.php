@@ -16,6 +16,10 @@
 	include_once("include/ajax/functions/AdminRealms.php");
 	include_once("include/ajax/functions/AdminRealmAttributes.php");
 
+	include_once("include/ajax/functions/AdminClients.php");
+	include_once("include/ajax/functions/AdminClientAttributes.php");
+	include_once("include/ajax/functions/AdminClientRealms.php");
+
 	include_once("include/ajax/functions/WiSPUsers.php");
 	include_once("include/ajax/functions/WiSPLocations.php");
 	include_once("include/ajax/functions/WiSPLocationMembers.php");
@@ -165,6 +169,160 @@
 
 	switch ($function) {
 
+		# addAdminClientRealm.js functions
+		case "addAdminClientRealm":
+
+			$res = addAdminClientRealm($soapParams);
+			if (isset($res)) {
+				ajaxException($res);
+			}
+
+			break;
+
+		case "removeAdminClientRealm":
+
+			$res = removeAdminClientRealm($soapParams);
+			if (isset($res)) {
+				ajaxException($res);
+			}
+
+			break;
+
+		case "getAdminClientRealms":
+
+			$res = getAdminClientRealms($soapParams);
+			$rawData = $res[0]; $numResults = $res[1];
+
+			$res = new json_response;
+			$res->setID('ID');
+			$res->addField('ID','int');
+			$res->addField('Name','string');
+			$res->parseArray($rawData);
+			$res->setDatasetSize($numResults);
+
+			echo json_encode($res->export());
+
+			break;
+
+		# AdminClients.js functions
+		case "updateAdminClient":
+
+			$res = updateAdminClient($soapParams);
+			if (isset($res)) {
+				ajaxException($res);
+			}
+
+			break;
+
+		case "createAdminClient":
+
+			$res = createAdminClient($soapParams);
+			if (isset($res)) {
+				ajaxException($res);
+			}
+
+			break;
+
+		case "removeAdminClient":
+
+			$res = removeAdminClient($soapParams);
+			if (isset($res)) {
+				ajaxException($res);
+			}
+
+			break;
+
+		case "getAdminClients":
+
+			$res = getAdminClients($soapParams);
+			$rawData = $res[0]; $numResults = $res[1];
+
+			$res = new json_response;
+			$res->setID('ID');
+			$res->addField('ID','int');
+			$res->addField('Name','string');
+			$res->addField('AccessList','string');
+			$res->parseArray($rawData);
+			$res->setDatasetSize($numResults);
+
+			echo json_encode($res->export());
+			break;
+
+		case "getAdminClient":
+			$rawData = getAdminClient($soapParams);
+
+			$res = new json_response;
+			$res->setID('ID');
+			$res->addField('ID','int');
+			$res->addField('Name','string');
+			$res->addField('AccessList','string');
+			$res->parseHash($rawData);
+
+			echo json_encode($res->export());
+			break;
+
+		# AdminClientAttributes.js functions
+		case "addAdminClientAttribute":
+
+			$res = addAdminClientAttribute($soapParams);
+			if (isset($res)) {
+				ajaxException($res);
+			}
+
+			break;
+
+		case "updateAdminClientAttribute":
+
+			$res = updateAdminClientAttribute($soapParams);
+			if (isset($res)) {
+				ajaxException($res);
+			}
+
+			break;
+
+		case "getAdminClientAttribute":
+			$rawData = getAdminClientAttribute($soapParams);
+
+			$res = new json_response;
+			$res->setID('ID');
+			$res->addField('ID','int');
+			$res->addField('Name','string');
+			$res->addField('Operator','string');
+			$res->addField('Value','string');
+			$res->addField('Disabled','boolean');
+			$res->parseHash($rawData);
+
+			echo json_encode($res->export());
+			break;
+
+		case "getAdminClientAttributes":
+
+			$res = getAdminClientAttributes($soapParams);
+			$rawData = $res[0]; $numResults = $res[1];
+
+			$res = new json_response;
+			$res->setID('ID');
+			$res->addField('ID','int');
+			$res->addField('Name','string');
+			$res->addField('Operator','string');
+			$res->addField('Value','string');
+			$res->addField('Disabled','boolean');
+			$res->parseArray($rawData);
+			$res->setDatasetSize($numResults);
+
+			echo json_encode($res->export());
+			break;
+
+		case "removeAdminClientAttribute":
+
+			$res = removeAdminClientAttribute($soapParams);
+			if (isset($res)) {
+				ajaxException($res);
+			}
+
+			break;
+
+		# Logs Summary
 		case "getWiSPUserLogsSummary":
 
 			$res = getWiSPUserLogsSummary($soapParams);

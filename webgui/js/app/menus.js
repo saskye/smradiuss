@@ -42,8 +42,15 @@ var radiusMenu = new Ext.menu.Menu({
 			handler: function() {
 				showAdminRealmWindow();
 			}
-		}
+		},
 	
+		{
+			text: 'Clients',
+			handler: function() {
+				showAdminClientWindow();
+			}
+		}
+
 	]
 });
 
