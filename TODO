@@ -4,10 +4,8 @@ smradiusd:
 * Strip off whitespaces around attributes
 
 
-Realm config
-- config global defaults and defaults for realms
-<DEFAULT>
-@realm
+webgui:
+* Group & attribute updates of WiSP users broken
 
 
 
