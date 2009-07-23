@@ -59,11 +59,29 @@ function initViewport() {
 //					mainWindow
 //				]
 			},
+
 			{
 				id: 'main-statusbar',
-				xtype: 'statusbar',
+				xtype: 'panel',
 				region: 'south',
-				border: true
+				border: true,
+				height: 30,
+    				bbar: new Ext.ux.StatusBar({
+					id: 'my-status',
+
+					// defaults to use when the status is cleared:
+					defaultText: 'Default status text',
+					defaultIconCls: 'default-icon',
+
+					// values to set initially:
+					text: 'Ready',
+					iconCls: 'ready-icon'
+
+					// any standard Toolbar items:
+//					items: [{
+//						text: 'A Button'
+//					}, '-', 'Plain Text']
+				})
 			}
 /*
 			{
