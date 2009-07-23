@@ -24,6 +24,7 @@ function showAdminUserTopupsWindow(userID) {
 		// Window config
 		{
 			title: "User Topups",
+			iconCls: 'silk-building',
 
 			width: 500,
 			height: 335,
@@ -37,7 +38,7 @@ function showAdminUserTopupsWindow(userID) {
 				{
 					text:'Add',
 					tooltip:'Add topup',
-					iconCls:'add',
+					iconCls:'silk-building_add',
 					handler: function() {
 						showAdminUserTopupAddEditWindow(userID,0);
 					}
@@ -46,7 +47,7 @@ function showAdminUserTopupsWindow(userID) {
 				{
 					text:'Edit',
 					tooltip:'Edit topup',
-					iconCls:'option',
+					iconCls:'silk-building_edit',
 					handler: function() {
 						var selectedItem = Ext.getCmp(adminUserTopupsWindow.gridPanelID).getSelectionModel().getSelected();
 						// Check if we have selected item
@@ -74,7 +75,7 @@ function showAdminUserTopupsWindow(userID) {
 				{
 					text:'Remove',
 					tooltip:'Remove topup',
-					iconCls:'remove',
+					iconCls:'silk-building_delete',
 					handler: function() {
 						var selectedItem = Ext.getCmp(adminUserTopupsWindow.gridPanelID).getSelectionModel().getSelected();
 						// Check if we have selected item
@@ -171,9 +172,11 @@ function showAdminUserTopupAddEditWindow(userID,topupID) {
 	var firstOfNext = today.getLastDateOfMonth().add(Date.DAY, 1);
 
 	var submitAjaxConfig;
+	var icon;
 
 	// We doing an update
 	if (topupID) {
+		icon = 'silk-building_edit';
 		submitAjaxConfig = {
 			ID: topupID,
 			SOAPFunction: 'updateAdminUserTopup',
@@ -183,6 +186,7 @@ function showAdminUserTopupAddEditWindow(userID,topupID) {
 		};
 	// We doing an Add
 	} else {
+		icon = 'silk-building_add';
 		submitAjaxConfig = {
 			UserID: userID,
 			SOAPFunction: 'createAdminUserTopup',
@@ -197,6 +201,7 @@ function showAdminUserTopupAddEditWindow(userID,topupID) {
 		// Window config
 		{
 			title: "Topup Information",
+			iconCls: icon,
 
 			width: 400,
 			height: 200,

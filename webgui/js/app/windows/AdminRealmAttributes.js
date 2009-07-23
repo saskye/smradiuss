@@ -24,6 +24,7 @@ function showAdminRealmAttributesWindow(realmID) {
 		// Window config
 		{
 			title: "Attributes",
+			iconCls: 'silk-table',
 			
 			width: 600,
 			height: 335,
@@ -38,7 +39,7 @@ function showAdminRealmAttributesWindow(realmID) {
 				{
 					text:'Add',
 					tooltip:'Add attribute',
-					iconCls:'add',
+					iconCls:'silk-table_add',
 					handler: function() {
 						showAdminRealmAttributeAddEditWindow(realmID);
 					}
@@ -47,7 +48,7 @@ function showAdminRealmAttributesWindow(realmID) {
 				{
 					text:'Edit',
 					tooltip:'Edit attribute',
-					iconCls:'edit',
+					iconCls:'silk-table_edit',
 					handler: function() {
 						var selectedItem = Ext.getCmp(AdminRealmAttributesWindow.gridPanelID).getSelectionModel().getSelected();
 						// Check if we have selected item
@@ -75,7 +76,7 @@ function showAdminRealmAttributesWindow(realmID) {
 				{
 					text:'Remove',
 					tooltip:'Remove attribute',
-					iconCls:'remove',
+					iconCls:'silk-table_delete',
 					handler: function() {
 						var selectedItem = Ext.getCmp(AdminRealmAttributesWindow.gridPanelID).getSelectionModel().getSelected();
 						// Check if we have selected item
@@ -163,10 +164,12 @@ function showAdminRealmAttributesWindow(realmID) {
 function showAdminRealmAttributeAddEditWindow(realmID,attrID) {
 
 	var submitAjaxConfig;
+	var icon;
 
 
 	// We doing an update
 	if (attrID) {
+		icon = 'silk-table_edit';
 		submitAjaxConfig = {
 			ID: attrID,
 			SOAPFunction: 'updateAdminRealmAttribute',
@@ -180,6 +183,7 @@ function showAdminRealmAttributeAddEditWindow(realmID,attrID) {
 
 	// We doing an Add
 	} else {
+		icon = 'silk-table_add';
 		submitAjaxConfig = {
 			RealmID: realmID,
 			SOAPFunction: 'addAdminRealmAttribute',
@@ -197,6 +201,7 @@ function showAdminRealmAttributeAddEditWindow(realmID,attrID) {
 		// Window config
 		{
 			title: "Attribute Information",
+			iconCls: icon,
 
 			width: 310,
 			height: 200,

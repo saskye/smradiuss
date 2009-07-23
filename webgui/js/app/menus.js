@@ -22,6 +22,7 @@ var radiusMenu = new Ext.menu.Menu({
 	
 		{
 			text: 'Users',
+			iconCls: 'silk-user',
 			handler: function() {
 				showAdminUserWindow();
 			}
@@ -29,6 +30,7 @@ var radiusMenu = new Ext.menu.Menu({
 
 		{
 			text: 'Groups',
+			iconCls: 'silk-group',
 			handler: function() {
 				showAdminGroupWindow();
 			}
@@ -36,6 +38,7 @@ var radiusMenu = new Ext.menu.Menu({
 
 		{
 			text: 'Realms',
+			iconCls: 'silk-world',
 			handler: function() {
 				showAdminRealmWindow();
 			}
@@ -50,6 +53,7 @@ var wispMenu = new Ext.menu.Menu({
 	
 		{
 			text: 'Users',
+			iconCls: 'silk-user',
 			handler: function() {
 				showWiSPUserWindow();
 			}
@@ -64,6 +68,7 @@ var wispMenu = new Ext.menu.Menu({
 
 		{
 			text: 'Locations',
+			iconCls: 'silk-world',
 			handler: function() {
 				showWiSPLocationWindow();
 			}

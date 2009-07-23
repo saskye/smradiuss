@@ -28,6 +28,7 @@ function showWiSPUserLogsWindow(id) {
 		// Window config
 		{
 			title: 'Logs',
+			iconCls: 'logs',
 			layout:'border',
 			height: 480,
 			width: 700,

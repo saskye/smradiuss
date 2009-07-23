@@ -24,6 +24,7 @@ function showAdminGroupAttributesWindow(groupID) {
 		// Window config
 		{
 			title: "Attributes",
+			iconCls: 'silk-table',
 			
 			width: 600,
 			height: 335,
@@ -38,7 +39,7 @@ function showAdminGroupAttributesWindow(groupID) {
 				{
 					text:'Add',
 					tooltip:'Add attribute',
-					iconCls:'add',
+					iconCls:'silk-table_add',
 					handler: function() {
 						showAdminGroupAttributeAddEditWindow(groupID);
 					}
@@ -47,7 +48,7 @@ function showAdminGroupAttributesWindow(groupID) {
 				{
 					text:'Edit',
 					tooltip:'Edit attribute',
-					iconCls:'edit',
+					iconCls:'silk-table_edit',
 					handler: function() {
 						var selectedItem = Ext.getCmp(AdminGroupAttributesWindow.gridPanelID).getSelectionModel().getSelected();
 						// Check if we have selected item
@@ -75,7 +76,7 @@ function showAdminGroupAttributesWindow(groupID) {
 				{
 					text:'Remove',
 					tooltip:'Remove attribute',
-					iconCls:'remove',
+					iconCls:'silk-table_delete',
 					handler: function() {
 						var selectedItem = Ext.getCmp(AdminGroupAttributesWindow.gridPanelID).getSelectionModel().getSelected();
 						// Check if we have selected item
@@ -163,10 +164,11 @@ function showAdminGroupAttributesWindow(groupID) {
 function showAdminGroupAttributeAddEditWindow(groupID,attrID) {
 
 	var submitAjaxConfig;
-
+	var icon;
 
 	// We doing an update
 	if (attrID) {
+		icon = 'silk-table_edit';
 		submitAjaxConfig = {
 			ID: attrID,
 			SOAPFunction: 'updateAdminGroupAttribute',
@@ -180,6 +182,7 @@ function showAdminGroupAttributeAddEditWindow(groupID,attrID) {
 
 	// We doing an Add
 	} else {
+		icon = 'silk-table_add';
 		submitAjaxConfig = {
 			GroupID: groupID,
 			SOAPFunction: 'addAdminGroupAttribute',
@@ -197,6 +200,7 @@ function showAdminGroupAttributeAddEditWindow(groupID,attrID) {
 		// Window config
 		{
 			title: "Attribute Information",
+			iconCls: icon,
 
 			width: 310,
 			height: 200,

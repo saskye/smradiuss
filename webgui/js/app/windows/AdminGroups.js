@@ -24,6 +24,7 @@ function showAdminGroupWindow() {
 		// Window config
 		{
 			title: "Groups",
+			iconCls: 'silk-group',
 			
 			width: 600,
 			height: 335,
@@ -38,7 +39,7 @@ function showAdminGroupWindow() {
 				{
 					text:'Add',
 					tooltip:'Add group',
-					iconCls:'add',
+					iconCls:'silk-group_add',
 					handler: function() {
 						showAdminGroupAddEditWindow();
 					}
@@ -47,7 +48,7 @@ function showAdminGroupWindow() {
 				{
 					text:'Edit',
 					tooltip:'Edit group',
-					iconCls:'edit',
+					iconCls:'silk-group_edit',
 					handler: function() {
 						var selectedItem = Ext.getCmp(AdminGroupWindow.gridPanelID).getSelectionModel().getSelected();
 						// Check if we have selected item
@@ -75,7 +76,7 @@ function showAdminGroupWindow() {
 				{
 					text:'Remove',
 					tooltip:'Remove group',
-					iconCls:'remove',
+					iconCls:'silk-group_delete',
 					handler: function() {
 						var selectedItem = Ext.getCmp(AdminGroupWindow.gridPanelID).getSelectionModel().getSelected();
 						// Check if we have selected item
@@ -103,7 +104,7 @@ function showAdminGroupWindow() {
 				{
 					text:'Attributes',
 					tooltip:'Group attributes',
-					iconCls:'attributes',
+					iconCls:'silk-table',
 					handler: function() {
 						var selectedItem = Ext.getCmp(AdminGroupWindow.gridPanelID).getSelectionModel().getSelected();
 						// Check if we have selected item
@@ -131,7 +132,7 @@ function showAdminGroupWindow() {
 				{
 					text:'Members',
 					tooltip:'Group members',
-					iconCls:'groups',
+					iconCls:'silk-group',
 					handler: function() {
 						var selectedItem = Ext.getCmp(AdminGroupWindow.gridPanelID).getSelectionModel().getSelected();
 						// Check if we have selected item
@@ -218,10 +219,12 @@ function showAdminGroupWindow() {
 function showAdminGroupAddEditWindow(id) {
 
 	var submitAjaxConfig;
-
+	var icon;
 
 	// We doing an update
+
 	if (id) {
+		icon = 'silk-group_edit';
 		submitAjaxConfig = {
 			ID: id,
 			SOAPFunction: 'updateAdminGroup',
@@ -232,6 +235,7 @@ function showAdminGroupAddEditWindow(id) {
 
 	// We doing an Add
 	} else {
+		icon = 'silk-group_add';
 		submitAjaxConfig = {
 			SOAPFunction: 'createAdminGroup',
 			SOAPParams: 
@@ -244,6 +248,7 @@ function showAdminGroupAddEditWindow(id) {
 		// Window config
 		{
 			title: "Group Information",
+			iconCls: icon,
 
 			width: 310,
 			height: 113,

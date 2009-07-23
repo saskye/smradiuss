@@ -24,6 +24,7 @@ function showAdminGroupMembersWindow(groupID) {
 		// Window config
 		{
 			title: "Members",
+			iconCls: 'silk-user',
 			
 			width: 600,
 			height: 335,
@@ -38,7 +39,7 @@ function showAdminGroupMembersWindow(groupID) {
 				{
 					text:'Remove',
 					tooltip:'Remove member',
-					iconCls:'remove',
+					iconCls:'silk-user_delete',
 					handler: function() {
 						var selectedItem = Ext.getCmp(AdminGroupMembersWindow.gridPanelID).getSelectionModel().getSelected();
 						// Check if we have selected item

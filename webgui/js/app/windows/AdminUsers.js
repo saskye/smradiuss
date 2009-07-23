@@ -24,6 +24,7 @@ function showAdminUserWindow() {
 		// Window config
 		{
 			title: "Users",
+			iconCls: 'silk-user',
 			
 			width: 600,
 			height: 335,
@@ -38,7 +39,7 @@ function showAdminUserWindow() {
 				{
 					text:'Add',
 					tooltip:'Add user',
-					iconCls:'add',
+					iconCls:'silk-user_add',
 					handler: function() {
 						showAdminUserAddEditWindow();
 					}
@@ -47,7 +48,7 @@ function showAdminUserWindow() {
 				{
 					text:'Edit',
 					tooltip:'Edit user',
-					iconCls:'option',
+					iconCls:'silk-user_edit',
 					handler: function() {
 						var selectedItem = Ext.getCmp(AdminUserWindow.gridPanelID).getSelectionModel().getSelected();
 						// Check if we have selected item
@@ -75,7 +76,7 @@ function showAdminUserWindow() {
 				{
 					text:'Remove',
 					tooltip:'Remove user',
-					iconCls:'remove',
+					iconCls:'silk-user_delete',
 					handler: function() {
 						var selectedItem = Ext.getCmp(AdminUserWindow.gridPanelID).getSelectionModel().getSelected();
 						// Check if we have selected item
@@ -103,7 +104,7 @@ function showAdminUserWindow() {
 				{
 					text:'Attributes',
 					tooltip:'User attributes',
-					iconCls:'attributes',
+					iconCls:'silk-table',
 					handler: function() {
 						var selectedItem = Ext.getCmp(AdminUserWindow.gridPanelID).getSelectionModel().getSelected();
 						// Check if we have selected item
@@ -159,7 +160,7 @@ function showAdminUserWindow() {
 				{
 					text:'Groups',
 					tooltip:'User groups',
-					iconCls:'groups',
+					iconCls:'silk-group',
 					handler: function() {
 						var selectedItem = Ext.getCmp(AdminUserWindow.gridPanelID).getSelectionModel().getSelected();
 						// Check if we have selected item
@@ -187,7 +188,7 @@ function showAdminUserWindow() {
 				{
 					text:'Topups',
 					tooltip:'User topups',
-					iconCls:'logs',
+					iconCls:'silk-building',
 					handler: function() {
 						var selectedItem = Ext.getCmp(AdminUserWindow.gridPanelID).getSelectionModel().getSelected();
 						// Check if we have selected item
@@ -262,9 +263,11 @@ function showAdminUserWindow() {
 function showAdminUserAddEditWindow(id) {
 
 	var submitAjaxConfig;
+	var icon;
 
 	// We doing an update
 	if (id) {
+		icon = 'silk-user_edit';
 		submitAjaxConfig = {
 			ID: id,
 			SOAPFunction: 'updateAdminUser',
@@ -275,6 +278,7 @@ function showAdminUserAddEditWindow(id) {
 
 	// We doing an Add
 	} else {
+		icon = 'silk-user_add';
 		submitAjaxConfig = {
 			SOAPFunction: 'createAdminUser',
 			SOAPParams: 
@@ -287,6 +291,7 @@ function showAdminUserAddEditWindow(id) {
 		// Window config
 		{
 			title: "User Information",
+			iconCls: icon,
 
 			width: 310,
 			height: 113,

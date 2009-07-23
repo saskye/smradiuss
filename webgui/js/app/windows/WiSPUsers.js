@@ -24,6 +24,7 @@ function showWiSPUserWindow() {
 		// Window config
 		{
 			title: "Users",
+			iconCls: 'silk-user',
 			
 			width: 600,
 			height: 335,
@@ -38,7 +39,7 @@ function showWiSPUserWindow() {
 				{
 					text:'Add',
 					tooltip:'Add user',
-					iconCls:'add',
+					iconCls:'silk-user_add',
 					handler: function() {
 						showWiSPUserAddEditWindow();
 					}
@@ -47,7 +48,7 @@ function showWiSPUserWindow() {
 				{
 					text:'Edit',
 					tooltip:'Edit user',
-					iconCls:'option',
+					iconCls:'silk-user_edit',
 					handler: function() {
 						var selectedItem = Ext.getCmp(WiSPUserWindow.gridPanelID).getSelectionModel().getSelected();
 						// Check if we have selected item
@@ -75,7 +76,7 @@ function showWiSPUserWindow() {
 				{
 					text:'Remove',
 					tooltip:'Remove user',
-					iconCls:'remove',
+					iconCls:'silk-user_delete',
 					handler: function() {
 						var selectedItem = Ext.getCmp(WiSPUserWindow.gridPanelID).getSelectionModel().getSelected();
 						// Check if we have selected item
@@ -131,7 +132,7 @@ function showWiSPUserWindow() {
 				{
 					text:'Topups',
 					tooltip:'User topups',
-					iconCls:'logs',
+					iconCls:'silk-building',
 					handler: function() {
 						var selectedItem = Ext.getCmp(WiSPUserWindow.gridPanelID).getSelectionModel().getSelected();
 						// Check if we have selected item
@@ -231,7 +232,7 @@ function showWiSPUserAddEditWindow(id) {
 
 	var submitAjaxConfig;
 	var editMode;
-
+	var icon;
 
 	// Attribute store
 	var attributeStore;
@@ -262,6 +263,7 @@ function showWiSPUserAddEditWindow(id) {
 
 	// We doing an update
 	if (id) {
+		icon = 'silk-user_edit';
 		submitAjaxConfig = {
 			ID: id,
 			SOAPFunction: 'updateWiSPUser',
@@ -278,6 +280,7 @@ function showWiSPUserAddEditWindow(id) {
 
 	// We doing an Add
 	} else {
+		icon = 'silk-user_add';
 		submitAjaxConfig = {
 			params: {
 				SOAPFunction: 'createWiSPUser',
@@ -338,7 +341,7 @@ function showWiSPUserAddEditWindow(id) {
 			{
 				text:'Add',
 				tooltip:'Add attribute',
-				iconCls:'add',
+				iconCls:'silk-table_add',
 				handler: function() {
 					var newAttrStoreRecord = new attributeRecord({
 						name: '',
@@ -353,7 +356,7 @@ function showWiSPUserAddEditWindow(id) {
 			{
 				text:'Remove',
 				tooltip:'Remove attribute',
-				iconCls:'remove',
+				iconCls:'silk-table_delete',
 				handler: function() {
 					var selectedItem = attributeEditor.getSelectionModel().getSelected();
 
@@ -480,7 +483,7 @@ function showWiSPUserAddEditWindow(id) {
 			{
 				text:'Add',
 				tooltip:'Add group',
-				iconCls:'add',
+				iconCls:'silk-group_add',
 				handler: function() {
 					var newGroupStoreRecord = new groupRecord({
 						name: ''
@@ -492,7 +495,7 @@ function showWiSPUserAddEditWindow(id) {
 			{
 				text:'Remove',
 				tooltip:'Remove group',
-				iconCls:'remove',
+				iconCls:'silk-group_delete',
 				handler: function() {
 					var selectedItem = groupEditor.getSelectionModel().getSelected();
 
@@ -555,6 +558,7 @@ function showWiSPUserAddEditWindow(id) {
 		// Window config
 		{
 			title: "User Information",
+			iconCls: icon,
 
 			width: 700,
 			height: 342,
@@ -600,6 +604,7 @@ function showWiSPUserAddEditWindow(id) {
 					items: [
 						{
 							title: 'Personal',
+							iconCls: 'silk-user_comment',
 							layout: 'form',
 							defaultType: 'textfield',
 							items: [
@@ -655,6 +660,7 @@ function showWiSPUserAddEditWindow(id) {
 						},
 						{
 							title: 'Groups',
+							iconCls: 'silk-group',
 							layout: 'form',
 							defaultType: 'textfield',
 							items: [
@@ -663,6 +669,7 @@ function showWiSPUserAddEditWindow(id) {
 						},
 						{
 							title: 'Attributes',
+							iconCls: 'silk-table',
 							layout: 'form',
 							defaultType: 'textfield',
 							items: [
@@ -671,6 +678,7 @@ function showWiSPUserAddEditWindow(id) {
 						},
 						{
 							title: 'Add Many',
+							iconCls: 'silk-user_suit',
 							layout: 'form',
 							defaultType: 'textfield',
 							items: [

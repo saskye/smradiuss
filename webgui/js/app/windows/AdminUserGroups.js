@@ -24,6 +24,7 @@ function showAdminUserGroupsWindow(userID) {
 		// Window config
 		{
 			title: "Groups",
+			iconCls: 'silk-group',
 			
 			width: 400,
 			height: 335,
@@ -38,7 +39,7 @@ function showAdminUserGroupsWindow(userID) {
 				{
 					text:'Add',
 					tooltip:'Add group',
-					iconCls:'add',
+					iconCls:'silk-group_add',
 					handler: function() {
 						showAdminUserGroupAddWindow(userID);
 					}
@@ -47,7 +48,7 @@ function showAdminUserGroupsWindow(userID) {
 				{
 					text:'Remove',
 					tooltip:'Remove group',
-					iconCls:'remove',
+					iconCls:'silk-group_delete',
 					handler: function() {
 						var selectedItem = Ext.getCmp(AdminUserGroupsWindow.gridPanelID).getSelectionModel().getSelected();
 						// Check if we have selected item
@@ -117,10 +118,12 @@ function showAdminUserGroupsWindow(userID) {
 function showAdminUserGroupAddWindow(userID,id) {
 
 	var submitAjaxConfig;
+	var icon;
 
 
 	// We doing an update
 	if (id) {
+		icon = 'silk-group_edit';
 		submitAjaxConfig = {
 			ID: id,
 			SOAPFunction: 'updateAdminGroup',
@@ -131,6 +134,7 @@ function showAdminUserGroupAddWindow(userID,id) {
 
 	// We doing an Add
 	} else {
+		icon = 'silk-group_add';
 		submitAjaxConfig = {
 			UserID: userID,
 			SOAPFunction: 'addAdminUserGroup',
@@ -145,6 +149,7 @@ function showAdminUserGroupAddWindow(userID,id) {
 		// Window config
 		{
 			title: "Group Information",
+			iconCls: icon,
 
 			width: 310,
 			height: 113,

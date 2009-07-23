@@ -24,6 +24,7 @@ function showAdminRealmWindow() {
 		// Window config
 		{
 			title: "Realms",
+			iconCls: 'silk-world',
 			
 			width: 600,
 			height: 335,
@@ -38,7 +39,7 @@ function showAdminRealmWindow() {
 				{
 					text:'Add',
 					tooltip:'Add realm',
-					iconCls:'add',
+					iconCls:'silk-world_add',
 					handler: function() {
 						showAdminRealmAddEditWindow();
 					}
@@ -47,7 +48,7 @@ function showAdminRealmWindow() {
 				{
 					text:'Edit',
 					tooltip:'Edit realm',
-					iconCls:'edit',
+					iconCls:'silk-world_edit',
 					handler: function() {
 						var selectedItem = Ext.getCmp(AdminRealmWindow.gridPanelID).getSelectionModel().getSelected();
 						// Check if we have selected item
@@ -74,7 +75,7 @@ function showAdminRealmWindow() {
 				{
 					text:'Remove',
 					tooltip:'Remove realm',
-					iconCls:'remove',
+					iconCls:'silk-world_delete',
 					handler: function() {
 						var selectedItem = Ext.getCmp(AdminRealmWindow.gridPanelID).getSelectionModel().getSelected();
 						// Check if we have selected item
@@ -102,7 +103,7 @@ function showAdminRealmWindow() {
 				{
 					text:'Attributes',
 					tooltip:'Realm attributes',
-					iconCls:'attributes',
+					iconCls:'silk-table',
 					handler: function() {
 						var selectedItem = Ext.getCmp(AdminRealmWindow.gridPanelID).getSelectionModel().getSelected();
 						// Check if we have selected item
@@ -177,10 +178,12 @@ function showAdminRealmWindow() {
 function showAdminRealmAddEditWindow(id) {
 
 	var submitAjaxConfig;
+	var icon;
 
 
 	// We doing an update
 	if (id) {
+		icon = 'silk-world_edit';
 		submitAjaxConfig = {
 			ID: id,
 			SOAPFunction: 'updateAdminRealm',
@@ -191,6 +194,7 @@ function showAdminRealmAddEditWindow(id) {
 
 	// We doing an Add
 	} else {
+		icon = 'silk-world_add';
 		submitAjaxConfig = {
 			SOAPFunction: 'createAdminRealm',
 			SOAPParams: 
@@ -203,6 +207,7 @@ function showAdminRealmAddEditWindow(id) {
 		// Window config
 		{
 			title: "Realm Information",
+			iconCls: icon,
 
 			width: 310,
 			height: 113,
