@@ -1,6 +1,8 @@
 smradiusd:
 * Eval around actual code in process_request?
 
+* Strip off whitespaces around attributes
+
 
 Realm config
 - config global defaults and defaults for realms
