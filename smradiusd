@@ -533,7 +533,8 @@ sub process_request {
 
 			# Check if we got a negative result back
 			} elsif ($res == MOD_RES_NACK) {
-				$self->log(LOG_NOTICE,"[SMRADIUS] CONFIG: Configuration problem when using '".$module->{'Name'}."'");
+				$self->log(LOG_NOTICE,"[SMRADIUS] CONFIG: Configuration rejection when using '".$module->{'Name'}."'");
+				goto CHECK_RESULT;
 			}
 		}
 	}

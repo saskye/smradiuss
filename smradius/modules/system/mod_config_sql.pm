@@ -65,24 +65,83 @@ sub init
 	}
 
 	# Default configs...
-	$config->{'get_config_query'} = '
+	$config->{'get_config_realm_id_query'} = '
 		SELECT
-			Name, Operator, Value
+			ID
+		FROM
+			@TP@realms
+		WHERE
+			Name = ?
+	';
+
+	$config->{'get_config_realm_attributes_query'} = '
+		SELECT
+			Name,
+			Operator,
+			Value
 		FROM
 			@TP@realm_attributes
+		WHERE
+			RealmID = ?
+	';
+
+	$config->{'get_config_accesslist_query'} = '
+		SELECT
+			@TP@clients.AccessList,
+			@TP@clients.ID
+		FROM
+			@TP@clients,
+			@TP@clients_to_realms
+		WHERE
+			@TP@clients.ID = @TP@clients_to_realms.ClientID
+			AND @TP@clients_to_realms.RealmID = ?
+	';
+
+	$config->{'get_config_client_attributes_query'} = '
+		SELECT
+			Name,
+			Operator,
+			Value
+		FROM
+			@TP@client_attributes
+		WHERE
+			ClientID = ?
 	';
 
 	# Setup SQL queries
 	if (defined($scfg->{'mod_config_sql'})) {
 		# Pull in queries
-		if (defined($scfg->{'mod_config_sql'}->{'get_config_query'}) &&
-				$scfg->{'mod_config_sql'}->{'get_config_query'} ne "") {
-			if (ref($scfg->{'mod_config_sql'}->{'get_config_query'}) eq "ARRAY") {
-				$config->{'get_config_query'} = join(' ',@{$scfg->{'mod_config_sql'}->{'get_config_query'}});
+		if (defined($scfg->{'mod_config_sql'}->{'get_config_realm_id_query'}) &&
+				$scfg->{'mod_config_sql'}->{'get_config_realm_id_query'} ne "") {
+			if (ref($scfg->{'mod_config_sql'}->{'get_config_realm_id_query'}) eq "ARRAY") {
+				$config->{'get_config_realm_id_query'} = join(' ',@{$scfg->{'mod_config_sql'}->{'get_config_realm_id_query'}});
 			} else {
-				$config->{'get_config_query'} = $scfg->{'mod_config_sql'}->{'get_config_query'};
+				$config->{'get_config_realm_id_query'} = $scfg->{'mod_config_sql'}->{'get_config_realm_id_query'};
 			}
-
+		}
+		if (defined($scfg->{'mod_config_sql'}->{'get_config_realm_attributes_query'}) &&
+				$scfg->{'mod_config_sql'}->{'get_config_realm_attributes_query'} ne "") {
+			if (ref($scfg->{'mod_config_sql'}->{'get_config_realm_attributes_query'}) eq "ARRAY") {
+				$config->{'get_config_realm_attributes_query'} = join(' ',@{$scfg->{'mod_config_sql'}->{'get_config_realm_attributes_query'}});
+			} else {
+				$config->{'get_config_realm_attributes_query'} = $scfg->{'mod_config_sql'}->{'get_config_realm_attributes_query'};
+			}
+		}
+		if (defined($scfg->{'mod_config_sql'}->{'get_config_accesslist_query'}) &&
+				$scfg->{'mod_config_sql'}->{'get_config_accesslist_query'} ne "") {
+			if (ref($scfg->{'mod_config_sql'}->{'get_config_accesslist_query'}) eq "ARRAY") {
+				$config->{'get_config_accesslist_query'} = join(' ',@{$scfg->{'mod_config_sql'}->{'get_config_accesslist_query'}});
+			} else {
+				$config->{'get_config_accesslist_query'} = $scfg->{'mod_config_sql'}->{'get_config_accesslist_query'};
+			}
+		}
+		if (defined($scfg->{'mod_config_sql'}->{'get_config_client_attributes_query'}) &&
+				$scfg->{'mod_config_sql'}->{'get_config_client_attributes_query'} ne "") {
+			if (ref($scfg->{'mod_config_sql'}->{'get_config_client_attributes_query'}) eq "ARRAY") {
+				$config->{'get_config_client_attributes_query'} = join(' ',@{$scfg->{'mod_config_sql'}->{'get_config_client_attributes_query'}});
+			} else {
+				$config->{'get_config_client_attributes_query'} = $scfg->{'mod_config_sql'}->{'get_config_client_attributes_query'};
+			}
 		}
 	}
 }
@@ -100,22 +159,110 @@ sub getConfig
 {
 	my ($server,$user,$packet) = @_;
 
+	# Default realm...
+	my $realmName = '<DEFAULT>';
 
-	# Replace template entries
-	my @dbDoParams = $config->{'get_config_query'};
-	# Query database
-	my $sth = DBSelect(@dbDoParams);
+	# Get default realm ID
+	my $sth = DBSelect($config->{'get_config_realm_id_query'},$realmName);
 	if (!$sth) {
-		$server->log(LOG_ERR,"Failed to get config attributes: ".awitpt::db::dblayer::Error());
+		$server->log(LOG_ERR,"Failed to get default config attributes: ".awitpt::db::dblayer::Error());
 		return MOD_RES_NACK;
 	}
+	# Set realm ID
+	my ($row,$realmID);
+	if ($sth->rows == 1) {
+		$row = hashifyLCtoMC($sth->fetchrow_hashref(),qw(ID));
+		$realmID = $row->{'ID'};
+	}
+	DBFreeRes($sth);
 
-	# Loop with user attributes
-	while (my $row = $sth->fetchrow_hashref()) {
-		processConfigAttribute($server,$user->{'ConfigAttributes'},hashifyLCtoMC($row,qw(Name Operator Value)));
+	# Get default realm attributes
+	if (defined($realmID)) {
+		$sth = DBSelect($config->{'get_config_realm_attributes_query'},$realmID);
+		if (!$sth) {
+			$server->log(LOG_ERR,"Failed to get default config attributes: ".awitpt::db::dblayer::Error());
+			return MOD_RES_NACK;
+		}
+		# Add any default realm attributes to config attributes
+		while (my $row = $sth->fetchrow_hashref()) {
+			processConfigAttribute($server,$user->{'ConfigAttributes'},hashifyLCtoMC($row,qw(Name Operator Value)));
+		}
+		DBFreeRes($sth);
 	}
 
-	DBFreeRes($sth);
+	# Extract realm from username
+	my $userRealmID;
+	if (defined($user->{'Username'}) && $user->{'Username'} =~ /^\S+@(\S+)$/) {
+		$realmName = $1;
+
+		$sth = DBSelect($config->{'get_config_realm_id_query'},$realmName);
+		if (!$sth) {
+			$server->log(LOG_ERR,"Failed to get user realm config attributes: ".awitpt::db::dblayer::Error());
+			return MOD_RES_NACK;
+		}
+		# Fetch realm ID
+		if ($sth->rows == 1) {
+			$row = hashifyLCtoMC($sth->fetchrow_hashref(),qw(ID));
+			$userRealmID = $row->{'ID'};
+			DBFreeRes($sth);
+
+			# User realm attributes
+			$sth = DBSelect($config->{'get_config_realm_attributes_query'},$userRealmID);
+			if (!$sth) {
+				$server->log(LOG_ERR,"Failed to get user realm config attributes: ".awitpt::db::dblayer::Error());
+				return MOD_RES_NACK;
+			}
+			# Add any realm attributes to config attributes
+			while (my $row = $sth->fetchrow_hashref()) {
+				processConfigAttribute($server,$user->{'ConfigAttributes'},hashifyLCtoMC($row,qw(Name Operator Value)));
+			}
+			DBFreeRes($sth);
+		}
+	}
+
+	# Get client name
+	my ($clientID,$res);
+	if (defined($userRealmID)) {
+		$sth = DBSelect($config->{'get_config_accesslist_query'},$userRealmID);
+		if (!$sth) {
+			$server->log(LOG_ERR,"Failed to get config attributes: ".awitpt::db::dblayer::Error());
+			return MOD_RES_NACK;
+		}
+		# Check if we know this client
+		my @accessList;
+		while (my $row = $sth->fetchrow_hashref()) {
+			$res = hashifyLCtoMC($row,qw(AccessList ID));
+			# Split off allowed sources, comma separated
+			@accessList = ();
+			@accessList = split(',',$res->{'AccessList'});
+			# Loop with what we get and check if we have match
+			foreach my $ip (@accessList) {
+				if ($server->{'server'}{'peeraddr'} eq $ip) {
+					$clientID = $res->{'ID'};
+					last;
+				}
+			}
+		}
+		DBFreeRes($sth);
+		if (!defined($clientID)) {
+			$server->log(LOG_ERR,"Peer Address '".$server->{'server'}{'peeraddr'}."' not found in access list");
+			return MOD_RES_NACK;
+		}
+	}
+
+	# Get client attributes
+	if (defined($clientID)) {
+		my $sth = DBSelect($config->{'get_config_client_attributes_query'},$clientID);
+		if (!$sth) {
+			$server->log(LOG_ERR,"Failed to get default config attributes: ".awitpt::db::dblayer::Error());
+			return MOD_RES_NACK;
+		}
+		# Add to config attributes
+		while (my $row = $sth->fetchrow_hashref()) {
+			processConfigAttribute($server,$user->{'ConfigAttributes'},hashifyLCtoMC($row,qw(Name Operator Value)));
+		}
+		DBFreeRes($sth);
+	}
 
 	return MOD_RES_ACK;
 }
