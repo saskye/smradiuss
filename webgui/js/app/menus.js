@@ -68,7 +68,7 @@ var wispMenu = new Ext.menu.Menu({
 
 		{
 			text: 'Locations',
-			iconCls: 'silk-world',
+			iconCls: 'silk-map',
 			handler: function() {
 				showWiSPLocationWindow();
 			}
