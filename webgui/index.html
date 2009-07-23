@@ -1,7 +1,19 @@
-<html>
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <head>
 <style type="text/css">
-	#loading {
+	#loading-mask{
+		position:absolute;
+		left:0;
+		top:0;
+		width:100%;
+		height:100%;
+		z-index:20000;
+		background-color:white;
+	}
+	#loading{
 		position:absolute;
 		left:45%;
 		top:40%;
@@ -9,29 +21,41 @@
 		z-index:20001;
 		height:auto;
 	}
+	#loading a {
+		color:#225588;
+	}
+	#loading .loading-indicator{
+		background:white;
+		color:#444;
+		font:bold 13px tahoma,arial,helvetica;
+		padding:10px;
+		margin:0;
+		height:auto;
+	}
 	#loading-msg {
 		font: normal 10px arial,tahoma,sans-serif;
 	}
 </style>
-
-
 </head>
 <body>
+	<div id="loading-mask" style=""></div>
 	<div id="loading">
-		<div class="loading-indicator">
-			Loading: <span id="loading-msg"></span>
+    		<div class="loading-indicator">
+			<img src="resources/extjs/images/extanim32.gif" width="32" height="32" style="margin-right:8px;float:left;vertical-align:top;"/>
+			SMRadius WebGUI - <a href="http://smradius.org">smradius.org</a><br /><span id="loading-msg">Loading styles and images...</span>
 		</div>
-	<div>
+	</div>
 
 
-	<script type="text/javascript">document.getElementById('loading-msg').innerHTML = 'Stylesheets...';</script>
+	<script type="text/javascript">document.getElementById('loading-msg').innerHTML = 'Loading stylesheets...';</script>
 
 	<link rel="stylesheet" type="text/css" href="resources/extjs/css/ext-all.css" />
 	<link rel="stylesheet" type="text/css" href="styles.css" />
+	<link rel="stylesheet" type="text/css" href="resources/custom/css/silk-icons.css" />
 	<link rel="stylesheet" type="text/css" href="icons.css" />
 	<link rel="stylesheet" type="text/css" href="resources/extjs/css/examples.css" />
 	
-	<script type="text/javascript">document.getElementById('loading-msg').innerHTML = 'Core API...';</script>
+	<script type="text/javascript">document.getElementById('loading-msg').innerHTML = 'Loading core API...';</script>
 	<script type="text/javascript" src="js/extjs/ext-base.js"></script>
 	<script type="text/javascript" src="js/extjs/ext-all.js"></script>
 
@@ -39,7 +63,7 @@
 	<!--
 		Our own libraries
 	-->
-	<script type="text/javascript">document.getElementById('loading-msg').innerHTML = 'Libraries...';</script>
+	<script type="text/javascript">document.getElementById('loading-msg').innerHTML = 'Loading libraries...';</script>
 	<script type="text/javascript" src="js/custom/util.js"></script>
 	<script type="text/javascript" src="js/custom/sprintf.js"></script>
 	<script type="text/javascript" src="js/custom/regexes.js"></script>
@@ -60,13 +84,13 @@
 	<!--
 		Main application
 	-->
-	<script type="text/javascript">document.getElementById('loading-msg').innerHTML = 'Configuration...';</script>
+	<script type="text/javascript">document.getElementById('loading-msg').innerHTML = 'Loading configuration...';</script>
 	<script type="text/javascript" src="js/app/config.js"></script>
 
-	<script type="text/javascript">document.getElementById('loading-msg').innerHTML = 'Menus...';</script>
+	<script type="text/javascript">document.getElementById('loading-msg').innerHTML = 'Loading menus...';</script>
 	<script type="text/javascript" src="js/app/menus.js"></script>
 
-	<script type="text/javascript">document.getElementById('loading-msg').innerHTML = 'Windows...';</script>
+	<script type="text/javascript">document.getElementById('loading-msg').innerHTML = 'Loading windows...';</script>
 	<script type="text/javascript" src="js/app/windows/WiSPUsers.js"></script>
 	<script type="text/javascript" src="js/app/windows/WiSPUserLogs.js"></script>
 	<script type="text/javascript" src="js/app/windows/WiSPUserTopups.js"></script>
@@ -86,7 +110,7 @@
 	<script type="text/javascript" src="js/app/windows/AdminGroupAttributes.js"></script>
 	<script type="text/javascript" src="js/app/windows/AdminGroupMembers.js"></script>
 
-	<script type="text/javascript">document.getElementById('loading-msg').innerHTML = 'Layout...';</script>
+	<script type="text/javascript">document.getElementById('loading-msg').innerHTML = 'Loading layout...';</script>
 	<script type="text/javascript" src="js/app/main-layout.js"></script>
 
 	<script type="text/javascript">document.getElementById('loading-msg').innerHTML = 'Starting...';</script>

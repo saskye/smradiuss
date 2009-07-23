@@ -9,11 +9,6 @@
 
 
 Ext.onReady(function(){
-	// Turn off the loading icon
-	document.getElementById('loading').style.visibility = 'hidden';
-
-// this seems to save window states
-//    Ext.state.Manager.setProvider(new Ext.state.CookieProvider());
 
 	// Enable tips
 	Ext.QuickTips.init();
@@ -30,7 +25,17 @@ Ext.onReady(function(){
         Ext.grid.filter.StringFilter.prototype.icon = 'resources/extjs/images/find.png';
 
 
-	// Fire everything up
-	initViewport();
+	// Turn off the loading icon
+	var hideMask = function () {
+		Ext.get('loading').remove();
+		Ext.fly('loading-mask').fadeOut({
+			remove: true,
+			callback: function() {
+				// Fire everything up
+				initViewport();
+			}
+		});
+	}
 
+	hideMask.defer(250);
 });
