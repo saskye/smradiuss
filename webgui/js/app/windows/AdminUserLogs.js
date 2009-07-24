@@ -24,6 +24,14 @@ function showAdminUserLogsWindow(id) {
 	var firstOfMonth = today.getFirstDateOfMonth();
 	var firstOfNext = today.getLastDateOfMonth().add(Date.DAY, 1);
 
+	var formID = Ext.id();
+	var formAfterID = Ext.id();
+	var formBeforeID = Ext.id();
+	var formSearchButtonID = Ext.id();
+	var summaryFormID = Ext.id();
+	var summaryTotalID = Ext.id();
+
+
 	var adminUserLogsWindow = new Ext.ux.GenericGridWindow(
 		// Window config
 		{
@@ -39,7 +47,7 @@ function showAdminUserLogsWindow(id) {
 			uxItems: [
 				{
 					xtype: 'form',
-					id: 'search-form',
+					id: formID,
 					title: 'Search',
 					region: 'west',
 					border: true,
@@ -50,35 +58,34 @@ function showAdminUserLogsWindow(id) {
 					labelWidth: 100,
 					items: [
 						{
-							id: 'after',
+							id: formAfterID,
 							name: 'after',
 							width: 180,
 							fieldLabel: 'From',
 							vtype: 'daterange',
 							format: 'Y-m-d',
 							value: firstOfMonth,
-							endDateField: 'before'
+							endDateField: formBeforeID
 						},
 						{
-							id: 'before',
+							id: formBeforeID,
 							name: 'before',
 							width: 180,
 							fieldLabel: 'To',
 							vtype: 'daterange',
 							format: 'Y-m-d',
 							value: firstOfNext,
-							startDateField: 'after'
+							startDateField: formAfterID
 						}
 					],
 					buttons: [
 						{
 							text: 'Search',
-							id: 'formbtn',
+							id: formSearchButtonID,
 							handler: function() {
 								// Pull in window, grid & form	
-								var mainWindow = this.ownerCt.ownerCt;
-								var grid = Ext.getCmp(mainWindow.gridPanelID);
-								var form = mainWindow.getComponent('search-form');
+								var grid = Ext.getCmp(adminUserLogsWindow.gridPanelID);
+								var form = Ext.getCmp(formID);
 
 								// Grab store
 								var store = grid.getStore();
@@ -88,8 +95,8 @@ function showAdminUserLogsWindow(id) {
 								var timestampFilter = gridFilters.getFilter('EventTimestamp');
 
 								// Grab	form fields
-								var afterField = form.getForm().findField('after');
-								var beforeField = form.getForm().findField('before');
+								var afterField = Ext.getCmp(formAfterID);
+								var beforeField = Ext.getCmp(formBeforeID);
 
 								// Set filter values from form
 								timestampFilter.setValue({
@@ -106,7 +113,7 @@ function showAdminUserLogsWindow(id) {
 				},
 				{
 					xtype: 'form',
-					id: 'summary-form',
+					id: summaryFormID,
 					region: 'center',
 					split: true,
 					border: true,
@@ -117,7 +124,7 @@ function showAdminUserLogsWindow(id) {
 					labelWidth: 80,
 					items: [
 						{
-							id: 'summaryTotal',
+							id: summaryTotalID,
 							name: 'summaryTotal',
 							readOnly: true,
 							height: 139,
@@ -255,9 +262,8 @@ function showAdminUserLogsWindow(id) {
 		var outputTotal = store.sum('AcctOutputMbyte');
 		var uptimeTotal = store.sum('AcctSessionTime');
 
-		var searchForm = adminUserLogsWindow.getComponent('search-form');
-		var afterField = (searchForm.getForm().findField('after')).getValue();
-		var beforeField = (searchForm.getForm().findField('before')).getValue();
+		var afterField = (Ext.getCmp(formAfterID)).getValue();
+		var beforeField = (Ext.getCmp(formBeforeID)).getValue();
 
 		// Mask parent window
 		adminUserLogsWindow.getEl().mask();
@@ -330,8 +336,8 @@ function showAdminUserLogsWindow(id) {
 					}
 
 					// Get summary field
-					var form = adminUserLogsWindow.getComponent('summary-form');
-					var summaryTotal = form.getForm().findField('summaryTotal');
+					var form = Ext.getCmp(summaryFormID);
+					var summaryTotal = Ext.getCmp(summaryTotalID);
 
 					// Format string before printing
 					var trafficString = '';
