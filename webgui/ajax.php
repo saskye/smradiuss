@@ -15,6 +15,7 @@
 
 	include_once("include/ajax/functions/AdminRealms.php");
 	include_once("include/ajax/functions/AdminRealmAttributes.php");
+	include_once("include/ajax/functions/AdminRealmMembers.php");
 
 	include_once("include/ajax/functions/AdminClients.php");
 	include_once("include/ajax/functions/AdminClientAttributes.php");
@@ -512,6 +513,32 @@
 		case "removeAdminGroupMember":
 
 			$res = removeAdminGroupMember($soapParams);
+			if (isset($res)) {
+				ajaxException($res);
+			}
+
+			break;
+
+		# AdminRealmMembers.js functions
+		case "getAdminRealmMembers":
+
+			$res = getAdminRealmMembers($soapParams);
+			$rawData = $res[0]; $numResults = $res[1];
+
+			$res = new json_response;
+			$res->setID('ID');
+			$res->addField('ID','int');
+			$res->addField('Name','string');
+			$res->parseArray($rawData);
+			$res->setDatasetSize($numResults);
+
+			echo json_encode($res->export());
+
+			break;
+
+		case "removeAdminRealmMember":
+
+			$res = removeAdminRealmMember($soapParams);
 			if (isset($res)) {
 				ajaxException($res);
 			}

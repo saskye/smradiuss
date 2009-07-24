@@ -72,6 +72,7 @@ function showAdminRealmWindow() {
 						}
 					}
 				},
+				'-',
 				{
 					text:'Remove',
 					tooltip:'Remove realm',
@@ -110,6 +111,34 @@ function showAdminRealmWindow() {
 						if (selectedItem) {
 							// If so display window
 							showAdminRealmAttributesWindow(selectedItem.data.ID);
+						} else {
+							AdminRealmWindow.getEl().mask();
+
+							// Display error
+							Ext.Msg.show({
+								title: "Nothing selected",
+								msg: "No realm selected",
+								icon: Ext.MessageBox.ERROR,
+								buttons: Ext.Msg.CANCEL,
+								modal: false,
+								fn: function() {
+									AdminRealmWindow.getEl().unmask();
+								}
+							});
+						}
+					}
+				},
+				'-',
+				{
+					text:'Members',
+					tooltip:'Realm members',
+					iconCls:'silk-server',
+					handler: function() {
+						var selectedItem = Ext.getCmp(AdminRealmWindow.gridPanelID).getSelectionModel().getSelected();
+						// Check if we have selected item
+						if (selectedItem) {
+							// If so display window
+							showAdminRealmMembersWindow(selectedItem.data.ID);
 						} else {
 							AdminRealmWindow.getEl().mask();
 
