@@ -375,7 +375,7 @@ function showWiSPUserLogsWindow(id) {
 				},
 				failure: function (result) {
 					Ext.MessageBox.alert('Failed', 'Couldn\'t fetch data: '+result.date);
-				},
+				}
 			}
 		);
 	});

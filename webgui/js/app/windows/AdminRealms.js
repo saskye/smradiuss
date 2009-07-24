@@ -30,7 +30,7 @@ function showAdminRealmWindow() {
 			height: 335,
 		
 			minWidth: 600,
-			minHeight: 335,
+			minHeight: 335
 		},
 		// Grid config
 		{
@@ -260,8 +260,8 @@ function showAdminRealmAddEditWindow(id) {
 					vtype: 'usernamePart',
 					maskRe: usernamePartRe,
 					allowBlank: false
-				},
-			],
+				}
+			]
 		},
 		// Submit button config
 		submitAjaxConfig

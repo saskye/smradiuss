@@ -30,7 +30,7 @@ function showAdminRealmAttributesWindow(realmID) {
 			height: 335,
 		
 			minWidth: 600,
-			minHeight: 335,
+			minHeight: 335
 		},
 		// Grid config
 		{
@@ -262,8 +262,8 @@ function showAdminRealmAttributeAddEditWindow(realmID,attrID) {
 					xtype: 'checkbox',
 					fieldLabel: 'Disabled',
 					name: 'Disabled'
-				},
-			],
+				}
+			]
 		},
 		// Submit button config
 		submitAjaxConfig

@@ -30,7 +30,7 @@ function showAdminClientRealmsWindow(clientID) {
 			height: 335,
 		
 			minWidth: 400,
-			minHeight: 335,
+			minHeight: 335
 		},
 		// Grid config
 		{
@@ -191,8 +191,8 @@ function showAdminClientRealmAddWindow(clientID,id) {
 					forceSelection: true,
 					triggerAction: 'all',
 					editable: false
-				},
-			],
+				}
+			]
 		},
 		// Submit button config
 		submitAjaxConfig

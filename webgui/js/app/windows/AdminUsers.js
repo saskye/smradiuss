@@ -30,7 +30,7 @@ function showAdminUserWindow() {
 			height: 335,
 		
 			minWidth: 600,
-			minHeight: 335,
+			minHeight: 335
 		},
 		// Grid config
 		{
@@ -315,8 +315,8 @@ function showAdminUserAddEditWindow(id) {
 					vtype: 'usernameRadius',
 					maskRe: usernameRadiusPartRe,
 					allowBlank: false,
-				},
-			],
+				}
+			]
 		},
 		// Submit button config
 		submitAjaxConfig

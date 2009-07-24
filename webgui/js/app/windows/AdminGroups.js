@@ -30,7 +30,7 @@ function showAdminGroupWindow() {
 			height: 335,
 		
 			minWidth: 600,
-			minHeight: 335,
+			minHeight: 335
 		},
 		// Grid config
 		{
@@ -272,8 +272,8 @@ function showAdminGroupAddEditWindow(id) {
 					vtype: 'usernamePart',
 					maskRe: usernamePartRe,
 					allowBlank: false
-				},
-			],
+				}
+			]
 		},
 		// Submit button config
 		submitAjaxConfig

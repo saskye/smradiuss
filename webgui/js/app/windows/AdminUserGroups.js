@@ -30,7 +30,7 @@ function showAdminUserGroupsWindow(userID) {
 			height: 335,
 		
 			minWidth: 400,
-			minHeight: 335,
+			minHeight: 335
 		},
 		// Grid config
 		{
@@ -192,8 +192,8 @@ function showAdminUserGroupAddWindow(userID,id) {
 					forceSelection: true,
 					triggerAction: 'all',
 					editable: false
-				},
-			],
+				}
+			]
 		},
 		// Submit button config
 		submitAjaxConfig

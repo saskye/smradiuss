@@ -239,7 +239,7 @@ function showWiSPUserAddEditWindow(id) {
 	attributeStore = new Ext.data.SimpleStore({
 		fields: [
 			'name', 'operator', 'value', 'modifier'
-		],
+		]
 	});
 	// Attribute record that can be added to above store
 	var attributeRecord = Ext.data.Record.create([
@@ -254,7 +254,7 @@ function showWiSPUserAddEditWindow(id) {
 	groupStore = new Ext.data.SimpleStore({
 		fields: [
 			'name'
-		],
+		]
 	});
 	// Group record that can be added to above store
 	var groupRecord = Ext.data.Record.create([
@@ -381,7 +381,7 @@ function showWiSPUserAddEditWindow(id) {
 						});
 					}
 				}
-			},
+			}
 		],
 
 		cm: new Ext.grid.ColumnModel([
@@ -400,7 +400,7 @@ function showWiSPUserAddEditWindow(id) {
 						[ 'Calling-Station-Id', 'MAC Address' ]
 					],
 					triggerAction: 'all',
-					editable: false,
+					editable: false
 				})
 			},
 			{
@@ -428,7 +428,7 @@ function showWiSPUserAddEditWindow(id) {
 						[ '||==', 'Match any of these values in request' ]
 					],
 					triggerAction: 'all',
-					editable: true,
+					editable: true
 				})
 			},
 			{
@@ -437,7 +437,7 @@ function showWiSPUserAddEditWindow(id) {
 				dataIndex: 'value',
 				width: 100,
 				editor: new Ext.form.TextField({
-					allowBlank: false,
+					allowBlank: false
 				})
 			},
 			{
@@ -457,12 +457,12 @@ function showWiSPUserAddEditWindow(id) {
 						[ 'Months', 'Months' ],
 						[ 'MBytes', 'MBytes' ],
 						[ 'GBytes', 'GBytes' ],
-						[ 'TBytes', 'TBytes' ],
+						[ 'TBytes', 'TBytes' ]
 					],
 					triggerAction: 'all',
-					editable: true,
+					editable: true
 				})
-			},
+			}
 		]),
 		store: attributeStore
 	});
@@ -520,7 +520,7 @@ function showWiSPUserAddEditWindow(id) {
 						});
 					}
 				}
-			},
+			}
 		],
 
 		cm: new Ext.grid.ColumnModel([
@@ -548,7 +548,7 @@ function showWiSPUserAddEditWindow(id) {
 					triggerAction: 'all',
 					editable: false
 				})
-			},
+			}
 		]),
 		store: groupStore
 	});
@@ -581,14 +581,14 @@ function showWiSPUserAddEditWindow(id) {
 					name: 'Username',
 					vtype: 'usernamePart',
 					maskRe: usernamePartRe,
-					allowBlank: true,
+					allowBlank: true
 				},
 				{
 					fieldLabel: 'Password',
 					name: 'Password',
 					vtype: 'usernamePart',
 					maskRe: usernamePartRe,
-					allowBlank: true,
+					allowBlank: true
 				},
 				{
 					xtype: 'tabpanel',
@@ -655,7 +655,7 @@ function showWiSPUserAddEditWindow(id) {
 									forceSelection: true,
 									triggerAction: 'all',
 									editable: false
-								},
+								}
 							]
 						},
 						{
@@ -685,19 +685,19 @@ function showWiSPUserAddEditWindow(id) {
 								{
 									fieldLabel: 'Prefix',
 									name: 'Prefix',
-									allowBlank: true,
+									allowBlank: true
 								},
 								{
 									fieldLabel: 'Number',
 									name: 'Number',
 									vtype: 'number',
-									allowBlank: true,
-								},
+									allowBlank: true
+								}
 							]
-						},
+						}
 					]
-				},
-			],
+				}
+			]
 		},
 		// Submit button config
 		submitAjaxConfig

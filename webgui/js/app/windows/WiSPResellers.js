@@ -29,7 +29,7 @@ function showWiSPResellersWindow() {
 			height: 335,
 		
 			minWidth: 400,
-			minHeight: 335,
+			minHeight: 335
 		},
 		// Grid config
 		{
@@ -272,7 +272,7 @@ function showWiSPResellerEditWindow(id) {
 						}
 					]
 				}
-			],
+			]
 		},
 		// Submit button config
 		submitAjaxConfig

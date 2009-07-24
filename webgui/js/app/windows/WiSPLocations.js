@@ -30,7 +30,7 @@ function showWiSPLocationWindow() {
 			height: 335,
 		
 			minWidth: 600,
-			minHeight: 335,
+			minHeight: 335
 		},
 		// Grid config
 		{
@@ -223,8 +223,8 @@ function showWiSPLocationAddEditWindow(id) {
 					fieldLabel: 'Name',
 					name: 'Name',
 					allowBlank: false
-				},
-			],
+				}
+			]
 		},
 		// Submit button config
 		submitAjaxConfig

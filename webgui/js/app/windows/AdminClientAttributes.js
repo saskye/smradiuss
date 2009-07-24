@@ -30,7 +30,7 @@ function showAdminClientAttributesWindow(clientID) {
 			height: 335,
 		
 			minWidth: 600,
-			minHeight: 335,
+			minHeight: 335
 		},
 		// Grid config
 		{
@@ -262,8 +262,8 @@ function showAdminClientAttributeAddEditWindow(clientID,attrID) {
 					xtype: 'checkbox',
 					fieldLabel: 'Disabled',
 					name: 'Disabled'
-				},
-			],
+				}
+			]
 		},
 		// Submit button config
 		submitAjaxConfig

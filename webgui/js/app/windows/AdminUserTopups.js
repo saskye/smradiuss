@@ -29,7 +29,7 @@ function showAdminUserTopupsWindow(userID) {
 			width: 500,
 			height: 335,
 			minWidth: 500,
-			minHeight: 335,
+			minHeight: 335
 		},
 		// Grid config
 		{
@@ -135,7 +135,7 @@ function showAdminUserTopupsWindow(userID) {
 					sortable: true,
 					dataIndex: 'ValidTo'
 				}
-			]),
+			])
 		},
 		// Store config
 		{
@@ -262,7 +262,7 @@ function showAdminUserTopupAddEditWindow(userID,topupID) {
 					format: 'Y-m-d',
 					startDateField: 'ValidFrom'
 				}
-			],
+			]
 		},
 		// Submit button config
 		submitAjaxConfig

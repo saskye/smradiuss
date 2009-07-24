@@ -30,7 +30,7 @@ function showAdminGroupAttributesWindow(groupID) {
 			height: 335,
 		
 			minWidth: 600,
-			minHeight: 335,
+			minHeight: 335
 		},
 		// Grid config
 		{
@@ -261,8 +261,8 @@ function showAdminGroupAttributeAddEditWindow(groupID,attrID) {
 					xtype: 'checkbox',
 					fieldLabel: 'Disabled',
 					name: 'Disabled'
-				},
-			],
+				}
+			]
 		},
 		// Submit button config
 		submitAjaxConfig

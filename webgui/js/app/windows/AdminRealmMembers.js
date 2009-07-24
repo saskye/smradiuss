@@ -30,7 +30,7 @@ function showAdminRealmMembersWindow(realmID) {
 			height: 335,
 		
 			minWidth: 600,
-			minHeight: 335,
+			minHeight: 335
 		},
 		// Grid config
 		{
