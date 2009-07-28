@@ -7,6 +7,7 @@ smradiusd:
 webgui:
 * Group & attribute updates of WiSP users broken
 * Realms with <> not displaying properly in realm window
+* Inserting of realms with special characters, eg. <>, -
 
 
 
