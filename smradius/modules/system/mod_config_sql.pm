@@ -161,15 +161,16 @@ sub getConfig
 
 	# Default realm...
 	my $realmName = '<DEFAULT>';
+	my $realmID;
 
 	# Get default realm ID
 	my $sth = DBSelect($config->{'get_config_realm_id_query'},$realmName);
 	if (!$sth) {
-		$server->log(LOG_ERR,"Failed to get default config attributes: ".awitpt::db::dblayer::Error());
+		$server->log(LOG_ERR,"Failed to get default realm ID: ".awitpt::db::dblayer::Error());
 		return MOD_RES_NACK;
 	}
 	# Set realm ID
-	my ($row,$realmID);
+	my $row;
 	if ($sth->rows == 1) {
 		$row = hashifyLCtoMC($sth->fetchrow_hashref(),qw(ID));
 		$realmID = $row->{'ID'};
@@ -180,7 +181,7 @@ sub getConfig
 	if (defined($realmID)) {
 		$sth = DBSelect($config->{'get_config_realm_attributes_query'},$realmID);
 		if (!$sth) {
-			$server->log(LOG_ERR,"Failed to get default config attributes: ".awitpt::db::dblayer::Error());
+			$server->log(LOG_ERR,"Failed to get default realm config attributes: ".awitpt::db::dblayer::Error());
 			return MOD_RES_NACK;
 		}
 		# Add any default realm attributes to config attributes
@@ -191,7 +192,6 @@ sub getConfig
 	}
 
 	# Extract realm from username
-	my $userRealmID;
 	if (defined($user->{'Username'}) && $user->{'Username'} =~ /^\S+@(\S+)$/) {
 		$realmName = $1;
 
@@ -203,11 +203,11 @@ sub getConfig
 		# Fetch realm ID
 		if ($sth->rows == 1) {
 			$row = hashifyLCtoMC($sth->fetchrow_hashref(),qw(ID));
-			$userRealmID = $row->{'ID'};
+			$realmID = $row->{'ID'};
 			DBFreeRes($sth);
 
 			# User realm attributes
-			$sth = DBSelect($config->{'get_config_realm_attributes_query'},$userRealmID);
+			$sth = DBSelect($config->{'get_config_realm_attributes_query'},$realmID);
 			if (!$sth) {
 				$server->log(LOG_ERR,"Failed to get user realm config attributes: ".awitpt::db::dblayer::Error());
 				return MOD_RES_NACK;
@@ -220,34 +220,38 @@ sub getConfig
 		}
 	}
 
+	# Reject if there is no realm
+	if (!defined($realmID)) {
+		$server->log(LOG_DEBUG,"No realm found, rejecting");
+		return MOD_RES_NACK;
+	}
+
 	# Get client name
 	my ($clientID,$res);
-	if (defined($userRealmID)) {
-		$sth = DBSelect($config->{'get_config_accesslist_query'},$userRealmID);
-		if (!$sth) {
-			$server->log(LOG_ERR,"Failed to get config attributes: ".awitpt::db::dblayer::Error());
-			return MOD_RES_NACK;
-		}
-		# Check if we know this client
-		my @accessList;
-		while (my $row = $sth->fetchrow_hashref()) {
-			$res = hashifyLCtoMC($row,qw(AccessList ID));
-			# Split off allowed sources, comma separated
-			@accessList = ();
-			@accessList = split(',',$res->{'AccessList'});
-			# Loop with what we get and check if we have match
-			foreach my $ip (@accessList) {
-				if ($server->{'server'}{'peeraddr'} eq $ip) {
-					$clientID = $res->{'ID'};
-					last;
-				}
+	$sth = DBSelect($config->{'get_config_accesslist_query'},$realmID);
+	if (!$sth) {
+		$server->log(LOG_ERR,"Failed to get config attributes: ".awitpt::db::dblayer::Error());
+		return MOD_RES_NACK;
+	}
+	# Check if we know this client
+	my @accessList;
+	while (my $row = $sth->fetchrow_hashref()) {
+		$res = hashifyLCtoMC($row,qw(AccessList ID));
+		# Split off allowed sources, comma separated
+		@accessList = ();
+		@accessList = split(',',$res->{'AccessList'});
+		# Loop with what we get and check if we have match
+		foreach my $ip (@accessList) {
+			if ($server->{'server'}{'peeraddr'} eq $ip) {
+				$clientID = $res->{'ID'};
+				last;
 			}
 		}
-		DBFreeRes($sth);
-		if (!defined($clientID)) {
-			$server->log(LOG_ERR,"Peer Address '".$server->{'server'}{'peeraddr'}."' not found in access list");
-			return MOD_RES_NACK;
-		}
+	}
+	DBFreeRes($sth);
+	if (!defined($clientID)) {
+		$server->log(LOG_ERR,"Peer Address '".$server->{'server'}{'peeraddr'}."' not found in access list");
+		return MOD_RES_NACK;
 	}
 
 	# Get client attributes
