@@ -222,7 +222,7 @@ sub getConfig
 
 	# Reject if there is no realm
 	if (!defined($realmID)) {
-		$server->log(LOG_DEBUG,"No realm found, rejecting");
+		$server->log(LOG_DEBUG,"No realm configured, rejecting");
 		return MOD_RES_NACK;
 	}
 
