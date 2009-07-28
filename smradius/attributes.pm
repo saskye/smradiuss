@@ -57,35 +57,57 @@ my @attributeVReplyIgnoreList = (
 );
 
 
-## @fn addAttribute($server,$attributes,$attribute)
+## @fn addAttribute($server,$nattributes,$vattributes,$attribute)
 # Function to add an attribute to $attributes
 #
 # @param server Server instance
-# @param attributes Hashref of attributes we already have and / or must add to
+# @param nattributes Hashref of normal attributes we already have and/or must add to
+# @param vattributes Hashref of vendor attributes we already have and/or must add to
 # @param attribute Attribute to add, eg. Those from a database
 sub addAttribute
 {
-	my ($server,$attributes,$attribute) = @_;
+	my ($server,$nattributes,$vattributes,$attribute) = @_;
+
+	# Clean them up a bit
+	$attribute->{'Name'} =~ s/\s*(\S+)\s*/$1/;
+	$attribute->{'Operator'} =~ s/\s*(\S+)\s*/$1/;
+	# Grab attribue name, operator and value
+	my $name = $attribute->{'Name'};
+	my $operator = $attribute->{'Operator'};
+	my $value = $attribute->{'Value'};
+	# Default attribute to add is normal
+	my $attributes = $nattributes;
+
+	# Check where we must add this attribute, maybe to the vendor attributes?
+	if ($name =~ /^\[(\d+):(\S+)\]$/) {
+		my $vendor = $1; $name = $2;
+		# Set vendor
+		$attribute->{'Vendor'} = $vendor;
+		# Reset attribute name
+		$attribute->{'Name'} = $name;
+		# Set the attributes to use to the vendor
+		$attributes = $vattributes;
+	}
 
 	# Check if this is an array
-	if ($attribute->{'Operator'} =~ s/^\|\|//) {
+	if ($operator =~ s/^\|\|//) {
 		# Check if we've seen this before
-		if (defined($attributes->{$attribute->{'Name'}}->{$attribute->{'Operator'}}) &&
-				ref($attributes->{$attribute->{'Name'}}->{$attribute->{'Operator'}}->{'Value'}) eq "ARRAY" ) {
+		if (defined($attributes->{$name}->{$operator}) &&
+				ref($attributes->{$name}->{$operator}->{'Value'}) eq "ARRAY" ) {
 			# Then add value to end of array
-			push(@{$attributes->{$attribute->{'Name'}}->{$attribute->{'Operator'}}->{'Value'}}, $attribute->{'Value'});
+			push(@{$attributes->{$name}->{$operator}->{'Value'}}, $value);
 
 		# If we have not seen it before, initialize it
 		} else {
 			# Assign attribute
-			$attributes->{$attribute->{'Name'}}->{$attribute->{'Operator'}} = $attribute;
+			$attributes->{$name}->{$operator} = $attribute;
 			# Override type ... else we must create a custom attribute hash, this is dirty, but faster
-			$attributes->{$attribute->{'Name'}}->{$attribute->{'Operator'}}->{'Value'} = [ $attribute->{'Value'} ];
+			$attributes->{$name}->{$operator}->{'Value'} = [ $value ];
 		}
 
 	# If its not an array, just add it normally
 	} else {
-		$attributes->{$attribute->{'Name'}}->{$attribute->{'Operator'}} = $attribute;
+		$attributes->{$name}->{$operator} = $attribute;
 	}
 }
 

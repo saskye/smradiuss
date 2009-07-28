@@ -606,7 +606,8 @@ sub process_request {
 			# Check result
 			if (defined($res) && ref($res) eq "HASH") {
 				# We're only after the attributes here
-				$user->{'Attributes'} = $res;
+				$user->{'Attributes'} = $res->{'Attributes'};
+				$user->{'VAttributes'} = $res->{'VAttributes'};
 			}
 		}
 
@@ -755,7 +756,8 @@ sub process_request {
 				goto CHECK_RESULT;
 			}
 			# Setup user dataw
-			$user->{'Attributes'} = $res;
+			$user->{'Attributes'} = $res->{'Attributes'};
+			$user->{'VAttributes'} = $res->{'VAttributes'};
 		} else {
 			$self->log(LOG_INFO,"[SMRADIUS] GET: No 'User_get' function available for module '".$userdb->{'Name'}."'");
 
@@ -885,9 +887,19 @@ sub process_request {
 					$resp->set_attr($attrName,$value);
 				}
 			}
-
+use Data::Dumper; print Dumper($user->{'ReplyVAttributes'});
+use Data::Dumper; print Dumper($user->{'VAttributes'});
 			# Loop with vendor reply attributes
 			my %replyVAttributes = %{ $user->{'ReplyVAttributes'} };
+			foreach my $attrName (keys %{$user->{'VAttributes'}}) {
+				# Loop with operators
+				foreach my $attrOp (keys %{$user->{'VAttributes'}->{$attrName}}) {
+					# Grab attribute
+					my $attr = $user->{'VAttributes'}->{$attrName}->{$attrOp};
+					# Add this to the reply attribute?
+					setReplyVAttribute($self,\%replyVAttributes,$attr);
+				}
+			}
 			foreach my $vendor (keys %replyVAttributes) {
 				# Loop with operators
 				foreach my $attrName (keys %{$replyVAttributes{$vendor}}) {

@@ -91,8 +91,8 @@ sub get
 {
 	my ($server,$user,$packet) = @_;
 
-
-	my $userDetails = { 
+	# Attributes to return
+	my $attributes = { 
 		'ClearPassword' => 'doap',
 		'Attributes' => [
 			{
@@ -113,7 +113,13 @@ sub get
 
 		]
 	};
+	my %vattributes = ();
 
+	my $ret;
+	$ret->{'Attributes'} = $attributes;
+	$ret->{'VAttributes'} = \%vattributes;
+
+	return $ret;
 
 	return $userDetails;
 }

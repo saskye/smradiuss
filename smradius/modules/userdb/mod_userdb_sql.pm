@@ -202,6 +202,7 @@ sub get
 
 	# Attributes to return
 	my %attributes = ();
+	my %vattributes = ();
 
 	# Replace template entries
 	my @dbDoParams = templateReplace($config->{'userdb_get_group_attributes_query'},$template);
@@ -215,7 +216,7 @@ sub get
 
 	# Loop with group attributes
 	while (my $row = $sth->fetchrow_hashref()) {
-		addAttribute($server,\%attributes,hashifyLCtoMC($row,qw(Name Operator Value)));
+		addAttribute($server,\%attributes,\%vattributes,hashifyLCtoMC($row,qw(Name Operator Value)));
 	}
 
 	DBFreeRes($sth);
@@ -233,12 +234,16 @@ sub get
 
 	# Loop with group attributes
 	while (my $row = $sth->fetchrow_hashref()) {
-		addAttribute($server,\%attributes,hashifyLCtoMC($row,qw(Name Operator Value)));
+		addAttribute($server,\%attributes,\%vattributes,hashifyLCtoMC($row,qw(Name Operator Value)));
 	}
 
 	DBFreeRes($sth);
 
-	return \%attributes;
+	my $ret;
+	$ret->{'Attributes'} = \%attributes;
+	$ret->{'VAttributes'} = \%vattributes;
+
+	return $ret;
 }
 
 
