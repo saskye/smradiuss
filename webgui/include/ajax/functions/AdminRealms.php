@@ -28,7 +28,7 @@ function getAdminRealms($params) {
 		$item = array();
 
 		$item['ID'] = $row->id;
-		$item['Name'] = $row->name;
+		$item['Name'] = htmlspecialchars($row->name);
 		$item['Disabled'] = $row->disabled;
 
 		# Push this row onto array
@@ -55,7 +55,7 @@ function getAdminRealm($params) {
 	$row = $res->fetchObject();
 
 	$resultArray['ID'] = $row->id;
-	$resultArray['Name'] = $row->name;
+	$resultArray['Name'] = htmlspecialchars($row->name);
 	$resultArray['Disabled'] = $row->disabled;
 
 	# Return results
