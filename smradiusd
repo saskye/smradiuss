@@ -887,8 +887,6 @@ sub process_request {
 					$resp->set_attr($attrName,$value);
 				}
 			}
-use Data::Dumper; print Dumper($user->{'ReplyVAttributes'});
-use Data::Dumper; print Dumper($user->{'VAttributes'});
 			# Loop with vendor reply attributes
 			my %replyVAttributes = %{ $user->{'ReplyVAttributes'} };
 			foreach my $attrName (keys %{$user->{'VAttributes'}}) {
