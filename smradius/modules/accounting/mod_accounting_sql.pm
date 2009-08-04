@@ -165,6 +165,7 @@ sub init
 			@TP@accounting
 		WHERE
 			Username = %{request.User-Name}
+			AND EventTimestamp >= %{query.From}
 	';
 
 	# Setup SQL queries
@@ -213,7 +214,7 @@ sub init
 # Function to get radius user data usage
 sub getUsage
 {
-	my ($server,$user,$packet) = @_;
+	my ($server,$user,$packet,$month) = @_;
 
 	# Build template
 	my $template;
@@ -221,9 +222,13 @@ sub getUsage
 		$template->{'request'}->{$attr} = $packet->rawattr($attr)
 	}
 	$template->{'user'} = $user;
+	# Query parameters
+	$template->{'query'}->{'From'} = $month;
 
 	# Replace template entries
-	my @dbDoParams = templateReplace($config->{'accounting_usage_query'},$template);
+	my ($queryString, @params) = templateReplace($config->{'accounting_usage_query'},$template);
+	# Add month to our params
+	my @dbDoParams = ($queryString, @params);
 
 	# Fetch data
 	my $sth = DBSelect(@dbDoParams);
