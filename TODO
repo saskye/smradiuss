@@ -3,7 +3,8 @@ smradiusd:
 
 * Strip off whitespaces around attributes
 
-
+smadmin:
+* Configuration of modules broken, need to use same technique that smradiusd uses to pull them in
 
 
 
