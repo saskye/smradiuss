@@ -68,21 +68,21 @@ function getWiSPUser($params) {
 
 	# Query for userdata and username
 	$res = DBSelect("
-				SELECT 
-					wisp_userdata.UserID, 
-					wisp_userdata.FirstName, 
-					wisp_userdata.LastName, 
-					wisp_userdata.Phone, 
-					wisp_userdata.Email, 
-					wisp_userdata.LocationID,
-					users.Username
-				FROM 
-					wisp_userdata, users
-				WHERE 
-					wisp_userdata.UserID = ?
-				AND
-					users.ID = wisp_userdata.UserID
-					",array($params[0])
+		SELECT 
+			wisp_userdata.UserID, 
+			wisp_userdata.FirstName, 
+			wisp_userdata.LastName, 
+			wisp_userdata.Phone, 
+			wisp_userdata.Email, 
+			wisp_userdata.LocationID,
+			users.Username
+		FROM 
+			wisp_userdata, users
+		WHERE 
+			wisp_userdata.UserID = ?
+		AND
+			users.ID = wisp_userdata.UserID
+			",array($params[0])
 	);
 
 	# Return if error
@@ -97,24 +97,42 @@ function getWiSPUser($params) {
 	# Set userdata fields
 	$resultArray['ID'] = $row->userid;
 	$resultArray['Username'] = $row->username;
-	$resultArray['Firstname'] = $row->firstname;
-	$resultArray['Lastname'] = $row->lastname;
-	$resultArray['Phone'] = $row->phone;
-	$resultArray['Email'] = $row->email;
-	$resultArray['LocationID'] = $row->locationid;
-	$resultArray['Attributes'] = array();
+	if (isset($row->firstname)) {
+		$resultArray['Firstname'] = $row->firstname;
+	} else {
+		$resultArray['Firstname'] = null;
+	}
+	if (isset($row->lastname)) {
+		$resultArray['Lastname'] = $row->lastname;
+	} else {
+		$resultArray['Lastname'] = null;
+	}
+	if (isset($row->phone)) {
+		$resultArray['Phone'] = $row->phone;
+	} else {
+		$resultArray['Phone'] = null;
+	}
+	if (isset($row->email)) {
+		$resultArray['Email'] = $row->email;
+	} else {
+		$resultArray['Email'] = null;
+	}
+	if (isset($row->locationid)) {
+		$resultArray['LocationID'] = $row->locationid;
+	} else {
+		$resultArray['LocationID'] = null;
+	}
 	
-	# Query to get user password
+	# Password query
 	$res = DBSelect("
-				SELECT
-					user_attributes.Value
-				FROM
-					user_attributes
-				WHERE
-					user_attributes.Name = 'User-Password'
-				AND
-					user_attributes.UserID = ?
-					",array($params[0])
+		SELECT
+			Value
+		FROM
+			user_attributes
+		WHERE
+			Name = ?
+			AND user_attributes.UserID = ?
+			",array('User-Password',$params[0])
 	);
 
 	# Return if error
@@ -122,44 +140,93 @@ function getWiSPUser($params) {
 		return $res;
 	}
 
-	# Set user password field
+	# Set password
 	$row = $res->fetchObject();
-	$resultArray['Password'] = $row->value;
-
-	# Query to get all other attributes
-	$res = DBSelect("
-				SELECT
-					user_attributes.ID,
-					user_attributes.Name,
-					user_attributes.Operator,
-					user_attributes.Value
-				FROM
-					user_attributes
-				WHERE
-					user_attributes.UserID = ?
-					",array($params[0])
-	);
-
-	# Return if error
-	if (!is_object($res)) {
-		return $res;
+	if (isset($row->value)) {
+		$resultArray['Password'] = $row->value;
+	} else {
+		$resultArray['Password'] = null;
 	}
 
-	# Array for multiple attributes
-	$i = 0;
-	while ($row = $res->fetchObject()) {
-		$resultsArray['Attributes'][$i]['ID'] = $row->id;
-		$resultsArray['Attributes'][$i]['Name'] = $row->name;
-		$resultsArray['Attributes'][$i]['Operator'] = $row->operator;
-		$resultsArray['Attributes'][$i]['Value'] = $row->value;
-		$i++;
-	}
-
-	# Get number of results
-	$numResults = $res->rowCount();
+	# Set number of results
+	$numResults = count($resultArray);
 
 	# Return results
 	return array($resultArray,$numResults);
+}
+
+# Get wisp user attributes
+function getWiSPUserAttributes($params) {
+
+	# Attributes query
+	$res = DBSelect("
+		SELECT
+			ID, Name, Operator, Value
+		FROM
+			user_attributes
+		WHERE
+			user_attributes.UserID = ?",
+			array($params[0])
+	);
+
+	# Return if error
+	if (!is_object($res)) {
+		return $res;
+	}
+
+	# Set attributes
+	$i = 0;
+	$attributes = array();
+	while ($row = $res->fetchObject()) {
+		$attributes[$i] = array();
+		$attributes[$i]['ID'] = $row->id;
+		$attributes[$i]['Name'] = $row->name;
+		$attributes[$i]['Operator'] = $row->operator;
+		$attributes[$i]['Value'] = $row->value;
+		$i++;
+	}
+
+	# Set number of results
+	$numResults = count($attributes);
+
+	# Return results
+	return array($attributes,$numResults);
+}
+
+# Get wisp user groups
+function getWiSPUserGroups($params) {
+
+	# Groups query
+	$res = DBSelect("
+		SELECT
+			groups.Name, groups.ID
+		FROM
+			users_to_groups, groups
+		WHERE
+			users_to_groups.GroupID = groups.ID
+			AND users_to_groups.UserID = ?",
+			array($params[0])
+	);
+
+	# Return if error
+	if (!is_object($res)) {
+		return $res;
+	}
+
+	# Set groups
+	$i = 0;
+	$groups = array();
+	while ($row = $res->fetchObject()) {
+		$groups[$i]['ID'] = $row->id;
+		$groups[$i]['Name'] = $row->name;
+		$i++;
+	}
+
+	# Set number of results
+	$numResults = count($groups);
+
+	# Return results
+	return array($groups,$numResults);
 }
 
 # Remove wisp user
@@ -293,56 +360,59 @@ function createWiSPUser($params) {
 		}
 
 		# Grab each attribute and add it's details to the database
-		if ($res !== FALSE && isset($params[0]['Attributes'])) {
+		if ($res !== FALSE && count($params[0]['Attributes']) > 0) {
 			foreach ($params[0]['Attributes'] as $attr) {
 
-				# Default value without modifier
-				$attrValue = $attr['Value'];
+				# We only want to add attributes with all values
+				if (isset($attr['Name']) && isset($attr['Operator']) && isset($attr['Value'])) {
+					# Default value without modifier
+					$attrValue = $attr['Value'];
 
-				if ($attr['Name'] == 'SMRadius-Capping-Traffic-Limit' || $attr['Name'] == 'SMRadius-Capping-Uptime-Limit') {
-					# If modifier is set we need to work out attribute value
-					if (isset($attr['Modifier'])) {
-						switch ($attr['Modifier']) {
-							case "Seconds":
-								$attrValue = $attr['Value'] / 60;
-							case "Minutes":
-								$attrValue = $attr['Value'];
-							case "Hours":
-								$attrValue = $attr['Value'] * 60;
-							case "Days":
-								$attrValue = $attr['Value'] * 1440;
-							case "Weeks":
-								$attrValue = $attr['Value'] * 10080;
-							case "Months":
-								$attrValue = $attr['Value'] * 44640; 
-							case "MBytes":
-								$attrValue = $attr['Value'];
-							case "GBytes":
-								$attrValue = $attr['Value'] * 1000;
-							case "TBytes":
-								$attrValue = $attr['Value'] * 1000000;
+					if ($attr['Name'] == 'SMRadius-Capping-Traffic-Limit' || $attr['Name'] == 'SMRadius-Capping-Uptime-Limit') {
+						# If modifier is set we need to work out attribute value
+						if (isset($attr['Modifier'])) {
+							switch ($attr['Modifier']) {
+								case "Seconds":
+									$attrValue = $attr['Value'] / 60;
+								case "Minutes":
+									$attrValue = $attr['Value'];
+								case "Hours":
+									$attrValue = $attr['Value'] * 60;
+								case "Days":
+									$attrValue = $attr['Value'] * 1440;
+								case "Weeks":
+									$attrValue = $attr['Value'] * 10080;
+								case "Months":
+									$attrValue = $attr['Value'] * 44640; 
+								case "MBytes":
+									$attrValue = $attr['Value'];
+								case "GBytes":
+									$attrValue = $attr['Value'] * 1000;
+								case "TBytes":
+									$attrValue = $attr['Value'] * 1000000;
+							}
 						}
 					}
-				}
 
-				# Add attribute
-				$res = DBDo("
-						INSERT INTO 
-								user_attributes (UserID,Name,Operator,Value) 
-						VALUES
-								(?,?,?,?)",
-						array(
-							$userID,
-							$attr['Name'],
-							$attr['Operator'],
-							$attrValue
-						)
-				);
+					# Add attribute
+					$res = DBDo("
+							INSERT INTO 
+									user_attributes (UserID,Name,Operator,Value) 
+							VALUES
+									(?,?,?,?)",
+							array(
+								$userID,
+								$attr['Name'],
+								$attr['Operator'],
+								$attrValue
+							)
+					);
+				}
 			}
 		}
 
 		# Link user to groups if any selected
-		if ($res !== FALSE && isset($params[0]['Groups'])) {
+		if ($res !== FALSE && count($params[0]['Groups']) > 0) {
 			$refinedGroups = array();
 
 			# Filter out unique group ID's
@@ -417,56 +487,58 @@ function createWiSPUser($params) {
 				);
 
 				# Grab each attribute and add it's details to the database
-				if ($res !== FALSE && isset($params[0]['Attributes'])) {
+				if ($res !== FALSE && count($params[0]['Attributes']) > 0) {
 					foreach ($params[0]['Attributes'] as $attr) {
 
-						# Default value without modifier
-						$attrValue = $attr['Value'];
+						if (isset($attr['Name']) && isset($attr['Operator']) && isset($attr['Value'])) {
+							# Default value without modifier
+							$attrValue = $attr['Value'];
 
-						if ($attr['Name'] == 'SMRadius-Capping-Traffic-Limit' || $attr['Name'] == 'SMRadius-Capping-Uptime-Limit') {
-							# If modifier is set we need to work out attribute value
-							if (isset($attr['Modifier'])) {
-								switch ($attr['Modifier']) {
-									case "Seconds":
-										$attrValue = $attr['Value'] / 60;
-									case "Minutes":
-										$attrValue = $attr['Value'];
-									case "Hours":
-										$attrValue = $attr['Value'] * 60;
-									case "Days":
-										$attrValue = $attr['Value'] * 1440;
-									case "Weeks":
-										$attrValue = $attr['Value'] * 10080;
-									case "Months":
-										$attrValue = $attr['Value'] * 44640; 
-									case "MBytes":
-										$attrValue = $attr['Value'];
-									case "GBytes":
-										$attrValue = $attr['Value'] * 1000;
-									case "TBytes":
-										$attrValue = $attr['Value'] * 1000000;
+							if ($attr['Name'] == 'SMRadius-Capping-Traffic-Limit' || $attr['Name'] == 'SMRadius-Capping-Uptime-Limit') {
+								# If modifier is set we need to work out attribute value
+								if (isset($attr['Modifier'])) {
+									switch ($attr['Modifier']) {
+										case "Seconds":
+											$attrValue = $attr['Value'] / 60;
+										case "Minutes":
+											$attrValue = $attr['Value'];
+										case "Hours":
+											$attrValue = $attr['Value'] * 60;
+										case "Days":
+											$attrValue = $attr['Value'] * 1440;
+										case "Weeks":
+											$attrValue = $attr['Value'] * 10080;
+										case "Months":
+											$attrValue = $attr['Value'] * 44640; 
+										case "MBytes":
+											$attrValue = $attr['Value'];
+										case "GBytes":
+											$attrValue = $attr['Value'] * 1000;
+										case "TBytes":
+											$attrValue = $attr['Value'] * 1000000;
+									}
 								}
 							}
-						}
 
-						# Add attribute
-						$res = DBDo("
-								INSERT INTO 
-										user_attributes (UserID,Name,Operator,Value) 
-								VALUES
-										(?,?,?,?)",
-								array(
-									$id,
-									$attr['Name'],
-									$attr['Operator'],
-									$attrValue
-								)
-						);
+							# Add attribute
+							$res = DBDo("
+									INSERT INTO 
+											user_attributes (UserID,Name,Operator,Value) 
+									VALUES
+											(?,?,?,?)",
+									array(
+										$id,
+										$attr['Name'],
+										$attr['Operator'],
+										$attrValue
+									)
+							);
+						}
 					}
 				}
 
 				# Link user to groups if any selected
-				if ($res !== FALSE && isset($params[0]['Groups'])) {
+				if ($res !== FALSE && count($params[0]['Groups']) > 0) {
 					$refinedGroups = array();
 
 					# Filter out unique group ID's
@@ -557,9 +629,10 @@ function updateWiSPUser($params) {
 	if (!empty($params[0]['Username'])) {
 		$res = DBDo("UPDATE users SET Username = ? WHERE ID = ?",array($params[0]['Username'],$params[0]['ID']));
 	}
-	# If successful, continue
+	# Change password
 	if ($res !== FALSE) {
-		$res = DBDo("UPDATE user_attributes SET User-Password = ? WHERE UserID = ?",array($params[0]['Username'],$params[0]['ID']));
+		$res = DBDo("UPDATE user_attributes SET Value = ? WHERE UserID = ? AND Name = ?",
+				array($params[0]['Password'],$params[0]['ID'],'User-Password'));
 	}
 	# If successful, continue
 	if ($res !== FALSE) {
@@ -587,8 +660,139 @@ function updateWiSPUser($params) {
 		);
 	}
 
+	# Process attributes being removed
+	if ($res !== FALSE && count($params[0]['RAttributes']) > 0) {
+		foreach ($params[0]['RAttributes'] as $attr) {
+			if ($res !== FALSE) {
+				# Perform query
+				$res = DBDo("DELETE FROM user_attributes WHERE ID = ?",array($attr));
+			}
+		}
+	}
+
+	# Process groups being removed
+	if ($res !== FALSE && count($params[0]['RGroups']) > 0) {
+		foreach ($params[0]['RGroups'] as $attr) {
+			if ($res !== FALSE) {
+				# Perform query
+				$res = DBDo("
+					DELETE FROM
+						users_to_groups
+					WHERE
+						UserID = ?
+						AND GroupID = ?",
+						array($params[0]['ID'],$attr)
+				);
+			}
+		}
+	}
+
+	# Grab each attribute and add it's details to the database
+	if ($res !== FALSE && count($params[0]['Attributes']) > 0) {
+		foreach ($params[0]['Attributes'] as $attr) {
+
+			if (isset($attr['ID']) && isset($attr['Name']) && isset($attr['Operator']) && isset($attr['Value'])) {
+				# Default value without modifier
+				$attrValue = $attr['Value'];
+
+				if ($attr['Name'] == 'SMRadius-Capping-Traffic-Limit' || $attr['Name'] == 'SMRadius-Capping-Uptime-Limit') {
+					# If modifier is set we need to work out attribute value
+					if (isset($attr['Modifier'])) {
+						switch ($attr['Modifier']) {
+							case "Seconds":
+								$attrValue = $attr['Value'] / 60;
+							case "Minutes":
+								$attrValue = $attr['Value'];
+							case "Hours":
+								$attrValue = $attr['Value'] * 60;
+							case "Days":
+								$attrValue = $attr['Value'] * 1440;
+							case "Weeks":
+								$attrValue = $attr['Value'] * 10080;
+							case "Months":
+								$attrValue = $attr['Value'] * 44640; 
+							case "MBytes":
+								$attrValue = $attr['Value'];
+							case "GBytes":
+								$attrValue = $attr['Value'] * 1000;
+							case "TBytes":
+								$attrValue = $attr['Value'] * 1000000;
+						}
+					}
+				}
+
+				# Check if we adding or updating
+				if ($res !== FALSE) {
+					# We adding an attribute..
+					if ($attr['ID'] < 0) {
+						$res = DBDo("
+							INSERT INTO 
+								user_attributes (UserID,Name,Operator,Value) 
+							VALUES
+								(?,?,?,?)",
+							array(
+								$params[0]['ID'],
+								$attr['Name'],
+								$attr['Operator'],
+								$attrValue
+							)
+						);
+					# We updating an attribute..
+					} else {
+						$res = DBDo("
+							UPDATE
+								user_attributes
+							SET
+								Name = ?,
+								Operator = ?,
+								Value = ?
+							WHERE
+								ID = ?",
+							array($attr['Name'],$attr['Operator'],$attrValue,$attr['ID'])
+						);
+					}
+				}
+			}
+		}
+	}
+
+	# Link user to groups if any selected
+	if ($res !== FALSE && count($params[0]['Groups']) > 0) {
+		$refinedGroups = array();
+
+		# Filter out unique group ID's
+		foreach ($params[0]['Groups'] as $group) {
+			foreach ($group as $ID=>$value) {
+				$refinedGroups[$value] = $value;
+			}
+		}
+		# Loop through groups
+		foreach ($refinedGroups as $groupID) {
+			if ($res !== FALSE) {
+				$res = DBSelect("
+					SELECT
+						ID
+					FROM
+						users_to_groups
+					WHERE
+						UserID = ?
+						AND GroupID = ?",
+						array($params[0]['ID'],$groupID)
+				);
+			}
+
+			if (is_object($res)) {
+				if ($res->rowCount() == 0) {
+					$res = DBDo("INSERT INTO users_to_groups (UserID,GroupID) VALUES (?,?)",array($params[0]['ID'],$groupID));
+				} else {
+					$res = TRUE;
+				}
+			}
+		}
+	}
+
 	# Commit changes if all was successful, else break
-	if (is_bool($res)) {
+	if (is_bool($res) && $res === TRUE) {
 		DBCommit();
 		return $res;
 	} else {

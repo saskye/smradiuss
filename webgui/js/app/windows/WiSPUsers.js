@@ -25,7 +25,7 @@ function showWiSPUserWindow() {
 		{
 			title: "Users",
 			iconCls: 'silk-user',
-			
+
 			width: 600,
 			height: 335,
 		
@@ -43,8 +43,8 @@ function showWiSPUserWindow() {
 					handler: function() {
 						showWiSPUserAddEditWindow();
 					}
-				}, 
-				'-', 
+				},
+				'-',
 				{
 					text:'Edit',
 					tooltip:'Edit user',
@@ -234,57 +234,181 @@ function showWiSPUserAddEditWindow(id) {
 	var editMode;
 	var icon;
 
+	// Arrays for removed items
+	var RemovedAttributes = new Array();
+	var RemovedGroups = new Array();
+
+	// To identify newly inserted rows
+	var attributeInsertID = -1;
+	var groupInsertID = -1;
+
+	// Attribute record that can be added to below store
+	var attributeRecord = Ext.data.Record.create([
+		{name: 'ID'},
+		{name: 'Name'},
+		{name: 'Operator'},
+		{name: 'Value'},
+		{name: 'Modifier'}
+	]);
+
 	// Attribute store
 	var attributeStore;
-	attributeStore = new Ext.data.SimpleStore({
-		fields: [
-			'name', 'operator', 'value', 'modifier'
-		]
-	});
-	// Attribute record that can be added to above store
-	var attributeRecord = Ext.data.Record.create([
-		{name: 'name'},
-		{name: 'operator'},
-		{name: 'value'},
-		{name: 'modifier'}
+	// If this is an update we need to pull in record
+	if (id) {
+		attributeStore = new Ext.ux.JsonStore({
+			baseParams: {
+				ID: id,
+				SOAPUsername: globalConfig.soap.username,
+				SOAPPassword: globalConfig.soap.password,
+				SOAPAuthType: globalConfig.soap.authtype,
+				SOAPModule: 'WiSPUsers',
+				SOAPFunction: 'getWiSPUserAttributes',
+				SOAPParams: 'ID'
+			}
+		});
+	} else {
+		attributeStore = new Ext.data.SimpleStore({
+			fields: ['ID', 'Name', 'Operator', 'Value', 'Modifer']
+		});
+	}
+
+	// Group record that can be added to below store
+	var groupRecord = Ext.data.Record.create([
+		{name: 'Name'}
 	]);
 
 	// Group store
 	var groupStore;
-	groupStore = new Ext.data.SimpleStore({
-		fields: [
-			'name'
-		]
-	});
-	// Group record that can be added to above store
-	var groupRecord = Ext.data.Record.create([
-		{name: 'name'}
-	]);
+	// If this is an update we need to pull in record
+	if (id) {
+		groupStore = new Ext.ux.JsonStore({
+			baseParams: {
+				ID: id,
+				SOAPUsername: globalConfig.soap.username,
+				SOAPPassword: globalConfig.soap.password,
+				SOAPAuthType: globalConfig.soap.authtype,
+				SOAPModule: 'WiSPUsers',
+				SOAPFunction: 'getWiSPUserGroups',
+				SOAPParams: 'ID'
+			}
+		});
+	} else {
+		groupStore = new Ext.data.SimpleStore({
+			fields: [
+				'Name'
+			]
+		});
+	}
 
 	// We doing an update
 	if (id) {
 		icon = 'silk-user_edit';
 		submitAjaxConfig = {
-			ID: id,
-			SOAPFunction: 'updateWiSPUser',
-			SOAPParams: 
-				'0:ID,'+
-				'0:Username,'+
-				'0:Password,'+
-				'0:Firstname,'+
-				'0:Lastname,'+
-				'0:Phone,'+
-				'0:LocationID,'+
-				'0:Email'
-		};
+			params: {
+				ID: id,
+				SOAPFunction: 'updateWiSPUser',
+				SOAPParams:
+					'0:ID,'+
+					'0:Username,'+
+					'0:Password,'+
+					'0:Firstname,'+
+					'0:Lastname,'+
+					'0:Phone,'+
+					'0:LocationID,'+
+					'0:Attributes,'+
+					'0:Groups,'+
+					'0:Email,'+
+					'0:RGroups,'+
+					'0:RAttributes'
+			},
 
+			hook: function() {
+				// Get modified attribute records
+				var attributes = attributeStore.getModifiedRecords();
+				// Get modified group records
+				var groups = groupStore.getModifiedRecords();
+
+				var ret = { };
+				// Set attributes we will be adding
+				for (var i = 0, len = attributes.length; i < len; i++) {
+					var attribute = attributes[i];
+					var attributeRemoved = 0;
+
+					// Check to see if this attribute shouldnt be added
+					for (var c = 0; c < RemovedAttributes.length; c++) {
+						if (attribute.get('ID') == RemovedAttributes[i]) {
+							attributeRemoved = 1;
+						}
+					}
+
+					// Safe to add this attribute
+					if (attributeRemoved == 0) {
+						ret['Attributes['+i+'][ID]'] = attribute.get('ID');
+						ret['Attributes['+i+'][Name]'] = attribute.get('Name');
+						ret['Attributes['+i+'][Operator]'] = attribute.get('Operator');
+						ret['Attributes['+i+'][Value]'] = attribute.get('Value');
+						ret['Attributes['+i+'][Modifier]'] = attribute.get('Modifier');
+					}
+				}
+				// Set groups we will be adding
+				for (var i = 0, len = groups.length; i < len; i++) {
+					var group = groups[i];
+					var groupRemoved = 0;
+
+					// Check to see if this group was added then removed
+					for (var c = 0; c < RemovedGroups.length; c++) {
+						if (group.get('ID') == RemovedGroups[i]) {
+							groupRemoved = 1;
+						}
+					}
+
+					// Check to see if this is really unmodified
+					if (group.get('ID') >= 0 && group.get('ID') == group.get('Name')) {
+						groupRemoved = 1;
+					}
+
+					// Safe to add this attribute
+					if (groupRemoved == 0) {
+						ret['Groups['+i+'][Name]'] = group.get('Name');
+					}
+				}
+
+				// Add removed attributes
+				if (RemovedAttributes.length > 0) {
+					var c = 0;
+					var len = RemovedAttributes.length;
+					for (var i = 0; i < len; i++) {
+						// If this is a new add then the user has no attributes
+						if ((id) && (RemovedAttributes[i] >= 0)) {
+							ret['RAttributes['+c+']'] = RemovedAttributes[i];
+							c++;
+						}
+					}
+				}
+
+				// Add removed groups
+				if (RemovedGroups.length > 0) {
+					var c = 0;
+					var len = RemovedGroups.length;
+					for (var i = 0; i < len; i++) {
+						// If this is a new add then the user has no attributes
+						if ((id) && (RemovedGroups[i] >= 0)) {
+							ret['RGroups['+c+']'] = RemovedGroups[i];
+							c++;
+						}
+					}
+				}
+
+				return ret;
+			}
+		};
 	// We doing an Add
 	} else {
 		icon = 'silk-user_add';
 		submitAjaxConfig = {
 			params: {
 				SOAPFunction: 'createWiSPUser',
-				SOAPParams: 
+				SOAPParams:
 					'0:Username,'+
 					'0:Password,'+
 					'0:Firstname,'+
@@ -305,20 +429,44 @@ function showWiSPUserAddEditWindow(id) {
 				var groups = groupStore.getModifiedRecords();
 
 				var ret = { };
-				// Loop and add to our hash
-        		for(var i = 0, len = attributes.length; i < len; i++){
+				// Set attributes we will be adding
+				for (var i = 0, len = attributes.length; i < len; i++) {
 					var attribute = attributes[i];
-					ret['Attributes['+i+'][Name]'] = attribute.get('name');
-					ret['Attributes['+i+'][Operator]'] = attribute.get('operator');
-					ret['Attributes['+i+'][Value]'] = attribute.get('value');
-					ret['Attributes['+i+'][Modifier]'] = attribute.get('modifier');
-		        }
-				// Loop and add to our hash
-        		for(var i = 0, len = groups.length; i < len; i++){
-					var group = groups[i];
-					ret['Groups['+i+'][Name]'] = group.get('name');
-		        }
+					var attributeRemoved = 0;
 
+					// Check to see if this attribute shouldnt be added
+					for (var c = 0; c < RemovedAttributes.length; c++) {
+						if (attribute.get('ID') == RemovedAttributes[i]) {
+							attributeRemoved = 1;
+						}
+					}
+
+					// Safe to add this attribute
+					if (attributeRemoved == 0) {
+						ret['Attributes['+i+'][ID]'] = attribute.get('ID');
+						ret['Attributes['+i+'][Name]'] = attribute.get('Name');
+						ret['Attributes['+i+'][Operator]'] = attribute.get('Operator');
+						ret['Attributes['+i+'][Value]'] = attribute.get('Value');
+						ret['Attributes['+i+'][Modifier]'] = attribute.get('Modifier');
+					}
+				}
+				// Set groups we will be adding
+				for (var i = 0, len = groups.length; i < len; i++) {
+					var group = groups[i];
+					var groupRemoved = 0;
+
+					// Check to see if this group was added then removed
+					for (var c = 0; c < RemovedGroups.length; c++) {
+						if (group.get('ID') == RemovedGroups[i]) {
+							groupRemoved = 1;
+						}
+					}
+
+					// Safe to add this attribute
+					if (groupRemoved == 0) {
+						ret['Groups['+i+'][Name]'] = group.get('Name');
+					}
+				}
 				return ret;
 			}
 		};
@@ -328,14 +476,13 @@ function showWiSPUserAddEditWindow(id) {
 	// Build the attribute editor grid
 	var attributeEditor = new Ext.grid.EditorGridPanel({
 		plain: true,
-		height: 120,
-		autoScroll: true,
+		autoHeight: true,
 
 		// Set row selection model
 		selModel: new Ext.grid.RowSelectionModel({
 			singleSelect: true
 		}),
-		
+
 		// Inline toolbars
 		tbar: [
 			{
@@ -344,15 +491,17 @@ function showWiSPUserAddEditWindow(id) {
 				iconCls:'silk-table_add',
 				handler: function() {
 					var newAttrStoreRecord = new attributeRecord({
-						name: '',
-						operator: '',
-						value: '',
-						modifier: ''
+						ID: attributeInsertID,
+						Name: '',
+						Operator: '',
+						Value: '',
+						Modifier: ''
 					});
 					attributeStore.insert(0,newAttrStoreRecord);
+					attributeInsertID -= 1;
 				}
-			}, 
-			'-', 
+			},
+			'-',
 			{
 				text:'Remove',
 				tooltip:'Remove attribute',
@@ -362,9 +511,14 @@ function showWiSPUserAddEditWindow(id) {
 
 					// Check if we have selected item
 					if (selectedItem) {
-						// If so remove
+						// Get selected item value
+						var attributeID = selectedItem.get('ID');
+
+						// Remove selected
 						attributeStore.remove(selectedItem);
 
+						// Add to list of removed attributes
+						RemovedAttributes.push(attributeID);
 					} else {
 						wispUserFormWindow.getEl().mask();
 
@@ -386,14 +540,21 @@ function showWiSPUserAddEditWindow(id) {
 
 		cm: new Ext.grid.ColumnModel([
 			{
-				id: 'name',
+				id: 'ID',
+				header: 'ID',
+				dataIndex: 'ID',
+				hidden: true,
+				width: 30
+			},
+			{
+				id: 'Name',
 				header: 'Name',
-				dataIndex: 'name',
+				dataIndex: 'Name',
 				width: 150,
 				editor: new Ext.form.ComboBox({
 					allowBlank: false,
 					mode: 'local',
-					store: [ 
+					store: [
 						[ 'SMRadius-Capping-Traffic-Limit', 'Traffic Limit' ],
 						[ 'SMRadius-Capping-Uptime-Limit', 'Uptime Limit' ],
 						[ 'Framed-IP-Address', 'IP Address' ],
@@ -404,14 +565,14 @@ function showWiSPUserAddEditWindow(id) {
 				})
 			},
 			{
-				id: 'operator',
+				id: 'Operator',
 				header: 'Operator',
-				dataIndex: 'operator',
+				dataIndex: 'Operator',
 				width: 300,
 				editor: new Ext.form.ComboBox({
 					allowBlank: false,
 					mode: 'local',
-					store: [ 
+					store: [
 						[ '=', 'Add as reply if unique' ], 
 						[ ':=', 'Set configuration value'  ],
 						[ '==', 'Match value in request' ], 
@@ -432,24 +593,24 @@ function showWiSPUserAddEditWindow(id) {
 				})
 			},
 			{
-				id: 'value',
+				id: 'Value',
 				header: 'Value',
-				dataIndex: 'value',
+				dataIndex: 'Value',
 				width: 100,
 				editor: new Ext.form.TextField({
 					allowBlank: false
 				})
 			},
 			{
-				id: 'modifier',
+				id: 'Modifier',
 				header: 'Modifier',
-				dataIndex: 'modifier',
+				dataIndex: 'Modifier',
 				width: 80,
 				editor: new Ext.form.ComboBox({
 					allowBlank: false,
 					mode: 'local',
 					store: [ 
-						[ 'Seconds', 'Seconds' ], 
+						[ 'Seconds', 'Seconds' ],
 						[ 'Minutes', 'Minutes' ],
 						[ 'Hours', 'Hours' ],
 						[ 'Days', 'Days' ],
@@ -470,8 +631,7 @@ function showWiSPUserAddEditWindow(id) {
 	// Build the group editor grid
 	var groupEditor = new Ext.grid.EditorGridPanel({
 		plain: true,
-		height: 120,
-		autoScroll: true,
+		autoHeight: true,
 
 		// Set row selection model
 		selModel: new Ext.grid.RowSelectionModel({
@@ -486,12 +646,14 @@ function showWiSPUserAddEditWindow(id) {
 				iconCls:'silk-group_add',
 				handler: function() {
 					var newGroupStoreRecord = new groupRecord({
-						name: ''
+						ID: groupInsertID,
+						Name: ''
 					});
 					groupStore.insert(0,newGroupStoreRecord);
+					groupInsertID -= 1;
 				}
-			}, 
-			'-', 
+			},
+			'-',
 			{
 				text:'Remove',
 				tooltip:'Remove group',
@@ -501,9 +663,14 @@ function showWiSPUserAddEditWindow(id) {
 
 					// Check if we have selected item
 					if (selectedItem) {
-						// If so remove
+						// Get selected item value
+						var groupID = selectedItem.get('ID');
+
+						// Remove selected
 						groupStore.remove(selectedItem);
 
+						// Add to our removed groups hash
+						RemovedGroups.push(groupID);
 					} else {
 						wispUserFormWindow.getEl().mask();
 
@@ -525,9 +692,16 @@ function showWiSPUserAddEditWindow(id) {
 
 		cm: new Ext.grid.ColumnModel([
 			{
-				id: 'name',
+				id: 'ID',
+				header: 'ID',
+				dataIndex: 'ID',
+				hidden: true,
+				width: 30
+			},
+			{
+				id: 'Name',
 				header: 'Name',
-				dataIndex: 'name',
+				dataIndex: 'Name',
 				width: 150,
 				editor: new Ext.form.ComboBox({
 					allowBlank: false,
@@ -579,15 +753,13 @@ function showWiSPUserAddEditWindow(id) {
 				{
 					fieldLabel: 'Username',
 					name: 'Username',
-					vtype: 'usernamePart',
-					maskRe: usernamePartRe,
+					vtype: 'usernameRadius',
+					maskRe: usernameRadiusPartRe,
 					allowBlank: true
 				},
 				{
 					fieldLabel: 'Password',
 					name: 'Password',
-					vtype: 'usernamePart',
-					maskRe: usernamePartRe,
 					allowBlank: true
 				},
 				{
@@ -596,11 +768,12 @@ function showWiSPUserAddEditWindow(id) {
 					deferredRender: false, // Load all panels!
 					activeTab: 0,
 					height: 200,
+					maxHeight: 200,
 					defaults: {
 						layout: 'form',
 						bodyStyle: 'padding: 10px;'
 					},
-					
+
 					items: [
 						{
 							title: 'Personal',
@@ -662,6 +835,7 @@ function showWiSPUserAddEditWindow(id) {
 							title: 'Groups',
 							iconCls: 'silk-group',
 							layout: 'form',
+							autoScroll: true,
 							defaultType: 'textfield',
 							items: [
 								groupEditor
@@ -671,6 +845,7 @@ function showWiSPUserAddEditWindow(id) {
 							title: 'Attributes',
 							iconCls: 'silk-table',
 							layout: 'form',
+							autoScroll: true,
 							defaultType: 'textfield',
 							items: [
 								attributeEditor
@@ -716,6 +891,8 @@ function showWiSPUserAddEditWindow(id) {
 				SOAPParams: 'ID'
 			}
 		});
+		attributeStore.load();
+		groupStore.load();
 	}
 }
 

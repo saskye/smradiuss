@@ -861,6 +861,36 @@
 			echo json_encode($res->export());
 			break;
 
+		case "getWiSPUserAttributes":
+			$res = getWiSPUserAttributes($soapParams);
+			$rawData = $res[0]; $numResults = $res[1];
+
+			$res = new json_response;
+			$res->setID('ID');
+			$res->addField('ID','int');
+			$res->addField('Name','string');
+			$res->addField('Operator','string');
+			$res->addField('Value','string');
+			$res->parseArray($rawData);
+			$res->setDatasetSize($numResults);
+
+			echo json_encode($res->export());
+			break;
+
+		case "getWiSPUserGroups":
+			$res = getWiSPUserGroups($soapParams);
+			$rawData = $res[0]; $numResults = $res[1];
+
+			$res = new json_response;
+			$res->setID('ID');
+			$res->addField('ID','int');
+			$res->addField('Name','string');
+			$res->parseArray($rawData);
+			$res->setDatasetSize($numResults);
+
+			echo json_encode($res->export());
+			break;
+
 		# WiSPUserLogs.js functions
 		case "getWiSPUserLogs":
 
