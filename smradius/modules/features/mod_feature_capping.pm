@@ -183,15 +183,6 @@ sub post_auth_hook
 				"Min (Cap: Uncapped, Topups: ".$uptimeTopup."Min)");
 	}
 
-	# If uptime limit exceeded, cap user
-	if (!(defined($uptimeLimit->{':='}->{'Value'}) && $uptimeLimit->{':='}->{'Value'} == 0)) {
-		if ($accountingUsage->{'TotalTimeUsage'} >= $alteredUptimeLimit) {
-			$server->log(LOG_DEBUG,"[MOD_FEATURE_CAPPING] Usage of ".$accountingUsage->{'TotalTimeUsage'}.
-					"Min exceeds allowed limit of ".$alteredUptimeLimit."Min. Capped.");
-			return MOD_RES_NACK;
-		}
-	}
-
 	# Get topups
 	my $trafficTopup = 0;
 	if (defined($user->{'ConfigAttributes'}->{$TRAFFIC_TOPUPS_KEY})) {
@@ -245,6 +236,15 @@ sub post_auth_hook
 		if ($accountingUsage->{'TotalDataUsage'} >= $alteredTrafficLimit) {
 			$server->log(LOG_DEBUG,"[MOD_FEATURE_CAPPING] Usage of ".$accountingUsage->{'TotalDataUsage'}.
 					"Mb exceeds allowed limit of ".$alteredTrafficLimit."Mb. Capped.");
+			return MOD_RES_NACK;
+		}
+	}
+
+	# If uptime limit exceeded, cap user
+	if (!(defined($uptimeLimit->{':='}->{'Value'}) && $uptimeLimit->{':='}->{'Value'} == 0)) {
+		if ($accountingUsage->{'TotalTimeUsage'} >= $alteredUptimeLimit) {
+			$server->log(LOG_DEBUG,"[MOD_FEATURE_CAPPING] Usage of ".$accountingUsage->{'TotalTimeUsage'}.
+					"Min exceeds allowed limit of ".$alteredUptimeLimit."Min. Capped.");
 			return MOD_RES_NACK;
 		}
 	}
@@ -376,15 +376,6 @@ sub post_acct_hook
 				"Min (Cap: Uncapped, Topups: ".$uptimeTopup."Min)");
 	}
 
-	# If uptime limit exceeded, cap user
-	if (!(defined($uptimeLimit->{':='}->{'Value'}) && $uptimeLimit->{':='}->{'Value'} == 0)) {
-		if ($accountingUsage->{'TotalTimeUsage'} >= $alteredUptimeLimit) {
-			$server->log(LOG_DEBUG,"[MOD_FEATURE_CAPPING] Usage of ".$accountingUsage->{'TotalTimeUsage'}.
-					"Min exceeds allowed limit of ".$alteredUptimeLimit."Min. Capped.");
-			return MOD_RES_NACK;
-		}
-	}
-
 	# Get topups
 	my $trafficTopup = 0;
 	if (defined($user->{'ConfigAttributes'}->{$TRAFFIC_TOPUPS_KEY})) {
@@ -438,6 +429,15 @@ sub post_acct_hook
 		if ($accountingUsage->{'TotalDataUsage'} >= $alteredTrafficLimit) {
 			$server->log(LOG_DEBUG,"[MOD_FEATURE_CAPPING] Usage of ".$accountingUsage->{'TotalDataUsage'}.
 					"Mb exceeds allowed limit of ".$alteredTrafficLimit."Mb. Capped.");
+			return MOD_RES_NACK;
+		}
+	}
+
+	# If uptime limit exceeded, cap user
+	if (!(defined($uptimeLimit->{':='}->{'Value'}) && $uptimeLimit->{':='}->{'Value'} == 0)) {
+		if ($accountingUsage->{'TotalTimeUsage'} >= $alteredUptimeLimit) {
+			$server->log(LOG_DEBUG,"[MOD_FEATURE_CAPPING] Usage of ".$accountingUsage->{'TotalTimeUsage'}.
+					"Min exceeds allowed limit of ".$alteredUptimeLimit."Min. Capped.");
 			return MOD_RES_NACK;
 		}
 	}
