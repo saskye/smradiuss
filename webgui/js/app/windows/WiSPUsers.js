@@ -104,7 +104,7 @@ function showWiSPUserWindow() {
 				{
 					text:'Logs',
 					tooltip:'User logs',
-					iconCls:'logs',
+					iconCls: 'silk-page_white_text',
 					handler: function() {
 						var selectedItem = Ext.getCmp(WiSPUserWindow.gridPanelID).getSelectionModel().getSelected();
 						// Check if we have selected item

@@ -132,7 +132,7 @@ function showAdminUserWindow() {
 				{
 					text:'Logs',
 					tooltip:'User logs',
-					iconCls:'logs',
+					iconCls: 'silk-page_white_text',
 					handler: function() {
 						var selectedItem = Ext.getCmp(AdminUserWindow.gridPanelID).getSelectionModel().getSelected();
 						// Check if we have selected item
