@@ -256,6 +256,7 @@ function showWiSPUserAddEditWindow(id) {
 	// If this is an update we need to pull in record
 	if (id) {
 		attributeStore = new Ext.ux.JsonStore({
+			pruneModifiedRecords: true,
 			baseParams: {
 				ID: id,
 				SOAPUsername: globalConfig.soap.username,
@@ -268,6 +269,7 @@ function showWiSPUserAddEditWindow(id) {
 		});
 	} else {
 		attributeStore = new Ext.data.SimpleStore({
+			pruneModifiedRecords: true,
 			fields: ['ID', 'Name', 'Operator', 'Value', 'Modifer']
 		});
 	}
@@ -282,6 +284,7 @@ function showWiSPUserAddEditWindow(id) {
 	// If this is an update we need to pull in record
 	if (id) {
 		groupStore = new Ext.ux.JsonStore({
+			pruneModifiedRecords: true,
 			baseParams: {
 				ID: id,
 				SOAPUsername: globalConfig.soap.username,
@@ -294,6 +297,7 @@ function showWiSPUserAddEditWindow(id) {
 		});
 	} else {
 		groupStore = new Ext.data.SimpleStore({
+			pruneModifiedRecords: true,
 			fields: [
 				'Name'
 			]
@@ -332,54 +336,29 @@ function showWiSPUserAddEditWindow(id) {
 				// Set attributes we will be adding
 				for (var i = 0, len = attributes.length; i < len; i++) {
 					var attribute = attributes[i];
-					var attributeRemoved = 0;
-
-					// Check to see if this attribute shouldnt be added
-					for (var c = 0; c < RemovedAttributes.length; c++) {
-						if (attribute.get('ID') == RemovedAttributes[i]) {
-							attributeRemoved = 1;
-						}
-					}
 
 					// Safe to add this attribute
-					if (attributeRemoved == 0) {
-						ret['Attributes['+i+'][ID]'] = attribute.get('ID');
-						ret['Attributes['+i+'][Name]'] = attribute.get('Name');
-						ret['Attributes['+i+'][Operator]'] = attribute.get('Operator');
-						ret['Attributes['+i+'][Value]'] = attribute.get('Value');
-						ret['Attributes['+i+'][Modifier]'] = attribute.get('Modifier');
-					}
+					ret['Attributes['+i+'][ID]'] = attribute.get('ID');
+					ret['Attributes['+i+'][Name]'] = attribute.get('Name');
+					ret['Attributes['+i+'][Operator]'] = attribute.get('Operator');
+					ret['Attributes['+i+'][Value]'] = attribute.get('Value');
+					ret['Attributes['+i+'][Modifier]'] = attribute.get('Modifier');
 				}
 				// Set groups we will be adding
 				for (var i = 0, len = groups.length; i < len; i++) {
 					var group = groups[i];
-					var groupRemoved = 0;
-
-					// Check to see if this group was added then removed
-					for (var c = 0; c < RemovedGroups.length; c++) {
-						if (group.get('ID') == RemovedGroups[i]) {
-							groupRemoved = 1;
-						}
-					}
-
-					// Check to see if this is really unmodified
-					if (group.get('ID') >= 0 && group.get('ID') == group.get('Name')) {
-						groupRemoved = 1;
-					}
 
 					// Safe to add this attribute
-					if (groupRemoved == 0) {
-						ret['Groups['+i+'][Name]'] = group.get('Name');
-					}
+					ret['Groups['+i+'][Name]'] = group.get('Name');
 				}
 
 				// Add removed attributes
-				if (RemovedAttributes.length > 0) {
+				if ((id) && (RemovedAttributes.length > 0)) {
 					var c = 0;
 					var len = RemovedAttributes.length;
 					for (var i = 0; i < len; i++) {
 						// If this is a new add then the user has no attributes
-						if ((id) && (RemovedAttributes[i] >= 0)) {
+						if (RemovedAttributes[i] >= 0) {
 							ret['RAttributes['+c+']'] = RemovedAttributes[i];
 							c++;
 						}
@@ -387,12 +366,12 @@ function showWiSPUserAddEditWindow(id) {
 				}
 
 				// Add removed groups
-				if (RemovedGroups.length > 0) {
+				if ((id) && (RemovedGroups.length > 0)) {
 					var c = 0;
 					var len = RemovedGroups.length;
 					for (var i = 0; i < len; i++) {
 						// If this is a new add then the user has no attributes
-						if ((id) && (RemovedGroups[i] >= 0)) {
+						if (RemovedGroups[i] >= 0) {
 							ret['RGroups['+c+']'] = RemovedGroups[i];
 							c++;
 						}
@@ -432,40 +411,20 @@ function showWiSPUserAddEditWindow(id) {
 				// Set attributes we will be adding
 				for (var i = 0, len = attributes.length; i < len; i++) {
 					var attribute = attributes[i];
-					var attributeRemoved = 0;
-
-					// Check to see if this attribute shouldnt be added
-					for (var c = 0; c < RemovedAttributes.length; c++) {
-						if (attribute.get('ID') == RemovedAttributes[i]) {
-							attributeRemoved = 1;
-						}
-					}
 
 					// Safe to add this attribute
-					if (attributeRemoved == 0) {
-						ret['Attributes['+i+'][ID]'] = attribute.get('ID');
-						ret['Attributes['+i+'][Name]'] = attribute.get('Name');
-						ret['Attributes['+i+'][Operator]'] = attribute.get('Operator');
-						ret['Attributes['+i+'][Value]'] = attribute.get('Value');
-						ret['Attributes['+i+'][Modifier]'] = attribute.get('Modifier');
-					}
+					ret['Attributes['+i+'][ID]'] = attribute.get('ID');
+					ret['Attributes['+i+'][Name]'] = attribute.get('Name');
+					ret['Attributes['+i+'][Operator]'] = attribute.get('Operator');
+					ret['Attributes['+i+'][Value]'] = attribute.get('Value');
+					ret['Attributes['+i+'][Modifier]'] = attribute.get('Modifier');
 				}
 				// Set groups we will be adding
 				for (var i = 0, len = groups.length; i < len; i++) {
 					var group = groups[i];
-					var groupRemoved = 0;
-
-					// Check to see if this group was added then removed
-					for (var c = 0; c < RemovedGroups.length; c++) {
-						if (group.get('ID') == RemovedGroups[i]) {
-							groupRemoved = 1;
-						}
-					}
 
 					// Safe to add this attribute
-					if (groupRemoved == 0) {
-						ret['Groups['+i+'][Name]'] = group.get('Name');
-					}
+					ret['Groups['+i+'][Name]'] = group.get('Name');
 				}
 				return ret;
 			}
