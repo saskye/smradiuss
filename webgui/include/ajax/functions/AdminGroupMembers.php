@@ -8,7 +8,7 @@ function removeAdminGroupMember($params) {
 	$res = DBDo("DELETE FROM users_to_groups WHERE ID = ?",array($params[0]));
 
 	# Return result
-	if (is_bool($res)) {
+	if ($res !== TRUE) {
 		return $res;
 	}
 

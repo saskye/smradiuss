@@ -16,7 +16,7 @@ function createAdminUserTopup($params) {
 	);
 
 	# Return result
-	if (is_bool($res)) {
+	if ($res !== TRUE) {
 		return $res;
 	}
 
@@ -36,7 +36,7 @@ function updateAdminUserTopup($params) {
 	);
 
 	# Return result
-	if (is_bool($res)) {
+	if ($res !== TRUE) {
 		return $res;
 	}
 
@@ -50,7 +50,7 @@ function removeAdminUserTopup($params) {
 	$res = DBDo("DELETE FROM topups WHERE ID = ?",array($params[0]));
 
 	# Return result
-	if (is_bool($res)) {
+	if ($res !== TRUE) {
 		return $res;
 	}
 

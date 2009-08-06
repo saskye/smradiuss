@@ -19,7 +19,7 @@ function addAdminRealmAttribute($params) {
 	);
 
 	# Return result
-	if (is_bool($res)) {
+	if ($res !== TRUE) {
 		return $res;
 	}
 
@@ -33,7 +33,7 @@ function removeAdminRealmAttribute($params) {
 	$res = DBDo("DELETE FROM realm_attributes WHERE ID = ?",array($params[0]));
 
 	# Return result
-	if (is_bool($res)) {
+	if ($res !== TRUE) {
 		return $res;
 	}
 
@@ -53,7 +53,7 @@ function updateAdminRealmAttribute($params) {
 	);
 
 	# Return result
-	if (is_bool($res)) {
+	if ($res !== TRUE) {
 		return $res;
 	}
 

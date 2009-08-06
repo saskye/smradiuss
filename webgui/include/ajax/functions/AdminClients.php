@@ -81,13 +81,12 @@ function removeAdminClient($params) {
 		$res = DBDo("DELETE FROM clients WHERE ID = ?",array($params[0]));
 	}
 
-	# Commit and return if successful
-	if (is_bool($res)) {
-		DBCommit();
-		return $res;
-	# Else rollback database
-	} else {
+	# Return result
+	if ($res !== TRUE) {
 		DBRollback();
+		return $res;
+	} else {
+		DBCommit();
 	}
 
 	return NULL;
@@ -100,7 +99,7 @@ function createAdminClient($params) {
 	$res = DBDo("INSERT INTO clients (Name,AccessList) VALUES (?,?)",array($params[0]['Name'],$params[0]['AccessList']));
 
 	# Return result
-	if (is_bool($res)) {
+	if ($res !== TRUE) {
 		return $res;
 	}
 
@@ -115,7 +114,7 @@ function updateAdminClient($params) {
 			array($params[0]['Name'],$params[0]['AccessList'],$params[0]['ID']));
 
 	# Return result
-	if (is_bool($res)) {
+	if ($res !== TRUE) {
 		return $res;
 	}
 

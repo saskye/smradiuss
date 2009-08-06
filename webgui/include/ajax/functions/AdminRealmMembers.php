@@ -8,7 +8,7 @@ function removeAdminRealmMember($params) {
 	$res = DBDo("DELETE FROM clients_to_realms WHERE ID = ?",array($params[0]));
 
 	# Return result
-	if (is_bool($res)) {
+	if ($res !== TRUE) {
 		return $res;
 	}
 

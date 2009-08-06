@@ -76,13 +76,12 @@ function removeAdminRealm($params) {
 		$res = DBDo("DELETE FROM realms WHERE ID = ?",array($params[0]));
 	}
 
-	# Commit and return if successful
-	if (is_bool($res)) {
-		DBCommit();
-		return $res;
-	# Else rollback database
-	} else {
+	# Return result
+	if ($res !== TRUE) {
 		DBRollback();
+		return $res;
+	} else {
+		DBCommit();
 	}
 
 	return NULL;
@@ -95,7 +94,7 @@ function createAdminRealm($params) {
 	$res = DBDo("INSERT INTO realms (Name) VALUES (?)",array($params[0]['Name']));
 
 	# Return result
-	if (is_bool($res)) {
+	if ($res !== TRUE) {
 		return $res;
 	}
 
@@ -109,7 +108,7 @@ function updateAdminRealm($params) {
 	$res = DBDo("UPDATE realms SET Name = ? WHERE ID = ?",array($params[0]['Name'],$params[0]['ID']));
 
 	# Return result
-	if (is_bool($res)) {
+	if ($res !== TRUE) {
 		return $res;
 	}
 

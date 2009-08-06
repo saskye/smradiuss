@@ -296,13 +296,12 @@ function removeWiSPUser($params) {
 		$res = DBDo("DELETE FROM users WHERE ID = ?",array($params[0]));
 	}
 
-	# Commit and return if successful
-	if (is_bool($res)) {
-		DBCommit();
-		return $res;
-	# Else rollback database
-	} else {
+	# Return result
+	if ($res !== TRUE) {
 		DBRollback();
+		return $res;
+	} else {
+		DBCommit();
 	}
 
 	return NULL;
@@ -316,9 +315,9 @@ function createWiSPUser($params) {
 	# Begin transaction
 	DBBegin();
 	# Perform first query
-	$res = "Username & Password required for single user. For adding multiple users an integer is required.";
+	$res = "Username required for single user. For adding multiple users an integer is required.";
 	# If we adding single user
-	if (empty($params[0]['Number']) && !empty($params[0]['Password']) && !empty($params[0]['Username'])) {
+	if (empty($params[0]['Number']) && !empty($params[0]['Username'])) {
 		# Insert username
 		$res = DBDo("INSERT INTO users (Username) VALUES (?)",array($params[0]['Username']));
 
@@ -607,12 +606,11 @@ function createWiSPUser($params) {
 	}
 
 	# Commit changes if all was successful, else rollback
-	if (is_bool($res)) {
-		DBCommit();
-		return $res;
-	} else {
+	if ($res !== TRUE) {
 		DBRollback();
 		return $res;
+	} else {
+		DBCommit();
 	}
 
 	return NULL;
@@ -792,11 +790,11 @@ function updateWiSPUser($params) {
 	}
 
 	# Commit changes if all was successful, else break
-	if (is_bool($res) && $res === TRUE) {
-		DBCommit();
+	if ($res !== TRUE) {
+		DBRollback();
 		return $res;
 	} else {
-		DBRollback();
+		DBCommit();
 	}
 
 	return NULL;

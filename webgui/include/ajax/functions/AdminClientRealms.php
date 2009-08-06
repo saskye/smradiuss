@@ -10,7 +10,7 @@ function addAdminClientRealm($params) {
 	$res = DBDo("INSERT INTO clients_to_realms (ClientID,RealmID) VALUES (?,?)",array($params[0]['ClientID'],$params[0]['RealmID']));
 
 	# Return result
-	if (is_bool($res)) {
+	if ($res !== TRUE) {
 		return $res;
 	}
 
@@ -24,7 +24,7 @@ function removeAdminClientRealm($params) {
 	$res = DBDo("DELETE FROM clients_to_realms WHERE ID = ?",array($params[0]));
 
 	# Return result
-	if (is_bool($res)) {
+	if ($res !== TRUE) {
 		return $res;
 	}
 

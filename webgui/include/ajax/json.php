@@ -153,5 +153,37 @@ class json_response {
 	}
 }
 
+function jsonSuccess($name = 'Result',$type = 'int',$value = 0) {
+
+	# Build response
+	$res = new json_response;
+
+	$res->addField($name,$type);
+	$res->parseHash(array(
+		$name => $value
+	));
+
+	# Export
+	echo json_encode($res->export());
+}
+
+function jsonError($code,$reason) {
+    
+    # Build response
+	$res = new json_response;
+
+    $res->setStatus(-1);
+    $res->addField('ErrorCode','int');
+    $res->addField('ErrorReason','string');
+    $res->parseHash(array(
+		'ErrorCode' => $code,
+		'ErrorReason' => $reason
+	));
+    
+	# Export
+	echo json_encode($res->export());
+} 
+
+
 
 # vim: ts=4

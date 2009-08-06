@@ -48,7 +48,8 @@
 		);
 		echo json_encode($res);
 */
-		echo json_encode($msg);
+//		echo json_encode($msg);
+		jsonError(-1,$msg);
 		exit;
 	}
 
@@ -176,6 +177,8 @@
 			$res = addAdminClientRealm($soapParams);
 			if (isset($res)) {
 				ajaxException($res);
+			} else {
+				jsonSuccess();
 			}
 
 			break;
@@ -185,6 +188,8 @@
 			$res = removeAdminClientRealm($soapParams);
 			if (isset($res)) {
 				ajaxException($res);
+			} else {
+				jsonSuccess();
 			}
 
 			break;
@@ -211,6 +216,8 @@
 			$res = updateAdminClient($soapParams);
 			if (isset($res)) {
 				ajaxException($res);
+			} else {
+				jsonSuccess();
 			}
 
 			break;
@@ -220,6 +227,8 @@
 			$res = createAdminClient($soapParams);
 			if (isset($res)) {
 				ajaxException($res);
+			} else {
+				jsonSuccess();
 			}
 
 			break;
@@ -229,6 +238,8 @@
 			$res = removeAdminClient($soapParams);
 			if (isset($res)) {
 				ajaxException($res);
+			} else {
+				jsonSuccess();
 			}
 
 			break;
@@ -268,6 +279,8 @@
 			$res = addAdminClientAttribute($soapParams);
 			if (isset($res)) {
 				ajaxException($res);
+			} else {
+				jsonSuccess();
 			}
 
 			break;
@@ -277,6 +290,8 @@
 			$res = updateAdminClientAttribute($soapParams);
 			if (isset($res)) {
 				ajaxException($res);
+			} else {
+				jsonSuccess();
 			}
 
 			break;
@@ -319,6 +334,8 @@
 			$res = removeAdminClientAttribute($soapParams);
 			if (isset($res)) {
 				ajaxException($res);
+			} else {
+				jsonSuccess();
 			}
 
 			break;
@@ -392,6 +409,8 @@
 			$res = createAdminUserTopup($soapParams);
 			if (isset($res)) {
 				ajaxException($res);
+			} else {
+				jsonSuccess();
 			}
 
 			break;
@@ -401,6 +420,8 @@
 			$res = updateAdminUserTopup($soapParams);
 			if (isset($res)) {
 				ajaxException($res);
+			} else {
+				jsonSuccess();
 			}
 
 			break;
@@ -425,6 +446,8 @@
 			$res = removeAdminUserTopup($soapParams);
 			if (isset($res)) {
 				ajaxException($res);
+			} else {
+				jsonSuccess();
 			}
 
 			break;
@@ -455,6 +478,8 @@
 			$res = createWiSPUserTopup($soapParams);
 			if (isset($res)) {
 				ajaxException($res);
+			} else {
+				jsonSuccess();
 			}
 
 			break;
@@ -464,6 +489,8 @@
 			$res = updateWiSPUserTopup($soapParams);
 			if (isset($res)) {
 				ajaxException($res);
+			} else {
+				jsonSuccess();
 			}
 
 			break;
@@ -488,6 +515,8 @@
 			$res = removeWiSPUserTopup($soapParams);
 			if (isset($res)) {
 				ajaxException($res);
+			} else {
+				jsonSuccess();
 			}
 
 			break;
@@ -515,6 +544,8 @@
 			$res = removeAdminGroupMember($soapParams);
 			if (isset($res)) {
 				ajaxException($res);
+			} else {
+				jsonSuccess();
 			}
 
 			break;
@@ -541,6 +572,8 @@
 			$res = removeAdminRealmMember($soapParams);
 			if (isset($res)) {
 				ajaxException($res);
+			} else {
+				jsonSuccess();
 			}
 
 			break;
@@ -581,6 +614,8 @@
 			$res = addAdminUserGroup($soapParams);
 			if (isset($res)) {
 				ajaxException($res);
+			} else {
+				jsonSuccess();
 			}
 
 			break;
@@ -590,6 +625,8 @@
 			$res = removeAdminUserGroup($soapParams);
 			if (isset($res)) {
 				ajaxException($res);
+			} else {
+				jsonSuccess();
 			}
 
 			break;
@@ -616,6 +653,8 @@
 			$res = addAdminRealmAttribute($soapParams);
 			if (isset($res)) {
 				ajaxException($res);
+			} else {
+				jsonSuccess();
 			}
 
 			break;
@@ -625,6 +664,8 @@
 			$res = updateAdminRealmAttribute($soapParams);
 			if (isset($res)) {
 				ajaxException($res);
+			} else {
+				jsonSuccess();
 			}
 
 			break;
@@ -667,6 +708,8 @@
 			$res = removeAdminRealmAttribute($soapParams);
 			if (isset($res)) {
 				ajaxException($res);
+			} else {
+				jsonSuccess();
 			}
 
 			break;
@@ -677,6 +720,8 @@
 			$res = addAdminGroupAttribute($soapParams);
 			if (isset($res)) {
 				ajaxException($res);
+			} else {
+				jsonSuccess();
 			}
 
 			break;
@@ -686,6 +731,8 @@
 			$res = updateAdminGroupAttribute($soapParams);
 			if (isset($res)) {
 				ajaxException($res);
+			} else {
+				jsonSuccess();
 			}
 
 			break;
@@ -728,6 +775,8 @@
 			$res = removeAdminGroupAttribute($soapParams);
 			if (isset($res)) {
 				ajaxException($res);
+			} else {
+				jsonSuccess();
 			}
 
 			break;
@@ -738,6 +787,8 @@
 			$res = addAdminUserAttribute($soapParams);
 			if (isset($res)) {
 				ajaxException($res);
+			} else {
+				jsonSuccess();
 			}
 
 			break;
@@ -747,6 +798,8 @@
 			$res = updateAdminUserAttribute($soapParams);
 			if (isset($res)) {
 				ajaxException($res);
+			} else {
+				jsonSuccess();
 			}
 
 			break;
@@ -789,6 +842,8 @@
 			$res = removeAdminUserAttribute($soapParams);
 			if (isset($res)) {
 				ajaxException($res);
+			} else {
+				jsonSuccess();
 			}
 
 			break;
@@ -799,6 +854,8 @@
 			$res = updateWiSPUser($soapParams);
 			if (isset($res)) {
 				ajaxException($res);
+			} else {
+				jsonSuccess();
 			}
 
 			break;
@@ -808,6 +865,8 @@
 			$res = createWiSPUser($soapParams);
 			if (isset($res)) {
 				ajaxException($res);
+			} else {
+				jsonSuccess();
 			}
 
 			break;
@@ -817,6 +876,8 @@
 			$res = removeWiSPUser($soapParams);
 			if (isset($res)) {
 				ajaxException($res);
+			} else {
+				jsonSuccess();
 			}
 
 			break;
@@ -942,6 +1003,8 @@
 			$res = removeWiSPLocationMember($soapParams);
 			if (isset($res)) {
 				ajaxException($res);
+			} else {
+				jsonSuccess();
 			}
 
 			break;
@@ -952,6 +1015,8 @@
 			$res = updateWiSPLocation($soapParams);
 			if (isset($res)) {
 				ajaxException($res);
+			} else {
+				jsonSuccess();
 			}
 
 			break;
@@ -961,6 +1026,8 @@
 			$res = createWiSPLocation($soapParams);
 			if (isset($res)) {
 				ajaxException($res);
+			} else {
+				jsonSuccess();
 			}
 
 			break;
@@ -970,6 +1037,8 @@
 			$res = removeWiSPLocation($soapParams);
 			if (isset($res)) {
 				ajaxException($res);
+			} else {
+				jsonSuccess();
 			}
 
 			break;
@@ -1007,6 +1076,8 @@
 			$res = updateAdminUser($soapParams);
 			if (isset($res)) {
 				ajaxException($res);
+			} else {
+				jsonSuccess();
 			}
 
 			break;
@@ -1016,6 +1087,8 @@
 			$res = createAdminUser($soapParams);
 			if (isset($res)) {
 				ajaxException($res);
+			} else {
+				jsonSuccess();
 			}
 
 			break;
@@ -1025,6 +1098,8 @@
 			$res = removeAdminUser($soapParams);
 			if (isset($res)) {
 				ajaxException($res);
+			} else {
+				jsonSuccess();
 			}
 
 			break;
@@ -1064,6 +1139,8 @@
 			$res = updateAdminRealm($soapParams);
 			if (isset($res)) {
 				ajaxException($res);
+			} else {
+				jsonSuccess();
 			}
 
 			break;
@@ -1073,6 +1150,8 @@
 			$res = createAdminRealm($soapParams);
 			if (isset($res)) {
 				ajaxException($res);
+			} else {
+				jsonSuccess();
 			}
 
 			break;
@@ -1082,6 +1161,8 @@
 			$res = removeAdminRealm($soapParams);
 			if (isset($res)) {
 				ajaxException($res);
+			} else {
+				jsonSuccess();
 			}
 
 			break;
@@ -1121,6 +1202,8 @@
 			$res = updateAdminGroup($soapParams);
 			if (isset($res)) {
 				ajaxException($res);
+			} else {
+				jsonSuccess();
 			}
 
 			break;
@@ -1130,6 +1213,8 @@
 			$res = createAdminGroup($soapParams);
 			if (isset($res)) {
 				ajaxException($res);
+			} else {
+				jsonSuccess();
 			}
 
 			break;
@@ -1139,6 +1224,8 @@
 			$res = removeAdminGroup($soapParams);
 			if (isset($res)) {
 				ajaxException($res);
+			} else {
+				jsonSuccess();
 			}
 
 			break;

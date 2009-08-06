@@ -18,7 +18,7 @@ function addAdminGroupAttribute($params) {
 	);
 
 	# Return result
-	if (is_bool($res)) {
+	if ($res !== TRUE) {
 		return $res;
 	}
 
@@ -31,7 +31,7 @@ function removeAdminGroupAttribute($params) {
 	$res = DBDo("DELETE FROM group_attributes WHERE ID = ?",array($params[0]));
 
 	# Return result
-	if (is_bool($res)) {
+	if ($res !== TRUE) {
 		return $res;
 	}
 
@@ -50,7 +50,7 @@ function updateAdminGroupAttribute($params) {
 	);
 
 	# Return result
-	if (is_bool($res)) {
+	if ($res !== TRUE) {
 		return $res;
 	}
 

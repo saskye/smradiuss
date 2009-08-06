@@ -19,7 +19,7 @@ function addAdminClientAttribute($params) {
 	);
 
 	# Return result
-	if (is_bool($res)) {
+	if ($res !== TRUE) {
 		return $res;
 	}
 
@@ -33,7 +33,7 @@ function removeAdminClientAttribute($params) {
 	$res = DBDo("DELETE FROM client_attributes WHERE ID = ?",array($params[0]));
 
 	# Return result
-	if (is_bool($res)) {
+	if ($res !== TRUE) {
 		return $res;
 	}
 
@@ -53,7 +53,7 @@ function updateAdminClientAttribute($params) {
 	);
 
 	# Return result
-	if (is_bool($res)) {
+	if ($res !== TRUE) {
 		return $res;
 	}
 

@@ -132,15 +132,13 @@ function removeAdminUser($params) {
 		$res = DBDo("DELETE FROM users WHERE ID = ?",array($params[0]));
 	}
 
-	# Commit and return if successful
-	if (is_bool($res)) {
-		DBCommit();
-		return $res;
-	# Else rollback database
-	} else {
+	# Return result
+	if ($res !== TRUE) {
 		DBRollback();
+		return $res;
+	} else {
+		DBCommit();
 	}
-
 	return NULL;
 }
 
@@ -151,7 +149,7 @@ function createAdminUser($params) {
 	$res = DBDo("INSERT INTO users (Username) VALUES (?)",array($params[0]['Username']));
 
 	# Return result
-	if (is_bool($res)) {
+	if ($res !== TRUE) {
 		return $res;
 	}
 
@@ -165,7 +163,7 @@ function updateAdminUser($params) {
 	$res = DBDo("UPDATE users SET Username = ? WHERE ID = ?",array($params[0]['Username'],$params[0]['ID']));
 
 	# Return result
-	if (is_bool($res)) {
+	if ($res !== TRUE) {
 		return $res;
 	}
 
