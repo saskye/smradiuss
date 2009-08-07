@@ -638,7 +638,7 @@ sub process_request {
 		}
 		# Tell the NAS we got its packet
 		my $resp = Radius::Packet->new($self->{'radius'}->{'dictionary'});
-	   	$resp->set_code('Accounting-Response');
+		$resp->set_code('Accounting-Response');
 		$resp->set_identifier($pkt->identifier);
 		$resp->set_authenticator($pkt->authenticator);
 		$udp_packet = auth_resp($resp->pack, getAttributeValue($user->{'ConfigAttributes'},"SMRadius-Config-Secret"));
@@ -681,7 +681,7 @@ sub process_request {
 
 			my $resp = Radius::Packet->new($self->{'radius'}->{'dictionary'});
 
-		 	$resp->set_code('Disconnect-Request');
+			$resp->set_code('Disconnect-Request');
 			my $id = $$ & 0xff;
 			$resp->set_identifier( $id );
 
@@ -702,6 +702,8 @@ sub process_request {
 						my $podServer = $1;
 						my $podServerPort = $2;
 
+						$self->log(LOG_DEBUG,"[SMRADIUS] POST-ACCT: Trying PODServer => IP: '".$podServer."' Port: '".$podServerPort."'");
+
 						# Create socket to send packet out on
 						my $podServerTimeout = "10";  # 10 second timeout
 						my $podSock = new IO::Socket::INET(
@@ -710,23 +712,37 @@ sub process_request {
 								Type => SOCK_DGRAM,
 								Proto => 'udp',
 								TimeOut => $podServerTimeout,
-						) or return $self->log(LOG_ERR,"[SMRADIUS] POST-ACCT: Failed to create socket to send POD on: $!");
+						);
+
+						if (!$podSock) {
+							$self->log(LOG_ERR,"[SMRADIUS] POST-ACCT: Failed to create socket to send POD on");
+							next;
+						}
 
 						# Check if we sent the packet...
 						if (!$podSock->send($udp_packet)) {
-							return $self->log(LOG_ERR,"[SMRADIUS] POST-ACCT: Failed to send data on socket: $!");
+							$self->log(LOG_ERR,"[SMRADIUS] POST-ACCT: Failed to send data on socket");
+							next;
 						}
 
 						# Once sent, we need to get a response back
-						my $sh = new IO::Select($podSock) 
-								or return $self->log(LOG_ERR,"[SMRADIUS] POST-ACCT: Failed to select data on socket: $!");
+						my $sh = new IO::Select($podSock);
+						if (!$sh) {
+							$self->log(LOG_ERR,"[SMRADIUS] POST-ACCT: Failed to select data on socket");
+							next;
+						}
 
-						$sh->can_read($podServerTimeout) 
-								or return $self->log(LOG_ERR,"[SMRADIUS] POST-ACCT: Failed to receive data on socket: $!");
+						if (!$sh->can_read($podServerTimeout)) {
+							$self->log(LOG_ERR,"[SMRADIUS] POST-ACCT: Failed to receive data on socket");
+							next;
+						}
 
 						my $data;
-						$podSock->recv($data, 65536) 
-								or return $self->log(LOG_ERR,"[SMRADIUS] POST-ACCT: Receive data failed: $!");
+						$podSock->recv($data, 65536);
+						if (!$data) {
+							$self->log(LOG_ERR,"[SMRADIUS] POST-ACCT: Receive data failed");
+						}
+
 						#my @stuff = unpack('C C n a16 a*', $data);
 						#$self->log(LOG_DEBUG,"STUFF: ".Dumper(\@stuff));
 					} else {
