@@ -691,35 +691,51 @@ sub process_request {
 
 			$udp_packet = auth_resp($resp->pack, getAttributeValue($user->{'ConfigAttributes'},"SMRadius-Config-Secret"));
 
-			# Create socket to send packet out on
-			my $podServer = "10.254.254.239";
-			my $podServerPort = "1700";
-			my $podServerTimeout = "10";  # 10 second timeout
-			my $podSock = new IO::Socket::INET(
-					PeerAddr => $podServer,
-					PeerPort => $podServerPort,
-					Type => SOCK_DGRAM,
-					Proto => 'udp',
-					TimeOut => $podServerTimeout,
-			) or return $self->log(LOG_ERR,"[SMRADIUS] POST-ACCT: Failed to create socket to send POD on: $!");
+			# Check for POD Servers and send disconnect
+			if (defined($user->{'ConfigAttributes'}->{'SMRadius-Config-PODServer'})) {
+				$self->log(LOG_DEBUG,"[SMRADIUS] SMRadius-Config-PODServer is defined");
 
-			# Check if we sent the packet...
-			if (!$podSock->send($udp_packet)) {
-				return $self->log(LOG_ERR,"[SMRADIUS] POST-ACCT: Failed to send data on socket: $!");
+				# Check address format
+				foreach my $podServerAttribute (@{$user->{'ConfigAttributes'}->{'SMRadius-Config-PODServer'}}) {
+					# Rip out IP and port
+					if ($podServerAttribute =~ /^([0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}):([0-9]+)$/) {
+						my $podServer = $1;
+						my $podServerPort = $2;
+
+						# Create socket to send packet out on
+						my $podServerTimeout = "10";  # 10 second timeout
+						my $podSock = new IO::Socket::INET(
+								PeerAddr => $podServer,
+								PeerPort => $podServerPort,
+								Type => SOCK_DGRAM,
+								Proto => 'udp',
+								TimeOut => $podServerTimeout,
+						) or return $self->log(LOG_ERR,"[SMRADIUS] POST-ACCT: Failed to create socket to send POD on: $!");
+
+						# Check if we sent the packet...
+						if (!$podSock->send($udp_packet)) {
+							return $self->log(LOG_ERR,"[SMRADIUS] POST-ACCT: Failed to send data on socket: $!");
+						}
+
+						# Once sent, we need to get a response back
+						my $sh = new IO::Select($podSock) 
+								or return $self->log(LOG_ERR,"[SMRADIUS] POST-ACCT: Failed to select data on socket: $!");
+
+						$sh->can_read($podServerTimeout) 
+								or return $self->log(LOG_ERR,"[SMRADIUS] POST-ACCT: Failed to receive data on socket: $!");
+
+						my $data;
+						$podSock->recv($data, 65536) 
+								or return $self->log(LOG_ERR,"[SMRADIUS] POST-ACCT: Receive data failed: $!");
+						#my @stuff = unpack('C C n a16 a*', $data);
+						#$self->log(LOG_DEBUG,"STUFF: ".Dumper(\@stuff));
+					} else {
+						$self->log(LOG_DEBUG,"[SMRADIUS] Invalid POD Server value: '".$podServerAttribute."'");
+					}
+				}
+			} else {
+				$self->log(LOG_DEBUG,"[SMRADIUS] SMRadius-Config-PODServer is not defined");
 			}
-
-			# Once sent, we need to get a response back
-			my $sh = new IO::Select($podSock) 
-					or return $self->log(LOG_ERR,"[SMRADIUS] POST-ACCT: Failed to select data on socket: $!");
-
-			$sh->can_read($podServerTimeout) 
-					or return $self->log(LOG_ERR,"[SMRADIUS] POST-ACCT: Failed to receive data on socket: $!");
-
-			my $data;
-			$podSock->recv($data, 65536) 
-					or return $self->log(LOG_ERR,"[SMRADIUS] POST-ACCT: Receive data failed: $!");
-#			my @stuff = unpack('C C n a16 a*', $data);
-#			$self->log(LOG_DEBUG,"STUFF: ".Dumper(\@stuff));
 		}
 
 	# Or maybe a access request
