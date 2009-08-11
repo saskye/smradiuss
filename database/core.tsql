@@ -259,8 +259,6 @@ CREATE TABLE @PREFIX@accounting_summary (
 
 	AcctInputGigawords	@INT_UNSIGNED@,
 
-	AcctInputPackets	@INT_UNSIGNED@,
-
 	AcctOutputOctets	@INT_UNSIGNED@,
 
 	AcctOutputGigawords	@INT_UNSIGNED@
