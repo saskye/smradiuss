@@ -412,7 +412,7 @@ sub cleanup
 		# Set array items
 		@recordRow = (
 			$usageTotals->{'Username'},
-			$lastMonth->year."-".$lastMonth->month,
+			$lastMonth->ymd,
 			$usageTotals->{'AcctSessionTime'},
 			$usageTotals->{'AcctInputOctets'},
 			$usageTotals->{'AcctInputGigawords'},
