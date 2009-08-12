@@ -101,7 +101,7 @@ sub post_auth_hook
 	# Get traffic limit
 	if (defined($user->{'Attributes'}->{$TRAFFIC_LIMIT_KEY})) {
 		$server->log(LOG_DEBUG,"[MOD_FEATURE_CAPPING] '".$TRAFFIC_LIMIT_KEY."' is defined");
-		# Operator: +=
+		# Operator: :=
 		if (defined($user->{'Attributes'}->{$TRAFFIC_LIMIT_KEY}->{':='})) {
 			# Is it a number?
 			if ($user->{'Attributes'}->{$TRAFFIC_LIMIT_KEY}->{':='}->{'Value'} =~ /^[0-9]+$/) {
@@ -187,7 +187,7 @@ sub post_auth_hook
 	my $trafficTopup = 0;
 	if (defined($user->{'ConfigAttributes'}->{$TRAFFIC_TOPUPS_KEY})) {
 		$server->log(LOG_DEBUG,"[MOD_FEATURE_CAPPING] '".$TRAFFIC_TOPUPS_KEY."' is defined");
-		# Operator: +=
+		# Check for value
 		if (defined($user->{'ConfigAttributes'}->{$TRAFFIC_TOPUPS_KEY}->[0])) {
 			# Is it a number?
 			if ($user->{'ConfigAttributes'}->{$TRAFFIC_TOPUPS_KEY}->[0] =~ /^[0-9]+$/) {
@@ -380,7 +380,7 @@ sub post_acct_hook
 	my $trafficTopup = 0;
 	if (defined($user->{'ConfigAttributes'}->{$TRAFFIC_TOPUPS_KEY})) {
 		$server->log(LOG_DEBUG,"[MOD_FEATURE_CAPPING] '".$TRAFFIC_TOPUPS_KEY."' is defined");
-		# Operator: +=
+		# Check for value
 		if (defined($user->{'ConfigAttributes'}->{$TRAFFIC_TOPUPS_KEY}->[0])) {
 			# Is it a number?
 			if ($user->{'ConfigAttributes'}->{$TRAFFIC_TOPUPS_KEY}->[0] =~ /^[0-9]+$/) {
