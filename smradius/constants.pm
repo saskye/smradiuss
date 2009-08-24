@@ -34,17 +34,21 @@ our (@ISA,@EXPORT,@EXPORT_OK);
 	MOD_RES_ACK
 	MOD_RES_NACK
 	MOD_RES_SKIP
+
+	UINT_MAX
 );
 @EXPORT_OK = ();
 
 
 use constant {
-	RES_OK			=> 0,
-	RES_ERROR		=> -1,
+	RES_OK => 0,
+	RES_ERROR => -1,
 
-	MOD_RES_SKIP		=> 0,
-	MOD_RES_ACK		=> 1,
-	MOD_RES_NACK		=> 2,
+	MOD_RES_SKIP => 0,
+	MOD_RES_ACK => 1,
+	MOD_RES_NACK => 2,
+	
+	UINT_MAX => 2**32
 };
 
 

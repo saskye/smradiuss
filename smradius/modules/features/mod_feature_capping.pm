@@ -118,14 +118,13 @@ sub post_auth_hook
 
 	# Get the users' usage
 	my $accountingUsage;
-	my $month = DateTime->from_epoch( epoch => $user->{'_Internal'}->{'Timestamp-Unix'} )->strftime('%Y-%m');
 	# Loop with plugins to find anyting supporting getting of usage
 	foreach my $module (@{$server->{'module_list'}}) {
 		# Do we have the correct plugin?
 		if ($module->{'Accounting_getUsage'}) {
 			$server->log(LOG_INFO,"[MOD_FEATURE_CAPPING] Found plugin: '".$module->{'Name'}."'");
 			# Fetch users session uptime & bandwidth used
-			my $res = $module->{'Accounting_getUsage'}($server,$user,$packet,$month);
+			my $res = $module->{'Accounting_getUsage'}($server,$user,$packet);
 			if (!defined($res)) {
 				$server->log(LOG_ERR,"[MOD_FEATURE_CAPPING] No usage data found for user '".$packet->attr('User-Name')."'");
 				return MOD_RES_SKIP;
@@ -318,7 +317,7 @@ sub post_acct_hook
 		if ($module->{'Accounting_getUsage'}) {
 			$server->log(LOG_INFO,"[MOD_FEATURE_CAPPING] Found plugin: '".$module->{'Name'}."'");
 			# Fetch users session uptime & bandwidth used
-			my $res = $module->{'Accounting_getUsage'}($server,$user,$packet,$month);
+			my $res = $module->{'Accounting_getUsage'}($server,$user,$packet);
 			if (!defined($res)) {
 				$server->log(LOG_ERR,"[MOD_FEATURE_CAPPING] No usage data found for user '".$packet->attr('User-Name')."'");
 				return MOD_RES_SKIP;

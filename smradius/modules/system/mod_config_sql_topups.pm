@@ -301,6 +301,7 @@ sub cleanup
 		$prevMonth = $now->month - 1;
 	}
 	my $lastMonth = DateTime->new( year => $prevYear, month => $prevMonth, day => 1 );
+	my $prevPeriodKey = $lastMonth->strftime("%Y-%m");
 
 	# Get begin date of next month
 	my ($folYear,$folMonth);
@@ -335,12 +336,12 @@ sub cleanup
 			FROM
 				@TP@accounting
 			WHERE
-				EventTimestamp > ?
+				PeriodKey = ?
 				AND Username = ?
 			GROUP BY
 				Username
 			',
-			$lastMonth,$userName
+			$prevPeriodKey,$userName
 		);
 
 		if (!$sth) {
@@ -428,7 +429,6 @@ sub cleanup
 
 
 		# Get users topups that are still valid from topups_summary, must not be depleted
-		my $prevPeriodKey = $lastMonth->strftime("%Y-%m");
 		$sth = DBSelect('
 			SELECT
 				@TP@topups_summary.TopupID,
@@ -783,7 +783,24 @@ sub cleanup
 
 		# Loop through summary topups
 		foreach my $summaryTopup (@summaryTopups) {
-			# Set users depleted topups
+
+			# Delete any previous record of this summary
+			$sth = DBDo('
+				DELETE FROM
+					@TP@topups_summary
+				WHERE
+					TopupID = ?
+					AND PeriodKey = ?',
+				$summaryTopup->{'ID'}, $periodKey
+			);
+
+			if (!$sth) {
+				$server->log(LOG_ERR,"[MOD_CONFIG_SQL_TOPUPS] Cleanup => Failed to delete previous record: ".
+						awitpt::db::dblayer::Error());
+				goto FAIL_ROLLBACK;
+			}
+
+			# Insert topup summary
 			$sth = DBDo('
 				INSERT INTO
 					@TP@topups_summary (TopupID,PeriodKey,Balance)

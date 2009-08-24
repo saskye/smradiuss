@@ -1,0 +1,124 @@
+r509:	
+	# Database
+
+	ALTER TABLE accounting ADD PeriodKey VARCHAR(7);
+	ALTER TABLE accounting_summary DROP COLUMN AcctInputPackets;
+
+	# smradiusd.conf
+
+	Modified:
+	accounting_start_query=<<EOT
+		INSERT INTO
+			@TP@accounting
+		(
+			Username,
+			ServiceType,
+			FramedProtocol,
+			NASPort,
+			NASPortType,
+			CallingStationID,
+			CalledStationID,
+			NASPortID,
+			AcctSessionID,
+			FramedIPAddress,
+			AcctAuthentic,
+			EventTimestamp,
+			AcctStatusType,
+			NASIdentifier,
+			NASIPAddress,
+			AcctDelayTime,
+			PeriodKey
+		)
+		VALUES
+		(
+			%{request.User-Name},
+			%{request.Service-Type},
+			%{request.Framed-Protocol},
+			%{request.NAS-Port},
+			%{request.NAS-Port-Type},
+			%{request.Calling-Station-Id},
+			%{request.Called-Station-Id},
+			%{request.NAS-Port-Id},
+			%{request.Acct-Session-Id},
+			%{request.Framed-IP-Address},
+			%{request.Acct-Authentic},
+			%{request.Timestamp},
+			%{request.Acct-Status-Type},
+			%{request.NAS-Identifier},
+			%{request.NAS-IP-Address},
+			%{request.Acct-Delay-Time},
+			%{query.PeriodKey}
+		)
+	EOT
+
+	accounting_update_query=<<EOT
+		UPDATE
+			@TP@accounting
+		SET
+			AcctSessionTime = %{query.AcctSessionTime},
+			AcctInputOctets = %{query.AcctInputOctets},
+			AcctInputGigawords = %{query.AcctInputGigawords},
+			AcctInputPackets = %{query.AcctInputPackets},
+			AcctOutputOctets = %{query.AcctOutputOctets},
+			AcctOutputGigawords = %{query.AcctOutputGigawords},
+			AcctOutputPackets = %{query.AcctOutputPackets},
+			AcctStatusType = %{request.Acct-Status-Type}
+		WHERE
+			Username = %{request.User-Name}
+			AND AcctSessionID = %{request.Acct-Session-Id}
+			AND NASIPAddress = %{request.NAS-IP-Address}
+			AND PeriodKey = %{query.PeriodKey}
+	EOT
+
+	accounting_stop_query=<<EOT
+		UPDATE
+			@TP@accounting
+		SET
+			AcctSessionTime = %{query.Acct-Session-Time},
+			AcctInputOctets = %{query.Acct-Input-Octets},
+			AcctInputGigawords = %{query.Acct-Input-Gigawords},
+			AcctInputPackets = %{query.Acct-Input-Packets},
+			AcctOutputOctets = %{query.Acct-Output-Octets},
+			AcctOutputGigawords = %{query.Acct-Output-Gigawords},
+			AcctOutputPackets = %{query.Acct-Output-Packets}
+		WHERE
+			Username = %{request.User-Name}
+			AND AcctSessionID = %{request.Acct-Session-Id}
+			AND NASIPAddress = %{request.NAS-IP-Address}
+			AND PeriodKey = %{query.PeriodKey}
+	EOT
+
+	Added:
+	accounting_update_get_records_query=<<EOT
+		SELECT
+			SUM(AcctInputOctets) AS InputOctets,
+			SUM(AcctInputPackets) AS InputPackets,
+			SUM(AcctOutputOctets) AS OutputOctets,
+			SUM(AcctOutputPackets) AS OutputPackets,
+			SUM(AcctInputGigawords) AS InputGigawords,
+			SUM(AcctOutputGigawords) AS OutputGigawords,
+			SUM(AcctSessionTime) AS SessionTime,
+			PeriodKey
+		FROM
+			@TP@accounting
+		WHERE
+			Username = %{request.User-Name}
+			AND AcctSessionID = %{request.Acct-Session-Id}
+			AND NASIPAddress = %{request.NAS-IP-Address}
+		GROUP BY
+			PeriodKey
+		ORDER BY
+			ID ASC
+	EOT
+
+	accounting_stop_status_query=<<EOT
+		UPDATE
+			@TP@accounting
+		SET
+			AcctStatusType = %{request.Acct-Status-Type},
+			AcctTerminateCause = %{request.Acct-Terminate-Cause}
+		WHERE
+			Username = %{request.User-Name}
+			AND AcctSessionID = %{request.Acct-Session-Id}
+			AND NASIPAddress = %{request.NAS-IP-Address}
+	EOT
