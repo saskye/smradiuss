@@ -683,37 +683,97 @@ sub cleanup
 
 		my @insertArray;
 		for (my $i = 0; $i < $index; $i++) {
-			@insertArray = (
-				$allRecords[$i]->{'Username'},
-				$allRecords[$i]->{'PeriodKey'},
-				$allRecords[$i]->{'SessionTime'},
-				$allRecords[$i]->{'InputOctets'},
-				$allRecords[$i]->{'InputGigawords'},
-				$allRecords[$i]->{'OutputOctets'},
-				$allRecords[$i]->{'OutputGigawords'}
-			);
 
-			@dbDoParams = ('
-				INSERT INTO
-					@TP@accounting_summary
-				(
-					Username,
-					PeriodKey,
-					AcctSessionTime,
-					AcctInputOctets,
-					AcctInputGigawords,
-					AcctOutputOctets,
-					AcctOutputGigawords
-				)
-				VALUES
-					(?,?,?,?,?,?,?)
+			# Check if this record exists
+			my $sth = DBSelect('
+				SELECT
+					COUNT(*) as rowCount
+				FROM
+					@TP@accounting
+				WHERE
+					PeriodKey = ?
+					AND Username = ?
 				',
-				@insertArray
+				$allRecords[$i]->{'PeriodKey'},
+				$allRecords[$i]->{'Username'}
 			);
 
-			if ($sth) {
-				# Do query
-				$sth = DBDo(@dbDoParams);
+			if (!$sth) {
+				$server->log(LOG_ERR,"[MOD_ACCOUNTING_SQL] Cleanup => Failed to check for existing record: ".
+						awitpt::db::dblayer::Error());
+				return;
+			}
+
+			my $recordCheck = $sth->fetchrow_hashref();
+			$recordCheck = hashifyLCtoMC(
+				$recordCheck,
+				qw(rowCount)
+			);
+
+			if (defined($recordCheck->{'rowCount'}) && $recordCheck->{'rowCount'} > 0) {
+				@insertArray = (
+					$allRecords[$i]->{'SessionTime'},
+					$allRecords[$i]->{'InputOctets'},
+					$allRecords[$i]->{'InputGigawords'},
+					$allRecords[$i]->{'OutputOctets'},
+					$allRecords[$i]->{'OutputGigawords'},
+					$allRecords[$i]->{'Username'},
+					$allRecords[$i]->{'PeriodKey'}
+				);
+
+				@dbDoParams = ('
+					UPDATE
+						@TP@accounting_summary
+					SET
+						AcctSessionTime = ?,
+						AcctInputOctets = ?,
+						AcctInputGigawords = ?,
+						AcctOutputOctets = ?,
+						AcctOutputGigawords = ?
+					WHERE
+						Username = ?
+						AND	PeriodKey = ?
+					',
+					@insertArray
+				);
+
+				if ($sth) {
+					# Do query
+					$sth = DBDo(@dbDoParams);
+				}
+			} else {
+				@insertArray = (
+					$allRecords[$i]->{'Username'},
+					$allRecords[$i]->{'PeriodKey'},
+					$allRecords[$i]->{'SessionTime'},
+					$allRecords[$i]->{'InputOctets'},
+					$allRecords[$i]->{'InputGigawords'},
+					$allRecords[$i]->{'OutputOctets'},
+					$allRecords[$i]->{'OutputGigawords'}
+				);
+
+				@dbDoParams = ('
+					INSERT INTO
+						@TP@accounting_summary
+					(
+						Username,
+						PeriodKey,
+						AcctSessionTime,
+						AcctInputOctets,
+						AcctInputGigawords,
+						AcctOutputOctets,
+						AcctOutputGigawords
+					)
+					VALUES
+						(?,?,?,?,?,?,?)
+					',
+					@insertArray
+				);
+
+				if ($sth) {
+					# Do query
+					$sth = DBDo(@dbDoParams);
+				}
 			}
 		}
 	}
@@ -721,7 +781,7 @@ sub cleanup
 	# Rollback with error if failed
 	if (!$sth) {
 		DBRollback();
-		$server->log(LOG_ERR,"[MOD_ACCOUNTING_SQL] Cleanup => Failed to insert accounting record: ".
+		$server->log(LOG_ERR,"[MOD_ACCOUNTING_SQL] Cleanup => Failed to insert or update accounting record: ".
 				awitpt::db::dblayer::Error());
 		return;
 	}
