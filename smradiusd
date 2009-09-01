@@ -1,0 +1,1039 @@
+#!/usr/bin/perl
+# Radius daemon
+# Copyright (C) 2007-2009, AllWorldIT
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with this program; if not, write to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+
+
+use strict;
+use warnings;
+
+# Set library directory
+use lib qw(
+	../ ./
+	smradius
+	awitpt/db
+);
+
+package radiusd;
+
+
+use base qw(Net::Server::PreFork);
+use Config::IniFiles;
+use DateTime;
+use Getopt::Long;
+use Sys::Syslog;
+
+use smradius::version;
+use smradius::constants;
+use smradius::logging;
+use smradius::config;
+use awitpt::db::dbilayer;
+use awitpt::cache;
+use smradius::util;
+use smradius::attributes;
+
+use Radius::Packet;
+
+use Socket;
+
+
+
+# Override configuration
+sub configure {
+	my ($self,$defaults) = @_;
+	my $server = $self->{'server'};
+
+
+	# If we hit a hash, add the config vars to the server
+	if (defined($defaults)) {
+		foreach my $item (keys %{$defaults}) {
+			$server->{$item} = $defaults->{$item};
+		}
+		return;
+	}
+
+	# Set defaults
+	my $cfg;
+	$cfg->{'config_file'} = "/etc/smradiusd.conf";
+
+	$server->{'timeout'} = 120;
+	$server->{'background'} = "yes";
+	$server->{'pid_file'} = "/var/run/smradiusd.pid";
+	$server->{'log_level'} = 2;
+	$server->{'log_file'} = "/var/log/smradiusd.log";
+
+	$server->{'host'} = "*";
+	$server->{'port'} = [ 1812, 1813 ];
+	$server->{'proto'} = 'udp';
+
+	$server->{'min_servers'} = 4;
+	$server->{'min_spare_servers'} = 4;
+	$server->{'max_spare_servers'} = 12;
+	$server->{'max_servers'} = 25;
+	$server->{'max_requests'} = 1000;
+
+	# Parse command line params
+	my $cmdline;
+	%{$cmdline} = ();
+	GetOptions(
+			\%{$cmdline},
+			"help",
+			"config:s",
+			"debug",
+			"fg",
+	) or die "Error parsing commandline arguments";
+
+	# Check for some args
+	if ($cmdline->{'help'}) {
+		$self->displayHelp();
+		exit 0;
+	}
+	if (defined($cmdline->{'config'}) && $cmdline->{'config'} ne "") {
+		$cfg->{'config_file'} = $cmdline->{'config'};
+	}
+
+	# Check config file exists
+	if (! -f $cfg->{'config_file'}) {
+		die("No configuration file '".$cfg->{'config_file'}."' found!\n");
+	}
+
+	# Use config file, ignore case
+	tie my %inifile, 'Config::IniFiles', (
+			-file => $cfg->{'config_file'},
+			-nocase => 1
+	) or die "Failed to open config file '".$cfg->{'config_file'}."': $!";
+	# Copy config
+	my %config = %inifile;
+	#untie(%inifile);
+
+	# Pull in params for the server
+	my @server_params = (
+			'log_level','log_file',
+#			'port',   - We don't want to override this do we?
+			'host',
+			'cidr_allow', 'cidr_deny',
+			'pid_file',
+			'user', 'group',
+			'timeout',
+			'background',
+			'min_servers',
+			'min_spare_servers',
+			'max_spare_servers',
+			'max_servers',
+			'max_requests',
+	);
+	foreach my $param (@server_params) {
+		$server->{$param} = $config{'server'}{$param} if (defined($config{'server'}{$param}));
+	}
+
+	# Fix up these ...
+	if (defined($server->{'cidr_allow'})) {
+		my @lst = split(/,\s;/,$server->{'cidr_allow'});
+		$server->{'cidr_allow'} = \@lst;
+	}
+	if (defined($server->{'cidr_deny'})) {
+		my @lst = split(/,\s;/,$server->{'cidr_deny'});
+		$server->{'cidr_deny'} = \@lst;
+	}
+
+	# Override
+	if ($cmdline->{'debug'}) {
+		$server->{'log_level'} = 4;
+		$cfg->{'debug'} = 1;
+	}
+
+	# If we set on commandline for foreground, keep in foreground
+	if ($cmdline->{'fg'} || (defined($config{'server'}{'background'}) && $config{'server'}{'background'} eq "no" )) {
+		$server->{'background'} = undef;
+		$server->{'log_file'} = undef;
+	} else {
+		$server->{'setsid'} = 1;
+	}
+
+	# Loop with logging detail
+	if (defined($config{'server'}{'log_detail'})) {
+		# Lets see what we have to enable
+		foreach my $detail (split(/[,\s;]/,$config{'server'}{'log_detail'})) {
+			$cfg->{'logging'}{$detail} = 1;
+		}
+	}
+
+	#
+	# System modules
+	#
+	if (ref($config{'system'}{'modules'}) eq "ARRAY") {
+		foreach my $module (@{$config{'system'}{'modules'}}) {
+			$module =~ s/\s+//g;
+	 		# Skip comments
+	 		next if ($module =~ /^#/);
+	 		$module = "system/$module";
+			push(@{$cfg->{'module_list'}},$module);
+		}
+	} else {
+		my @moduleList = split(/\s+/,$config{'system'}{'modules'});
+		foreach my $module (@moduleList) {
+			# Skip comments
+			next if ($module =~ /^#/);
+			$module = "system/$module";
+			push(@{$cfg->{'module_list'}},$module);
+		}
+	}
+
+	#
+	# Feature modules
+	#
+	if (ref($config{'features'}{'modules'}) eq "ARRAY") {
+		foreach my $module (@{$config{'features'}{'modules'}}) {
+			$module =~ s/\s+//g;
+	 		# Skip comments
+	 		next if ($module =~ /^#/);
+	 		$module = "features/$module";
+			push(@{$cfg->{'module_list'}},$module);
+		}
+	} else {
+		my @moduleList = split(/\s+/,$config{'features'}{'modules'});
+		foreach my $module (@moduleList) {
+			# Skip comments
+			next if ($module =~ /^#/);
+			$module = "features/$module";
+			push(@{$cfg->{'module_list'}},$module);
+		}
+	}
+
+	#
+	# Authentication modules
+	#
+	if (ref($config{'authentication'}{'mechanisms'}) eq "ARRAY") {
+		foreach my $module (@{$config{'authentication'}{'mechanisms'}}) {
+			$module =~ s/\s+//g;
+	 		# Skip comments
+	 		next if ($module =~ /^#/);
+	 		$module = "authentication/$module";
+			push(@{$cfg->{'module_list'}},$module);
+		}
+	} else {
+		my @moduleList = split(/\s+/,$config{'authentication'}{'mechanisms'});
+		foreach my $module (@moduleList) {
+			# Skip comments
+			next if ($module =~ /^#/);
+			$module = "authentication/$module";
+			push(@{$cfg->{'module_list'}},$module);
+		}
+	}
+
+	if (ref($config{'authentication'}{'users'}) eq "ARRAY") {
+		foreach my $module (@{$config{'authentication'}{'users'}}) {
+			$module =~ s/\s+//g;
+	 		# Skip comments
+	 		next if ($module =~ /^#/);
+	 		$module = "userdb/$module";
+			push(@{$cfg->{'module_list'}},$module);
+		}
+	} else {
+		my @moduleList = split(/\s+/,$config{'authentication'}{'users'});
+		foreach my $module (@moduleList) {
+			# Skip comments
+			next if ($module =~ /^#/);
+			$module = "userdb/$module";
+			push(@{$cfg->{'module_list'}},$module);
+		}
+	}
+
+	#
+	# Accounting modules
+	#
+	if (ref($config{'accounting'}{'modules'}) eq "ARRAY") {
+		foreach my $module (@{$config{'accounting'}{'modules'}}) {
+			$module =~ s/\s+//g;
+	 		# Skip comments
+	 		next if ($module =~ /^#/);
+	 		$module = "accounting/$module";
+			push(@{$cfg->{'module_list'}},$module);
+		}
+	} else {
+		my @moduleList = split(/\s+/,$config{'accounting'}{'modules'});
+		foreach my $module (@moduleList) {
+			# Skip comments
+			next if ($module =~ /^#/);
+			$module = "accounting/$module";
+			push(@{$cfg->{'module_list'}},$module);
+		}
+	}
+
+	#
+	# Dictionary configuration
+	#
+	# Split off dictionaries to load
+	if (ref($config{'dictionary'}->{'load'}) eq "ARRAY") {
+		foreach my $dict (@{$config{'dictionary'}->{'load'}}) {
+			$dict =~ s/\s+//g;
+	 		# Skip comments
+	 		next if ($dict =~ /^#/);
+			push(@{$cfg->{'dictionary_list'}},$dict);
+		}
+	} else {
+		my @dictList = split(/\s+/,$config{'dictionary'}->{'load'});
+		foreach my $dict (@dictList) {
+			# Skip comments
+			next if ($dict =~ /^#/);
+			push(@{$cfg->{'dictionary_list'}},$dict);
+		}
+	}
+
+	# Save our config and stuff
+	$self->{'config'} = $cfg;
+	$self->{'cmdline'} = $cmdline;
+	$self->{'inifile'} = \%config;
+}
+
+
+
+# Run straight after ->run
+sub post_configure_hook {
+	my $self = shift;
+	my $config = $self->{'config'};
+
+
+	# Init config
+	$self->log(LOG_NOTICE,"[SMRADIUS] Initializing configuration...");
+	smradius::config::Init($self);
+	$self->log(LOG_NOTICE,"[SMRADIUS] Configuration initialized.");
+
+	# Load dictionaries
+	$self->log(LOG_NOTICE,"[SMRADIUS] Initializing dictionaries...");
+	my $dict = new Radius::Dictionary;
+	foreach my $df (@{$config->{'dictionary_list'}}) {
+		# Load dictionary
+		if (!$dict->readfile($df)) {
+			$self->log(LOG_WARN,"[SMRADIUS] Failed to load dictionary '$df': $!");
+		}
+		$self->log(LOG_DEBUG,"[SMRADIUS] Loaded module '$df'.");
+	}
+	$self->log(LOG_NOTICE,"[SMRADIUS] Dictionaries initialized.");
+	# Store the dictionary
+	$self->{'radius'}->{'dictionary'} = $dict;
+
+	$self->log(LOG_NOTICE,"[SMRADIUS] Initializing modules...");
+	# Load modules
+	foreach my $module (@{$config->{'module_list'}}) {
+		# Split off dir and mod name
+		$module =~ /^(\w+)\/(\w+)$/;
+		my ($mod_dir,$mod_name) = ($1,$2);
+
+		# Load module
+		my $res = eval("
+			use smradius::modules::${mod_dir}::${mod_name};
+			plugin_register(\$self,\"${mod_name}\",\$smradius::modules::${mod_dir}::${mod_name}::pluginInfo);
+		");
+		if ($@ || (defined($res) && $res != 0)) {
+			$self->log(LOG_WARN,"[SMRADIUS] Error loading module $module ($@)");
+		} else {
+			$self->log(LOG_DEBUG,"[SMRADIUS] Plugin '$module' loaded.");
+		}
+	}
+	$self->log(LOG_NOTICE,"[SMRADIUS] Plugins initialized.");
+
+	$self->log(LOG_NOTICE,"[SMRADIUS] Initializing system modules.");
+	# Init caching engine
+#	awitpt::cache::Init($self);
+	$self->log(LOG_NOTICE,"[SMRADIUS] System modules initialized.");
+
+}
+
+
+
+# Register plugin info
+sub plugin_register {
+	my ($self,$plugin,$info) = @_;
+
+
+	# If no info, return
+	if (!defined($info)) {
+		print(STDERR "WARNING: Plugin info not found for plugin => $plugin\n");
+		return -1;
+	}
+
+	# Set real module name & save
+	$info->{'Module'} = $plugin;
+	push(@{$self->{'module_list'}},$info);
+
+	# If we should, init the module
+	if (defined($info->{'Init'})) {
+		$info->{'Init'}($self);
+	}
+
+	return 0;
+}
+
+
+# Initialize child
+sub child_init_hook
+{
+	my $self = shift;
+	my $config = $self->{'config'};
+
+
+	$self->SUPER::child_init_hook();
+
+	$self->log(LOG_DEBUG,"[SMRADIUS] Starting up caching engine");
+	awitpt::cache::connect($self);
+
+	# Do we need database support?
+	if ($self->{'smradius'}->{'database'}->{'enabled'}) {
+		# This is the database connection timestamp, if we connect, it resets to 0
+		# if not its used to check if we must kill the child and try a reconnect
+		$self->{'client'}->{'dbh_status'} = time();
+
+		# Init core database support
+		$self->{'client'}->{'dbh'} = awitpt::db::dbilayer::Init($self,'smradius');
+		if (defined($self->{'client'}->{'dbh'})) {
+			# Check if we succeeded
+			if (!($self->{'client'}->{'dbh'}->connect())) {
+			# If we succeeded, record OK
+				$self->{'client'}->{'dbh_status'} = 0;
+			} else {
+				$self->log(LOG_WARN,"[SMRADIUS] Failed to connect to database: ".$self->{'client'}->{'dbh'}->Error().
+						" ($$)");
+			}
+		} else {
+			$self->log(LOG_WARN,"[SMRADIUS] Failed to Initialize: ".awitpt::db::dbilayer::internalError()." ($$)");
+		}
+	}
+
+}
+
+
+
+# Destroy the child
+sub child_finish_hook {
+	my $self = shift;
+	my $server = $self->{'server'};
+
+	$self->SUPER::child_finish_hook();
+
+	$self->log(LOG_DEBUG,"[SMRADIUS] Shutting down caching engine ($$)");
+	awitpt::cache::disconnect($self);
+}
+
+
+# Process requests we get
+sub process_request {
+	my $self = shift;
+	my $server = $self->{'server'};
+	my $client = $self->{'client'};
+	my $log = defined($server->{'config'}{'logging'}{'module_list'});
+
+
+	# Grab packet
+	my $udp_packet = $server->{'udp_data'};
+
+	# Check min size
+	if (length($udp_packet) < 18)
+	{
+		$self->log(LOG_WARN, "[SMRADIUS] Packet too short - Ignoring");
+		return;
+	}
+
+	# Parse packet
+	my $pkt = new Radius::Packet($self->{'radius'}->{'dictionary'},$udp_packet);
+
+	# VERIFY SOURCE SERVER
+	$self->log(LOG_DEBUG,"[SMRADIUS] Packet From = > ".$server->{'peeraddr'});
+
+	# Check if we got connected, if not ... bypass
+	if ($self->{'client'}->{'dbh_status'} > 0) {
+		my $action;
+
+		$self->log(LOG_WARN,"[SMRADIUS] Client in BYPASS mode due to DB connection failure!");
+		# Check bypass mode
+		if (!defined($self->{'inifile'}{'database'}{'bypass_mode'})) {
+			$self->log(LOG_ERR,
+					"[SMRADIUS] No bypass_mode specified for failed database connections, defaulting to tempfail");
+			$action = "tempfail";
+		# Check for "tempfail"
+		} elsif (lc($self->{'inifile'}{'database'}{'bypass_mode'}) eq "tempfail") {
+		# And for "bypass"
+		} elsif (lc($self->{'inifile'}{'database'}{'bypass_mode'}) eq "pass") {
+		}
+
+		# Check if we need to reconnect or not
+		my $timeout = $self->{'inifile'}{'database'}{'bypass_timeout'};
+		if (!defined($timeout)) {
+			$self->log(LOG_ERR,"[SMRADIUS] No bypass_timeout specified for failed database connections, defaulting to 120s");
+			$timeout = 120;
+		}
+		# Get time left
+		my $timepassed = time() - $self->{'client'}->{'dbh_status'};
+		# Then check...
+		if ($timepassed >= $timeout) {
+			$self->log(LOG_NOTICE,"[SMRADIUS] Client BYPASS timeout exceeded, reconnecting...");
+			exit 0;
+		} else {
+			$self->log(LOG_NOTICE,"[SMRADIUS] Client still in BYPASS mode, ".( $timeout - $timepassed ).
+					"s left till next reconnect");
+			return;
+		}
+	}
+
+	# Setup database handle
+	awitpt::db::dblayer::setHandle($self->{'client'}->{'dbh'});
+
+	# Main user hash with everything in
+	my $user;
+	$user->{'ConfigAttributes'} = {};
+	$user->{'ReplyAttributes'} = {};
+	$user->{'ReplyVAttributes'} = {};
+
+	# Private data
+	$user->{'_Internal'} = {
+		'Timestamp-Unix' => defined($pkt->rawattr('Event-Timestamp')) ? $pkt->rawattr('Event-Timestamp') : time()
+	};
+	my $eventTimestamp = DateTime->from_epoch( epoch => $user->{'_Internal'}->{'Timestamp-Unix'} );
+	$user->{'_Internal'}->{'Timestamp'} = $eventTimestamp->strftime('%Y-%m-%d %H:%M:%S');
+
+	# Set username
+	$user->{'Username'} = $pkt->attr('User-Name');
+
+	#
+	# GRAB & PROCESS CONFIG
+	#
+
+	foreach my $module (@{$self->{'module_list'}}) {
+		# Try find config attribute
+		if ($module->{'Config_get'}) {
+
+			# Get result from config module
+			$self->log(LOG_INFO,"[SMRADIUS] CONFIG: Trying plugin '".$module->{'Name'}."' for incoming connection");
+			my $res = $module->{'Config_get'}($self,$user,$pkt);
+
+			# Check result
+			if (!defined($res)) {
+				$self->log(LOG_DEBUG,"[SMRADIUS] CONFIG: Error with plugin '".$module->{'Name'}."'");
+
+			# Check if we skipping this plugin
+			} elsif ($res == MOD_RES_SKIP) {
+				$self->log(LOG_DEBUG,"[SMRADIUS] CONFIG: Skipping '".$module->{'Name'}."'");
+
+			# Check if we got a positive result back
+			} elsif ($res == MOD_RES_ACK) {
+				$self->log(LOG_NOTICE,"[SMRADIUS] CONFIG: Configuration retrieved from '".$module->{'Name'}."'");
+
+			# Check if we got a negative result back
+			} elsif ($res == MOD_RES_NACK) {
+				$self->log(LOG_NOTICE,"[SMRADIUS] CONFIG: Configuration rejection when using '".$module->{'Name'}."'");
+				goto CHECK_RESULT;
+			}
+		}
+	}
+
+	# FIXME - need secret
+	# FIXME - need acl list
+
+	#
+	# START PROCESSING
+	#
+
+	# UserDB module if we using/need it
+	my $userdb;
+
+	# Common stuff for multiple codes....
+	if ($pkt->code eq "Accounting-Request" || $pkt->code eq "Access-Request") {
+
+		#
+		# FIND USER
+		#
+
+		# Loop with modules to try find user
+		foreach my $module (@{$self->{'module_list'}}) {
+			# Try find user
+			if ($module->{'User_find'}) {
+				$self->log(LOG_INFO,"[SMRADIUS] FIND: Trying plugin '".$module->{'Name'}."' for username '".
+						$user->{'Username'}."'");
+				my ($res,$userdb_data) = $module->{'User_find'}($self,$user,$pkt);
+
+				# Check result
+				if (!defined($res)) {
+					$self->log(LOG_DEBUG,"[SMRADIUS] FIND: Error with plugin '".$module->{'Name'}."'");
+
+				# Check if we skipping this plugin
+				} elsif ($res == MOD_RES_SKIP) {
+					$self->log(LOG_DEBUG,"[SMRADIUS] FIND: Skipping '".$module->{'Name'}."'");
+
+				# Check if we got a positive result back
+				} elsif ($res == MOD_RES_ACK) {
+					$self->log(LOG_NOTICE,"[SMRADIUS] FIND: Username found with '".$module->{'Name'}."'");
+					$userdb = $module;
+					$user->{'_UserDB_Data'} = $userdb_data;
+					last;
+
+				# Or a negative result
+				} elsif ($res == MOD_RES_NACK) {
+					$self->log(LOG_NOTICE,"[SMRADIUS] FIND: Username not found with '".$module->{'Name'}."'");
+					last;
+
+				}
+			}
+		}
+	}
+
+
+	# Is this an accounting request
+	if ($pkt->code eq "Accounting-Request") {
+
+		$self->log(LOG_DEBUG,"[SMRADIUS] Accounting Request Packet");
+
+		#
+		# GET USER
+		#
+
+		# Get user data
+		if (defined($userdb) && defined($userdb->{'User_get'})) {
+			my $res = $userdb->{'User_get'}($self,$user,$pkt);
+
+			# Check result
+			if (defined($res) && ref($res) eq "HASH") {
+				# We're only after the attributes here
+				$user->{'Attributes'} = $res->{'Attributes'};
+				$user->{'VAttributes'} = $res->{'VAttributes'};
+			}
+		}
+
+		# Loop with modules to try something that handles accounting
+		foreach my $module (@{$self->{'module_list'}}) {
+			# Try find user
+			if ($module->{'Accounting_log'}) {
+				$self->log(LOG_INFO,"[SMRADIUS] ACCT: Trying plugin '".$module->{'Name'}."'");
+				my $res = $module->{'Accounting_log'}($self,$user,$pkt);
+
+				# Check result
+				if (!defined($res)) {
+					$self->log(LOG_DEBUG,"[SMRADIUS] ACCT: Error with plugin '".$module->{'Name'}."'");
+
+				# Check if we skipping this plugin
+				} elsif ($res == MOD_RES_SKIP) {
+					$self->log(LOG_DEBUG,"[SMRADIUS] ACCT: Skipping '".$module->{'Name'}."'");
+
+				# Check if we got a positive result back
+				} elsif ($res == MOD_RES_ACK) {
+					$self->log(LOG_NOTICE,"[SMRADIUS] ACCT: Accounting logged using '".$module->{'Name'}."'");
+
+				# Check if we got a negative result back
+				} elsif ($res == MOD_RES_NACK) {
+					$self->log(LOG_NOTICE,"[SMRADIUS] ACCT: Accounting NOT LOGGED using '".$module->{'Name'}."'");
+				}
+			}
+		}
+		# Tell the NAS we got its packet
+		my $resp = Radius::Packet->new($self->{'radius'}->{'dictionary'});
+		$resp->set_code('Accounting-Response');
+		$resp->set_identifier($pkt->identifier);
+		$resp->set_authenticator($pkt->authenticator);
+		$udp_packet = auth_resp($resp->pack, getAttributeValue($user->{'ConfigAttributes'},"SMRadius-Config-Secret"));
+		$server->{'client'}->send($udp_packet);
+
+		# Are we going to POD the user?
+		my $PODUser = 0;
+
+		# Loop with modules that have post-authentication hooks
+		foreach my $module (@{$self->{'module_list'}}) {
+			# Try authenticate
+			if ($module->{'Feature_Post-Accounting_hook'}) {
+				$self->log(LOG_INFO,"[SMRADIUS] POST-ACCT: Trying plugin '".$module->{'Name'}."' for '".
+						$user->{'Username'}."'");
+				my $res = $module->{'Feature_Post-Accounting_hook'}($self,$user,$pkt);
+
+				# Check result
+				if (!defined($res)) {
+					$self->log(LOG_DEBUG,"[SMRADIUS] POST-ACCT: Error with plugin '".$module->{'Name'}."'");
+
+				# Check if we skipping this plugin
+				} elsif ($res == MOD_RES_SKIP) {
+					$self->log(LOG_DEBUG,"[SMRADIUS] POST-ACCT: Skipping '".$module->{'Name'}."'");
+
+				# Check if we got a positive result back
+				} elsif ($res == MOD_RES_ACK) {
+					$self->log(LOG_NOTICE,"[SMRADIUS] POST-ACCT: Passed post accounting hook by '".$module->{'Name'}."'");
+
+				# Or a negative result
+				} elsif ($res == MOD_RES_NACK) {
+					$self->log(LOG_NOTICE,"[SMRADIUS] POST-ACCT: Failed post accounting hook by '".$module->{'Name'}."'");
+					$PODUser = 1;
+				}
+			}
+		}
+
+		# Check if we must POD the user
+		if ($PODUser) {
+			$self->log(LOG_DEBUG,"[SMRADIUS] POST-ACCT: Trying to disconnect user...");
+
+			my $resp = Radius::Packet->new($self->{'radius'}->{'dictionary'});
+
+			$resp->set_code('Disconnect-Request');
+			my $id = $$ & 0xff;
+			$resp->set_identifier( $id );
+
+			$resp->set_attr('User-Name',$pkt->attr('User-Name'));
+			$resp->set_attr('Framed-IP-Address',$pkt->attr('Framed-IP-Address'));
+			$resp->set_attr('NAS-IP-Address',$pkt->attr('NAS-IP-Address'));
+
+			$udp_packet = auth_resp($resp->pack, getAttributeValue($user->{'ConfigAttributes'},"SMRadius-Config-Secret"));
+
+			# Check for POD Servers and send disconnect
+			if (defined($user->{'ConfigAttributes'}->{'SMRadius-Config-PODServer'})) {
+				$self->log(LOG_DEBUG,"[SMRADIUS] SMRadius-Config-PODServer is defined");
+
+				# Check address format
+				foreach my $podServerAttribute (@{$user->{'ConfigAttributes'}->{'SMRadius-Config-PODServer'}}) {
+					# Rip out IP and port
+					if ($podServerAttribute =~ /^([0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}):([0-9]+)$/) {
+						my $podServer = $1;
+						my $podServerPort = $2;
+
+						$self->log(LOG_DEBUG,"[SMRADIUS] POST-ACCT: Trying PODServer => IP: '".$podServer."' Port: '".$podServerPort."'");
+
+						# Create socket to send packet out on
+						my $podServerTimeout = "10";  # 10 second timeout
+						my $podSock = new IO::Socket::INET(
+								PeerAddr => $podServer,
+								PeerPort => $podServerPort,
+								Type => SOCK_DGRAM,
+								Proto => 'udp',
+								TimeOut => $podServerTimeout,
+						);
+
+						if (!$podSock) {
+							$self->log(LOG_ERR,"[SMRADIUS] POST-ACCT: Failed to create socket to send POD on");
+							next;
+						}
+
+						# Check if we sent the packet...
+						if (!$podSock->send($udp_packet)) {
+							$self->log(LOG_ERR,"[SMRADIUS] POST-ACCT: Failed to send data on socket");
+							next;
+						}
+
+						# Once sent, we need to get a response back
+						my $sh = new IO::Select($podSock);
+						if (!$sh) {
+							$self->log(LOG_ERR,"[SMRADIUS] POST-ACCT: Failed to select data on socket");
+							next;
+						}
+
+						if (!$sh->can_read($podServerTimeout)) {
+							$self->log(LOG_ERR,"[SMRADIUS] POST-ACCT: Failed to receive data on socket");
+							next;
+						}
+
+						my $data;
+						$podSock->recv($data, 65536);
+						if (!$data) {
+							$self->log(LOG_ERR,"[SMRADIUS] POST-ACCT: Receive data failed");
+						}
+
+						#my @stuff = unpack('C C n a16 a*', $data);
+						#$self->log(LOG_DEBUG,"STUFF: ".Dumper(\@stuff));
+					} else {
+						$self->log(LOG_DEBUG,"[SMRADIUS] Invalid POD Server value: '".$podServerAttribute."'");
+					}
+				}
+			} else {
+				$self->log(LOG_DEBUG,"[SMRADIUS] SMRadius-Config-PODServer is not defined");
+			}
+		}
+
+	# Or maybe a access request
+	} elsif ($pkt->code eq "Access-Request") {
+
+
+		$self->log(LOG_DEBUG,"[SMRADIUS] Access Request Packet");
+
+		# Authentication variables
+		my $authenticated = 0;
+		my $mechanism;
+		# Authorization variables
+		my $authorized = 1;
+
+
+		# If no user is found, bork out ...
+		if (!defined($userdb)) {
+			$self->log(LOG_INFO,"[SMRADIUS] FIND: No plugin found for username '".$user->{'Username'}."'");
+			goto CHECK_RESULT;
+		}
+
+		#
+		# GET USER
+		#
+
+		# Get user data
+		if ($userdb->{'User_get'}) {
+			my $res = $userdb->{'User_get'}($self,$user,$pkt);
+
+			# Check result
+			if (!defined($res) || ref($res) ne "HASH") {
+				$self->log(LOG_WARN,"[SMRADIUS] GET: No data returned from '".$userdb->{'Name'}.
+						"' for username '".$user->{'Username'}."'");
+				goto CHECK_RESULT;
+			}
+			# Setup user dataw
+			$user->{'Attributes'} = $res->{'Attributes'};
+			$user->{'VAttributes'} = $res->{'VAttributes'};
+		} else {
+			$self->log(LOG_INFO,"[SMRADIUS] GET: No 'User_get' function available for module '".$userdb->{'Name'}."'");
+
+			goto CHECK_RESULT;
+		}
+
+		#
+		# AUTHENTICATE USER
+		#
+
+		# Loop with authentication modules
+		foreach my $module (@{$self->{'module_list'}}) {
+			# Try authenticate
+			if ($module->{'Authentication_try'}) {
+				$self->log(LOG_INFO,"[SMRADIUS] AUTH: Trying plugin '".$module->{'Name'}."' for '".$user->{'Username'}."'");
+				my $res = $module->{'Authentication_try'}($self,$user,$pkt);
+
+				# Check result
+				if (!defined($res)) {
+					$self->log(LOG_DEBUG,"[SMRADIUS] AUTH: Error with plugin '".$module->{'Name'}."'");
+
+				# Check if we skipping this plugin
+				} elsif ($res == MOD_RES_SKIP) {
+					$self->log(LOG_DEBUG,"[SMRADIUS] AUTH: Skipping '".$module->{'Name'}."'");
+
+				# Check if we got a positive result back
+				} elsif ($res == MOD_RES_ACK) {
+					$self->log(LOG_NOTICE,"[SMRADIUS] AUTH: Authenticated by '".$module->{'Name'}."'");
+					$mechanism = $module;
+					$authenticated = 1;
+					last;
+
+				# Or a negative result
+				} elsif ($res == MOD_RES_NACK) {
+					$self->log(LOG_NOTICE,"[SMRADIUS] AUTH: Failed authentication by '".$module->{'Name'}."'");
+					$mechanism = $module;
+					last;
+
+				}
+			}
+		}
+
+		# Loop with modules that have post-authentication hooks
+		if ($authenticated) {
+			foreach my $module (@{$self->{'module_list'}}) {
+				# Try authenticate
+				if ($module->{'Feature_Post-Authentication_hook'}) {
+					$self->log(LOG_INFO,"[SMRADIUS] POST-AUTH: Trying plugin '".$module->{'Name'}.
+							"' for '".$user->{'Username'}."'");
+
+					my $res = $module->{'Feature_Post-Authentication_hook'}($self,$user,$pkt);
+
+					# Check result
+					if (!defined($res)) {
+						$self->log(LOG_DEBUG,"[SMRADIUS] POST-AUTH: Error with plugin '".$module->{'Name'}."'");
+
+					# Check if we skipping this plugin
+					} elsif ($res == MOD_RES_SKIP) {
+						$self->log(LOG_DEBUG,"[SMRADIUS] POST-AUTH: Skipping '".$module->{'Name'}."'");
+
+					# Check if we got a positive result back
+					} elsif ($res == MOD_RES_ACK) {
+						$self->log(LOG_NOTICE,"[SMRADIUS] POST-AUTH: Passed authenticated by '".$module->{'Name'}."'");
+
+					# Or a negative result
+					} elsif ($res == MOD_RES_NACK) {
+						$self->log(LOG_NOTICE,"[SMRADIUS] POST-AUTH: Failed authentication by '".$module->{'Name'}."'");
+						$authenticated = 0;
+						# Do we want to run the other modules ??
+						last;
+					}
+				}
+			}
+		}
+
+		#
+		# AUTHORIZE USER
+		#
+
+		# Build a list of our attributes in the packet
+		my $authAttributes;
+		foreach my $attr ($pkt->attributes) {
+			$authAttributes->{$attr} = $pkt->rawattr($attr);
+		}
+		# Loop with attributes we got from the user
+		foreach my $attrName (keys %{$user->{'Attributes'}}) {
+			# Loop with operators
+			foreach my $attrOp (keys %{$user->{'Attributes'}->{$attrName}}) {
+				# Grab attribute
+				my $attr = $user->{'Attributes'}->{$attrName}->{$attrOp};
+				# Check attribute against authorization attributes
+				my $res = checkAuthAttribute($self,$authAttributes,$attr);
+				if ($res == 0) {
+					$authorized = 0;
+					last;
+				}
+			}
+			# We don't want to process everyting if something doesn't match
+			last if (!$authorized);
+		}
+
+		# Check if we authenticated or not
+		if ($authenticated && $authorized) {
+			$self->log(LOG_DEBUG,"[SMRADIUS] Authenticated and authorized");
+
+			my $resp = Radius::Packet->new($self->{'radius'}->{'dictionary'});
+		 	$resp->set_code('Access-Accept');
+			$resp->set_identifier($pkt->identifier);
+			$resp->set_authenticator($pkt->authenticator);
+
+			# Loop with attributes we got from the getReplyAttributes function, its a hash of arrays which are the values
+			my %replyAttributes = %{ $user->{'ReplyAttributes'} };
+			foreach my $attrName (keys %{$user->{'Attributes'}}) {
+				# Loop with operators
+				foreach my $attrOp (keys %{$user->{'Attributes'}->{$attrName}}) {
+					# Grab attribute
+					my $attr = $user->{'Attributes'}->{$attrName}->{$attrOp};
+					# Add this to the reply attribute?
+					setReplyAttribute($self,\%replyAttributes,$attr);
+				}
+			}
+			# Loop with reply attributes
+			foreach my $attrName (keys %replyAttributes) {
+				# Loop with values
+				foreach my $value (@{$replyAttributes{$attrName}}) {
+					# Add each value
+					$resp->set_attr($attrName,$value);
+				}
+			}
+			# Loop with vendor reply attributes
+			my %replyVAttributes = %{ $user->{'ReplyVAttributes'} };
+			foreach my $attrName (keys %{$user->{'VAttributes'}}) {
+				# Loop with operators
+				foreach my $attrOp (keys %{$user->{'VAttributes'}->{$attrName}}) {
+					# Grab attribute
+					my $attr = $user->{'VAttributes'}->{$attrName}->{$attrOp};
+					# Add this to the reply attribute?
+					setReplyVAttribute($self,\%replyVAttributes,$attr);
+				}
+			}
+			foreach my $vendor (keys %replyVAttributes) {
+				# Loop with operators
+				foreach my $attrName (keys %{$replyVAttributes{$vendor}}) {
+					# Add each value
+					foreach my $value (@{$replyVAttributes{$vendor}->{$attrName}}) {
+						$resp->set_vsattr($vendor,$attrName,$value);
+					}
+				}
+			}
+
+			$udp_packet = auth_resp($resp->pack, getAttributeValue($user->{'ConfigAttributes'},"SMRadius-Config-Secret"));
+			$server->{'client'}->send($udp_packet);
+
+		}
+
+CHECK_RESULT:
+		# Check if found and authenticated
+		if (!$authenticated || !$authorized) {
+			$self->log(LOG_DEBUG,"[SMRADIUS] Authentication or authorization failure");
+
+			my $resp = Radius::Packet->new($self->{'radius'}->{'dictionary'});
+		 	$resp->set_code('Access-Reject');
+			$resp->set_identifier($pkt->identifier);
+			$resp->set_authenticator($pkt->authenticator);
+			$udp_packet = auth_resp($resp->pack, getAttributeValue($user->{'ConfigAttributes'},"SMRadius-Config-Secret"));
+			$server->{'client'}->send($udp_packet);
+		}
+
+	# We don't know how to handle this
+	} else {
+		$self->log(LOG_WARN,"[SMRADIUS] We cannot handle code: '".$pkt->code."'");
+	}
+
+	return;
+}
+
+
+# Initialize child
+sub server_exit
+{
+	my $self = shift;
+
+
+	$self->log(LOG_DEBUG,"Destroying system modules.");
+	# Destroy cache
+#	cbp::cache::Destroy($self);
+	$self->log(LOG_DEBUG,"System modules destroyed.");
+
+	# Parent exit
+	$self->SUPER::server_exit();
+}
+
+
+
+# Slightly better logging
+sub log
+{
+	my ($self,$level,$msg,@args) = @_;
+
+	# Check log level and set text
+	my $logtxt = "UNKNOWN";
+	if ($level == LOG_DEBUG) {
+		$logtxt = "DEBUG";
+	} elsif ($level == LOG_INFO) {
+		$logtxt = "INFO";
+	} elsif ($level == LOG_NOTICE) {
+		$logtxt = "NOTICE";
+	} elsif ($level == LOG_WARN) {
+		$logtxt = "WARNING";
+	} elsif ($level == LOG_ERR) {
+		$logtxt = "ERROR";
+	}
+
+	# Parse message nicely
+	if ($msg =~ /^(\[[^\]]+\]) (.*)/s) {
+		$msg = "$1 $logtxt: $2";
+	} else {
+		$msg = "[CORE] $logtxt: $msg";
+	}
+
+	$self->SUPER::log($level,"[".$self->log_time." - $$] $msg",@args);
+}
+
+
+
+# Display help
+sub displayHelp {
+	print(STDERR "SMRadius v".VERSION." - Copyright (c) 2007-2009, AllWorldIT\n");
+
+	print(STDERR<<EOF);
+
+Usage: $0 [args]
+    --config=<file>        Configuration file
+    --debug                Put into debug mode
+    --fg                   Don't go into background
+
+EOF
+}
+
+
+
+
+__PACKAGE__->run;
+
+
+1;
+# vim: ts=4

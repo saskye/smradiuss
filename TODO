@@ -1,0 +1,10 @@
+smradiusd:
+* Eval around actual code in process_request?
+
+* Strip off whitespaces around attributes
+
+usage related queries:
+* Use Math module to perform calculations
+
+smadmin:
+* Update or possibly ignore entries instead of deleting (topup summaries)

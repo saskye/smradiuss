@@ -1,0 +1,265 @@
+@PRELOAD@
+
+
+
+/* Users */
+CREATE TABLE @PREFIX@users (
+	ID			@SERIAL_TYPE@,
+
+	Username		VARCHAR(255) NOT NULL,
+
+	Disabled		SMALLINT NOT NULL DEFAULT '0',
+
+	UNIQUE (Username)
+) @CREATE_TABLE_SUFFIX@;
+CREATE INDEX @PREFIX@users_idx1 ON @PREFIX@users (Username);
+
+/* User attributes */
+CREATE TABLE @PREFIX@user_attributes (
+	ID			@SERIAL_TYPE@,
+
+	UserID			@SERIAL_REF_TYPE@ NOT NULL,
+
+	Name			VARCHAR(255) NOT NULL,
+	Operator		VARCHAR(4) NOT NULL,
+	Value			VARCHAR(255),
+
+	Disabled		SMALLINT NOT NULL DEFAULT '0',
+
+	FOREIGN KEY (UserID) REFERENCES @PREFIX@users(ID)
+) @CREATE_TABLE_SUFFIX@;
+
+
+
+/* Groups */
+CREATE TABLE @PREFIX@groups (
+	ID			@SERIAL_TYPE@,
+
+	Name			VARCHAR(255) NOT NULL,
+
+	Priority		SMALLINT NOT NULL,
+
+	Disabled		SMALLINT NOT NULL DEFAULT '0',
+
+	Comment			VARCHAR(1024)
+
+)  @CREATE_TABLE_SUFFIX@;
+CREATE INDEX @PREFIX@groups_idx1 ON @PREFIX@groups (Name);
+
+/* Group attributes */
+CREATE TABLE @PREFIX@group_attributes (
+	ID			@SERIAL_TYPE@,
+
+	GroupID			@SERIAL_REF_TYPE@ NOT NULL,
+
+	Name			VARCHAR(255) NOT NULL,
+	Operator		VARCHAR(4) NOT NULL,
+	Value			VARCHAR(255),
+
+	Disabled		SMALLINT NOT NULL DEFAULT '0',
+
+	FOREIGN KEY (GroupID) REFERENCES @PREFIX@groups(ID)
+) @CREATE_TABLE_SUFFIX@;
+
+/* User to group mapping */
+CREATE TABLE @PREFIX@users_to_groups (
+	ID			@SERIAL_TYPE@,
+
+	UserID			@SERIAL_REF_TYPE@ NOT NULL,
+	GroupID			@SERIAL_REF_TYPE@ NOT NULL,
+
+	Disabled		SMALLINT NOT NULL DEFAULT '0',
+	Comment			VARCHAR(1024),
+
+	UNIQUE (UserID,GroupID),
+	FOREIGN KEY (UserID) REFERENCES @PREFIX@users(ID),
+	FOREIGN KEY (GroupID) REFERENCES @PREFIX@groups(ID)
+)  @CREATE_TABLE_SUFFIX@;
+CREATE INDEX @PREFIX@users_to_groups_idx1 ON @PREFIX@users_to_groups (UserID,GroupID);
+
+
+
+/* Realms */
+CREATE TABLE @PREFIX@realms (
+	ID			@SERIAL_TYPE@,
+
+	Name			VARCHAR(255) NOT NULL,
+
+	Disabled		SMALLINT NOT NULL DEFAULT '0'
+
+)  @CREATE_TABLE_SUFFIX@;
+CREATE INDEX @PREFIX@realms_idx1 ON @PREFIX@realms (Name);
+
+/* Realm attributes */
+CREATE TABLE @PREFIX@realm_attributes (
+	ID			@SERIAL_TYPE@,
+
+	RealmID			@SERIAL_REF_TYPE@ NOT NULL,
+
+	Name			VARCHAR(255) NOT NULL,
+	Operator		VARCHAR(4) NOT NULL,
+	Value			VARCHAR(255),
+
+	Disabled		SMALLINT NOT NULL DEFAULT '0',
+
+	FOREIGN KEY (RealmID) REFERENCES @PREFIX@realms(ID)
+) @CREATE_TABLE_SUFFIX@;
+
+/* Client to realm mapping */
+CREATE TABLE @PREFIX@clients_to_realms (
+	ID			@SERIAL_TYPE@,
+
+	ClientID		@SERIAL_REF_TYPE@ NOT NULL,
+	RealmID			@SERIAL_REF_TYPE@ NOT NULL,
+
+	Disabled		SMALLINT NOT NULL DEFAULT '0',
+	Comment			VARCHAR(1024),
+
+	UNIQUE (ClientID,RealmID),
+	FOREIGN KEY (ClientID) REFERENCES @PREFIX@clients(ID),
+	FOREIGN KEY (RealmID) REFERENCES @PREFIX@realms(ID)
+)  @CREATE_TABLE_SUFFIX@;
+
+
+
+/* Clients */
+CREATE TABLE @PREFIX@clients (
+	ID			@SERIAL_TYPE@,
+
+	Name			VARCHAR(255) NOT NULL,
+	AccessList		VARCHAR(255),
+
+	Disabled		SMALLINT NOT NULL DEFAULT '0',
+
+	UNIQUE (Name)
+) @CREATE_TABLE_SUFFIX@;
+
+/* Client attributes */
+CREATE TABLE @PREFIX@client_attributes (
+	ID			@SERIAL_TYPE@,
+
+	ClientID		@SERIAL_REF_TYPE@ NOT NULL,
+
+	Name			VARCHAR(255) NOT NULL,
+	Operator		VARCHAR(4) NOT NULL,
+	Value			VARCHAR(255),
+
+	Disabled		SMALLINT NOT NULL DEFAULT '0',
+
+	FOREIGN KEY (ClientID) REFERENCES @PREFIX@clients(ID)
+) @CREATE_TABLE_SUFFIX@;
+
+
+
+/* Topups */
+CREATE TABLE @PREFIX@topups (
+	ID			@SERIAL_TYPE@,
+
+	UserID			@SERIAL_REF_TYPE@ NOT NULL,
+
+	Timestamp		DATETIME,
+
+				/* 1 = traffic topup, 2 = uptime topup */
+	Type			@INT_UNSIGNED@,
+
+	ValidFrom		DATETIME,
+	ValidTo			DATETIME,
+
+	Value			@INT_UNSIGNED@,
+
+	Depleted		SMALLINT NOT NULL DEFAULT '0',
+
+	FOREIGN KEY (UserID) REFERENCES @PREFIX@users(ID)
+) @CREATE_TABLE_SUFFIX@;
+
+/* Topups Summary */
+CREATE TABLE @PREFIX@topups_summary (
+	ID			@SERIAL_TYPE@,
+
+	TopupID			@SERIAL_REF_TYPE@ NOT NULL,
+
+	PeriodKey		VARCHAR(255) NOT NULL, 
+
+	Balance			@INT_UNSIGNED@,
+
+	Depleted		SMALLINT NOT NULL DEFAULT '0',
+
+	FOREIGN KEY (TopupID) REFERENCES @PREFIX@topups(ID)
+) @CREATE_TABLE_SUFFIX@;
+
+
+
+/* Accounting */
+CREATE TABLE @PREFIX@accounting (
+	ID			@SERIAL_TYPE@,
+
+	Username		VARCHAR(255),
+
+	ServiceType		@INT_UNSIGNED@,
+
+	FramedProtocol		@INT_UNSIGNED@, 
+
+	NASPort			VARCHAR(255),
+
+	NASPortType		@INT_UNSIGNED@,
+
+	CallingStationID	VARCHAR(255), 
+
+	CalledStationID		VARCHAR(255),
+
+	NASPortID		VARCHAR(255),
+
+	AcctSessionID		VARCHAR(255),
+
+	FramedIPAddress		VARCHAR(16),
+
+	AcctAuthentic		@INT_UNSIGNED@,
+
+	EventTimestamp		DATETIME,
+
+	NASIdentifier		VARCHAR(255),
+
+	NASIPAddress		VARCHAR(16),
+
+	AcctDelayTime		@INT_UNSIGNED@,
+
+	AcctSessionTime		@INT_UNSIGNED@,
+
+	AcctInputOctets		@INT_UNSIGNED@,
+
+	AcctInputGigawords	@INT_UNSIGNED@,
+
+	AcctInputPackets	@INT_UNSIGNED@,
+
+	AcctOutputOctets	@INT_UNSIGNED@,
+
+	AcctOutputGigawords	@INT_UNSIGNED@,
+
+	AcctOutputPackets	@INT_UNSIGNED@,
+
+	AcctStatusType		@INT_UNSIGNED@,
+
+	AcctTerminateCause	@INT_UNSIGNED@
+) @CREATE_TABLE_SUFFIX@;
+CREATE INDEX @PREFIX@accounting_idx1 ON @PREFIX@accounting (Username);
+
+
+
+/* Accounting Summary */
+CREATE TABLE @PREFIX@accounting_summary (
+	ID			@SERIAL_TYPE@,
+
+	Username		VARCHAR(255),
+
+	PeriodKey		DATETIME,
+
+	AcctSessionTime		@INT_UNSIGNED@,
+
+	AcctInputOctets		@INT_UNSIGNED@,
+
+	AcctInputGigawords	@INT_UNSIGNED@,
+
+	AcctOutputOctets	@INT_UNSIGNED@,
+
+	AcctOutputGigawords	@INT_UNSIGNED@
+) @CREATE_TABLE_SUFFIX@;

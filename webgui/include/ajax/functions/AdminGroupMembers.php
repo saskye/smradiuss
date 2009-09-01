@@ -1,0 +1,64 @@
+<?php
+
+include_once("include/db.php");
+
+# Remove group member
+function removeAdminGroupMember($params) {
+
+	$res = DBDo("DELETE FROM users_to_groups WHERE ID = ?",array($params[0]));
+
+	# Return result
+	if ($res !== TRUE) {
+		return $res;
+	}
+
+	return NULL;
+}
+
+# Return list of members
+function getAdminGroupMembers($params) {
+
+	# Filters and sorts are the same here
+	$filtersorts = array(
+		'ID' => 'users_to_groups.ID',
+		'Username' => 'group_attributes.Username',
+		'Disabled' => 'group_attributes.Disabled'
+	);
+
+	# Fetch members
+	$res = DBSelectSearch("
+			SELECT 
+				users_to_groups.ID, users.Username, users.Disabled 
+			FROM 
+				users_to_groups, users
+			WHERE 
+				users.ID = users_to_groups.UserID
+			AND
+				users_to_groups.GroupID = ".DBQuote($params[0])."
+		",$params[1],$filtersorts,$filtersorts);
+
+	$sth = $res[0]; $numResults = $res[1];
+
+	# If STH is blank, return the error back to whoever requested the data
+	if (!isset($sth)) {
+		return $res;
+	}
+
+
+	# Loop through rows
+	$resultArray = array();
+	while ($row = $sth->fetchObject()) {
+		$item = array();
+
+		$item['ID'] = $row->id;
+		$item['Username'] = $row->username;
+		$item['Disabled'] = $row->disabled;
+
+		# Push this row onto array
+		array_push($resultArray,$item);
+	}
+
+	return array($resultArray,$numResults);
+}
+
+# vim: ts=4
