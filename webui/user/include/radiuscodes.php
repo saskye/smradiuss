@@ -23,38 +23,54 @@
 function strRadiusTermCode($errCode) {
 
 	if (is_numeric($errCode)) {
-
+		# Terminate codes RFC 2866
 		switch ($errCode) {
-			case 0:
-				return "Still logged in";
-			case 45: # Unknown
-			case 46: # Unknown
-			case 63: # Unknown
 			case 1:
-				return "User request";
+				return "User Request";
 			case 2:
-			case 816: # TCP connection reset? unknown
-				return "Carrier loss";
+				return "Lost Carrier";
+			case 3:
+				return "Lost Service";
+			case 4:
+				return "Idle Timeout";
 			case 5:
-				return "Session timeout";
-			case 6: # Admin reset
-			case 10: # NAS request
-			case 11: # NAS reboot
-			case 831: # NAS request? unknown
-			case 841: # NAS request? unknown
-				return "Router reset/reboot";
-			case 8: # Port error
-				return "Port error";
-			case 180: # Unknown
-				return "Local hangup";
-			case 827: # Unknown
-				return "Service unavailable";
+				return "Session Timeout";
+			case 6:
+				return "Admin Reset";
+			case 7:
+				return "Admin Reboot";
+			case 8:
+				return "Port Error";
+			case 9:
+				return "NAS Error";
+			case 10:
+				return "NAS Request";
+			case 11:
+				return "NAS Reboot";
+			case 12:
+				return "Port Unneeded";
+			case 13:
+				return "Port Preempted";
+			case 14:
+				return "Port Suspended";
+			case 15:
+				return "Service Unavailable";
+			case 16:
+				return "Callback";
+			case 17:
+				return "User Error";
+			case 18:
+				return "Host Request";
 			default:
 				return "Unkown";
 		}
-
 	} else {
-		return "Unknown";
+		switch ($errCode) {
+			case NULL:
+				return "Still logged in";
+			default:
+				return "Unkown";
+		}
 	}
 
 }

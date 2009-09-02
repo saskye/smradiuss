@@ -401,7 +401,7 @@ function getAdminUserLogs($params) {
 		$item['AcctInputMbyte'] = $acctInputMbyte;
 		$item['AcctOutputMbyte'] = $acctOutputMbyte;
 		$item['AcctSessionTime'] = $acctSessionTime;
-		$item['ConnectTermReason'] = strRadiusTermCode($row->servicetype);
+		$item['ConnectTermReason'] = strRadiusTermCode($row->acctterminatecause);
 
 		# Push this row onto main array
 		array_push($resultArray,$item);
