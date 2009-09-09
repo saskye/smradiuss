@@ -24,7 +24,7 @@ function showAdminUserTopupsWindow(userID) {
 		// Window config
 		{
 			title: "User Topups",
-			iconCls: 'silk-building',
+			iconCls: 'silk-chart_bar',
 
 			width: 500,
 			height: 335,
@@ -38,7 +38,7 @@ function showAdminUserTopupsWindow(userID) {
 				{
 					text:'Add',
 					tooltip:'Add topup',
-					iconCls:'silk-building_add',
+					iconCls:'silk-chart_bar_add',
 					handler: function() {
 						showAdminUserTopupAddEditWindow(userID,0);
 					}
@@ -47,7 +47,7 @@ function showAdminUserTopupsWindow(userID) {
 				{
 					text:'Edit',
 					tooltip:'Edit topup',
-					iconCls:'silk-building_edit',
+					iconCls:'silk-chart_bar_edit',
 					handler: function() {
 						var selectedItem = Ext.getCmp(adminUserTopupsWindow.gridPanelID).getSelectionModel().getSelected();
 						// Check if we have selected item
@@ -75,7 +75,7 @@ function showAdminUserTopupsWindow(userID) {
 				{
 					text:'Remove',
 					tooltip:'Remove topup',
-					iconCls:'silk-building_delete',
+					iconCls:'silk-chart_bar_delete',
 					handler: function() {
 						var selectedItem = Ext.getCmp(adminUserTopupsWindow.gridPanelID).getSelectionModel().getSelected();
 						// Check if we have selected item
@@ -176,7 +176,7 @@ function showAdminUserTopupAddEditWindow(userID,topupID) {
 
 	// We doing an update
 	if (topupID) {
-		icon = 'silk-building_edit';
+		icon = 'silk-chart_bar_edit';
 		submitAjaxConfig = {
 			ID: topupID,
 			SOAPFunction: 'updateAdminUserTopup',
@@ -186,7 +186,7 @@ function showAdminUserTopupAddEditWindow(userID,topupID) {
 		};
 	// We doing an Add
 	} else {
-		icon = 'silk-building_add';
+		icon = 'silk-chart_bar_add';
 		submitAjaxConfig = {
 			UserID: userID,
 			SOAPFunction: 'createAdminUserTopup',
@@ -248,6 +248,7 @@ function showAdminUserTopupAddEditWindow(userID,topupID) {
 					name: 'ValidFrom',
 					id: 'ValidFrom',
 					vtype: 'daterange',
+					disabledDates: ["(0(2|3|4|5|6|7|8|9)|1[0-9]|2[0-9]|3[0-1])$"],
 					value: firstOfMonth,
 					format: 'Y-m-d',
 					endDateField: 'ValidTo'
@@ -258,6 +259,7 @@ function showAdminUserTopupAddEditWindow(userID,topupID) {
 					name: 'ValidTo',
 					id: 'ValidTo',
 					vtype: 'daterange',
+					disabledDates: ["(0(2|3|4|5|6|7|8|9)|1[0-9]|2[0-9]|3[0-1])$"],
 					value: firstOfNext,
 					format: 'Y-m-d',
 					startDateField: 'ValidFrom'

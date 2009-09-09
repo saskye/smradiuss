@@ -132,7 +132,7 @@ function showWiSPUserWindow() {
 				{
 					text:'Topups',
 					tooltip:'User topups',
-					iconCls:'silk-building',
+					iconCls:'silk-chart_bar',
 					handler: function() {
 						var selectedItem = Ext.getCmp(WiSPUserWindow.gridPanelID).getSelectionModel().getSelected();
 						// Check if we have selected item

@@ -188,7 +188,7 @@ function showAdminUserWindow() {
 				{
 					text:'Topups',
 					tooltip:'User topups',
-					iconCls:'silk-building',
+					iconCls:'silk-chart_bar',
 					handler: function() {
 						var selectedItem = Ext.getCmp(AdminUserWindow.gridPanelID).getSelectionModel().getSelected();
 						// Check if we have selected item
