@@ -784,9 +784,11 @@ sub cleanup
 		# Loop through summary topups
 		foreach my $summaryTopup (@summaryTopups) {
 
-			# Delete any previous record of this summary
-			$sth = DBDo('
-				DELETE FROM
+			# Check if this record exists
+			my $sth = DBSelect('
+				SELECT
+					COUNT(*) as rowCount
+				FROM
 					@TP@topups_summary
 				WHERE
 					TopupID = ?
@@ -795,24 +797,51 @@ sub cleanup
 			);
 
 			if (!$sth) {
-				$server->log(LOG_ERR,"[MOD_CONFIG_SQL_TOPUPS] Cleanup => Failed to delete previous record: ".
+				$server->log(LOG_ERR,"[MOD_CONFIG_SQL_TOPUPS] Cleanup => Failed to check for existing record: ".
 						awitpt::db::dblayer::Error());
 				goto FAIL_ROLLBACK;
 			}
 
-			# Insert topup summary
-			$sth = DBDo('
-				INSERT INTO
-					@TP@topups_summary (TopupID,PeriodKey,Balance)
-				VALUES
-					(?,?,?)
-				',
-				$summaryTopup->{'ID'},$periodKey,$summaryTopup->{'Balance'}
+			my $recordCheck = $sth->fetchrow_hashref();
+			$recordCheck = hashifyLCtoMC(
+				$recordCheck,
+				qw(rowCount)
 			);
-			if (!$sth) {
-				$server->log(LOG_ERR,"[MOD_CONFIG_SQL_TOPUPS] Cleanup => Failed to update topups_summary: ".
-						awitpt::db::dblayer::Error());
-				goto FAIL_ROLLBACK;
+
+			# Update topup summary
+			if (defined($recordCheck->{'rowCount'}) && $recordCheck->{'rowCount'} > 0) {
+				$sth = DBDo('
+					UPDATE
+						@TP@topups_summary
+					SET
+						Balance = ?
+					WHERE
+						TopupID = ?
+						AND PeriodKey = ?',
+					$summaryTopup->{'Balance'},$summaryTopup->{'ID'},$periodKey
+				);
+
+				if (!$sth) {
+					$server->log(LOG_ERR,"[MOD_CONFIG_SQL_TOPUPS] Cleanup => Failed to delete previous record: ".
+							awitpt::db::dblayer::Error());
+					goto FAIL_ROLLBACK;
+				}
+			# Insert topup summary
+			} else {
+				$sth = DBDo('
+					INSERT INTO
+						@TP@topups_summary (TopupID,PeriodKey,Balance)
+					VALUES
+						(?,?,?)
+					',
+					$summaryTopup->{'ID'},$periodKey,$summaryTopup->{'Balance'}
+				);
+
+				if (!$sth) {
+					$server->log(LOG_ERR,"[MOD_CONFIG_SQL_TOPUPS] Cleanup => Failed to update topups_summary: ".
+							awitpt::db::dblayer::Error());
+					goto FAIL_ROLLBACK;
+				}
 			}
 		}
 
