@@ -42,8 +42,12 @@ function getWiSPUserLogsSummary($params) {
 	$resultArray['uptimeCap'] = $uptimeCap;
 
 	# Dates we want to use to search search
-	$dateFrom = new DateTime($params[0]['From']);
-	$dateTo = new DateTime($params[0]['To']);
+	$periodKey = new DateTime($params[0]['PeriodKey']);
+
+	# Return if error
+	if (!is_object($periodKey)) {
+		return $periodKey;
+	}
 
 	# Fetch user uptime and traffic summary
 	$res = DBSelect("
@@ -61,7 +65,7 @@ function getWiSPUserLogsSummary($params) {
 			AND topups.Depleted = 0
 		ORDER BY
 			topups.Timestamp",
-			array($params[0]['ID'],$dateFrom->format('Y-m'))
+			array($params[0]['ID'],$periodKey->format('Y-m'))
 	);
 
 	# Return if error
@@ -93,7 +97,7 @@ function getWiSPUserLogsSummary($params) {
 			AND topups.Depleted = 0
 		ORDER BY
 			topups.Timestamp",
-			array($params[0]['ID'],$dateFrom->format('Y-m-d'),$dateTo->format('Y-m-d'))
+			array($params[0]['ID'],$periodKey->format('Y-m-d'),$periodKey->format('Y-m-d'))
 	);
 
 	# Return if error
@@ -120,9 +124,9 @@ function getWiSPUserLogsSummary($params) {
 			accounting, users
 		WHERE
 			users.ID = ?
-			AND EventTimestamp >= ?
+			AND PeriodKey = ?
 			AND accounting.Username = users.Username",
-			array($params[0]['ID'],$dateFrom->format('Y-m-d'))
+			array($params[0]['ID'],$periodKey->format('Y-m'))
 	);
 
 	if (!is_object($res)) {

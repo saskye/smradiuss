@@ -25,12 +25,13 @@ function showAdminUserLogsWindow(id) {
 	var firstOfNext = today.getLastDateOfMonth().add(Date.DAY, 1);
 
 	var formID = Ext.id();
-	var formAfterID = Ext.id();
-	var formBeforeID = Ext.id();
+	var formPeriodKeyID = Ext.id();
 	var formSearchButtonID = Ext.id();
+
 	var summaryFormID = Ext.id();
 	var summaryTotalID = Ext.id();
 
+	var currentPeriod = today.format('Y-m');
 
 	var adminUserLogsWindow = new Ext.ux.GenericGridWindow(
 		// Window config
@@ -52,30 +53,20 @@ function showAdminUserLogsWindow(id) {
 					region: 'west',
 					border: true,
 					frame: true,
-					defaultType: 'datefield',
 					height: 180,
 					width: 320,
 					labelWidth: 100,
 					items: [
 						{
-							id: formAfterID,
-							name: 'after',
-							width: 180,
-							fieldLabel: 'From',
-							vtype: 'daterange',
-							format: 'Y-m-d',
-							value: firstOfMonth,
-							endDateField: formBeforeID
-						},
-						{
-							id: formBeforeID,
-							name: 'before',
-							width: 180,
-							fieldLabel: 'To',
-							vtype: 'daterange',
-							format: 'Y-m-d',
-							value: firstOfNext,
-							startDateField: formAfterID
+							id: formPeriodKeyID,
+							xtype: 'textfield',
+							name: 'periodkey',
+							regex: /^\d{4}\-(0[1-9]|1(0|1|2))$/,
+							regexText: 'Please enter month in the format: YYYY-MM',
+							height: 25,
+							width: 100,
+							fieldLabel: 'Period',
+							value: currentPeriod
 						}
 					],
 					buttons: [
@@ -85,7 +76,6 @@ function showAdminUserLogsWindow(id) {
 							handler: function() {
 								// Pull in window, grid & form	
 								var grid = Ext.getCmp(adminUserLogsWindow.gridPanelID);
-								var form = Ext.getCmp(formID);
 
 								// Grab store
 								var store = grid.getStore();
@@ -94,18 +84,24 @@ function showAdminUserLogsWindow(id) {
 								var gridFilters = grid.filters;
 								var timestampFilter = gridFilters.getFilter('EventTimestamp');
 
-								// Grab	form fields
-								var afterField = Ext.getCmp(formAfterID);
-								var beforeField = Ext.getCmp(formBeforeID);
+								// Grab	form field
+								var periodKeyField = Ext.getCmp(formPeriodKeyID);
+								if (periodKeyField.isValid()) {
+									var periodKeyValue = periodKeyField.getValue();
 
-								// Set filter values from form
-								timestampFilter.setValue({
-									after: afterField.getValue(),
-									before: beforeField.getValue()
-								});
+									// Convert our periodKey into DateTime values
+									var dtSearchStart = Date.parseDate(periodKeyValue+'-01','Y-m-d');
+									var dtSearchEnd = dtSearchStart.add(Date.MONTH,1);
 
-								// Trigger store reload
-								store.reload();
+									// Set filter values from form
+									timestampFilter.setValue({
+										after: dtSearchStart,
+										before: dtSearchEnd
+									});
+
+									// Trigger store reload
+									store.reload();
+								}
 							}
 						}
 					],
@@ -262,8 +258,7 @@ function showAdminUserLogsWindow(id) {
 		var outputTotal = store.sum('AcctOutputMbyte');
 		var uptimeTotal = store.sum('AcctSessionTime');
 
-		var afterField = (Ext.getCmp(formAfterID)).getValue();
-		var beforeField = (Ext.getCmp(formBeforeID)).getValue();
+		var periodKeyField = (Ext.getCmp(formPeriodKeyID)).getValue();
 
 		// Mask parent window
 		adminUserLogsWindow.getEl().mask();
@@ -272,15 +267,14 @@ function showAdminUserLogsWindow(id) {
 			adminUserLogsWindow,
 			{
 				params: {
-					From: afterField,
-					To: beforeField,
+					From: periodKeyField,
 					ID: id,
 					SOAPUsername: globalConfig.soap.username,
 					SOAPPassword: globalConfig.soap.password,
 					SOAPAuthType: globalConfig.soap.authtype,
 					SOAPModule: 'AdminUserLogs',
 					SOAPFunction: 'getAdminUserLogsSummary',
-					SOAPParams: '0:ID,0:From,0:To'
+					SOAPParams: '0:ID,0:PeriodKey'
 				},
 
 				customSuccess: function (result) {
