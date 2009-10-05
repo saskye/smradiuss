@@ -43,6 +43,16 @@ function displayLogs() {
 					<p class="middle center">
 					Display logs between
 <?php
+					# Validate dates before sending
+					if (isset($_POST['searchFrom'])) {
+						if (!(preg_match("/^\d{4}\-(0[1-9]|1[0-2])\-(0[1-9]|1[0-9]|2[0-9]|3[0-1])$/",$_POST['searchFrom']))) {
+							unset($_POST['searchFrom']);
+						}
+					}
+					if (isset($_POST['searchFrom'])) {
+						$searchFrom = date("Y-m-d",strtotime($_POST['searchFrom']));
+						$_POST['searchFrom'] = $searchFrom;
+					}
 					if (isset($_POST['searchFrom'])) {
 ?>
 						<input type="text" name="searchFrom" size="11" value="<?php echo $_POST['searchFrom'] ?>"/> 
@@ -55,6 +65,16 @@ function displayLogs() {
 ?>
 					and 
 <?php
+					# Validate dates before sending
+					if (isset($_POST['searchTo'])) {
+						if (!(preg_match("/^\d{4}\-(0[1-9]|1[0-2])\-(0[1-9]|1[0-9]|2[0-9]|3[0-1])$/",$_POST['searchTo']))) {
+							unset($_POST['searchTo']);
+						}
+					}
+					if (isset($_POST['searchTo'])) {
+						$searchFrom = date("Y-m-d",strtotime($_POST['searchTo']));
+						$_POST['searchTo'] = $searchFrom;
+					}
 					if (isset($_POST['searchTo'])) {
 ?>
 						<input type="text" name="searchTo" size="11" value="<?php echo $_POST['searchTo'] ?>"/> 
@@ -95,7 +115,7 @@ function displayLogs() {
 			$extraSQL .= " AND EventTimestamp <= ?";
 			array_push($extraSQLVals,$_POST['searchTo']);
 
-			# Query to get all default data
+			# Accounting query FIXME nas receive and transmit rates
 			$sql = "
 				SELECT
 						EventTimestamp, 
@@ -105,7 +125,7 @@ function displayLogs() {
 						AcctInputGigawords, 
 						AcctOutputOctets, 
 						AcctOutputGigawords, 
-						AcctTerminateCause 
+						AcctTerminateCause
 				FROM 
 						${DB_TABLE_PREFIX}accounting 
 				WHERE 
@@ -114,22 +134,19 @@ function displayLogs() {
 				ORDER BY
 						EventTimestamp
 				DESC
-				";
+			";
 
 			$res = $db->prepare($sql);
 			$res->execute($extraSQLVals);
 
-			# Define totals:
+			# Display logs
 			$totalData = 0;
 			$totalInputData = 0;
 			$totalOutputData = 0;
-			$totalSessionTime = 0;
-
 			while ($row = $res->fetchObject()) {
 
 				# Input data calculation
 				$inputDataItem = 0;
-
 				if (isset($row->acctinputoctets) && $row->acctinputoctets > 0) {
 					$inputDataItem += ($row->acctinputoctets / 1024) / 1024;
 				}
@@ -140,7 +157,6 @@ function displayLogs() {
 
 				# Output data calculation
 				$outputDataItem = 0;
-
 				if (isset($row->acctoutputoctets) && $row->acctoutputoctets > 0) {
 					$outputDataItem += ($row->acctoutputoctets / 1024) / 1024;
 				}
@@ -149,28 +165,41 @@ function displayLogs() {
 				}
 				$totalOutputData += $outputDataItem;
 
-				$totalData += $totalOutputData + $totalInputData;
 
-				# Time calculation
+				# Uptime calculation
 				$sessionTimeItem = 0;
 				if (isset($row->acctsessiontime) && $row->acctsessiontime > 0) {
 					$sessionTimeItem += ($row->acctsessiontime - ($row->acctsessiontime % 60)) / 60;
 				}
-
-				$totalSessionTime += $sessionTimeItem;
 ?>
 				<tr>
 					<td class="desc"><?php echo $row->eventtimestamp; ?></td>
-					<td class="desc"><?php echo $row->acctsessiontime; ?></td>
+					<td class="desc"><?php echo $sessionTimeItem; ?></td>
 					<td class="desc"><?php echo $row->callingstationid; ?></td>
 					<td class="center desc"><?php echo strRadiusTermCode($row->acctterminatecause); ?></td>
-					<td class="center desc"><?php echo "NASTransmitRate"; ?></td>
-					<td class="center desc"><?php echo "NASReceiveRate"; ?></td>
+					<td class="center desc">
+						<?php 
+							if (isset($row->nastransmitrate)) {
+								echo $row->nastransmitrate;
+							}
+						?>
+					</td>
+					<td class="center desc">
+						<?php 
+							if (isset($row->nasreceiverate)) {
+								echo $row->nasreceiverate;
+							}
+						?>
+					</td>
 					<td class="right desc"><?php printf('%.2f',$inputDataItem); ?></td>
 					<td class="right desc"><?php printf('%.2f',$outputDataItem); ?></td>
 				</tr>
 <?php
 			}
+
+			# Add up total data
+			$totalData += $totalOutputData + $totalInputData;
+
 			if ($res->rowCount() == 0) {
 ?>
 				<tr>
