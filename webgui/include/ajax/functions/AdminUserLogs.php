@@ -92,7 +92,7 @@ function getAdminUserLogsSummary($params) {
 			topups
 		WHERE
 			topups.UserID = ?
-			AND topups.ValidFrom = ?
+			AND topups.ValidFrom <= ?
 			AND topups.ValidTo >= ?
 			AND topups.Depleted = 0
 		ORDER BY

@@ -373,22 +373,31 @@ function createWiSPUser($params) {
 							switch ($attr['Modifier']) {
 								case "Seconds":
 									$attrValue = $attr['Value'] / 60;
+									break;
 								case "Minutes":
 									$attrValue = $attr['Value'];
+									break;
 								case "Hours":
 									$attrValue = $attr['Value'] * 60;
+									break;
 								case "Days":
 									$attrValue = $attr['Value'] * 1440;
+									break;
 								case "Weeks":
 									$attrValue = $attr['Value'] * 10080;
+									break;
 								case "Months":
 									$attrValue = $attr['Value'] * 44640; 
+									break;
 								case "MBytes":
 									$attrValue = $attr['Value'];
+									break;
 								case "GBytes":
 									$attrValue = $attr['Value'] * 1000;
+									break;
 								case "TBytes":
 									$attrValue = $attr['Value'] * 1000000;
+									break;
 							}
 						}
 					}
@@ -499,22 +508,31 @@ function createWiSPUser($params) {
 									switch ($attr['Modifier']) {
 										case "Seconds":
 											$attrValue = $attr['Value'] / 60;
+											break;
 										case "Minutes":
 											$attrValue = $attr['Value'];
+											break;
 										case "Hours":
 											$attrValue = $attr['Value'] * 60;
+											break;
 										case "Days":
 											$attrValue = $attr['Value'] * 1440;
+											break;
 										case "Weeks":
 											$attrValue = $attr['Value'] * 10080;
+											break;
 										case "Months":
 											$attrValue = $attr['Value'] * 44640; 
+											break;
 										case "MBytes":
 											$attrValue = $attr['Value'];
+											break;
 										case "GBytes":
 											$attrValue = $attr['Value'] * 1000;
+											break;
 										case "TBytes":
 											$attrValue = $attr['Value'] * 1000000;
+											break;
 									}
 								}
 							}
@@ -699,22 +717,31 @@ function updateWiSPUser($params) {
 						switch ($attr['Modifier']) {
 							case "Seconds":
 								$attrValue = $attr['Value'] / 60;
+								break;
 							case "Minutes":
 								$attrValue = $attr['Value'];
+								break;
 							case "Hours":
 								$attrValue = $attr['Value'] * 60;
+								break;
 							case "Days":
 								$attrValue = $attr['Value'] * 1440;
+								break;
 							case "Weeks":
 								$attrValue = $attr['Value'] * 10080;
+								break;
 							case "Months":
 								$attrValue = $attr['Value'] * 44640; 
+								break;
 							case "MBytes":
 								$attrValue = $attr['Value'];
+								break;
 							case "GBytes":
 								$attrValue = $attr['Value'] * 1000;
+								break;
 							case "TBytes":
 								$attrValue = $attr['Value'] * 1000000;
+								break;
 						}
 					}
 				}
