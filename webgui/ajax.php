@@ -986,6 +986,7 @@
 			$res->addField('FramedIPAddress','string');
 			$res->addField('AcctInputMbyte','int');
 			$res->addField('AcctOutputMbyte','int');
+			$res->addField('AcctSessionTime','int');
 			$res->addField('ConnectTermReason','string');
 			$res->parseArray($rawData);
 			$res->setDatasetSize($numResults);
