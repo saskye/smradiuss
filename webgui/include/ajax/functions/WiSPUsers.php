@@ -363,7 +363,11 @@ function createWiSPUser($params) {
 			foreach ($params[0]['Attributes'] as $attr) {
 
 				# We only want to add attributes with all values
-				if (isset($attr['Name']) && isset($attr['Operator']) && isset($attr['Value'])) {
+				$boolName = (isset($attr['Name']) && $attr['Name'] != "");
+				$boolOperator = (isset($attr['Operator']) && $attr['Operator'] != "");
+				$boolValue = (isset($attr['Value']) && $attr['Value'] != "");
+				if (($boolName && $boolOperator && $boolValue) == TRUE) {
+					
 					# Default value without modifier
 					$attrValue = $attr['Value'];
 
@@ -498,7 +502,11 @@ function createWiSPUser($params) {
 				if ($res !== FALSE && count($params[0]['Attributes']) > 0) {
 					foreach ($params[0]['Attributes'] as $attr) {
 
-						if (isset($attr['Name']) && isset($attr['Operator']) && isset($attr['Value'])) {
+						# We only want to add attributes with all values
+						$boolName = (isset($attr['Name']) && $attr['Name'] != "");
+						$boolOperator = (isset($attr['Operator']) && $attr['Operator'] != "");
+						$boolValue = (isset($attr['Value']) && $attr['Value'] != "");
+						if (($boolName && $boolOperator && $boolValue) == TRUE) {
 							# Default value without modifier
 							$attrValue = $attr['Value'];
 
@@ -707,7 +715,11 @@ function updateWiSPUser($params) {
 	if ($res !== FALSE && count($params[0]['Attributes']) > 0) {
 		foreach ($params[0]['Attributes'] as $attr) {
 
-			if (isset($attr['ID']) && isset($attr['Name']) && isset($attr['Operator']) && isset($attr['Value'])) {
+			# We only want to add attributes with all values
+			$boolName = (isset($attr['Name']) && $attr['Name'] != "");
+			$boolOperator = (isset($attr['Operator']) && $attr['Operator'] != "");
+			$boolValue = (isset($attr['Value']) && $attr['Value'] != "");
+			if (($boolName && $boolOperator && $boolValue) == TRUE) {
 				# Default value without modifier
 				$attrValue = $attr['Value'];
 
