@@ -6,6 +6,39 @@ include_once("include/db.php");
 # Return user logs summary
 function getAdminUserLogsSummary($params) {
 
+	# Get group attributes
+	# fixme - user might be member of multiple groups
+	$res = DBSelect("
+			SELECT
+				group_attributes.Name,
+				group_attributes.Value
+			FROM
+				group_attributes, users_to_groups, groups
+			WHERE
+				group_attributes.GroupID = groups.ID
+				AND groups.ID = users_to_groups.GroupID
+				AND users_to_groups.UserID = ?",
+				array($params[0]['ID'])
+	);
+
+	# Return if error
+	if (!is_object($res)) {
+		return $res;
+	}
+
+	# Fetch uptime and traffic limits, if not found, this is prepaid account.. use -1 as we need int
+	$trafficCap = -1;
+	$uptimeCap = -1;
+	while ($row = $res->fetchObject()) {
+		if ($row->name == 'SMRadius-Capping-Traffic-Limit') {
+			$trafficCap = (int)$row->value;
+		}
+		if ($row->name == 'SMRadius-Capping-Uptime-Limit') {
+			$uptimeCap = (int)$row->value;
+		}
+	}
+
+	# Get user attributes
 	$res = DBSelect("
 			SELECT
 				user_attributes.Name,
@@ -22,12 +55,7 @@ function getAdminUserLogsSummary($params) {
 		return $res;
 	}
 
-	# Array of results
-	$resultArray = array();
-
-	# Fetch uptime and traffic limits, if not  found, this is prepaid account.. use -1 as we need int
-	$trafficCap = -1;
-	$uptimeCap = -1;
+	# Fetch uptime and traffic limits, if not found, this is prepaid account.. use -1 as we need int
 	while ($row = $res->fetchObject()) {
 		if ($row->name == 'SMRadius-Capping-Traffic-Limit') {
 			$trafficCap = (int)$row->value;
@@ -37,12 +65,13 @@ function getAdminUserLogsSummary($params) {
 		}
 	}
 
-	# Add cap type / amount to result
+	# Add caps to result
+	$resultArray = array();
 	$resultArray['trafficCap'] = $trafficCap;
 	$resultArray['uptimeCap'] = $uptimeCap;
 
 	# Dates we want to use to search search
-	$periodKey = new DateTime($params[0]['PeriodKey']);
+	$periodKey = new DateTime($params[0]['PeriodKey']."-01");
 
 	# Return if error
 	if (!is_object($periodKey)) {
@@ -62,7 +91,6 @@ function getAdminUserLogsSummary($params) {
 			topups_summary.TopupID = topups.ID
 			AND topups.UserID = ?
 			AND topups_summary.PeriodKey = ?
-			AND topups.Depleted = 0
 		ORDER BY
 			topups.Timestamp",
 			array($params[0]['ID'],$periodKey->format('Y-m'))
@@ -85,6 +113,8 @@ function getAdminUserLogsSummary($params) {
 	}
 
 	# Fetch user uptime and traffic topups
+	$periodKeyEnd = new DateTime($periodKey->format('Y-m-d'));
+	$periodKeyEnd->modify("+1 month");
 	$res = DBSelect("
 		SELECT
 			Value, Type
@@ -92,12 +122,11 @@ function getAdminUserLogsSummary($params) {
 			topups
 		WHERE
 			topups.UserID = ?
-			AND topups.ValidFrom <= ?
+			AND topups.ValidFrom = ?
 			AND topups.ValidTo >= ?
-			AND topups.Depleted = 0
 		ORDER BY
 			topups.Timestamp",
-			array($params[0]['ID'],$periodKey->format('Y-m-d'),$periodKey->format('Y-m-d'))
+			array($params[0]['ID'],$periodKey->format('Y-m-d'),$periodKeyEnd->format('Y-m-d'))
 	);
 
 	# Return if error
@@ -140,26 +169,22 @@ function getAdminUserLogsSummary($params) {
 
 		# Traffic in
 		$inputDataItem = 0;
-
 		if (isset($row->acctinputoctets) && $row->acctinputoctets > 0) {
 			$inputDataItem += ($row->acctinputoctets / 1024) / 1024;
 		}
 		if (isset($row->acctinputgigawords) && $row->acctinputgigawords > 0) {
 			$inputDataItem += ($row->acctinputgigawords * 4096);
 		}
-
 		$totalTraffic += $inputDataItem;
 
 		# Traffic out
 		$outputDataItem = 0;
-
 		if (isset($row->acctoutputoctets) && $row->acctoutputoctets > 0) {
-			$outputDataItem += ($row->acctoutputoctets / 1024) / 1024;
+			$outputDataItem += ($row->acctoutputoctets / 1026) / 1024;
 		}
 		if (isset($row->acctoutputgigawords) && $row->acctoutputgigawords > 0) {
 			$outputDataItem += ($row->acctoutputgigawords * 4096);
 		}
-
 		$totalTraffic += $outputDataItem;
 
 		# Uptime
@@ -169,133 +194,27 @@ function getAdminUserLogsSummary($params) {
 		}
 
 		$totalUptime += $sessionTimeItem;
-		# Round up
-		$totalUptime = ceil($totalUptime / 60);
 	}
 
-	# Set excess traffic usage
-	$excessTraffic = 0;
-	if (is_numeric($trafficCap) && $trafficCap > 0) {
-		$excessTraffic += $totalTraffic - $trafficCap;
-	} else {
-		$excessTraffic += $totalTraffic;
-	}
+	# Round up usage
+	$totalTraffic = (int)ceil($totalTraffic);
+	$totalUptime = (int)ceil($totalUptime / 60);
 
-	# Set excess uptime usage
-	$excessUptime = 0;
-	if (is_numeric($uptimeCap) && $uptimeCap > 0) {
-		$excessUptime += $totalUptime - $uptimeCap;
-	} else {
-		$excessUptime += $totalUptime;
-	}
+	# Add usage to our return array
+	$resultArray['trafficUsage'] = $totalTraffic;
+	$resultArray['uptimeUsage'] = $totalUptime;
 
-	$currentTrafficTopup = array();
-	$topupTrafficRemaining = 0;
-	# Loop through traffic topups and check for current topup, total topups not being used
-	if (is_string($trafficCap) || $trafficCap != 0) {
-		$i = 0;
-		# User is using traffic from topups
-		if ($excessTraffic > 0) {
-			foreach ($topups as $topupItem) {
-				if ($topupItem['Type'] == 1) {
-					if ($excessTraffic <= 0) {
-						$topupTrafficRemaining += $topupItem['Limit'];
-						next($topupItem);
-					} elseif ($excessTraffic >= $topupItem['Limit']) {
-						$excessTraffic -= $topupItem['Limit'];
-					} else {
-						if (isset($topupItem['OriginalLimit'])) {
-							$currentTrafficTopup['Cap'] = $topupItem['OriginalLimit'];
-						} else {
-							$currentTrafficTopup['Cap'] = $topupItem['Limit'];
-						}
-						$currentTrafficTopup['Used'] = $excessTraffic;
-						$excessTraffic -= $topupItem['Limit'];
-					}
-				}
-			}
-		# User has not used traffic topups yet
-		} else {
-			foreach ($topups as $topupItem) {
-				if ($topupItem['Type'] == 1) {
-					if ($i == 0) {
-						if (isset($topupItem['OriginalLimit'])) {
-							$currentTrafficTopup['Cap'] = $topupItem['OriginalLimit'];
-						} else {
-							$currentTrafficTopup['Cap'] = $topupItem['Limit'];
-						}
-						$i = 1;
-							$currentTrafficTopup['Used'] = 0;
-					} else {
-						$topupTrafficRemaining += $topupItem['Limit'];
-					}
-				}
-			}
+	# Loop through topups and add to return array
+	$resultArray['trafficTopups'] = 0;
+	$resultArray['uptimeTopups'] = 0;
+	foreach ($topups as $topupItem) {
+		if ($topupItem['Type'] == 1) {
+			$resultArray['trafficTopups'] += $topupItem['Limit'];
+		}
+		if ($topupItem['Type'] == 2) {
+			$resultArray['uptimeTopups'] += $topupItem['Limit'];
 		}
 	}
-
-	$currentUptimeTopup = array();
-	$topupUptimeRemaining = 0;
-	# Loop through uptime topups and check for current topup, total topups not being used
-	if (is_string($uptimeCap) || $uptimeCap != 0) {
-		$i = 0;
-		# User is using uptime from topups
-		if ($excessUptime > 0) {
-			foreach ($topups as $topupItem) {
-				if ($topupItem['Type'] == 2) {
-					if ($excessUptime <= 0) {
-						$topupUptimeRemaining += $topupItem['Limit'];
-						next($topupItem);
-					} elseif ($excessUptime >= $topupItem['Limit']) {
-						$excessUptime -= $topupItem['Limit'];
-					} else {
-						if (isset($topupItem['OriginalLimit'])) {
-							$currentUptimeTopup['Cap'] = $topupItem['OriginalLimit'];
-						} else {
-							$currentUptimeTopup['Cap'] = $topupItem['Limit'];
-						}
-						$currentUptimeTopup['Used'] = $excessUptime;
-						$excessUptime -= $topupItem['Limit'];
-					}
-				}
-			}
-		# User has not used uptime topups yet
-		} else {
-			foreach ($topups as $topupItem) {
-				if ($topupItem['Type'] == 2) {
-					if ($i == 0) {
-						if (isset($topupItem['OriginalLimit'])) {
-							$currentUptimeTopup['Cap'] = $topupItem['OriginalLimit'];
-						} else {
-							$currentUptimeTopup['Cap'] = $topupItem['Limit'];
-						}
-						$i = 1;
-							$currentUptimeTopup['Used'] = 0;
-					} else {
-						$topupUptimeRemaining += $topupItem['Limit'];
-					}
-				}
-			}
-		}
-	}
-
-	# Traffic..
-	$resultArray['trafficCurrentTopupUsed'] = -1;
-	$resultArray['trafficCurrentTopupCap'] = -1;
-	if (count($currentTrafficTopup) > 0) {
-		$resultArray['trafficCurrentTopupUsed'] = $currentTrafficTopup['Used'];
-		$resultArray['trafficCurrentTopupCap'] = (int)$currentTrafficTopup['Cap'];
-	}
-	$resultArray['trafficTopupRemaining'] = $topupTrafficRemaining;
-
-	# Uptime..
-	$resultArray['uptimeCurrentTopupUsed'] = -1;
-	$resultArray['uptimeCurrentTopupCap'] = -1;
-	if (count($currentUptimeTopup) > 0) {
-		$resultArray['uptimeCurrentTopupUsed'] = $currentUptimeTopup['Used'];
-		$resultArray['uptimeCurrentTopupCap'] = (int)$currentUptimeTopup['Cap'];
-	}
-	$resultArray['uptimeTopupRemaining'] = $topupUptimeRemaining;
 
 	# Return results
 	return array($resultArray, 1);

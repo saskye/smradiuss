@@ -366,12 +366,10 @@
 			$res = new json_response;
 			$res->addField('uptimeCap','int');
 			$res->addField('trafficCap','int');
-			$res->addField('trafficCurrentTopupUsed','int');
-			$res->addField('trafficCurrentTopupCap','int');
-			$res->addField('uptimeCurrentTopupUsed','int');
-			$res->addField('uptimeCurrentTopupCap','int');
-			$res->addField('trafficTopupRemaining','int');
-			$res->addField('uptimeTopupRemaining','int');
+			$res->addField('trafficUsage','int');
+			$res->addField('uptimeUsage','int');
+			$res->addField('trafficTopups','int');
+			$res->addField('uptimeTopups','int');
 			$res->parseHash($rawData);
 			$res->setDatasetSize($numResults);
 
@@ -387,12 +385,10 @@
 			$res = new json_response;
 			$res->addField('uptimeCap','int');
 			$res->addField('trafficCap','int');
-			$res->addField('trafficCurrentTopupUsed','int');
-			$res->addField('trafficCurrentTopupCap','int');
-			$res->addField('uptimeCurrentTopupUsed','int');
-			$res->addField('uptimeCurrentTopupCap','int');
-			$res->addField('trafficTopupRemaining','int');
-			$res->addField('uptimeTopupRemaining','int');
+			$res->addField('trafficUsage','int');
+			$res->addField('uptimeUsage','int');
+			$res->addField('trafficTopups','int');
+			$res->addField('uptimeTopups','int');
 			$res->parseHash($rawData);
 			$res->setDatasetSize($numResults);
 

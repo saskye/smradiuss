@@ -254,10 +254,8 @@ function showAdminUserLogsWindow(id) {
 	var store = Ext.getCmp(adminUserLogsWindow.gridPanelID).getStore();
 
 	store.on('load',function() {
-		var inputTotal = store.sum('AcctInputMbyte');
-		var outputTotal = store.sum('AcctOutputMbyte');
-		var uptimeTotal = store.sum('AcctSessionTime');
 
+		// Fetch periodKey from form
 		var periodKeyField = (Ext.getCmp(formPeriodKeyID)).getValue();
 
 		// Mask parent window
@@ -267,7 +265,7 @@ function showAdminUserLogsWindow(id) {
 			adminUserLogsWindow,
 			{
 				params: {
-					From: periodKeyField,
+					PeriodKey: periodKeyField,
 					ID: id,
 					SOAPUsername: globalConfig.soap.username,
 					SOAPPassword: globalConfig.soap.password,
@@ -280,58 +278,17 @@ function showAdminUserLogsWindow(id) {
 				customSuccess: function (result) {
 					response = Ext.decode(result.responseText);
 
-					// Traffic variables
+					// Caps
 					var trafficCap = response.data.trafficCap; // value of -1: prepaid
-					
-					var trafficCurrentTopupUsed = response.data.trafficCurrentTopupUsed; // value of -1: no current topup
-					var trafficCurrentTopupCap = response.data.trafficCurrentTopupCap; // value of -1: no current topup
-					var trafficTopupRemaining = response.data.trafficTopupRemaining;
-
-					// Uptime variables
 					var uptimeCap = response.data.uptimeCap; // value of -1: prepaid
+					
+					// Usage
+					var trafficUsage = response.data.trafficUsage;
+					var uptimeUsage = response.data.uptimeUsage;
 
-					var uptimeCurrentTopupUsed = response.data.uptimeCurrentTopupUsed; // value of -1: no current topup
-					var uptimeCurrentTopupCap = response.data.uptimeCurrentTopupCap; // value of -1: no current topup
-					var uptimeTopupRemaining = response.data.uptimeTopupRemaining;
-
-					// Total up traffic
-					var trafficTotalAllowed;
-					var validTrafficTopups;
-					if (trafficCurrentTopupCap > 0) {
-						validTrafficTopups = trafficCurrentTopupCap;
-						validTrafficTopups += trafficTopupRemaining;
-					} else {
-						validTrafficTopups = trafficTopupRemaining;
-					}
-
-					if (trafficCap < 0) {
-						trafficTotalAllowed = validTrafficTopups;
-					} else {
-						trafficTotalAllowed = trafficCap + validTrafficTopups;
-					}
-
-					// Traffic usage
-					var trafficUsage = inputTotal + outputTotal;
-
-					// Total up uptime
-					var uptimeTotalAllowed;
-					var validUptimeTopups;
-					if (uptimeCurrentTopupCap > 0) {
-						validUptimeTopups = uptimeCurrentTopupCap;
-						validUptimeTopups += uptimeTopupRemaining;
-					} else {
-						validUptimeTopups = uptimeTopupRemaining;
-					}
-
-					if (uptimeCap < 0) {
-						uptimeTotalAllowed = validUptimeTopups;
-					} else {
-						uptimeTotalAllowed = uptimeCap + validUptimeTopups;
-					}
-
-					// Get summary field
-					var form = Ext.getCmp(summaryFormID);
-					var summaryTotal = Ext.getCmp(summaryTotalID);
+					// Topups
+					var trafficTopups = response.data.trafficTopups;
+					var uptimeTopups = response.data.uptimeTopups;
 
 					// Format string before printing
 					var trafficString = '';
@@ -340,16 +297,17 @@ function showAdminUserLogsWindow(id) {
 						trafficCap = 'Prepaid';
 						trafficString += sprintf('               Traffic\nCap: %s MB Topup: %d MB\n'+
 								'Usage: %d/%d MB\n=====================================\n',
-								trafficCap,validTrafficTopups,trafficUsage,trafficTotalAllowed);
+								trafficCap,trafficTopups,trafficUsage,trafficTopups);
 					// Uncapped traffic
 					} else if (trafficCap == 0) {
-						trafficString += sprintf('               Traffic\nCap: Uncapped Used: %d\n=====================================n',
+						trafficString += sprintf('               Traffic\nCap: Uncapped Used: %d MB\n=====================================\n',
 								trafficUsage);
 					// Capped traffic
 					} else {
+						var combinedTrafficCap = trafficCap + trafficTopups;
 						trafficString += sprintf('               Traffic\nCap: %d MB Topup: %d MB\n'+
 								'Usage: %d/%d MB\n=====================================\n',
-								trafficCap,validTrafficTopups,trafficUsage,trafficTotalAllowed);
+								trafficCap,trafficTopups,trafficUsage,combinedTrafficCap);
 					}
 
 					// Format string before printing
@@ -357,21 +315,25 @@ function showAdminUserLogsWindow(id) {
 					// Prepaid uptime
 					if (uptimeCap == -1) {
 						uptimeCap = 'Prepaid';
-						uptimeString += sprintf('               Uptime\nCap: %s MB Topup: %d MB\n'+
-								'Usage: %d/%d MB',
-								uptimeCap,validUptimeTopups,uptimeTotal,uptimeTotalAllowed);
+						uptimeString += sprintf('               Uptime\nCap: %s Min Topup: %d Min\n'+
+								'Usage: %d/%d Min',
+								uptimeCap,uptimeTopups,uptimeUsage,uptimeTopups);
 					// Uncapped uptime
 					} else if (uptimeCap == 0) {
-						uptimeString += sprintf('               Uptime\nCap: Uncapped Used: %d',
-								uptimeTotal);
+						uptimeString += sprintf('               Uptime\nCap: Uncapped Used: %d Min',
+								uptimeUsage);
 					// Capped uptime
 					} else {
-						uptimeString += sprintf('               Uptime\nCap: %d MB Topup: %d MB\n'+
-								'Usage: %d/%d MB',
-								uptimeCap,validUptimeTopups,uptimeTotal,uptimeTotalAllowed);
+						var combinedUptimeCap = uptimeCap + uptimeTopups;
+						uptimeString += sprintf('               Uptime\nCap: %d Min Topup: %d Min\n'+
+								'Usage: %d/%d Min',
+								uptimeCap,uptimeTopups,uptimeUsage,combinedUptimeCap);
 					}
 
-					summaryTotal.setValue(trafficString+uptimeString);
+					// Get summary field
+					var form = Ext.getCmp(summaryFormID);
+					var summaryField = Ext.getCmp(summaryTotalID);
+					summaryField.setValue(trafficString+uptimeString);
 				},
 				failure: function (result) {
 					Ext.MessageBox.alert('Failed', 'Couldn\'t fetch data: '+result.date);
