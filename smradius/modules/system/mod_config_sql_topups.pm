@@ -109,23 +109,23 @@ sub init
 	
 
 	# Setup SQL queries
-	if (defined($scfg->{'mod_topups_sql'})) {
+	if (defined($scfg->{'mod_config_sql_topups'})) {
 		# Pull in queries
-		if (defined($scfg->{'mod_topups_sql'}->{'get_topups_summary_query'}) &&
-				$scfg->{'mod_topups_sql'}->{'get_topups_summary_query'} ne "") {
-			if (ref($scfg->{'mod_topups_sql'}->{'get_topups_summary_query'}) eq "ARRAY") {
-				$config->{'get_topups_summary_query'} = join(' ',@{$scfg->{'mod_config_sql'}->{'get_topups_summary_query'}});
+		if (defined($scfg->{'mod_config_sql_topups'}->{'get_topups_summary_query'}) &&
+				$scfg->{'mod_config_sql_topups'}->{'get_topups_summary_query'} ne "") {
+			if (ref($scfg->{'mod_config_sql_topups'}->{'get_topups_summary_query'}) eq "ARRAY") {
+				$config->{'get_topups_summary_query'} = join(' ',@{$scfg->{'mod_config_sql_topups'}->{'get_topups_summary_query'}});
 			} else {
-				$config->{'get_topups_summary_query'} = $scfg->{'mod_config_sql'}->{'get_topups_summary_query'};
+				$config->{'get_topups_summary_query'} = $scfg->{'mod_config_sql_topups'}->{'get_topups_summary_query'};
 			}
 		}
 
-		if (defined($scfg->{'mod_topups_sql'}->{'get_config_query'}) &&
-				$scfg->{'mod_topups_sql'}->{'get_config_query'} ne "") {
-			if (ref($scfg->{'mod_topups_sql'}->{'get_config_query'}) eq "ARRAY") {
-				$config->{'get_config_query'} = join(' ',@{$scfg->{'mod_config_sql'}->{'get_config_query'}});
+		if (defined($scfg->{'mod_config_sql_topups'}->{'get_topups_query'}) &&
+				$scfg->{'mod_config_sql_topups'}->{'get_topups_query'} ne "") {
+			if (ref($scfg->{'mod_config_sql_topups'}->{'get_topups_query'}) eq "ARRAY") {
+				$config->{'get_topups_query'} = join(' ',@{$scfg->{'mod_config_sql_topups'}->{'get_topups_query'}});
 			} else {
-				$config->{'get_config_query'} = $scfg->{'mod_config_sql'}->{'get_config_query'};
+				$config->{'get_topups_query'} = $scfg->{'mod_config_sql_topups'}->{'get_topups_query'};
 			}
 			
 		}
