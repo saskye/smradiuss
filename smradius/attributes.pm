@@ -68,9 +68,18 @@ sub addAttribute
 {
 	my ($server,$nattributes,$vattributes,$attribute) = @_;
 
+
+	# Check we have the name, operator AND value
+	if (!defined($attribute->{'Name'}) || !defined($attribute->{'Operator'}) || !defined($attribute->{'Value'})) {
+		$server->log(LOG_DEBUG,"[ATTRIBUTES] Problem adding attribute with name = ".niceUndef($attribute->{'Name'}).
+				", operator = ".niceUndef($attribute->{'Operator'}).", value = ".niceUndef($attribute->{'Value'}));
+		return;
+	}
+
 	# Clean them up a bit
 	$attribute->{'Name'} =~ s/\s*(\S+)\s*/$1/;
 	$attribute->{'Operator'} =~ s/\s*(\S+)\s*/$1/;
+
 	# Grab attribue name, operator and value
 	my $name = $attribute->{'Name'};
 	my $operator = $attribute->{'Operator'};
