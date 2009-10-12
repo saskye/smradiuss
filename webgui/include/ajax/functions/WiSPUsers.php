@@ -363,10 +363,10 @@ function createWiSPUser($params) {
 			foreach ($params[0]['Attributes'] as $attr) {
 
 				# We only want to add attributes with all values
-				$boolName = (isset($attr['Name']) && $attr['Name'] != "");
-				$boolOperator = (isset($attr['Operator']) && $attr['Operator'] != "");
-				$boolValue = (isset($attr['Value']) && $attr['Value'] != "");
-				if (($boolName && $boolOperator && $boolValue) == TRUE) {
+				$boolName = isset($attr['Name']) && $attr['Name'] != "";
+				$boolOperator = isset($attr['Operator']) && $attr['Operator'] != "";
+				$boolValue = isset($attr['Value']) && $attr['Value'] != "";
+				if ($boolName && $boolOperator && $boolValue) {
 					
 					# Default value without modifier
 					$attrValue = $attr['Value'];
@@ -503,10 +503,10 @@ function createWiSPUser($params) {
 					foreach ($params[0]['Attributes'] as $attr) {
 
 						# We only want to add attributes with all values
-						$boolName = (isset($attr['Name']) && $attr['Name'] != "");
-						$boolOperator = (isset($attr['Operator']) && $attr['Operator'] != "");
-						$boolValue = (isset($attr['Value']) && $attr['Value'] != "");
-						if (($boolName && $boolOperator && $boolValue) == TRUE) {
+						$boolName = isset($attr['Name']) && $attr['Name'] != "";
+						$boolOperator = isset($attr['Operator']) && $attr['Operator'] != "";
+						$boolValue = isset($attr['Value']) && $attr['Value'] != "";
+						if ($boolName && $boolOperator && $boolValue) {
 							# Default value without modifier
 							$attrValue = $attr['Value'];
 
@@ -716,10 +716,10 @@ function updateWiSPUser($params) {
 		foreach ($params[0]['Attributes'] as $attr) {
 
 			# We only want to add attributes with all values
-			$boolName = (isset($attr['Name']) && $attr['Name'] != "");
-			$boolOperator = (isset($attr['Operator']) && $attr['Operator'] != "");
-			$boolValue = (isset($attr['Value']) && $attr['Value'] != "");
-			if (($boolName && $boolOperator && $boolValue) == TRUE) {
+			$boolName = isset($attr['Name']) && $attr['Name'] != "";
+			$boolOperator = isset($attr['Operator']) && $attr['Operator'] != "";
+			$boolValue = isset($attr['Value']) && $attr['Value'] != "";
+			if ($boolName && $boolOperator && $boolValue) {
 				# Default value without modifier
 				$attrValue = $attr['Value'];
 
