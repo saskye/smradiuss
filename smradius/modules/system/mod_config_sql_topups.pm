@@ -145,6 +145,15 @@ sub getTopups
 {
 	my ($server,$user,$packet) = @_;
 
+
+	# Check to see if we have a username
+	my $username = $packet->attr('User-Name');
+
+	# Skip this module if we don't have a username
+	if (!defined($username)) {
+		return MOD_RES_SKIP;
+	}
+
 	# Make time for month begin
 	my $now = DateTime->from_epoch( epoch => $user->{'_Internal'}->{'Timestamp-Unix'} );
 	my $thisMonth = DateTime->new( year => $now->year, month => $now->month, day => 1 );
@@ -153,7 +162,7 @@ sub getTopups
 	my $periodKey = $thisMonth->strftime("%Y-%m");
 
 	# Query database
-	my $sth = DBSelect($config->{'get_topups_summary_query'},$periodKey,$packet->attr('User-Name'));
+	my $sth = DBSelect($config->{'get_topups_summary_query'},$periodKey,$username);
 	if (!$sth) {
 		$server->log(LOG_ERR,"Failed to get topup information: ".awitpt::db::dblayer::Error());
 		return MOD_RES_NACK;
@@ -176,7 +185,7 @@ sub getTopups
 	DBFreeRes($sth);
 
 	# Query database
-	$sth = DBSelect($config->{'get_topups_query'},$thisMonth,$now,$packet->attr('User-Name'));
+	$sth = DBSelect($config->{'get_topups_query'},$thisMonth,$now,$username);
 	if (!$sth) {
 		$server->log(LOG_ERR,"Failed to get topup information: ".awitpt::db::dblayer::Error());
 		return MOD_RES_NACK;
