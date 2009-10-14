@@ -7,4 +7,4 @@ usage related queries:
 * Use Math module to perform calculations
 
 smadmin:
-* Update or possibly ignore entries instead of deleting (topup summaries)
+* Ability to run smadmin before the end of current month and updating the records as necessary at a later stage
