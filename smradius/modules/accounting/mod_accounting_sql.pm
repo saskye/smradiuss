@@ -205,6 +205,29 @@ sub init
 			AND PeriodKey = %{query.PeriodKey}
 	';
 
+	$config->{'accounting_select_duplicates_query'} = '
+		SELECT
+			ID
+		FROM
+			@TP@accounting
+		WHERE
+			Username = %{request.User-Name}
+			AND AcctSessionID = %{request.Acct-Session-Id}
+			AND NASIPAddress = %{request.NAS-IP-Address}
+			AND PeriodKey = %{query.PeriodKey}
+		ORDER BY
+			ID
+			LIMIT 99 OFFSET 1
+	';
+
+	$config->{'accounting_delete_duplicates_query'} = '
+		DELETE FROM
+			@TP@accounting
+		WHERE
+			ID = %{query.DuplicateID}
+			AND PeriodKey = %{query.PeriodKey}
+	';
+
 	# Setup SQL queries
 	if (defined($scfg->{'mod_accounting_sql'})) {
 		# Pull in queries
@@ -260,6 +283,24 @@ sub init
 						@{$scfg->{'mod_accounting_sql'}->{'accounting_usage_query'}});
 			} else {
 				$config->{'accounting_usage_query'} = $scfg->{'mod_accounting_sql'}->{'accounting_usage_query'};
+			}
+		}
+		if (defined($scfg->{'mod_accounting_sql'}->{'accounting_select_duplicates_query'}) &&
+				$scfg->{'mod_accounting_sql'}->{'accounting_select_duplicates_query'} ne "") {
+			if (ref($scfg->{'mod_accounting_sql'}->{'accounting_select_duplicates_query'}) eq "ARRAY") {
+				$config->{'accounting_select_duplicates_query'} = join(' ',
+						@{$scfg->{'mod_accounting_sql'}->{'accounting_select_duplicates_query'}});
+			} else {
+				$config->{'accounting_select_duplicates_query'} = $scfg->{'mod_accounting_sql'}->{'accounting_select_duplicates_query'};
+			}
+		}
+		if (defined($scfg->{'mod_accounting_sql'}->{'accounting_delete_duplicates_query'}) &&
+				$scfg->{'mod_accounting_sql'}->{'accounting_delete_duplicates_query'} ne "") {
+			if (ref($scfg->{'mod_accounting_sql'}->{'accounting_delete_duplicates_query'}) eq "ARRAY") {
+				$config->{'accounting_delete_duplicates_query'} = join(' ',
+						@{$scfg->{'mod_accounting_sql'}->{'accounting_delete_duplicates_query'}});
+			} else {
+				$config->{'accounting_delete_duplicates_query'} = $scfg->{'mod_accounting_sql'}->{'accounting_delete_duplicates_query'};
 			}
 		}
 	}
@@ -451,6 +492,7 @@ sub acct_log
 				$startNewPeriod = 1;
 			}
 		}
+		DBFreeRes($sth);
 
 		# Re-calculate
 		my ($inputGigawordsStr,$inputOctetsStr) = $totalInputBytes->bdiv(UINT_MAX);
@@ -474,6 +516,12 @@ sub acct_log
 						awitpt::db::dblayer::Error());
 				return MOD_RES_NACK;
 			}
+
+			# Check if we updated duplicates, if we did, fix them
+			if ($sth > 1) {
+				fixDuplicates($server, $template);
+			}
+
 		# Else do a start record to continue session
 		} else {
 			# Replace template entries
@@ -486,6 +534,12 @@ sub acct_log
 						awitpt::db::dblayer::Error());
 				return MOD_RES_NACK;
 			}
+
+			# Check if we updated duplicates, if we did, fix them
+			if ($sth > 1) {
+				fixDuplicates($server, $template);
+			}
+
 			$startNewPeriod = 0;
 		}
 
@@ -581,9 +635,68 @@ sub acct_log
 			$server->log(LOG_ERR,"[MOD_ACCOUNTING_SQL] Failed to update accounting STOP record: ".awitpt::db::dblayer::Error());
 			return MOD_RES_NACK;
 		}
+
+		# Check if we updated duplicates, if we did, fix them
+		if ($sth > 1) {
+			fixDuplicates($server, $template);
+		}
 	}
 
 	return MOD_RES_ACK;
+}
+
+
+# Resolve duplicate records
+sub fixDuplicates
+{
+	my ($server, $template) = @_;
+
+
+	# Replace template entries
+	my @dbDoParams = templateReplace($config->{'accounting_select_duplicates_query'},$template);
+
+	# Select duplicates
+	my $sth = DBSelect(@dbDoParams);
+	if (!$sth) {
+		$server->log(LOG_ERR,"[MOD_ACCOUNTING_SQL] Database query failed: ".awitpt::db::dblayer::Error());
+		return;
+	}
+
+	# Pull in duplicates
+	my @IDList;
+	while (my $duplicates = $sth->fetchrow_hashref()) {
+		$duplicates = hashifyLCtoMC(
+			$duplicates,
+			qw(ID)
+		);
+		push(@IDList,$duplicates->{'ID'});
+	}
+	DBFreeRes($sth);
+
+	# Loop through IDs and delete
+	DBBegin();
+	foreach my $duplicateID (@IDList) {
+		# Add ID list to the template
+		$template->{'query'}->{'DuplicateID'} = $duplicateID;
+
+		# Replace template entries
+		@dbDoParams = templateReplace($config->{'accounting_delete_duplicates_query'},$template);
+
+		# Delete duplicates
+		$sth = DBDo(@dbDoParams);
+		if (!$sth) {
+			$server->log(LOG_ERR,"[MOD_ACCOUNTING_SQL] Database query failed: ".awitpt::db::dblayer::Error());
+			DBRollback();
+			return;
+		}
+	}
+
+	# Commit changes to the database
+	$server->log(LOG_DEBUG,"[MOD_ACCOUNTING_SQL] Duplicate accounting records deleted");
+	DBCommit();
+
+
+	return
 }
 
 
