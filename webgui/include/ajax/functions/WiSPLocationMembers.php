@@ -6,7 +6,7 @@ include_once("include/db.php");
 function removeWiSPLocationMember($params) {
 
 	# Perform query
-	$res = DBDo("UPDATE wisp_userdata SET LocationID = NULL WHERE UserID = ?",array($params[0]));
+	$res = DBDo("UPDATE @TP@wisp_userdata SET LocationID = NULL WHERE UserID = ?",array($params[0]));
 
 	# Return result
 	if ($res !== TRUE) {
@@ -21,20 +21,20 @@ function getWiSPLocationMembers($params) {
 
 	# Filters and sorts are the same here
 	$filtersorts = array(
-		'ID' => 'users.ID',
-		'Username' => 'users.Username'
+		'ID' => '@TP@users.ID',
+		'Username' => '@TP@users.Username'
 	);
 
 	# Perform query
 	$res = DBSelectSearch("
 			SELECT 
-				users.ID, users.Username 
+				@TP@users.ID, @TP@users.Username 
 			FROM 
-				wisp_userdata, users 
+				@TP@wisp_userdata, @TP@users 
 			WHERE 
-				wisp_userdata.LocationID = ".DBQuote($params[0])."
+				@TP@wisp_userdata.LocationID = ".DBQuote($params[0])."
 			AND
-				users.ID = wisp_userdata.UserID 
+				@TP@users.ID = @TP@wisp_userdata.UserID 
 		",$params[1],$filtersorts,$filtersorts);
 	$sth = $res[0]; $numResults = $res[1];
 

@@ -8,13 +8,13 @@ function getAdminUsers($params) {
 
 	# Filters and sorts are the same here
 	$filtersorts = array(
-		'ID' => 'users.ID',
-		'Username' => 'users.Username',
-		'Disabled' => 'users.Disabled',
+		'ID' => '@TP@users.ID',
+		'Username' => '@TP@users.Username',
+		'Disabled' => '@TP@users.Disabled',
 	);
 
 	# Perform query
-	$res = DBSelectSearch("SELECT ID, Username, Disabled FROM users",$params[1],$filtersorts,$filtersorts);
+	$res = DBSelectSearch("SELECT ID, Username, Disabled FROM @TP@users",$params[1],$filtersorts,$filtersorts);
 	$sth = $res[0]; $numResults = $res[1];
 
 	# If STH is blank, return the error back to whoever requested the data
@@ -45,7 +45,7 @@ function getAdminUsers($params) {
 function getAdminUser($params) {
 
 	# Perform query
-	$res = DBSelect("SELECT ID, Username, Disabled FROM users WHERE ID = ?",array($params[0]));
+	$res = DBSelect("SELECT ID, Username, Disabled FROM @TP@users WHERE ID = ?",array($params[0]));
 
 	# Return error if failed
 	if (!is_object($res)) {
@@ -71,16 +71,16 @@ function removeAdminUser($params) {
 	DBBegin();
 
 	# Delete user information, if any
-	$res = DBDo("DELETE FROM wisp_userdata WHERE UserID = ?",array($params[0]));
+	$res = DBDo("DELETE FROM @TP@wisp_userdata WHERE UserID = ?",array($params[0]));
 
 	# Delete user attribtues
 	if ($res !== FALSE) {
-		$res = DBDo("DELETE FROM user_attributes WHERE UserID = ?",array($params[0]));
+		$res = DBDo("DELETE FROM @TP@user_attributes WHERE UserID = ?",array($params[0]));
 	}
 
 	# Remove user from groups
 	if ($res !== FALSE) {
-		$res = DBDo("DELETE FROM users_to_groups WHERE UserID = ?",array($params[0]));
+		$res = DBDo("DELETE FROM @TP@users_to_groups WHERE UserID = ?",array($params[0]));
 	}
 
 	# Get list of topups and delete summaries
@@ -88,12 +88,12 @@ function removeAdminUser($params) {
 		$topupList = array();
 		$res = DBSelect("
 			SELECT
-				topups_summary.TopupID
+				@TP@topups_summary.TopupID
 			FROM
-				topups_summary, topups
+				@TP@topups_summary, @TP@topups
 			WHERE
-				topups_summary.TopupID = topups.ID
-				AND topups.UserID = ?",
+				@TP@topups_summary.TopupID = @TP@topups.ID
+				AND @TP@topups.UserID = ?",
 				array($params[0])
 		);
 
@@ -112,7 +112,7 @@ function removeAdminUser($params) {
 				if ($res !== FALSE) {
 					$res = DBDo("
 						DELETE FROM
-							topups_summary
+							@TP@topups_summary
 						WHERE
 							TopupID = ?",
 							array($id)
@@ -124,12 +124,12 @@ function removeAdminUser($params) {
 
 	# Remove topups
 	if ($res !== FALSE) {
-		$res = DBDo("DELETE FROM topups WHERE UserID = ?",array($params[0]));
+		$res = DBDo("DELETE FROM @TP@topups WHERE UserID = ?",array($params[0]));
 	}
 
 	# Delete user
 	if ($res !== FALSE) {
-		$res = DBDo("DELETE FROM users WHERE ID = ?",array($params[0]));
+		$res = DBDo("DELETE FROM @TP@users WHERE ID = ?",array($params[0]));
 	}
 
 	# Return result
@@ -146,7 +146,7 @@ function removeAdminUser($params) {
 function createAdminUser($params) {
 
 	# Perform query
-	$res = DBDo("INSERT INTO users (Username) VALUES (?)",array($params[0]['Username']));
+	$res = DBDo("INSERT INTO @TP@users (Username) VALUES (?)",array($params[0]['Username']));
 
 	# Return result
 	if ($res !== TRUE) {
@@ -160,7 +160,7 @@ function createAdminUser($params) {
 function updateAdminUser($params) {
 
 	# Perform query
-	$res = DBDo("UPDATE users SET Username = ? WHERE ID = ?",array($params[0]['Username'],$params[0]['ID']));
+	$res = DBDo("UPDATE @TP@users SET Username = ? WHERE ID = ?",array($params[0]['Username'],$params[0]['ID']));
 
 	# Return result
 	if ($res !== TRUE) {

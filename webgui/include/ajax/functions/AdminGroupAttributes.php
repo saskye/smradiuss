@@ -7,7 +7,7 @@ function addAdminGroupAttribute($params) {
 
 	$res = DBDo("
 				INSERT INTO 
-						group_attributes (GroupID,Name,Operator,Value,Disabled) 
+						@TP@group_attributes (GroupID,Name,Operator,Value,Disabled) 
 				VALUES 
 						(?,?,?,?,?)",
 				array(	$params[0]['GroupID'],
@@ -28,7 +28,7 @@ function addAdminGroupAttribute($params) {
 # Remove group attribute
 function removeAdminGroupAttribute($params) {
 
-	$res = DBDo("DELETE FROM group_attributes WHERE ID = ?",array($params[0]));
+	$res = DBDo("DELETE FROM @TP@group_attributes WHERE ID = ?",array($params[0]));
 
 	# Return result
 	if ($res !== TRUE) {
@@ -41,7 +41,7 @@ function removeAdminGroupAttribute($params) {
 # Edit group attribute
 function updateAdminGroupAttribute($params) {
 
-	$res = DBDo("UPDATE group_attributes SET Name = ?, Operator = ?, Value = ?, Disabled = ? WHERE ID = ?",
+	$res = DBDo("UPDATE @TP@group_attributes SET Name = ?, Operator = ?, Value = ?, Disabled = ? WHERE ID = ?",
 				array($params[0]['Name'],
 				$params[0]['Operator'],
 				$params[0]['Value'],
@@ -60,7 +60,7 @@ function updateAdminGroupAttribute($params) {
 # Return specific attribute row
 function getAdminGroupAttribute($params) {
 
-	$res = DBSelect("SELECT ID, Name, Operator, Value, Disabled FROM group_attributes WHERE ID = ?",array($params[0]));
+	$res = DBSelect("SELECT ID, Name, Operator, Value, Disabled FROM @TP@group_attributes WHERE ID = ?",array($params[0]));
 	if (!is_object($res)) {
 		return $res;
 	}
@@ -83,11 +83,11 @@ function getAdminGroupAttributes($params) {
 
 	# Filters and sorts are the same here
 	$filtersorts = array(
-		'ID' => 'group_attributes.ID',
-		'Name' => 'group_attributes.Name',
-		'Operator' => 'group_attributes.Operator',
-		'Value' => 'group_attributes.Value',
-		'Disabled' => 'group_attributes.Disabled'
+		'ID' => '@TP@group_attributes.ID',
+		'Name' => '@TP@group_attributes.Name',
+		'Operator' => '@TP@group_attributes.Operator',
+		'Value' => '@TP@group_attributes.Value',
+		'Disabled' => '@TP@group_attributes.Disabled'
 	);
 
 	# Fetch attributes
@@ -95,7 +95,7 @@ function getAdminGroupAttributes($params) {
 			SELECT 
 				ID, Name, Operator, Value, Disabled 
 			FROM 
-				group_attributes 
+				@TP@group_attributes 
 			WHERE 
 				GroupID = ".DBQuote($params[0])."
 		",$params[1],$filtersorts,$filtersorts);

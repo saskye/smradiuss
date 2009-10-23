@@ -8,7 +8,7 @@ function addAdminUserAttribute($params) {
 	# Perform query
 	$res = DBDo("
 				INSERT INTO 
-						user_attributes (UserID,Name,Operator,Value,Disabled) 
+						@TP@user_attributes (UserID,Name,Operator,Value,Disabled) 
 				VALUES 
 						(?,?,?,?,?)",
 				array(	$params[0]['UserID'],
@@ -30,7 +30,7 @@ function addAdminUserAttribute($params) {
 function removeAdminUserAttribute($params) {
 
 	# Perform query
-	$res = DBDo("DELETE FROM user_attributes WHERE ID = ?",array($params[0]));
+	$res = DBDo("DELETE FROM @TP@user_attributes WHERE ID = ?",array($params[0]));
 
 	# Return result
 	if ($res !== TRUE) {
@@ -44,7 +44,7 @@ function removeAdminUserAttribute($params) {
 function updateAdminUserAttribute($params) {
 
 	# Perform query
-	$res = DBDo("UPDATE user_attributes SET Name = ?, Operator = ?, Value = ?, Disabled = ? WHERE ID = ?",
+	$res = DBDo("UPDATE @TP@user_attributes SET Name = ?, Operator = ?, Value = ?, Disabled = ? WHERE ID = ?",
 				array($params[0]['Name'],
 				$params[0]['Operator'],
 				$params[0]['Value'],
@@ -64,7 +64,7 @@ function updateAdminUserAttribute($params) {
 function getAdminUserAttribute($params) {
 
 	# Perform query
-	$res = DBSelect("SELECT ID, Name, Operator, Value, Disabled FROM user_attributes WHERE ID = ?",array($params[0]));
+	$res = DBSelect("SELECT ID, Name, Operator, Value, Disabled FROM @TP@user_attributes WHERE ID = ?",array($params[0]));
 
 	# Return error if failed
 	if (!is_object($res)) {
@@ -90,11 +90,11 @@ function getAdminUserAttributes($params) {
 
 	# Filters and sorts are the same here
 	$filtersorts = array(
-		'ID' => 'user_attributes.ID',
-		'Name' => 'user_attributes.Name',
-		'Operator' => 'user_attributes.Operator',
-		'Value' => 'user_attributes.Value',
-		'Disabled' => 'user_attributes.Disabled'
+		'ID' => '@TP@user_attributes.ID',
+		'Name' => '@TP@user_attributes.Name',
+		'Operator' => '@TP@user_attributes.Operator',
+		'Value' => '@TP@user_attributes.Value',
+		'Disabled' => '@TP@user_attributes.Disabled'
 	);
 
 	# Perform query
@@ -102,7 +102,7 @@ function getAdminUserAttributes($params) {
 			SELECT 
 				ID, Name, Operator, Value, Disabled 
 			FROM 
-				user_attributes 
+				@TP@user_attributes 
 			WHERE 
 				UserID = ".DBQuote($params[0])."
 		",$params[1],$filtersorts,$filtersorts);

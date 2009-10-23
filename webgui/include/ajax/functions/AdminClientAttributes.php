@@ -8,7 +8,7 @@ function addAdminClientAttribute($params) {
 	# Perform query
 	$res = DBDo("
 				INSERT INTO 
-						client_attributes (ClientID,Name,Operator,Value,Disabled) 
+						@TP@client_attributes (ClientID,Name,Operator,Value,Disabled) 
 				VALUES 
 						(?,?,?,?,?)",
 				array(	$params[0]['ClientID'],
@@ -30,7 +30,7 @@ function addAdminClientAttribute($params) {
 function removeAdminClientAttribute($params) {
 
 	# Perform query
-	$res = DBDo("DELETE FROM client_attributes WHERE ID = ?",array($params[0]));
+	$res = DBDo("DELETE FROM @TP@client_attributes WHERE ID = ?",array($params[0]));
 
 	# Return result
 	if ($res !== TRUE) {
@@ -44,7 +44,7 @@ function removeAdminClientAttribute($params) {
 function updateAdminClientAttribute($params) {
 
 	# Perform query
-	$res = DBDo("UPDATE client_attributes SET Name = ?, Operator = ?, Value = ?, Disabled = ? WHERE ID = ?",
+	$res = DBDo("UPDATE @TP@client_attributes SET Name = ?, Operator = ?, Value = ?, Disabled = ? WHERE ID = ?",
 				array($params[0]['Name'],
 				$params[0]['Operator'],
 				$params[0]['Value'],
@@ -64,7 +64,7 @@ function updateAdminClientAttribute($params) {
 function getAdminClientAttribute($params) {
 
 	# Perform query
-	$res = DBSelect("SELECT ID, Name, Operator, Value, Disabled FROM client_attributes WHERE ID = ?",array($params[0]));
+	$res = DBSelect("SELECT ID, Name, Operator, Value, Disabled FROM @TP@client_attributes WHERE ID = ?",array($params[0]));
 
 	# Return error if failed
 	if (!is_object($res)) {
@@ -90,11 +90,11 @@ function getAdminClientAttributes($params) {
 
 	# Filters and sorts are the same here
 	$filtersorts = array(
-		'ID' => 'client_attributes.ID',
-		'Name' => 'client_attributes.Name',
-		'Operator' => 'client_attributes.Operator',
-		'Value' => 'client_attributes.Value',
-		'Disabled' => 'client_attributes.Disabled'
+		'ID' => '@TP@client_attributes.ID',
+		'Name' => '@TP@client_attributes.Name',
+		'Operator' => '@TP@client_attributes.Operator',
+		'Value' => '@TP@client_attributes.Value',
+		'Disabled' => '@TP@client_attributes.Disabled'
 	);
 
 	# Perform query
@@ -102,7 +102,7 @@ function getAdminClientAttributes($params) {
 			SELECT 
 				ID, Name, Operator, Value, Disabled 
 			FROM 
-				client_attributes 
+				@TP@client_attributes 
 			WHERE 
 				ClientID = ".DBQuote($params[0])."
 		",$params[1],$filtersorts,$filtersorts);

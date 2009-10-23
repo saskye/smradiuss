@@ -8,7 +8,7 @@ function addAdminRealmAttribute($params) {
 	# Perform query
 	$res = DBDo("
 				INSERT INTO 
-						realm_attributes (RealmID,Name,Operator,Value,Disabled) 
+						@TP@realm_attributes (RealmID,Name,Operator,Value,Disabled) 
 				VALUES 
 						(?,?,?,?,?)",
 				array(	$params[0]['RealmID'],
@@ -30,7 +30,7 @@ function addAdminRealmAttribute($params) {
 function removeAdminRealmAttribute($params) {
 
 	# Perform query
-	$res = DBDo("DELETE FROM realm_attributes WHERE ID = ?",array($params[0]));
+	$res = DBDo("DELETE FROM @TP@realm_attributes WHERE ID = ?",array($params[0]));
 
 	# Return result
 	if ($res !== TRUE) {
@@ -44,7 +44,7 @@ function removeAdminRealmAttribute($params) {
 function updateAdminRealmAttribute($params) {
 
 	# Perform query
-	$res = DBDo("UPDATE realm_attributes SET Name = ?, Operator = ?, Value = ?, Disabled = ? WHERE ID = ?",
+	$res = DBDo("UPDATE @TP@realm_attributes SET Name = ?, Operator = ?, Value = ?, Disabled = ? WHERE ID = ?",
 				array($params[0]['Name'],
 				$params[0]['Operator'],
 				$params[0]['Value'],
@@ -64,7 +64,7 @@ function updateAdminRealmAttribute($params) {
 function getAdminRealmAttribute($params) {
 
 	# Perform query
-	$res = DBSelect("SELECT ID, Name, Operator, Value, Disabled FROM realm_attributes WHERE ID = ?",array($params[0]));
+	$res = DBSelect("SELECT ID, Name, Operator, Value, Disabled FROM @TP@realm_attributes WHERE ID = ?",array($params[0]));
 
 	# Return error if failed
 	if (!is_object($res)) {
@@ -90,11 +90,11 @@ function getAdminRealmAttributes($params) {
 
 	# Filters and sorts are the same here
 	$filtersorts = array(
-		'ID' => 'realm_attributes.ID',
-		'Name' => 'realm_attributes.Name',
-		'Operator' => 'realm_attributes.Operator',
-		'Value' => 'realm_attributes.Value',
-		'Disabled' => 'realm_attributes.Disabled'
+		'ID' => '@TP@realm_attributes.ID',
+		'Name' => '@TP@realm_attributes.Name',
+		'Operator' => '@TP@realm_attributes.Operator',
+		'Value' => '@TP@realm_attributes.Value',
+		'Disabled' => '@TP@realm_attributes.Disabled'
 	);
 
 	# Perform query
@@ -102,7 +102,7 @@ function getAdminRealmAttributes($params) {
 			SELECT 
 				ID, Name, Operator, Value, Disabled 
 			FROM 
-				realm_attributes 
+				@TP@realm_attributes 
 			WHERE 
 				RealmID = ".DBQuote($params[0])."
 		",$params[1],$filtersorts,$filtersorts);

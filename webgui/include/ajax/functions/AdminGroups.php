@@ -8,15 +8,15 @@ function getAdminGroups($params) {
 
 	# Filters and sorts are the same here
 	$filtersorts = array(
-		'ID' => 'groups.ID',
-		'Name' => 'groups.Name',
-		'Priority' => 'groups.Priority',
-		'Disabled' => 'groups.Disabled',
-		'Comment' => 'groups.Comment'
+		'ID' => '@TP@groups.ID',
+		'Name' => '@TP@groups.Name',
+		'Priority' => '@TP@groups.Priority',
+		'Disabled' => '@TP@groups.Disabled',
+		'Comment' => '@TP@groups.Comment'
 	);
 
 	# Perform query
-	$res = DBSelectSearch("SELECT ID, Name, Priority, Disabled, Comment FROM groups",$params[1],$filtersorts,$filtersorts);
+	$res = DBSelectSearch("SELECT ID, Name, Priority, Disabled, Comment FROM @TP@groups",$params[1],$filtersorts,$filtersorts);
 	$sth = $res[0]; $numResults = $res[1];
 
 	# If STH is blank, return the error back to whoever requested the data
@@ -47,7 +47,7 @@ function getAdminGroups($params) {
 function getAdminGroup($params) {
 
 	# Perform query
-	$res = DBSelect("SELECT ID, Name, Priority, Disabled, Comment FROM groups WHERE ID = ?",array($params[0]));
+	$res = DBSelect("SELECT ID, Name, Priority, Disabled, Comment FROM @TP@groups WHERE ID = ?",array($params[0]));
 
 	# Return error if failed
 	if (!is_object($res)) {
@@ -75,16 +75,16 @@ function removeAdminGroup($params) {
 	DBBegin();
 
 	# Unlink users from group
-	$res = DBDo("DELETE FROM users_to_groups WHERE GroupID = ?",array($params[0]));
+	$res = DBDo("DELETE FROM @TP@users_to_groups WHERE GroupID = ?",array($params[0]));
 
 	# Delete group attribtues
 	if ($res !== FALSE) {
-		$res = DBDo("DELETE FROM group_attributes WHERE GroupID = ?",array($params[0]));
+		$res = DBDo("DELETE FROM @TP@group_attributes WHERE GroupID = ?",array($params[0]));
 	}
 
 	# Delete group
 	if ($res !== FALSE) {
-		$res = DBDo("DELETE FROM groups WHERE ID = ?",array($params[0]));
+		$res = DBDo("DELETE FROM @TP@groups WHERE ID = ?",array($params[0]));
 	}
 
 	# Return result
@@ -102,7 +102,7 @@ function removeAdminGroup($params) {
 function createAdminGroup($params) {
 
 	# Perform query
-	$res = DBDo("INSERT INTO groups (Name) VALUES (?)",array($params[0]['Name']));
+	$res = DBDo("INSERT INTO @TP@groups (Name) VALUES (?)",array($params[0]['Name']));
 
 	# Return result
 	if ($res !== TRUE) {
@@ -116,7 +116,7 @@ function createAdminGroup($params) {
 function updateAdminGroup($params) {
 
 	# Perform query
-	$res = DBDo("UPDATE groups SET Name = ? WHERE ID = ?",array($params[0]['Name'],$params[0]['ID']));
+	$res = DBDo("UPDATE @TP@groups SET Name = ? WHERE ID = ?",array($params[0]['Name'],$params[0]['ID']));
 
 	# Return result
 	if ($res !== TRUE) {

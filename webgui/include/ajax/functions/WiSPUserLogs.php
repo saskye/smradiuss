@@ -10,14 +10,14 @@ function getWiSPUserLogsSummary($params) {
 	# fixme - user might be member of multiple groups
 	$res = DBSelect("
 			SELECT
-				group_attributes.Name,
-				group_attributes.Value
+				@TP@group_attributes.Name,
+				@TP@group_attributes.Value
 			FROM
-				group_attributes, users_to_groups, groups
+				@TP@group_attributes, @TP@users_to_groups, @TP@groups
 			WHERE
-				group_attributes.GroupID = groups.ID
-				AND groups.ID = users_to_groups.GroupID
-				AND users_to_groups.UserID = ?",
+				@TP@group_attributes.GroupID = @TP@groups.ID
+				AND @TP@groups.ID = @TP@users_to_groups.GroupID
+				AND @TP@users_to_groups.UserID = ?",
 				array($params[0]['ID'])
 	);
 
@@ -41,12 +41,12 @@ function getWiSPUserLogsSummary($params) {
 	# Get user attributes
 	$res = DBSelect("
 			SELECT
-				user_attributes.Name,
-				user_attributes.Value
+				@TP@user_attributes.Name,
+				@TP@user_attributes.Value
 			FROM
-				user_attributes
+				@TP@user_attributes
 			WHERE
-				user_attributes.UserID = ?",
+				@TP@user_attributes.UserID = ?",
 				array($params[0]['ID'])
 	);
 
@@ -81,18 +81,18 @@ function getWiSPUserLogsSummary($params) {
 	# Fetch user uptime and traffic summary
 	$res = DBSelect("
 		SELECT
-			topups_summary.Balance,
-			topups.Type,
-			topups.Value
+			@TP@topups_summary.Balance,
+			@TP@topups.Type,
+			@TP@topups.Value
 		FROM
-			topups_summary,
-			topups
+			@TP@topups_summary,
+			@TP@topups
 		WHERE
-			topups_summary.TopupID = topups.ID
-			AND topups.UserID = ?
-			AND topups_summary.PeriodKey = ?
+			@TP@topups_summary.TopupID = @TP@topups.ID
+			AND @TP@topups.UserID = ?
+			AND @TP@topups_summary.PeriodKey = ?
 		ORDER BY
-			topups.Timestamp",
+			@TP@topups.Timestamp",
 			array($params[0]['ID'],$periodKey->format('Y-m'))
 	);
 
@@ -119,13 +119,13 @@ function getWiSPUserLogsSummary($params) {
 		SELECT
 			Value, Type
 		FROM
-			topups
+			@TP@topups
 		WHERE
-			topups.UserID = ?
-			AND topups.ValidFrom = ?
-			AND topups.ValidTo >= ?
+			@TP@topups.UserID = ?
+			AND @TP@topups.ValidFrom = ?
+			AND @TP@topups.ValidTo >= ?
 		ORDER BY
-			topups.Timestamp",
+			@TP@topups.Timestamp",
 			array($params[0]['ID'],$periodKey->format('Y-m-d'),$periodKeyEnd->format('Y-m-d'))
 	);
 
@@ -144,17 +144,17 @@ function getWiSPUserLogsSummary($params) {
 
 	$res = DBSelect("
 		SELECT
-			accounting.AcctSessionTime,
-			accounting.AcctInputOctets,
-			accounting.AcctInputGigawords,
-			accounting.AcctOutputOctets,
-			accounting.AcctOutputGigawords
+			@TP@accounting.AcctSessionTime,
+			@TP@accounting.AcctInputOctets,
+			@TP@accounting.AcctInputGigawords,
+			@TP@accounting.AcctOutputOctets,
+			@TP@accounting.AcctOutputGigawords
 		FROM
-			accounting, users
+			@TP@accounting, @TP@users
 		WHERE
-			users.ID = ?
-			AND PeriodKey = ?
-			AND accounting.Username = users.Username",
+			@TP@users.ID = ?
+			AND @TP@accounting.PeriodKey = ?
+			AND @TP@accounting.Username = @TP@users.Username",
 			array($params[0]['ID'],$periodKey->format('Y-m'))
 	);
 
@@ -225,45 +225,45 @@ function getWiSPUserLogs($params) {
 
 	# Filters and sorts are the same here
 	$filtersorts = array(
-		'ID' => 'accounting.ID',
-		'EventTimestamp' => 'accounting.EventTimestamp',
-		'AcctStatusType' => 'accounting.AcctStatusType',
-		'ServiceType' => 'accounting.ServiceType',
-		'FramedProtocol' => 'accounting.FramedProtocol',
-		'NASPortType' => 'accounting.NASPortType',
-		'NASPortID' => 'accounting.NASPortID',
-		'CallingStationID' => 'accounting.CallingStationID',
-		'CalledStationID' => 'accounting.CalledStationID',
-		'AcctSessionID' => 'accounting.AcctSessionID',
-		'FramedIPAddress' => 'accounting.FramedIPAddress',
+		'ID' => '@TP@accounting.ID',
+		'EventTimestamp' => '@TP@accounting.EventTimestamp',
+		'AcctStatusType' => '@TP@accounting.AcctStatusType',
+		'ServiceType' => '@TP@accounting.ServiceType',
+		'FramedProtocol' => '@TP@accounting.FramedProtocol',
+		'NASPortType' => '@TP@accounting.NASPortType',
+		'NASPortID' => '@TP@accounting.NASPortID',
+		'CallingStationID' => '@TP@accounting.CallingStationID',
+		'CalledStationID' => '@TP@accounting.CalledStationID',
+		'AcctSessionID' => '@TP@accounting.AcctSessionID',
+		'FramedIPAddress' => '@TP@accounting.FramedIPAddress',
 	);
 
 	# Perform query
 	$res = DBSelectSearch("
 				SELECT
-					accounting.ID,
-					accounting.EventTimestamp,
-					accounting.AcctStatusType,
-					accounting.ServiceType,
-					accounting.FramedProtocol,
-					accounting.NASPortType,
-					accounting.NASPortID,
-					accounting.CallingStationID,
-					accounting.CalledStationID,
-					accounting.AcctSessionID,
-					accounting.FramedIPAddress,
-					accounting.AcctInputOctets,
-					accounting.AcctInputGigawords,
-					accounting.AcctOutputOctets,
-					accounting.AcctOutputGigawords,
-					accounting.AcctTerminateCause,
-					accounting.AcctSessionTime
+					@TP@accounting.ID,
+					@TP@accounting.EventTimestamp,
+					@TP@accounting.AcctStatusType,
+					@TP@accounting.ServiceType,
+					@TP@accounting.FramedProtocol,
+					@TP@accounting.NASPortType,
+					@TP@accounting.NASPortID,
+					@TP@accounting.CallingStationID,
+					@TP@accounting.CalledStationID,
+					@TP@accounting.AcctSessionID,
+					@TP@accounting.FramedIPAddress,
+					@TP@accounting.AcctInputOctets,
+					@TP@accounting.AcctInputGigawords,
+					@TP@accounting.AcctOutputOctets,
+					@TP@accounting.AcctOutputGigawords,
+					@TP@accounting.AcctTerminateCause,
+					@TP@accounting.AcctSessionTime
 				FROM
-					accounting, users
+					@TP@accounting, @TP@users
 				WHERE
-					users.Username = accounting.Username
+					@TP@users.Username = @TP@accounting.Username
 				AND
-					users.ID = ".DBQuote($params[0])."
+					@TP@users.ID = ".DBQuote($params[0])."
 					",$params[1],$filtersorts,$filtersorts);
 	$sth = $res[0]; $numResults = $res[1];
 

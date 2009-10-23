@@ -5,7 +5,7 @@ include_once("include/db.php");
 # Remove realm member
 function removeAdminRealmMember($params) {
 
-	$res = DBDo("DELETE FROM clients_to_realms WHERE ID = ?",array($params[0]));
+	$res = DBDo("DELETE FROM @TP@clients_to_realms WHERE ID = ?",array($params[0]));
 
 	# Return result
 	if ($res !== TRUE) {
@@ -20,20 +20,20 @@ function getAdminRealmMembers($params) {
 
 	# Filters and sorts are the same here
 	$filtersorts = array(
-		'ID' => 'clients_to_realms.ID',
-		'Name' => 'realm_attributes.Name'
+		'ID' => '@TP@clients_to_realms.ID',
+		'Name' => '@TP@realm_attributes.Name'
 	);
 
 	# Fetch members
 	$res = DBSelectSearch("
 			SELECT 
-				clients_to_realms.ID, clients.Name
+				@TP@clients_to_realms.ID, @TP@clients.Name
 			FROM 
-				clients_to_realms, clients
+				@TP@clients_to_realms, @TP@clients
 			WHERE 
-				clients.ID = clients_to_realms.ClientID
+				@TP@clients.ID = @TP@clients_to_realms.ClientID
 			AND
-				clients_to_realms.RealmID = ".DBQuote($params[0])."
+				@TP@clients_to_realms.RealmID = ".DBQuote($params[0])."
 		",$params[1],$filtersorts,$filtersorts);
 
 	$sth = $res[0]; $numResults = $res[1];

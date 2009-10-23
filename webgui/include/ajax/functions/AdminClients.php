@@ -8,13 +8,13 @@ function getAdminClients($params) {
 
 	# Filters and sorts are the same here
 	$filtersorts = array(
-		'ID' => 'clients.ID',
-		'Name' => 'clients.Name',
-		'AccessList' => 'clients.AccessList'
+		'ID' => '@TP@clients.ID',
+		'Name' => '@TP@clients.Name',
+		'AccessList' => '@TP@clients.AccessList'
 	);
 
 	# Perform query
-	$res = DBSelectSearch("SELECT ID, Name, AccessList FROM clients",$params[1],$filtersorts,$filtersorts);
+	$res = DBSelectSearch("SELECT ID, Name, AccessList FROM @TP@clients",$params[1],$filtersorts,$filtersorts);
 	$sth = $res[0]; $numResults = $res[1];
 
 	# If STH is blank, return the error back to whoever requested the data
@@ -43,7 +43,7 @@ function getAdminClients($params) {
 function getAdminClient($params) {
 
 	# Perform query
-	$res = DBSelect("SELECT ID, Name, AccessList FROM clients WHERE ID = ?",array($params[0]));
+	$res = DBSelect("SELECT ID, Name, AccessList FROM @TP@clients WHERE ID = ?",array($params[0]));
 
 	# Return error if failed
 	if (!is_object($res)) {
@@ -69,16 +69,16 @@ function removeAdminClient($params) {
 	DBBegin();
 
 	# Perform query
-	$res = DBDo("DELETE FROM client_attributes WHERE ClientID = ?",array($params[0]));
+	$res = DBDo("DELETE FROM @TP@client_attributes WHERE ClientID = ?",array($params[0]));
 
 	# Remove client from realms
 	if ($res !== FALSE) {
-		$res = DBDo("DELETE FROM clients_to_realms WHERE ClientID = ?",array($params[0]));
+		$res = DBDo("DELETE FROM @TP@clients_to_realms WHERE ClientID = ?",array($params[0]));
 	}
 
 	# Perform next query if successful
 	if ($res !== FALSE) {
-		$res = DBDo("DELETE FROM clients WHERE ID = ?",array($params[0]));
+		$res = DBDo("DELETE FROM @TP@clients WHERE ID = ?",array($params[0]));
 	}
 
 	# Return result
@@ -96,7 +96,7 @@ function removeAdminClient($params) {
 function createAdminClient($params) {
 
 	# Perform query
-	$res = DBDo("INSERT INTO clients (Name,AccessList) VALUES (?,?)",array($params[0]['Name'],$params[0]['AccessList']));
+	$res = DBDo("INSERT INTO @TP@clients (Name,AccessList) VALUES (?,?)",array($params[0]['Name'],$params[0]['AccessList']));
 
 	# Return result
 	if ($res !== TRUE) {
@@ -110,7 +110,7 @@ function createAdminClient($params) {
 function updateAdminClient($params) {
 
 	# Perform query
-	$res = DBDo("UPDATE clients SET Name = ?, AccessList = ? WHERE ID = ?",
+	$res = DBDo("UPDATE @TP@clients SET Name = ?, AccessList = ? WHERE ID = ?",
 			array($params[0]['Name'],$params[0]['AccessList'],$params[0]['ID']));
 
 	# Return result

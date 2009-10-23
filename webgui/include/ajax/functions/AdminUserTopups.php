@@ -10,7 +10,7 @@ function createAdminUserTopup($params) {
 	$timestamp = date('Y-m-d H:i:s');
 
 	# Perform query
-	$res = DBDo("INSERT INTO topups (UserID,Timestamp,Type,Value,ValidFrom,ValidTo) VALUES (?,?,?,?,?,?)",
+	$res = DBDo("INSERT INTO @TP@topups (UserID,Timestamp,Type,Value,ValidFrom,ValidTo) VALUES (?,?,?,?,?,?)",
 			array($params[0]['UserID'],$timestamp,$params[0]['Type'],$params[0]['Value'],$params[0]['ValidFrom'],
 					$params[0]['ValidTo'])
 	);
@@ -27,7 +27,7 @@ function createAdminUserTopup($params) {
 function updateAdminUserTopup($params) {
 
 	# Perform query
-	$res = DBDo("UPDATE topups SET Value = ?, Type = ?, ValidFrom = ?, ValidTo = ? WHERE ID = ?",
+	$res = DBDo("UPDATE @TP@topups SET Value = ?, Type = ?, ValidFrom = ?, ValidTo = ? WHERE ID = ?",
 				array($params[0]['Value'],
 				$params[0]['Type'],
 				$params[0]['ValidFrom'],
@@ -47,7 +47,7 @@ function updateAdminUserTopup($params) {
 function removeAdminUserTopup($params) {
 
 	# Perform query
-	$res = DBDo("DELETE FROM topups WHERE ID = ?",array($params[0]));
+	$res = DBDo("DELETE FROM @TP@topups WHERE ID = ?",array($params[0]));
 
 	# Return result
 	if ($res !== TRUE) {
@@ -61,7 +61,7 @@ function removeAdminUserTopup($params) {
 function getAdminUserTopup($params) {
 
 	# Perform query
-	$res = DBSelect("SELECT ID, Type, Value, ValidFrom, ValidTo FROM topups WHERE ID = ?",array($params[0]));
+	$res = DBSelect("SELECT ID, Type, Value, ValidFrom, ValidTo FROM @TP@topups WHERE ID = ?",array($params[0]));
 
 	# Return error if failed
 	if (!is_object($res)) {
@@ -93,11 +93,11 @@ function getAdminUserTopups($params) {
 
 	# Filters and sorts are the same here
 	$filtersorts = array(
-		'ID' => 'topups.ID',
-		'Type' => 'topups.Type',
-		'Value' => 'topups.Value',
-		'ValidFrom' => 'topups.ValidFrom',
-		'ValidTo' => 'topups.ValidTo'
+		'ID' => '@TP@topups.ID',
+		'Type' => '@TP@topups.Type',
+		'Value' => '@TP@topups.Value',
+		'ValidFrom' => '@TP@topups.ValidFrom',
+		'ValidTo' => '@TP@topups.ValidTo'
 	);
 
 	# Perform query
@@ -105,7 +105,7 @@ function getAdminUserTopups($params) {
 			SELECT 
 				ID, Timestamp, Type, Value, ValidFrom, ValidTo
 			FROM 
-				topups 
+				@TP@topups 
 			WHERE 
 				Depleted = 0
 			AND

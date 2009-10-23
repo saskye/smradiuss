@@ -5,7 +5,7 @@ include_once("include/db.php");
 # Remove group member
 function removeAdminGroupMember($params) {
 
-	$res = DBDo("DELETE FROM users_to_groups WHERE ID = ?",array($params[0]));
+	$res = DBDo("DELETE FROM @TP@users_to_groups WHERE ID = ?",array($params[0]));
 
 	# Return result
 	if ($res !== TRUE) {
@@ -20,21 +20,21 @@ function getAdminGroupMembers($params) {
 
 	# Filters and sorts are the same here
 	$filtersorts = array(
-		'ID' => 'users_to_groups.ID',
-		'Username' => 'group_attributes.Username',
-		'Disabled' => 'group_attributes.Disabled'
+		'ID' => '@TP@users_to_groups.ID',
+		'Username' => '@TP@group_attributes.Username',
+		'Disabled' => '@TP@group_attributes.Disabled'
 	);
 
 	# Fetch members
 	$res = DBSelectSearch("
 			SELECT 
-				users_to_groups.ID, users.Username, users.Disabled 
+				@TP@users_to_groups.ID, @TP@users.Username, @TP@users.Disabled 
 			FROM 
-				users_to_groups, users
+				@TP@users_to_groups, @TP@users
 			WHERE 
-				users.ID = users_to_groups.UserID
+				@TP@users.ID = @TP@users_to_groups.UserID
 			AND
-				users_to_groups.GroupID = ".DBQuote($params[0])."
+				@TP@users_to_groups.GroupID = ".DBQuote($params[0])."
 		",$params[1],$filtersorts,$filtersorts);
 
 	$sth = $res[0]; $numResults = $res[1];

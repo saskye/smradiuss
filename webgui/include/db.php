@@ -74,9 +74,13 @@ function DBSelect($query,$args = array())
 {
 	global $db;
 
+	# Replace table prefix template
+	$result = ReplacePrefix($query, $args);
+	$rawQuery = $result[0]; $rawArgs = $result[1];
+
 	# Try prepare, and catch exceptions
 	try {
-		$stmt = $db->prepare($query);
+		$stmt = $db->prepare($rawQuery);
 
 	} catch (PDOException $e) {
 		return $e->getMessage();
@@ -84,7 +88,7 @@ function DBSelect($query,$args = array())
 	}
 
 	# Execute query
-	$res = $stmt->execute($args);
+	$res = $stmt->execute($rawArgs);
 	if ($res === FALSE) {
 		return $stmt->errorInfo();
 	}
@@ -104,9 +108,13 @@ function DBDo($command,$args = array())
 {
 	global $db;
 
+	# Replace table prefix template
+	$result = ReplacePrefix($query, $args);
+	$rawCommand = $result[0]; $rawArgs = $result[1];
+
 	# Try prepare, and catch exceptions
 	try {
-		$stmt = $db->prepare($command);
+		$stmt = $db->prepare($rawCommand);
 
 	} catch (PDOException $e) {
 		return $e->getMessage();
@@ -114,7 +122,7 @@ function DBDo($command,$args = array())
 	}
 
 	# Execute query
-	$res = $stmt->execute($args);
+	$res = $stmt->execute($rawArgs);
 	if ($res === FALSE) {
 		return $stmt->errorInfo();
 	}
@@ -134,7 +142,11 @@ function DBSelectNumResults($query,$args = array())
 	global $db;
 
 
-	$res = DBSelect("SELECT COUNT(*) AS num_results $query",$args);
+	# Replace table prefix template
+	$result = ReplacePrefix($query, $args);
+	$rawQuery = $result[0]; $rawArgs = $result[1];
+
+	$res = DBSelect("SELECT COUNT(*) AS num_results $rawQuery",$rawArgs);
 	if (!is_object($res)) {
 		return $res;
 	}
@@ -373,6 +385,7 @@ function DBSelectSearch($query,$search,$filters,$sorts) {
 
 	# Select row count, pull out   "SELECT .... "  as we replace this in the NumResults query
 	$queryCount = $query; $queryCount = preg_replace("/^\s*SELECT\s.*\sFROM/is","FROM",$queryCount);
+
 	$numResults = DBSelectNumResults("$queryCount $sqlWhere");
 	if (!isset($numResults)) {
 		return array(NULL,"Backend database query 1 failed");
@@ -455,6 +468,34 @@ function DBRollback()
 
 # Connet to database when we load this file
 $db = connect_db();
+
+
+## @fn ReplacePrefix($query,$args)
+# Return raw query and args based on table prefix
+#
+# @param query Query string
+# @param args Array of arguments 
+#
+# @return string rawQuery, array rawArgs
+function ReplacePrefix($query, $args = array())
+{
+	global $DB_TABLE_PREFIX;
+
+	# Fetch table prefix from config
+	$table_prefix = isset($DB_TABLE_PREFIX) ? $DB_TABLE_PREFIX : "";
+
+	# Replace query
+	$rawQuery = preg_replace('/\@TP\@/', $table_prefix, $query);
+
+	# Replace args
+	$rawArgs = array();
+	foreach ($args as $argItem) {
+		$rawArgItem = preg_replace('/\@TP\@/', $table_prefix, $argItem);
+		array_push($rawArgs, $rawArgItem);
+	}
+
+	return array($rawQuery, $rawArgs);
+}
 
 
 # vim: ts=4

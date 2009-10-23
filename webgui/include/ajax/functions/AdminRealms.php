@@ -8,13 +8,13 @@ function getAdminRealms($params) {
 
 	# Filters and sorts are the same here
 	$filtersorts = array(
-		'ID' => 'realms.ID',
-		'Name' => 'realms.Name',
-		'Disabled' => 'realms.Disabled'
+		'ID' => '@TP@realms.ID',
+		'Name' => '@TP@realms.Name',
+		'Disabled' => '@TP@realms.Disabled'
 	);
 
 	# Perform query
-	$res = DBSelectSearch("SELECT ID, Name, Disabled FROM realms",$params[1],$filtersorts,$filtersorts);
+	$res = DBSelectSearch("SELECT ID, Name, Disabled FROM @TP@realms",$params[1],$filtersorts,$filtersorts);
 	$sth = $res[0]; $numResults = $res[1];
 
 	# If STH is blank, return the error back to whoever requested the data
@@ -43,7 +43,7 @@ function getAdminRealms($params) {
 function getAdminRealm($params) {
 
 	# Perform query
-	$res = DBSelect("SELECT ID, Name, Disabled FROM realms WHERE ID = ?",array($params[0]));
+	$res = DBSelect("SELECT ID, Name, Disabled FROM @TP@realms WHERE ID = ?",array($params[0]));
 
 	# Return error if failed
 	if (!is_object($res)) {
@@ -69,11 +69,11 @@ function removeAdminRealm($params) {
 	DBBegin();
 
 	# Perform query
-	$res = DBDo("DELETE FROM realm_attributes WHERE RealmID = ?",array($params[0]));
+	$res = DBDo("DELETE FROM @TP@realm_attributes WHERE RealmID = ?",array($params[0]));
 
 	# Perform next query if successful
 	if ($res !== FALSE) {
-		$res = DBDo("DELETE FROM realms WHERE ID = ?",array($params[0]));
+		$res = DBDo("DELETE FROM @TP@realms WHERE ID = ?",array($params[0]));
 	}
 
 	# Return result
@@ -91,7 +91,7 @@ function removeAdminRealm($params) {
 function createAdminRealm($params) {
 
 	# Perform query
-	$res = DBDo("INSERT INTO realms (Name) VALUES (?)",array($params[0]['Name']));
+	$res = DBDo("INSERT INTO @TP@realms (Name) VALUES (?)",array($params[0]['Name']));
 
 	# Return result
 	if ($res !== TRUE) {
@@ -105,7 +105,7 @@ function createAdminRealm($params) {
 function updateAdminRealm($params) {
 
 	# Perform query
-	$res = DBDo("UPDATE realms SET Name = ? WHERE ID = ?",array($params[0]['Name'],$params[0]['ID']));
+	$res = DBDo("UPDATE @TP@realms SET Name = ? WHERE ID = ?",array($params[0]['Name'],$params[0]['ID']));
 
 	# Return result
 	if ($res !== TRUE) {

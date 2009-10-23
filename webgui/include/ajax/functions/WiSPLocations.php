@@ -8,12 +8,12 @@ function getWiSPLocations($params) {
 
 	# Filters and sorts are the same here
 	$filtersorts = array(
-		'ID' => 'wisp_locations.ID',
-		'Name' => 'wisp_locations.Name'
+		'ID' => '@TP@wisp_locations.ID',
+		'Name' => '@TP@wisp_locations.Name'
 	);
 
 	# Perform query
-	$res = DBSelectSearch("SELECT ID, Name FROM wisp_locations",$params[1],$filtersorts,$filtersorts);
+	$res = DBSelectSearch("SELECT ID, Name FROM @TP@wisp_locations",$params[1],$filtersorts,$filtersorts);
 	$sth = $res[0]; $numResults = $res[1];
 
 	# If STH is blank, return the error back to whoever requested the data
@@ -43,7 +43,7 @@ function getWiSPLocations($params) {
 function getWiSPLocation($params) {
 
 	# Perform query
-	$res = DBSelect("SELECT ID, Name FROM wisp_locations WHERE ID = ?",array($params[0]));
+	$res = DBSelect("SELECT ID, Name FROM @TP@wisp_locations WHERE ID = ?",array($params[0]));
 
 	# Return if error or nothing to return
 	if (!is_object($res)) {
@@ -68,11 +68,11 @@ function removeWiSPLocation($params) {
 	DBBegin();
 
 	# Unlink users from this location
-	$res = DBDo("UPDATE wisp_userdata SET LocationID = NULL WHERE LocationID = ?",array($params[0]));
+	$res = DBDo("UPDATE @TP@wisp_userdata SET LocationID = NULL WHERE LocationID = ?",array($params[0]));
 
 	# Delete location
 	if ($res !== FALSE) {
-		$res = DBDo("DELETE FROM wisp_locations WHERE ID = ?",array($params[0]));
+		$res = DBDo("DELETE FROM @TP@wisp_locations WHERE ID = ?",array($params[0]));
 	}
 
 	# Return result
@@ -90,7 +90,7 @@ function removeWiSPLocation($params) {
 function createWiSPLocation($params) {
 
 	# Perform query
-	$res = DBDo("INSERT INTO wisp_locations (Name) VALUES (?)",array($params[0]['Name']));
+	$res = DBDo("INSERT INTO @TP@wisp_locations (Name) VALUES (?)",array($params[0]['Name']));
 
 	# Return result
 	if ($res !== TRUE) {
@@ -104,7 +104,7 @@ function createWiSPLocation($params) {
 function updateWiSPLocation($params) {
 
 	# Perform query
-	$res = DBDo("UPDATE wisp_locations SET Name = ? WHERE ID = ?",array($params[0]['Name'],$params[0]['ID']));
+	$res = DBDo("UPDATE @TP@wisp_locations SET Name = ? WHERE ID = ?",array($params[0]['Name'],$params[0]['ID']));
 
 	# Return result
 	if ($res !== TRUE) {

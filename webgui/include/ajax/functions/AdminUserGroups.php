@@ -7,7 +7,7 @@ include_once("include/db.php");
 function addAdminUserGroup($params) {
 
 	# Perform query
-	$res = DBDo("INSERT INTO users_to_groups (UserID,GroupID) VALUES (?,?)",array($params[0]['UserID'],$params[0]['GroupID']));
+	$res = DBDo("INSERT INTO @TP@users_to_groups (UserID,GroupID) VALUES (?,?)",array($params[0]['UserID'],$params[0]['GroupID']));
 
 	# Return result
 	if ($res !== TRUE) {
@@ -21,7 +21,7 @@ function addAdminUserGroup($params) {
 function removeAdminUserGroup($params) {
 
 	# Perform query
-	$res = DBDo("DELETE FROM users_to_groups WHERE ID = ?",array($params[0]));
+	$res = DBDo("DELETE FROM @TP@users_to_groups WHERE ID = ?",array($params[0]));
 
 	# Return result
 	if ($res !== TRUE) {
@@ -36,19 +36,19 @@ function getAdminUserGroups($params) {
 
 	# Filters and sorts are the same here
 	$filtersorts = array(
-		'ID' => 'users_to_groups.ID',
-		'Name' => 'groups.Name'
+		'ID' => '@TP@users_to_groups.ID',
+		'Name' => '@TP@groups.Name'
 	);
 
 	# Perform query
 	$res = DBSelectSearch("
 			SELECT 
-				users_to_groups.ID, groups.Name 
+				@TP@users_to_groups.ID, @TP@groups.Name 
 			FROM 
-				users_to_groups, groups 
+				@TP@users_to_groups, @TP@groups 
 			WHERE 
-				users_to_groups.GroupID = groups.ID
-				AND users_to_groups.UserID = ".DBQuote($params[0])."
+				@TP@users_to_groups.GroupID = @TP@groups.ID
+				AND @TP@users_to_groups.UserID = ".DBQuote($params[0])."
 		",$params[1],$filtersorts,$filtersorts);
 	$sth = $res[0]; $numResults = $res[1];
 

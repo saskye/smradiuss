@@ -8,29 +8,29 @@ function getWiSPUsers($params) {
 
 	# Filters and sorts are the same here
 	$filtersorts = array(
-		'Username' => 'users.Username',
-		'Disabled' => 'users.Disabled',
-		'ID' => 'wisp_userdata.UserID',
-		'Firstname' => 'wisp_userdata.Firstname',
-		'Lastname' => 'wisp_userdata.Lastname',
-		'Email' => 'wisp_userdata.Email',
-		'Phone' => 'wisp_userdata.Phone'
+		'Username' => '@TP@users.Username',
+		'Disabled' => '@TP@users.Disabled',
+		'ID' => '@TP@wisp_userdata.UserID',
+		'Firstname' => '@TP@wisp_userdata.Firstname',
+		'Lastname' => '@TP@wisp_userdata.Lastname',
+		'Email' => '@TP@wisp_userdata.Email',
+		'Phone' => '@TP@wisp_userdata.Phone'
 	);
 
 	# Perform query
 	$res = DBSelectSearch("
 		SELECT 
-			users.Username, 
-			users.Disabled, 
-			wisp_userdata.UserID, 
-			wisp_userdata.FirstName, 
-			wisp_userdata.LastName, 
-			wisp_userdata.Email, 
-			wisp_userdata.Phone  
+			@TP@users.Username, 
+			@TP@users.Disabled, 
+			@TP@wisp_userdata.UserID, 
+			@TP@wisp_userdata.FirstName, 
+			@TP@wisp_userdata.LastName, 
+			@TP@wisp_userdata.Email, 
+			@TP@wisp_userdata.Phone  
 		FROM 
-			users, wisp_userdata
+			@TP@users, @TP@wisp_userdata
 		WHERE
-			wisp_userdata.UserID = users.ID
+			@TP@wisp_userdata.UserID = @TP@users.ID
 		",$params[1],$filtersorts,$filtersorts
 	);
 	$sth = $res[0]; $numResults = $res[1];
@@ -69,19 +69,19 @@ function getWiSPUser($params) {
 	# Query for userdata and username
 	$res = DBSelect("
 		SELECT 
-			wisp_userdata.UserID, 
-			wisp_userdata.FirstName, 
-			wisp_userdata.LastName, 
-			wisp_userdata.Phone, 
-			wisp_userdata.Email, 
-			wisp_userdata.LocationID,
-			users.Username
+			@TP@wisp_userdata.UserID, 
+			@TP@wisp_userdata.FirstName, 
+			@TP@wisp_userdata.LastName, 
+			@TP@wisp_userdata.Phone, 
+			@TP@wisp_userdata.Email, 
+			@TP@wisp_userdata.LocationID,
+			@TP@users.Username
 		FROM 
-			wisp_userdata, users
+			@TP@wisp_userdata, @TP@users
 		WHERE 
-			wisp_userdata.UserID = ?
+			@TP@wisp_userdata.UserID = ?
 		AND
-			users.ID = wisp_userdata.UserID
+			@TP@users.ID = @TP@wisp_userdata.UserID
 			",array($params[0])
 	);
 
@@ -128,10 +128,10 @@ function getWiSPUser($params) {
 		SELECT
 			Value
 		FROM
-			user_attributes
+			@TP@user_attributes
 		WHERE
 			Name = ?
-			AND user_attributes.UserID = ?
+			AND @TP@user_attributes.UserID = ?
 			",array('User-Password',$params[0])
 	);
 
@@ -163,9 +163,9 @@ function getWiSPUserAttributes($params) {
 		SELECT
 			ID, Name, Operator, Value
 		FROM
-			user_attributes
+			@TP@user_attributes
 		WHERE
-			user_attributes.UserID = ?",
+			@TP@user_attributes.UserID = ?",
 			array($params[0])
 	);
 
@@ -199,12 +199,12 @@ function getWiSPUserGroups($params) {
 	# Groups query
 	$res = DBSelect("
 		SELECT
-			groups.Name, groups.ID
+			@TP@groups.Name, @TP@groups.ID
 		FROM
-			users_to_groups, groups
+			@TP@users_to_groups, @TP@groups
 		WHERE
-			users_to_groups.GroupID = groups.ID
-			AND users_to_groups.UserID = ?",
+			@TP@users_to_groups.GroupID = @TP@groups.ID
+			AND @TP@users_to_groups.UserID = ?",
 			array($params[0])
 	);
 
@@ -236,16 +236,16 @@ function removeWiSPUser($params) {
 	DBBegin();
 
 	# Delete user information
-	$res = DBDo("DELETE FROM wisp_userdata WHERE UserID = ?",array($params[0]));
+	$res = DBDo("DELETE FROM @TP@wisp_userdata WHERE UserID = ?",array($params[0]));
 
 	# Delete user attribtues
 	if ($res !== FALSE) {
-		$res = DBDo("DELETE FROM user_attributes WHERE UserID = ?",array($params[0]));
+		$res = DBDo("DELETE FROM @TP@user_attributes WHERE UserID = ?",array($params[0]));
 	}
 
 	# Remove user from groups
 	if ($res !== FALSE) {
-		$res = DBDo("DELETE FROM users_to_groups WHERE UserID = ?",array($params[0]));
+		$res = DBDo("DELETE FROM @TP@users_to_groups WHERE UserID = ?",array($params[0]));
 	}
 	
 	# Get list of topups and delete summaries
@@ -253,12 +253,12 @@ function removeWiSPUser($params) {
 		$topupList = array();
 		$res = DBSelect("
 			SELECT
-				topups_summary.TopupID
+				@TP@topups_summary.TopupID
 			FROM
-				topups_summary, topups
+				@TP@topups_summary, topups
 			WHERE
-				topups_summary.TopupID = topups.ID
-				AND topups.UserID = ?",
+				@TP@topups_summary.TopupID = @TP@topups.ID
+				AND @TP@topups.UserID = ?",
 				array($params[0])
 		);
 
@@ -276,7 +276,7 @@ function removeWiSPUser($params) {
 				if ($res !== FALSE) {
 					$res = DBDo("
 						DELETE FROM
-							topups_summary
+							@TP@topups_summary
 						WHERE
 							TopupID = ?",
 							array($id)
@@ -288,12 +288,12 @@ function removeWiSPUser($params) {
 
 	# Remove topups
 	if ($res !== FALSE) {
-		$res = DBDo("DELETE FROM topups WHERE UserID = ?",array($params[0]));
+		$res = DBDo("DELETE FROM @TP@topups WHERE UserID = ?",array($params[0]));
 	}
 
 	# Delete user
 	if ($res !== FALSE) {
-		$res = DBDo("DELETE FROM users WHERE ID = ?",array($params[0]));
+		$res = DBDo("DELETE FROM @TP@users WHERE ID = ?",array($params[0]));
 	}
 
 	# Return result
@@ -319,14 +319,14 @@ function createWiSPUser($params) {
 	# If we adding single user
 	if (empty($params[0]['Number']) && !empty($params[0]['Username'])) {
 		# Insert username
-		$res = DBDo("INSERT INTO users (Username) VALUES (?)",array($params[0]['Username']));
+		$res = DBDo("INSERT INTO @TP@users (Username) VALUES (?)",array($params[0]['Username']));
 
 		# Continue with others if successful
 		if ($res !== FALSE) {
 			$userID = DBLastInsertID();
 			$res = DBDo("
 				INSERT INTO 
-						user_attributes (UserID,Name,Operator,Value) 
+						@TP@user_attributes (UserID,Name,Operator,Value) 
 				VALUES 
 						(?,?,?,?)",
 				array($userID,
@@ -338,24 +338,24 @@ function createWiSPUser($params) {
 
 		# Link users ID to make user a wisp user
 		if ($res !== FALSE) {
-			$res = DBDo("INSERT INTO wisp_userdata (UserID) VALUES (?)",array($userID));
+			$res = DBDo("INSERT INTO @TP@wisp_userdata (UserID) VALUES (?)",array($userID));
 		}
 
 		# Add personal information
 		if ($res !== FALSE && isset($params[0]['Firstname'])) {
-			$res = DBDo("UPDATE wisp_userdata SET FirstName = ? WHERE UserID = ?",array($params[0]['Firstname'],$userID));
+			$res = DBDo("UPDATE @TP@wisp_userdata SET FirstName = ? WHERE UserID = ?",array($params[0]['Firstname'],$userID));
 		}
 		if ($res !== FALSE && isset($params[0]['Lastname'])) {
-			$res = DBDo("UPDATE wisp_userdata SET LastName = ? WHERE UserID = ?",array($params[0]['Lastname'],$userID));
+			$res = DBDo("UPDATE @TP@wisp_userdata SET LastName = ? WHERE UserID = ?",array($params[0]['Lastname'],$userID));
 		}
 		if ($res !== FALSE && isset($params[0]['Phone'])) {
-			$res = DBDo("UPDATE wisp_userdata SET Phone = ? WHERE UserID = ?",array($params[0]['Phone'],$userID));
+			$res = DBDo("UPDATE @TP@wisp_userdata SET Phone = ? WHERE UserID = ?",array($params[0]['Phone'],$userID));
 		}
 		if ($res !== FALSE && isset($params[0]['Email'])) {
-			$res = DBDo("UPDATE wisp_userdata SET Email = ? WHERE UserID = ?",array($params[0]['Email'],$userID));
+			$res = DBDo("UPDATE @TP@wisp_userdata SET Email = ? WHERE UserID = ?",array($params[0]['Email'],$userID));
 		}
 		if ($res !== FALSE && !empty($params[0]['LocationID'])) {
-			$res = DBDo("UPDATE wisp_userdata SET LocationID = ? WHERE UserID = ?",array($params[0]['LocationID'],$userID));
+			$res = DBDo("UPDATE @TP@wisp_userdata SET LocationID = ? WHERE UserID = ?",array($params[0]['LocationID'],$userID));
 		}
 
 		# Grab each attribute and add it's details to the database
@@ -409,7 +409,7 @@ function createWiSPUser($params) {
 					# Add attribute
 					$res = DBDo("
 							INSERT INTO 
-									user_attributes (UserID,Name,Operator,Value) 
+									@TP@user_attributes (UserID,Name,Operator,Value) 
 							VALUES
 									(?,?,?,?)",
 							array(
@@ -435,7 +435,7 @@ function createWiSPUser($params) {
 			}
 			# Loop through groups
 			foreach ($refinedGroups as $groupID) {
-				$res = DBDo("INSERT INTO users_to_groups (UserID,GroupID) VALUES (?,?)",array($userID,$groupID));
+				$res = DBDo("INSERT INTO @TP@users_to_groups (UserID,GroupID) VALUES (?,?)",array($userID,$groupID));
 			}
 		}
 
@@ -465,11 +465,11 @@ function createWiSPUser($params) {
 				# Check if username used
 				$res = DBSelect("
 							SELECT 
-								users.Username
+								@TP@users.Username
 							FROM 
-								users
+								@TP@users
 							WHERE 
-								users.Username = ?
+								@TP@users.Username = ?
 								",array($thisUsername)
 				);
 
@@ -491,10 +491,10 @@ function createWiSPUser($params) {
 
 		# Insert users from array into database
 		foreach ($wispUser as $username => $password) {
-			$res = DBDo("INSERT INTO users (Username) VALUES (?)",array($username));
+			$res = DBDo("INSERT INTO @TP@users (Username) VALUES (?)",array($username));
 			if ($res !== FALSE) {
 				$id = DBLastInsertID();
-				$res = DBDo("INSERT INTO user_attributes (UserID,Name,Operator,Value) VALUES (?,?,?,?)",
+				$res = DBDo("INSERT INTO @TP@user_attributes (UserID,Name,Operator,Value) VALUES (?,?,?,?)",
 						array($id,'User-Password','==',$password)
 				);
 
@@ -549,7 +549,7 @@ function createWiSPUser($params) {
 							# Add attribute
 							$res = DBDo("
 									INSERT INTO 
-											user_attributes (UserID,Name,Operator,Value) 
+											@TP@user_attributes (UserID,Name,Operator,Value) 
 									VALUES
 											(?,?,?,?)",
 									array(
@@ -575,13 +575,13 @@ function createWiSPUser($params) {
 					}
 					# Loop through groups
 					foreach ($refinedGroups as $groupID) {
-						$res = DBDo("INSERT INTO users_to_groups (UserID,GroupID) VALUES (?,?)",array($id,$groupID));
+						$res = DBDo("INSERT INTO @TP@users_to_groups (UserID,GroupID) VALUES (?,?)",array($id,$groupID));
 					}
 				}
 
 				# Link to wisp users
 				if ($res !== FALSE) {
-					$res = DBDo("INSERT INTO wisp_userdata (UserID) VALUES (?)",
+					$res = DBDo("INSERT INTO @TP@wisp_userdata (UserID) VALUES (?)",
 							array($id)
 					);
 				}
@@ -652,18 +652,18 @@ function updateWiSPUser($params) {
 
 	# Perform query
 	if (!empty($params[0]['Username'])) {
-		$res = DBDo("UPDATE users SET Username = ? WHERE ID = ?",array($params[0]['Username'],$params[0]['ID']));
+		$res = DBDo("UPDATE @TP@users SET Username = ? WHERE ID = ?",array($params[0]['Username'],$params[0]['ID']));
 	}
 	# Change password
 	if ($res !== FALSE) {
-		$res = DBDo("UPDATE user_attributes SET Value = ? WHERE UserID = ? AND Name = ?",
+		$res = DBDo("UPDATE @TP@user_attributes SET Value = ? WHERE UserID = ? AND Name = ?",
 				array($params[0]['Password'],$params[0]['ID'],'User-Password'));
 	}
 	# If successful, continue
 	if ($res !== FALSE) {
 		$res = DBDo("
 				UPDATE
-					wisp_userdata
+					@TP@wisp_userdata
 				SET
 					FirstName = ?,
 					LastName = ?,
@@ -680,7 +680,7 @@ function updateWiSPUser($params) {
 	}
 	# If successful, add location if any
 	if ($res !== FALSE && !empty($params[0]['LocationID'])) {
-		$res = DBDo("UPDATE wisp_userdata SET LocationID = ? WHERE UserID = ?",
+		$res = DBDo("UPDATE @TP@wisp_userdata SET LocationID = ? WHERE UserID = ?",
 				array($params[0]['LocationID'],$params[0]['ID'])
 		);
 	}
@@ -690,7 +690,7 @@ function updateWiSPUser($params) {
 		foreach ($params[0]['RAttributes'] as $attr) {
 			if ($res !== FALSE) {
 				# Perform query
-				$res = DBDo("DELETE FROM user_attributes WHERE ID = ?",array($attr));
+				$res = DBDo("DELETE FROM @TP@user_attributes WHERE ID = ?",array($attr));
 			}
 		}
 	}
@@ -702,7 +702,7 @@ function updateWiSPUser($params) {
 				# Perform query
 				$res = DBDo("
 					DELETE FROM
-						users_to_groups
+						@TP@users_to_groups
 					WHERE
 						UserID = ?
 						AND GroupID = ?",
@@ -766,7 +766,7 @@ function updateWiSPUser($params) {
 					if ($attr['ID'] < 0) {
 						$res = DBDo("
 							INSERT INTO 
-								user_attributes (UserID,Name,Operator,Value) 
+								@TP@user_attributes (UserID,Name,Operator,Value) 
 							VALUES
 								(?,?,?,?)",
 							array(
@@ -780,7 +780,7 @@ function updateWiSPUser($params) {
 					} else {
 						$res = DBDo("
 							UPDATE
-								user_attributes
+								@TP@user_attributes
 							SET
 								Name = ?,
 								Operator = ?,
@@ -812,7 +812,7 @@ function updateWiSPUser($params) {
 					SELECT
 						ID
 					FROM
-						users_to_groups
+						@TP@users_to_groups
 					WHERE
 						UserID = ?
 						AND GroupID = ?",
@@ -822,7 +822,7 @@ function updateWiSPUser($params) {
 
 			if (is_object($res)) {
 				if ($res->rowCount() == 0) {
-					$res = DBDo("INSERT INTO users_to_groups (UserID,GroupID) VALUES (?,?)",array($params[0]['ID'],$groupID));
+					$res = DBDo("INSERT INTO @TP@users_to_groups (UserID,GroupID) VALUES (?,?)",array($params[0]['ID'],$groupID));
 				} else {
 					$res = TRUE;
 				}
