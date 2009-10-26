@@ -109,7 +109,7 @@ function DBDo($command,$args = array())
 	global $db;
 
 	# Replace table prefix template
-	$result = ReplacePrefix($query, $args);
+	$result = ReplacePrefix($command, $args);
 	$rawCommand = $result[0]; $rawArgs = $result[1];
 
 	# Try prepare, and catch exceptions
