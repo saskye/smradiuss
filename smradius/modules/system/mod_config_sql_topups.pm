@@ -395,24 +395,23 @@ sub cleanup
 		# Finished for now
 		DBFreeRes($sth);
 
-
-		# TODO?
-		# FIXME - support for groups and realm config?
-
-		# Get user traffic and uptime limits
+		# Get user traffic and uptime limits from group attributes
+		# FIXME - Support for realm config
 		$sth = DBSelect('
 			SELECT
-				@TP@user_attributes.Name, @TP@user_attributes.Value
+				@TP@group_attributes.Name, @TP@group_attributes.Value
 			FROM
-				@TP@user_attributes, @TP@users
+				@TP@group_attributes, @TP@users_to_groups, @TP@users
 			WHERE
-				@TP@users.Username = ?
+				@TP@group_attributes.GroupID = @TP@users_to_groups.GroupID
+				AND @TP@users_to_groups.UserID = @TP@users.ID
+				AND @TP@users.Username = ?
 			',
 			$userName
 		);
 
 		if (!$sth) {
-			$server->log(LOG_ERR,"[MOD_CONFIG_SQL_TOPUPS] Cleanup => Failed to select usage caps: ".
+			$server->log(LOG_ERR,"[MOD_CONFIG_SQL_TOPUPS] Cleanup => Failed to select group usage caps: ".
 					awitpt::db::dblayer::Error());
 			goto FAIL_ROLLBACK;
 		}
@@ -426,10 +425,63 @@ sub cleanup
 			);
 
 			if ($row->{'Name'} eq 'SMRadius-Capping-Traffic-Limit') {
-				$capRecord{'TrafficLimit'} = $row->{'Value'};
+				if (defined($row->{'Value'})) {
+					$capRecord{'TrafficLimit'} = $row->{'Value'};
+				} else {
+					$server->log(LOG_ERR,"[MOD_CONFIG_SQL_TOPUPS] Cleanup => SMRadius-Capping-Traffic-Limit value not defined for user '".$userName."'");
+				}
 			}
 			if ($row->{'Name'} eq 'SMRadius-Capping-Uptime-Limit') {
-				$capRecord{'UptimeLimit'} = $row->{'Value'};
+				if (defined($row->{'Value'})) {
+					$capRecord{'UptimeLimit'} = $row->{'Value'};
+				} else {
+					$server->log(LOG_ERR,"[MOD_CONFIG_SQL_TOPUPS] Cleanup => SMRadius-Capping-Uptime-Limit value not defined for user '".$userName."'");
+				}
+			}
+		}
+
+		# Finished for now
+		DBFreeRes($sth);
+
+		# Get user traffic and uptime limits from user attributes
+		$sth = DBSelect('
+			SELECT
+				@TP@user_attributes.Name, @TP@user_attributes.Value
+			FROM
+				@TP@user_attributes, @TP@users
+			WHERE
+				@TP@user_attributes.UserID = @TP@users.ID
+				AND @TP@users.Username = ?
+			',
+			$userName
+		);
+
+		if (!$sth) {
+			$server->log(LOG_ERR,"[MOD_CONFIG_SQL_TOPUPS] Cleanup => Failed to select user usage caps: ".
+					awitpt::db::dblayer::Error());
+			goto FAIL_ROLLBACK;
+		}
+
+		# Store limits in capRecord hash
+		while ($row = $sth->fetchrow_hashref()) {
+			$row = hashifyLCtoMC(
+				$row,
+				qw(Name Value)
+			);
+
+			if ($row->{'Name'} eq 'SMRadius-Capping-Traffic-Limit') {
+				if (defined($row->{'Value'})) {
+					$capRecord{'TrafficLimit'} = $row->{'Value'};
+				} else {
+					$server->log(LOG_ERR,"[MOD_CONFIG_SQL_TOPUPS] Cleanup => SMRadius-Capping-Traffic-Limit value not defined for user '".$userName."'");
+				}
+			}
+			if ($row->{'Name'} eq 'SMRadius-Capping-Uptime-Limit') {
+				if (defined($row->{'Value'})) {
+					$capRecord{'UptimeLimit'} = $row->{'Value'};
+				} else {
+					$server->log(LOG_ERR,"[MOD_CONFIG_SQL_TOPUPS] Cleanup => SMRadius-Capping-Uptime-Limit value not defined for user '".$userName."'");
+				}
 			}
 		}
 
