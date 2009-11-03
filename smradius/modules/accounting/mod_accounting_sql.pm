@@ -721,22 +721,22 @@ sub cleanup
 	# New datetime
 	my $lastMonth = DateTime->new( year => $prevYear, month => $prevMonth, day => 1 );
 	my $periodKey = $lastMonth->strftime("%Y-%m");
+	# Sanitize
+	$lastMonth = $lastMonth->ymd();
 
 	# Select totals for last month
 	my $sth = DBSelect('
 		SELECT
 			Username,
-			SUM(AcctSessionTime) as AcctSessionTime,
-			SUM(AcctInputOctets) as AcctInputOctets,
-			SUM(AcctInputGigawords) as AcctInputGigawords,
-			SUM(AcctOutputOctets) as AcctOutputOctets,
-			SUM(AcctOutputGigawords) as AcctOutputGigawords
+			AcctSessionTime,
+			AcctInputOctets,
+			AcctInputGigawords,
+			AcctOutputOctets,
+			AcctOutputGigawords
 		FROM
 			@TP@accounting
 		WHERE
 			PeriodKey = ?
-		GROUP BY
-			Username
 		',
 		$periodKey
 	);
@@ -747,161 +747,119 @@ sub cleanup
 		return;
 	}
 
-	# Set blank array
-	my @allRecords;
-
 	# Load items into array
-	my $index = 0;
-	while (my $usageTotals = $sth->fetchrow_hashref()) {
-		$usageTotals = hashifyLCtoMC(
-			$usageTotals,
+	my %usageTotals;
+	while (my $row = hashifyLCtoMC($sth->fetchrow_hashref(),
 			qw(Username AcctSessionTime AcctInputOctets AcctInputGigawords AcctOutputOctets AcctOutputGigawords)
-		);
+	)) {
 
-		# Set array items
-		$allRecords[$index] = {
-			Username => $usageTotals->{'Username'},
-			PeriodKey => $lastMonth->ymd,
-			SessionTime => $usageTotals->{'AcctSessionTime'},
-			InputOctets => $usageTotals->{'AcctInputOctets'},
-			InputGigawords => $usageTotals->{'AcctInputGigawords'},
-			OutputOctets => $usageTotals->{'AcctOutputOctets'},
-			OutputGigawords => $usageTotals->{'AcctOutputGigawords'}
-		};
+		# check if we've seen this user, if so just add up
+		if (defined($usageTotals{$row->{'Username'}})) {
+			# Look for session time
+			if (defined($row->{'AcctSessionTime'}) && $row->{'AcctSessionTime'} > 0) {
+				$usageTotals{$row->{'Username'}}{'TotalSessionTime'} += ceil($row->{'AcctSessionTime'} / 60);
+			}
+			# Add input usage if we have any
+			if (defined($row->{'AcctInputOctets'}) && $row->{'AcctInputOctets'} > 0) {
+				$usageTotals{$row->{'Username'}}{'TotalInput'} += ceil($row->{'AcctInputOctets'} / 1024 / 1024);
+			}
+			if (defined($row->{'AcctInputGigawords'}) && $row->{'AcctInputGigawords'} > 0) {
+				$usageTotals{$row->{'Username'}}{'TotalInput'} += ceil($row->{'AcctInputGigawords'} * 4096);
+			}
+			# Add output usage if we have any
+			if (defined($row->{'AcctOutputOctets'}) && $row->{'AcctOutputOctets'} > 0) {
+				$usageTotals{$row->{'Username'}}{'TotalOutput'} += ceil($row->{'AcctOutputOctets'} / 1024 / 1024);
+			}
+			if (defined($row->{'AcctOutputGigawords'}) && $row->{'AcctOutputGigawords'} > 0) {
+				$usageTotals{$row->{'Username'}}{'TotalOutput'} += ceil($row->{'AcctOutputGigawords'} * 4096);
+			}
 
-		# Increase size
-		$index++;
+		# This is a new record...
+		} else {
+			# Look for session time
+			if (defined($row->{'AcctSessionTime'}) && $row->{'AcctSessionTime'} > 0) {
+				$usageTotals{$row->{'Username'}}{'TotalSessionTime'} = ceil($row->{'AcctSessionTime'} / 60);
+			} else {
+				$usageTotals{$row->{'Username'}}{'TotalSessionTime'} = 0;
+			}
+
+			# Total up the input usage
+			$usageTotals{$row->{'Username'}}{'TotalInput'} = 0;
+			if (defined($row->{'AcctInputOctets'}) && $row->{'AcctInputOctets'} > 0) {
+				$usageTotals{$row->{'Username'}}{'TotalInput'} = ceil($row->{'AcctInputOctets'} / 1024 / 1024);
+			}
+			if (defined($row->{'AcctInputGigawords'}) && $row->{'AcctInputGigawords'} > 0) {
+				$usageTotals{$row->{'Username'}}{'TotalInput'} = ceil($row->{'AcctInputGigawords'} * 4096);
+			}
+
+			# Total up the output usage
+			$usageTotals{$row->{'Username'}}{'TotalOutput'} = 0;
+			if (defined($row->{'AcctOutputOctets'}) && $row->{'AcctOutputOctets'} > 0) {
+				$usageTotals{$row->{'Username'}}{'TotalOutput'} = ceil($row->{'AcctOutputOctets'} / 1024 / 1024);
+			}
+			if (defined($row->{'AcctOutputGigawords'}) && $row->{'AcctOutputGigawords'} > 0) {
+				$usageTotals{$row->{'Username'}}{'TotalOutput'} = ceil($row->{'AcctOutputGigawords'} * 4096);
+			}
+		}
 	}
 
 	# Begin transaction
 	DBBegin();
 
-	# Update totals for last month
-	if ($index > 0) {
+	# Delete duplicate records
+	my @dbDoParams;
+	@dbDoParams = ('
+		DELETE FROM
+			@TP@accounting_summary
+		WHERE
+			PeriodKey = ?',
+		$lastMonth
+	);
 
-		# Delete duplicate records
-		my @dbDoParams;
+	if ($sth) {
+		# Do query
+		$sth = DBDo(@dbDoParams);
+	}
+
+	# Loop through users and insert totals
+	foreach my $username (keys %usageTotals) {
 		@dbDoParams = ('
-			DELETE FROM
+			INSERT INTO
 				@TP@accounting_summary
-			WHERE
-				PeriodKey = ?',
-			$lastMonth->ymd
+			(
+				Username,
+				PeriodKey,
+				TotalSessionTime,
+				TotalInput,
+				TotalOutput
+			)
+			VALUES
+				(?,?,?,?,?)
+			',
+			$username,
+			$lastMonth,
+			$usageTotals{$username}{'TotalSessionTime'},
+			$usageTotals{$username}{'TotalInput'},
+			$usageTotals{$username}{'TotalOutput'}
 		);
 
 		if ($sth) {
 			# Do query
 			$sth = DBDo(@dbDoParams);
 		}
-
-		my @insertArray;
-		for (my $i = 0; $i < $index; $i++) {
-
-			# Check if this record exists
-			my $sth = DBSelect('
-				SELECT
-					COUNT(*) as rowCount
-				FROM
-					@TP@accounting
-				WHERE
-					PeriodKey = ?
-					AND Username = ?
-				',
-				$allRecords[$i]->{'PeriodKey'},
-				$allRecords[$i]->{'Username'}
-			);
-
-			if (!$sth) {
-				$server->log(LOG_ERR,"[MOD_ACCOUNTING_SQL] Cleanup => Failed to check for existing record: ".
-						awitpt::db::dblayer::Error());
-				return;
-			}
-
-			my $recordCheck = $sth->fetchrow_hashref();
-			$recordCheck = hashifyLCtoMC(
-				$recordCheck,
-				qw(rowCount)
-			);
-
-			if (defined($recordCheck->{'rowCount'}) && $recordCheck->{'rowCount'} > 0) {
-				@insertArray = (
-					$allRecords[$i]->{'SessionTime'},
-					$allRecords[$i]->{'InputOctets'},
-					$allRecords[$i]->{'InputGigawords'},
-					$allRecords[$i]->{'OutputOctets'},
-					$allRecords[$i]->{'OutputGigawords'},
-					$allRecords[$i]->{'Username'},
-					$allRecords[$i]->{'PeriodKey'}
-				);
-
-				@dbDoParams = ('
-					UPDATE
-						@TP@accounting_summary
-					SET
-						AcctSessionTime = ?,
-						AcctInputOctets = ?,
-						AcctInputGigawords = ?,
-						AcctOutputOctets = ?,
-						AcctOutputGigawords = ?
-					WHERE
-						Username = ?
-						AND	PeriodKey = ?
-					',
-					@insertArray
-				);
-
-				if ($sth) {
-					# Do query
-					$sth = DBDo(@dbDoParams);
-				}
-			} else {
-				@insertArray = (
-					$allRecords[$i]->{'Username'},
-					$allRecords[$i]->{'PeriodKey'},
-					$allRecords[$i]->{'SessionTime'},
-					$allRecords[$i]->{'InputOctets'},
-					$allRecords[$i]->{'InputGigawords'},
-					$allRecords[$i]->{'OutputOctets'},
-					$allRecords[$i]->{'OutputGigawords'}
-				);
-
-				@dbDoParams = ('
-					INSERT INTO
-						@TP@accounting_summary
-					(
-						Username,
-						PeriodKey,
-						AcctSessionTime,
-						AcctInputOctets,
-						AcctInputGigawords,
-						AcctOutputOctets,
-						AcctOutputGigawords
-					)
-					VALUES
-						(?,?,?,?,?,?,?)
-					',
-					@insertArray
-				);
-
-				if ($sth) {
-					# Do query
-					$sth = DBDo(@dbDoParams);
-				}
-			}
-		}
 	}
 
 	# Rollback with error if failed
 	if (!$sth) {
 		DBRollback();
-		$server->log(LOG_ERR,"[MOD_ACCOUNTING_SQL] Cleanup => Failed to insert or update accounting record: ".
+		$server->log(LOG_ERR,"[MOD_ACCOUNTING_SQL] Cleanup => Failed to insert accounting summary record: ".
 				awitpt::db::dblayer::Error());
 		return;
 	}
 
 	# Commit if succeeded
 	DBCommit();
-	$server->log(LOG_NOTICE,"[MOD_ACCOUNTING_SQL] Cleanup => Totals have been updated");
+	$server->log(LOG_NOTICE,"[MOD_ACCOUNTING_SQL] Cleanup => Accounting summary updated");
 }
 
 

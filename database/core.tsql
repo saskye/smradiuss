@@ -255,13 +255,9 @@ CREATE TABLE @PREFIX@accounting_summary (
 
 	PeriodKey		DATETIME,
 
-	AcctSessionTime		@INT_UNSIGNED@,
+	TotalSessionTime	@INT_UNSIGNED@,
 
-	AcctInputOctets		@INT_UNSIGNED@,
+	TotalInput		@INT_UNSIGNED@,
 
-	AcctInputGigawords	@INT_UNSIGNED@,
-
-	AcctOutputOctets	@INT_UNSIGNED@,
-
-	AcctOutputGigawords	@INT_UNSIGNED@
+	TotalOutput		@INT_UNSIGNED@
 ) @CREATE_TABLE_SUFFIX@;

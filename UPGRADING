@@ -1,4 +1,17 @@
-r509:	
+r538:
+	# Database
+
+	ALTER TABLE accounting_summary DROP COLUMN AcctSessionTime;
+	ALTER TABLE accounting_summary DROP COLUMN AcctInputOctets;
+	ALTER TABLE accounting_summary DROP COLUMN AcctInputGigawords;
+	ALTER TABLE accounting_summary DROP COLUMN AcctOutputOctets;
+	ALTER TABLE accounting_summary DROP COLUMN AcctOutputGigawords;
+
+	ALTER TABLE accounting_summary ADD COLUMN TotalSessionTime INT UNSIGNED;
+	ALTER TABLE accounting_summary ADD COLUMN TotalInput INT UNSIGNED;
+	ALTER TABLE accounting_summary ADD COLUMN TotalOutput INT UNSIGNED;
+
+r509:
 	# Database
 
 	ALTER TABLE accounting ADD PeriodKey VARCHAR(7);
