@@ -193,11 +193,11 @@ sub init
 
 	$config->{'accounting_usage_query'} = '
 		SELECT
-			SUM(AcctInputOctets) AS InputOctets,
-			SUM(AcctOutputOctets) AS OutputOctets,
-			SUM(AcctInputGigawords) AS InputGigawords,
-			SUM(AcctOutputGigawords) AS OutputGigawords,
-			SUM(AcctSessionTime) AS SessionTime
+			AcctInputOctets,
+			AcctOutputOctets,
+			AcctInputGigawords,
+			AcctOutputGigawords,
+			AcctSessionTime
 		FROM
 			@TP@accounting
 		WHERE
@@ -333,50 +333,43 @@ sub getUsage
 		return;
 	}
 
-	# Check rows
-	if ($sth->rows != 1) {
-		$server->log(LOG_ERR,"[MOD_ACCOUNTING_SQL] Database: No accounting data returned for user");
-		return;
+	# Our usage hash
+	my %usageTotals;
+	$usageTotals{'TotalTimeUsage'} = 0;
+	$usageTotals{'TotalDataInput'} = 0;
+	$usageTotals{'TotalDataOutput'} = 0;
+
+	# Pull in usage and add up
+	while (my $row = hashifyLCtoMC($sth->fetchrow_hashref(),
+			qw(AcctSessionTime AcctInputOctets AcctInputGigawords AcctOutputOctets AcctOutputGigawords)
+	)) {
+
+		# Look for session time
+		if (defined($row->{'AcctSessionTime'}) && $row->{'AcctSessionTime'} > 0) {
+			$usageTotals{'TotalTimeUsage'} += ceil($row->{'AcctSessionTime'} / 60);
+		}
+		# Add input usage if we have any
+		if (defined($row->{'AcctInputOctets'}) && $row->{'AcctInputOctets'} > 0) {
+			$usageTotals{'TotalDataInput'} += ceil($row->{'AcctInputOctets'} / 1024 / 1024);
+		}
+		if (defined($row->{'AcctInputGigawords'}) && $row->{'AcctInputGigawords'} > 0) {
+			$usageTotals{'TotalDataInput'} += ceil($row->{'AcctInputGigawords'} * 4096);
+		}
+		# Add output usage if we have any
+		if (defined($row->{'AcctOutputOctets'}) && $row->{'AcctOutputOctets'} > 0) {
+			$usageTotals{'TotalDataOutput'} += ceil($row->{'AcctOutputOctets'} / 1024 / 1024);
+		}
+		if (defined($row->{'AcctOutputGigawords'}) && $row->{'AcctOutputGigawords'} > 0) {
+			$usageTotals{'TotalDataOutput'} += ceil($row->{'AcctOutputGigawords'} * 4096);
+		}
 	}
-
-	# Pull data
-	my $usageData = hashifyLCtoMC(
-		$sth->fetchrow_hashref(),
-		qw(InputOctets OutputOctets InputGigawords OutputGigawords SessionTime)
-	);
-
 	DBFreeRes($sth);
 
-	# FIXME, as its a custom query, check we have all the fields we need
-
-	# Total up input
-	my $totalData = 0; 
-	if (defined($usageData->{'InputOctets'}) && $usageData->{'InputOctets'} > 0) {
-		$totalData += $usageData->{'InputOctets'} / 1024 / 1024;
-	}
-	if (defined($usageData->{'InputGigawords'}) && $usageData->{'InputGigawords'} > 0) {
-		$totalData += $usageData->{'InputGigawords'} * 4096;
-	}
-	# Add up output
-	if (defined($usageData->{'OutputOctets'}) && $usageData->{'OutputOctets'} > 0) {
-		$totalData += $usageData->{'OutputOctets'} / 1024 / 1024;
-	}
-	if (defined($usageData->{'OutputGigawords'}) && $usageData->{'OutputGigawords'} > 0) {
-		$totalData += $usageData->{'OutputGigawords'} * 4096;
-	}
-
-	# Add up time
-	my $totalTime = 0; 
-	if (defined($usageData->{'SessionTime'}) && $usageData->{'SessionTime'} > 0) {
-		$totalTime = $usageData->{'SessionTime'} / 60;
-	}
-	
 	# Rounding up
-	my %res;
-	$res{'TotalDataUsage'} = ceil($totalData);
-	$res{'TotalTimeUsage'} = ceil($totalTime);
+	$usageTotals{'TotalDataUsage'} = $usageTotals{'TotalDataInput'} + $usageTotals{'TotalDataOutput'};
+	$usageTotals{'TotalTimeUsage'} = $usageTotals{'TotalTimeUsage'};
 
-	return \%res;
+	return \%usageTotals;
 }
 
 
