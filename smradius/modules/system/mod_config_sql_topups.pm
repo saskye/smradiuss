@@ -336,19 +336,16 @@ sub cleanup
 		# Get traffic and uptime usage for last month
 		my $sth = DBSelect('
 			SELECT
-				Username,
-				SUM(AcctSessionTime) as AcctSessionTime,
-				SUM(AcctInputOctets) as AcctInputOctets,
-				SUM(AcctInputGigawords) as AcctInputGigawords,
-				SUM(AcctOutputOctets) as AcctOutputOctets,
-				SUM(AcctOutputGigawords) as AcctOutputGigawords
+				AcctSessionTime,
+				AcctInputOctets,
+				AcctInputGigawords,
+				AcctOutputOctets,
+				AcctOutputGigawords
 			FROM
 				@TP@accounting
 			WHERE
 				PeriodKey = ?
 				AND Username = ?
-			GROUP BY
-				Username
 			',
 			$prevPeriodKey,$userName
 		);
@@ -359,41 +356,41 @@ sub cleanup
 			goto FAIL_ROLLBACK;
 		}
 
-		my $row = $sth->fetchrow_hashref();
-		if ($sth->rows > 0) {
-			$row = hashifyLCtoMC(
-				$row,
-				qw(Username AcctSessionTime AcctInputOctets AcctInputGigawords AcctOutputOctets AcctOutputGigawords)
-			);
-		}
+		# Our usage hash
+		my %usageTotals;
+		$usageTotals{'TotalTimeUsage'} = 0;
+		$usageTotals{'TotalDataInput'} = 0;
+		$usageTotals{'TotalDataOutput'} = 0;
 
-		# Add up traffic
-		my $totalData = 0; 
-		if (defined($row->{'AcctInputOctets'}) && $row->{'AcctInputOctets'} > 0) {
-			$totalData += $row->{'AcctInputOctets'} / 1024 / 1024;
-		}
-		if (defined($row->{'AcctInputGigawords'}) && $row->{'AcctInputGigawords'} > 0) {
-			$totalData += $row->{'AcctInputGigawords'} * 4096;
-		}
-		if (defined($row->{'AcctOutputOctets'}) && $row->{'AcctOutputOctets'} > 0) {
-			$totalData += $row->{'AcctOutputOctets'} / 1024 / 1024;
-		}
-		if (defined($row->{'AcctOutputGigawords'}) && $row->{'AcctOutputGigawords'} > 0) {
-			$totalData += $row->{'AcctOutputGigawords'} * 4096;
-		}
+		# Pull in usage and add up
+		while (my $row = hashifyLCtoMC($sth->fetchrow_hashref(),
+				qw(AcctSessionTime AcctInputOctets AcctInputGigawords AcctOutputOctets AcctOutputGigawords)
+		)) {
 
-		# Add up uptime
-		my $totalTime = 0; 
-		if (defined($row->{'AcctSessionTime'}) && $row->{'AcctSessionTime'} > 0) {
-			$totalTime = $row->{'AcctSessionTime'} / 60;
+			# Look for session time
+			if (defined($row->{'AcctSessionTime'}) && $row->{'AcctSessionTime'} > 0) {
+				$usageTotals{'TotalTimeUsage'} += ceil($row->{'AcctSessionTime'} / 60);
+			}
+			# Add input usage if we have any
+			if (defined($row->{'AcctInputOctets'}) && $row->{'AcctInputOctets'} > 0) {
+				$usageTotals{'TotalDataInput'} += ceil($row->{'AcctInputOctets'} / 1024 / 1024);
+			}
+			if (defined($row->{'AcctInputGigawords'}) && $row->{'AcctInputGigawords'} > 0) {
+				$usageTotals{'TotalDataInput'} += ceil($row->{'AcctInputGigawords'} * 4096);
+			}
+			# Add output usage if we have any
+			if (defined($row->{'AcctOutputOctets'}) && $row->{'AcctOutputOctets'} > 0) {
+				$usageTotals{'TotalDataOutput'} += ceil($row->{'AcctOutputOctets'} / 1024 / 1024);
+			}
+			if (defined($row->{'AcctOutputGigawords'}) && $row->{'AcctOutputGigawords'} > 0) {
+				$usageTotals{'TotalDataOutput'} += ceil($row->{'AcctOutputGigawords'} * 4096);
+			}
 		}
+		DBFreeRes($sth);
 
 		# Rounding up
-		my $totalTrafficUsage = ceil($totalData);
-		my $totalUptimeUsage = ceil($totalTime);
-
-		# Finished for now
-		DBFreeRes($sth);
+		$usageTotals{'TotalDataUsage'} = $usageTotals{'TotalDataInput'} + $usageTotals{'TotalDataOutput'};
+		$usageTotals{'TotalTimeUsage'} = $usageTotals{'TotalTimeUsage'};
 
 		# Get user traffic and uptime limits from group attributes
 		# FIXME - Support for realm config
@@ -418,7 +415,7 @@ sub cleanup
 
 		# Store limits in capRecord hash
 		my %capRecord;
-		while ($row = $sth->fetchrow_hashref()) {
+		while (my $row = $sth->fetchrow_hashref()) {
 			$row = hashifyLCtoMC(
 				$row,
 				qw(Name Value)
@@ -463,7 +460,7 @@ sub cleanup
 		}
 
 		# Store limits in capRecord hash
-		while ($row = $sth->fetchrow_hashref()) {
+		while (my $row = $sth->fetchrow_hashref()) {
 			$row = hashifyLCtoMC(
 				$row,
 				qw(Name Value)
@@ -624,7 +621,7 @@ sub cleanup
 		my $trafficOverUsage = 0;
 		if (defined($capRecord{'TrafficLimit'})) {
 			# Check traffic used against cap 
-			$trafficOverUsage = $totalTrafficUsage - $capRecord{'TrafficLimit'};
+			$trafficOverUsage = $usageTotals{'TotalDataUsage'} - $capRecord{'TrafficLimit'};
 		# If there is no limit, this may be a prepaid user
 		} else {
 			$capRecord{'TrafficLimit'} = 0;
@@ -634,7 +631,7 @@ sub cleanup
 			foreach my $topup (@trafficTopups) {
 				$capRecord{'TrafficLimit'} += $topup->{'Value'};
 			}
-			$trafficOverUsage = $totalTrafficUsage - $capRecord{'TrafficLimit'};
+			$trafficOverUsage = $usageTotals{'TotalDataUsage'} - $capRecord{'TrafficLimit'};
 		}
 
 		# User has started using topup bandwidth..
@@ -735,7 +732,7 @@ sub cleanup
 
 		if (defined($capRecord{'UptimeLimit'})) {
 			# Check traffic used against cap
-			$uptimeOverUsage = $totalUptimeUsage - $capRecord{'UptimeLimit'};
+			$uptimeOverUsage = $usageTotals{'TotalTimeUsage'} - $capRecord{'UptimeLimit'};
 		# If there is no limit, this may be a prepaid user
 		} else {
 			$capRecord{'UptimeLimit'} = 0;
@@ -745,7 +742,7 @@ sub cleanup
 			foreach my $topup (@uptimeTopups) {
 				$capRecord{'UptimeLimit'} += $topup->{'Value'};
 			}
-			$uptimeOverUsage = $totalUptimeUsage - $capRecord{'UptimeLimit'};
+			$uptimeOverUsage = $usageTotals{'TotalTimeUsage'} - $capRecord{'UptimeLimit'};
 		}
 
 		# User has started using topup uptime..
