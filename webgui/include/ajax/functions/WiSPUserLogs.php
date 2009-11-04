@@ -168,41 +168,30 @@ function getWiSPUserLogsSummary($params) {
 	while ($row = $res->fetchObject()) {
 
 		# Traffic in
-		$inputDataItem = 0;
 		if (isset($row->acctinputoctets) && $row->acctinputoctets > 0) {
-			$inputDataItem += ($row->acctinputoctets / 1024) / 1024;
+			$totalTraffic += ceil($row->acctinputoctets / 1024 / 1024);
 		}
 		if (isset($row->acctinputgigawords) && $row->acctinputgigawords > 0) {
-			$inputDataItem += ($row->acctinputgigawords * 4096);
+			$totalTraffic += ceil($row->acctinputgigawords * 4096);
 		}
-		$totalTraffic += $inputDataItem;
-
 		# Traffic out
-		$outputDataItem = 0;
 		if (isset($row->acctoutputoctets) && $row->acctoutputoctets > 0) {
-			$outputDataItem += ($row->acctoutputoctets / 1024) / 1024;
+			$totalTraffic += ceil($row->acctoutputoctets / 1024 / 1024);
 		}
 		if (isset($row->acctoutputgigawords) && $row->acctoutputgigawords > 0) {
-			$outputDataItem += ($row->acctoutputgigawords * 4096);
+			$totalTraffic += ceil($row->acctoutputgigawords * 4096);
 		}
-		$totalTraffic += $outputDataItem;
 
 		# Uptime
 		$sessionTimeItem = 0;
 		if (isset($row->acctsessiontime) && $row->acctsessiontime > 0) {
-			$sessionTimeItem += $row->acctsessiontime;
+			$totalUptime += ceil($row->acctsessiontime / 60);
 		}
-
-		$totalUptime += $sessionTimeItem;
 	}
 
-	# Round up usage
-	$totalTraffic = (int)ceil($totalTraffic);
-	$totalUptime = (int)ceil($totalUptime / 60);
-
 	# Add usage to our return array
-	$resultArray['trafficUsage'] = $totalTraffic;
-	$resultArray['uptimeUsage'] = $totalUptime;
+	$resultArray['trafficUsage'] = (int)$totalTraffic;
+	$resultArray['uptimeUsage'] = (int)$totalUptime;
 
 	# Loop through topups and add to return array
 	$resultArray['trafficTopups'] = 0;
@@ -278,30 +267,26 @@ function getWiSPUserLogs($params) {
 
 		# Input
 		$acctInputMbyte = 0;
-
 		if (isset($row->acctinputoctets) && $row->acctinputoctets > 0) {
-			$acctInputMbyte += ($row->acctinputoctets / 1024) / 1024;
+			$acctInputMbyte += ceil($row->acctinputoctets / 1024 / 1024);
 		}
 		if (isset($row->acctinputgigawords) && $row->acctinputgigawords > 0) {
-			$acctInputMbyte += ($row->acctinputgigawords * 4096);
+			$acctInputMbyte += ceil($row->acctinputgigawords * 4096);
 		}
-
 		# Output
 		$acctOutputMbyte = 0;
-
 		if (isset($row->acctoutputoctets) && $row->acctoutputoctets > 0) {
-			$acctOutputMbyte += ($row->acctoutputoctets / 1024) / 1024;
+			$acctOutputMbyte += ceil($row->acctoutputoctets / 1024 / 1024);
 		}
 		if (isset($row->acctoutputgigawords) && $row->acctoutputgigawords > 0) {
-			$acctOutputMbyte += ($row->acctoutputgigawords * 4096);
+			$acctOutputMbyte += ceil($row->acctoutputgigawords * 4096);
 		}
 
 		# Uptime
 		$acctSessionTime = 0;
 		if (isset($row->acctsessiontime) && $row->acctsessiontime > 0) {
-			$acctSessionTime += ($row->acctsessiontime / 60);
+			$acctSessionTime += ceil($row->acctsessiontime / 60);
 		}
-		ceil($acctSessionTime);
 
 		# Build array for this row
 		$item = array();
@@ -320,9 +305,9 @@ function getWiSPUserLogs($params) {
 		$item['CalledStationID'] = $row->calledstationid;
 		$item['AcctSessionID'] = $row->acctsessionid;
 		$item['FramedIPAddress'] = $row->framedipaddress;
-		$item['AcctInputMbyte'] = $acctInputMbyte;
-		$item['AcctOutputMbyte'] = $acctOutputMbyte;
-		$item['AcctSessionTime'] = $acctSessionTime;
+		$item['AcctInputMbyte'] = (int)$acctInputMbyte;
+		$item['AcctOutputMbyte'] = (int)$acctOutputMbyte;
+		$item['AcctSessionTime'] = (int)$acctSessionTime;
 		$item['ConnectTermReason'] = strRadiusTermCode($row->acctterminatecause);
 
 		# Push this row onto main array
