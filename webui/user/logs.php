@@ -140,41 +140,41 @@ function displayLogs() {
 			$res->execute($extraSQLVals);
 
 			# Display logs
-			$totalData = 0;
-			$totalInputData = 0;
-			$totalOutputData = 0;
+			$totalInput = 0;
+			$totalOutput = 0;
+			$totalTime = 0;
 			while ($row = $res->fetchObject()) {
 
 				# Input data calculation
-				$inputDataItem = 0;
+				$inputData = 0;
 				if (isset($row->acctinputoctets) && $row->acctinputoctets > 0) {
-					$inputDataItem += ($row->acctinputoctets / 1024) / 1024;
+					$inputData += ceil($row->acctinputoctets / 1024 / 1024);
 				}
 				if (isset($row->acctinputgigawords) && $row->acctinputgigawords > 0) {
-					$inputDataItem += ($row->acctinputgigawords * 4096);
+					$inputData += ceil($row->acctinputgigawords * 4096);
 				}
-				$totalInputData += $inputDataItem;
+				$totalInput += $inputData;
 
 				# Output data calculation
-				$outputDataItem = 0;
+				$outputData = 0;
 				if (isset($row->acctoutputoctets) && $row->acctoutputoctets > 0) {
-					$outputDataItem += ($row->acctoutputoctets / 1024) / 1024;
+					$outputData += ceil($row->acctoutputoctets / 1024 / 1024);
 				}
 				if (isset($row->acctoutputgigawords) && $row->acctoutputgigawords > 0) {
-					$outputDataItem += ($row->acctoutputgigawords * 4096);
+					$outputData += ceil($row->acctoutputgigawords * 4096);
 				}
-				$totalOutputData += $outputDataItem;
-
+				$totalOutput += $outputData;
 
 				# Uptime calculation
-				$sessionTimeItem = 0;
+				$sessionTime = 0;
 				if (isset($row->acctsessiontime) && $row->acctsessiontime > 0) {
-					$sessionTimeItem += ($row->acctsessiontime - ($row->acctsessiontime % 60)) / 60;
+					$sessionTime += ceil($row->acctsessiontime / 60);
 				}
+				$totalTime += $sessionTime;
 ?>
 				<tr>
 					<td class="desc"><?php echo $row->eventtimestamp; ?></td>
-					<td class="desc"><?php echo $sessionTimeItem; ?></td>
+					<td class="desc"><?php echo $sessionTime; ?></td>
 					<td class="desc"><?php echo $row->callingstationid; ?></td>
 					<td class="center desc"><?php echo strRadiusTermCode($row->acctterminatecause); ?></td>
 					<td class="center desc">
@@ -191,15 +191,11 @@ function displayLogs() {
 							}
 						?>
 					</td>
-					<td class="right desc"><?php printf('%.2f',$inputDataItem); ?></td>
-					<td class="right desc"><?php printf('%.2f',$outputDataItem); ?></td>
+					<td class="right desc"><?php echo $inputData; ?></td>
+					<td class="right desc"><?php echo $outputData; ?></td>
 				</tr>
 <?php
 			}
-
-			# Add up total data
-			$totalData += $totalOutputData + $totalInputData;
-
 			if ($res->rowCount() == 0) {
 ?>
 				<tr>
@@ -207,15 +203,16 @@ function displayLogs() {
 				</tr>
 <?php
 			} else {
+				$totalTraffic = $totalInput + $totalOutput;
 ?>
 				<tr>
 					<td colspan="6" class="right">Sub Total:</td>
-					<td class="right desc"><?php printf('%.2f',$totalInputData); ?></td>
-					<td class="right desc"><?php printf('%.2f',$totalOutputData); ?></td>
+					<td class="right desc"><?php echo $totalInput; ?></td>
+					<td class="right desc"><?php echo $totalOutput; ?></td>
 				</tr>
 				<tr>
 					<td colspan="6" class="right">Total:</td>
-					<td colspan="2" class="center desc"><?php printf('%.2f',$totalData); ?></td>
+					<td colspan="2" class="center desc"><?php echo $totalTraffic; ?></td>
 				</tr>
 <?php
 			}

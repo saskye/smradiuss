@@ -60,10 +60,7 @@ function displayDetails() {
 		WHERE
 			Username = ".$db->quote($_SESSION['username'])."
 		AND
-			EventTimestamp >= ".$db->quote($currentMonth)."
-		ORDER BY
-			EventTimestamp
-		DESC
+			PeriodKey = ".$db->quote($currentMonth)."
 	";
 	$res = $db->query($sql);
 
@@ -71,41 +68,25 @@ function displayDetails() {
 	$totalTraffic = 0;
 	$totalUptime = 0;
 	while ($row = $res->fetchObject()) {
-
 		# Traffic in
-		$inputDataItem = 0;
-
 		if (isset($row->acctinputoctets) && $row->acctinputoctets > 0) {
-			$inputDataItem += ($row->acctinputoctets / 1024) / 1024;
+			$totalTraffic += ceil($row->acctinputoctets / 1024 / 1024);
 		}
 		if (isset($row->acctinputgigawords) && $row->acctinputgigawords > 0) {
-			$inputDataItem += ($row->acctinputgigawords * 4096);
+			$totalTraffic += ceil($row->acctinputgigawords * 4096);
 		}
-
-		$totalTraffic += $inputDataItem;
-
 		# Traffic out
-		$outputDataItem = 0;
-
 		if (isset($row->acctoutputoctets) && $row->acctoutputoctets > 0) {
-			$outputDataItem += ($row->acctoutputoctets / 1024) / 1024;
+			$totalTraffic += ceil($row->acctoutputoctets / 1024 / 1024);
 		}
 		if (isset($row->acctoutputgigawords) && $row->acctoutputgigawords > 0) {
-			$outputDataItem += ($row->acctoutputgigawords * 4096);
+			$totalTraffic += ceil($row->acctoutputgigawords * 4096);
 		}
-
-		$totalTraffic += $outputDataItem;
-
 
 		# Uptime
-		$sessionTimeItem = 0;
 		if (isset($row->acctsessiontime) && $row->acctsessiontime > 0) {
-			$sessionTimeItem += $row->acctsessiontime;
+			$totalUptime += ceil($row->acctsessiontime / 60);
 		}
-
-		$totalUptime += $sessionTimeItem;
-		# Round up
-		$totalUptime = ceil($totalUptime / 60);
 	}
 
 	# Fetch user uptime and traffic cap
@@ -134,6 +115,7 @@ function displayDetails() {
 	# Fetch user uptime and traffic summary
 	$sql = "
 		SELECT
+			${DB_TABLE_PREFIX}topups_summary.TopupID,
 			${DB_TABLE_PREFIX}topups_summary.Balance,
 			${DB_TABLE_PREFIX}topups.Type,
 			${DB_TABLE_PREFIX}topups.Value
@@ -152,13 +134,12 @@ function displayDetails() {
 
 	# Store summary topups
 	$topups = array();
-	$i = 0;
 	while ($row = $res->fetchObject()) {
-		$topups[$i] = array();
-		$topups[$i]['Type'] = $row->type;
-		$topups[$i]['Limit'] = $row->balance;
-		$topups[$i]['OriginalLimit'] = $row->value;
-		$i++;
+		$id = $row->topupid;
+		$topups[$id] = array();
+		$topups[$id]['Type'] = $row->type;
+		$topups[$id]['Limit'] = $row->balance;
+		$topups[$id]['OriginalLimit'] = $row->value;
 	}
 
 	# Fetch user uptime and traffic topups
@@ -166,7 +147,7 @@ function displayDetails() {
 	$now = time();
 	$sql = "
 		SELECT
-			Value, Type
+			ID, Value, Type
 		FROM
 			${DB_TABLE_PREFIX}topups
 		WHERE
@@ -181,10 +162,13 @@ function displayDetails() {
 
 	# Store normal topups
 	while ($row = $res->fetchObject()) {
-		$topups[$i] = array();
-		$topups[$i]['Type'] = $row->type;
-		$topups[$i]['Limit'] = $row->value;
-		$i++;
+		$id = $row->id;
+
+		if (!isset($topups[$id])) {
+			$topups[$id] = array();
+			$topups[$id]['Type'] = $row->type;
+			$topups[$id]['Limit'] = $row->value;
+		}
 	}
 
 	# Set excess traffic usage
@@ -340,7 +324,7 @@ function displayDetails() {
 				<td colspan="4" class="section">Traffic Usage</td>
 			</tr>
 			<tr>
-				<td class="title">Traffic Cap</td>
+				<td class="title">Cap</td>
 				<td class="title">Unused Topup</td>
 				<td class="title">Current Topup</td>
 				<td class="title">Used This Month</td>
@@ -371,7 +355,7 @@ function displayDetails() {
 				}
 				if (isset($currentTrafficTopup['Used']) && isset($currentTrafficTopup['Cap'])) {
 ?>
-					<td class="value"><?php printf('%.2f', $currentTrafficTopup['Used']);
+					<td class="value"><?php echo $currentTrafficTopup['Used'];
 							print("/".$currentTrafficTopup['Cap']); ?> MB</td>
 <?php
 				} else {
@@ -380,27 +364,13 @@ function displayDetails() {
 <?php
 				}
 ?>
-				<td class="value"><?php printf('%.2f', $totalTraffic); ?> MB</td>
+				<td class="value"><?php echo $totalTraffic; ?> MB</td>
 			</tr>
-<?php
-			if (isset($currentTrafficTopup['Used']) && isset($currentTrafficTopup['Cap'])) {
-				$topupPercent = ceil(($currentTrafficTopup['Used'] / $currentTrafficTopup['Cap']) * 100);
-?>
-				<tr>
-					<td colspan="4">
-					<div class="graph">
-						<strong class="bar" style="width: <?php echo $topupPercent.'%'; ?>"><?php echo $topupPercent.'%' ?></strong>
-					</div>
-					</td>
-				</tr>
-<?php
-			}
-?>
 			<tr>
 				<td colspan="4" class="section">Uptime Usage</td>
 			</tr>
 			<tr>
-				<td class="title">Uptime Cap</td>
+				<td class="title">Cap</td>
 				<td class="title">Unused Topup</td>
 				<td class="title">Current Topup</td>
 				<td class="title">Used This Month</td>
@@ -431,7 +401,7 @@ function displayDetails() {
 				}
 				if (isset($currentUptimeTopup['Used']) && isset($currentUptimeTopup['Cap'])) {
 ?>
-					<td class="value"><?php printf('%.2f', $currentUptimeTopup['Used']);
+					<td class="value"><?php echo $currentUptimeTopup['Used'];
 							print("/".$currentUptimeTopup['Cap']); ?> Min</td>
 <?php
 				} else {
@@ -440,22 +410,8 @@ function displayDetails() {
 <?php
 				}
 ?>
-				<td class="value"><?php printf('%.2f', $totalUptime); ?> Min</td>
+				<td class="value"><?php echo $totalUptime; ?> Min</td>
 			</tr>
-<?php
-			if (isset($currentUptimeTopup['Used']) && isset($currentUptimeTopup['Cap'])) {
-				$topupPercent = ceil(($currentUptimeTopup['Used'] / $currentUptimeTopup['Cap']) * 100);
-?>
-				<tr>
-					<td colspan="4">
-					<div class="graph">
-						<strong class="bar" style="width: <?php echo $topupPercent.'%'; ?>"><?php echo $topupPercent.'%' ?></strong>
-					</div>
-					</td>
-				</tr>
-<?php
-			}
-?>
 <!--
 			<tr>
 				<td colspan="2" class="section">Notifications</td>
