@@ -396,7 +396,7 @@ sub cleanup
 		# FIXME - Support for realm config
 		$sth = DBSelect('
 			SELECT
-				@TP@group_attributes.Name, @TP@group_attributes.Value
+				@TP@group_attributes.Name, @TP@group_attributes.Operator, @TP@group_attributes.Value
 			FROM
 				@TP@group_attributes, @TP@users_to_groups, @TP@users
 			WHERE
@@ -418,21 +418,33 @@ sub cleanup
 		while (my $row = $sth->fetchrow_hashref()) {
 			$row = hashifyLCtoMC(
 				$row,
-				qw(Name Value)
+				qw(Name Operator Value)
 			);
 
-			if ($row->{'Name'} eq 'SMRadius-Capping-Traffic-Limit') {
-				if (defined($row->{'Value'})) {
-					$capRecord{'TrafficLimit'} = $row->{'Value'};
-				} else {
-					$server->log(LOG_ERR,"[MOD_CONFIG_SQL_TOPUPS] Cleanup => SMRadius-Capping-Traffic-Limit value not defined for user '".$userName."'");
+			if (defined($row->{'Name'})) {
+				if ($row->{'Name'} eq 'SMRadius-Capping-Traffic-Limit') {
+					if (defined($row->{'Operator'}) && $row->{'Operator'} eq ':=') {
+						if (defined($row->{'Value'}) && $row->{'Value'} =~ /^[\d]+$/) {
+							$capRecord{'TrafficLimit'} = $row->{'Value'};
+						} else {
+							$server->log(LOG_ERR,"[MOD_CONFIG_SQL_TOPUPS] Cleanup => SMRadius-Capping-Traffic-Limit value invalid for user '".$userName."'");
+						}
+					} else {
+						$server->log(LOG_ERR,"[MOD_CONFIG_SQL_TOPUPS] Cleanup => Incorrect '".$row->{'Name'}."' operator '"
+								.$row->{'Operator'}."' used  for user '".$userName."'");
+					}
 				}
-			}
-			if ($row->{'Name'} eq 'SMRadius-Capping-Uptime-Limit') {
-				if (defined($row->{'Value'})) {
-					$capRecord{'UptimeLimit'} = $row->{'Value'};
-				} else {
-					$server->log(LOG_ERR,"[MOD_CONFIG_SQL_TOPUPS] Cleanup => SMRadius-Capping-Uptime-Limit value not defined for user '".$userName."'");
+				if ($row->{'Name'} eq 'SMRadius-Capping-Uptime-Limit') {
+					if (defined($row->{'Operator'}) && $row->{'Operator'} eq ':=') {
+						if (defined($row->{'Value'}) && $row->{'Value'} =~ /^[\d]+$/) {
+							$capRecord{'UptimeLimit'} = $row->{'Value'};
+						} else {
+							$server->log(LOG_ERR,"[MOD_CONFIG_SQL_TOPUPS] Cleanup => SMRadius-Capping-Uptime-Limit value invalid for user '".$userName."'");
+						}
+					} else {
+						$server->log(LOG_ERR,"[MOD_CONFIG_SQL_TOPUPS] Cleanup => Incorrect '".$row->{'Name'}."' operator '"
+								.$row->{'Operator'}."' used  for user '".$userName."'");
+					}
 				}
 			}
 		}
@@ -443,7 +455,7 @@ sub cleanup
 		# Get user traffic and uptime limits from user attributes
 		$sth = DBSelect('
 			SELECT
-				@TP@user_attributes.Name, @TP@user_attributes.Value
+				@TP@user_attributes.Name, @TP@user_attributes.Operator, @TP@user_attributes.Value
 			FROM
 				@TP@user_attributes, @TP@users
 			WHERE
@@ -463,21 +475,33 @@ sub cleanup
 		while (my $row = $sth->fetchrow_hashref()) {
 			$row = hashifyLCtoMC(
 				$row,
-				qw(Name Value)
+				qw(Name Operator Value)
 			);
 
-			if ($row->{'Name'} eq 'SMRadius-Capping-Traffic-Limit') {
-				if (defined($row->{'Value'})) {
-					$capRecord{'TrafficLimit'} = $row->{'Value'};
-				} else {
-					$server->log(LOG_ERR,"[MOD_CONFIG_SQL_TOPUPS] Cleanup => SMRadius-Capping-Traffic-Limit value not defined for user '".$userName."'");
+			if (defined($row->{'Name'})) {
+				if ($row->{'Name'} eq 'SMRadius-Capping-Traffic-Limit') {
+					if (defined($row->{'Operator'}) && $row->{'Operator'} eq ':=') {
+						if (defined($row->{'Value'}) && $row->{'Value'} =~ /^[\d]+$/) {
+							$capRecord{'TrafficLimit'} = $row->{'Value'};
+						} else {
+							$server->log(LOG_ERR,"[MOD_CONFIG_SQL_TOPUPS] Cleanup => SMRadius-Capping-Traffic-Limit value invalid for user '".$userName."'");
+						}
+					} else {
+						$server->log(LOG_ERR,"[MOD_CONFIG_SQL_TOPUPS] Cleanup => Incorrect '".$row->{'Name'}."' operator '"
+								.$row->{'Operator'}."' used  for user '".$userName."'");
+					}
 				}
-			}
-			if ($row->{'Name'} eq 'SMRadius-Capping-Uptime-Limit') {
-				if (defined($row->{'Value'})) {
-					$capRecord{'UptimeLimit'} = $row->{'Value'};
-				} else {
-					$server->log(LOG_ERR,"[MOD_CONFIG_SQL_TOPUPS] Cleanup => SMRadius-Capping-Uptime-Limit value not defined for user '".$userName."'");
+				if ($row->{'Name'} eq 'SMRadius-Capping-Uptime-Limit') {
+					if (defined($row->{'Operator'}) && $row->{'Operator'} eq ':=') {
+						if (defined($row->{'Value'}) && $row->{'Value'} =~ /^[\d]+$/) {
+							$capRecord{'UptimeLimit'} = $row->{'Value'};
+						} else {
+							$server->log(LOG_ERR,"[MOD_CONFIG_SQL_TOPUPS] Cleanup => SMRadius-Capping-Uptime-Limit value invalid for user '".$userName."'");
+						}
+					} else {
+						$server->log(LOG_ERR,"[MOD_CONFIG_SQL_TOPUPS] Cleanup => Incorrect '".$row->{'Name'}."' operator '"
+								.$row->{'Operator'}."' used  for user '".$userName."'");
+					}
 				}
 			}
 		}
