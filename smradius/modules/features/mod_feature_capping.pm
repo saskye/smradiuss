@@ -171,14 +171,14 @@ sub post_auth_hook
 	# Uptime usage
 	if (!(defined($uptimeLimit->{':='}->{'Value'}) && $uptimeLimit->{':='}->{'Value'} == 0)) {
 		if (!defined($uptimeLimit->{':='}->{'Value'})) {
-			$server->log(LOG_DEBUG,"[MOD_FEATURE_CAPPING] Uptime => Usage total: ".$accountingUsage->{'TotalTimeUsage'}.
+			$server->log(LOG_DEBUG,"[MOD_FEATURE_CAPPING] Uptime => Usage total: ".$accountingUsage->{'TotalSessionTime'}.
 					"Min (Cap: Prepaid, Topups: ".$uptimeTopup."Min)");
 		} else {
-			$server->log(LOG_DEBUG,"[MOD_FEATURE_CAPPING] Uptime => Usage total: ".$accountingUsage->{'TotalTimeUsage'}.
+			$server->log(LOG_DEBUG,"[MOD_FEATURE_CAPPING] Uptime => Usage total: ".$accountingUsage->{'TotalSessionTime'}.
 					"Min (Cap: ".$uptimeLimit->{':='}->{'Value'}."Min, Topups: ".$uptimeTopup."Min)");
 		}
 	} else {
-		$server->log(LOG_DEBUG,"[MOD_FEATURE_CAPPING] Uptime => Usage total: ".$accountingUsage->{'TotalTimeUsage'}.
+		$server->log(LOG_DEBUG,"[MOD_FEATURE_CAPPING] Uptime => Usage total: ".$accountingUsage->{'TotalSessionTime'}.
 				"Min (Cap: Uncapped, Topups: ".$uptimeTopup."Min)");
 	}
 
@@ -241,8 +241,8 @@ sub post_auth_hook
 
 	# If uptime limit exceeded, cap user
 	if (!(defined($uptimeLimit->{':='}->{'Value'}) && $uptimeLimit->{':='}->{'Value'} == 0)) {
-		if ($accountingUsage->{'TotalTimeUsage'} >= $alteredUptimeLimit) {
-			$server->log(LOG_DEBUG,"[MOD_FEATURE_CAPPING] Usage of ".$accountingUsage->{'TotalTimeUsage'}.
+		if ($accountingUsage->{'TotalSessionTime'} >= $alteredUptimeLimit) {
+			$server->log(LOG_DEBUG,"[MOD_FEATURE_CAPPING] Usage of ".$accountingUsage->{'TotalSessionTime'}.
 					"Min exceeds allowed limit of ".$alteredUptimeLimit."Min. Capped.");
 			return MOD_RES_NACK;
 		}
@@ -364,14 +364,14 @@ sub post_acct_hook
 	# Uptime usage
 	if (!(defined($uptimeLimit->{':='}->{'Value'}) && $uptimeLimit->{':='}->{'Value'} == 0)) {
 		if (!defined($uptimeLimit->{':='}->{'Value'})) {
-			$server->log(LOG_DEBUG,"[MOD_FEATURE_CAPPING] Uptime => Usage total: ".$accountingUsage->{'TotalTimeUsage'}.
+			$server->log(LOG_DEBUG,"[MOD_FEATURE_CAPPING] Uptime => Usage total: ".$accountingUsage->{'TotalSessionTime'}.
 					"Min (Cap: Prepaid, Topups: ".$uptimeTopup."Min)");
 		} else {
-			$server->log(LOG_DEBUG,"[MOD_FEATURE_CAPPING] Uptime => Usage total: ".$accountingUsage->{'TotalTimeUsage'}.
+			$server->log(LOG_DEBUG,"[MOD_FEATURE_CAPPING] Uptime => Usage total: ".$accountingUsage->{'TotalSessionTime'}.
 					"Min (Cap: ".$uptimeLimit->{':='}->{'Value'}."Min, Topups: ".$uptimeTopup."Min)");
 		}
 	} else {
-		$server->log(LOG_DEBUG,"[MOD_FEATURE_CAPPING] Uptime => Usage total: ".$accountingUsage->{'TotalTimeUsage'}.
+		$server->log(LOG_DEBUG,"[MOD_FEATURE_CAPPING] Uptime => Usage total: ".$accountingUsage->{'TotalSessionTime'}.
 				"Min (Cap: Uncapped, Topups: ".$uptimeTopup."Min)");
 	}
 
@@ -434,8 +434,8 @@ sub post_acct_hook
 
 	# If uptime limit exceeded, cap user
 	if (!(defined($uptimeLimit->{':='}->{'Value'}) && $uptimeLimit->{':='}->{'Value'} == 0)) {
-		if ($accountingUsage->{'TotalTimeUsage'} >= $alteredUptimeLimit) {
-			$server->log(LOG_DEBUG,"[MOD_FEATURE_CAPPING] Usage of ".$accountingUsage->{'TotalTimeUsage'}.
+		if ($accountingUsage->{'TotalSessionTime'} >= $alteredUptimeLimit) {
+			$server->log(LOG_DEBUG,"[MOD_FEATURE_CAPPING] Usage of ".$accountingUsage->{'TotalSessionTime'}.
 					"Min exceeds allowed limit of ".$alteredUptimeLimit."Min. Capped.");
 			return MOD_RES_NACK;
 		}
