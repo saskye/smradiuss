@@ -50,11 +50,11 @@ function displayDetails() {
 
 	$sql = "
 		SELECT
-			AcctSessionTime,
-			AcctInputOctets,
-			AcctInputGigawords,
-			AcctOutputOctets,
-			AcctOutputGigawords
+			SUM(AcctSessionTime) / 60 AS AcctSessionTime,
+			SUM(AcctInputOctets) / 1024 / 1024 +
+			SUM(AcctInputGigawords) * 4096 AS AcctInputTraffic,
+			SUM(AcctOutputOctets) / 1024 / 1024 +
+			SUM(AcctOutputGigawords) * 4096 AS AcctOutputTraffic
 		FROM
 			${DB_TABLE_PREFIX}accounting
 		WHERE
@@ -67,26 +67,22 @@ function displayDetails() {
 	# Set total traffic and uptime used
 	$totalTraffic = 0;
 	$totalUptime = 0;
-	while ($row = $res->fetchObject()) {
-		# Traffic in
-		if (isset($row->acctinputoctets) && $row->acctinputoctets > 0) {
-			$totalTraffic += ceil($row->acctinputoctets / 1024 / 1024);
-		}
-		if (isset($row->acctinputgigawords) && $row->acctinputgigawords > 0) {
-			$totalTraffic += ceil($row->acctinputgigawords * 4096);
-		}
-		# Traffic out
-		if (isset($row->acctoutputoctets) && $row->acctoutputoctets > 0) {
-			$totalTraffic += ceil($row->acctoutputoctets / 1024 / 1024);
-		}
-		if (isset($row->acctoutputgigawords) && $row->acctoutputgigawords > 0) {
-			$totalTraffic += ceil($row->acctoutputgigawords * 4096);
-		}
 
-		# Uptime
-		if (isset($row->acctsessiontime) && $row->acctsessiontime > 0) {
-			$totalUptime += ceil($row->acctsessiontime / 60);
-		}
+	# Pull in row
+	$row = $res->fetchObject();
+
+	# Traffic in
+	if (isset($row->acctinputtraffic) && $row->acctinputtraffic > 0) {
+		$totalTraffic += $row->acctinputtraffic;
+	}
+	# Traffic out
+	if (isset($row->acctoutputtraffic) && $row->acctoutputtraffic > 0) {
+		$totalTraffic += $row->acctoutputtraffic;
+	}
+
+	# Uptime
+	if (isset($row->acctsessiontime) && $row->acctsessiontime > 0) {
+		$totalUptime += $row->acctsessiontime;
 	}
 
 	# Fetch user uptime and traffic cap
@@ -350,13 +346,17 @@ function displayDetails() {
 <?php
 				} else {
 ?>
-					<td class="value"><?php echo $topupTrafficRemaining; ?> MB</td>
+					<td class="value"><?php printf("%.2f",$topupTrafficRemaining); ?> MB</td>
 <?php
 				}
 				if (isset($currentTrafficTopup['Used']) && isset($currentTrafficTopup['Cap'])) {
 ?>
-					<td class="value"><?php echo $currentTrafficTopup['Used'];
-							print("/".$currentTrafficTopup['Cap']); ?> MB</td>
+					<td class="value">
+						<?php 
+							printf("%.2f",$currentTrafficTopup['Used']);
+							print("/").$currentTrafficTopup['Cap'];
+						?> MB
+					</td>
 <?php
 				} else {
 ?>
@@ -364,7 +364,7 @@ function displayDetails() {
 <?php
 				}
 ?>
-				<td class="value"><?php echo $totalTraffic; ?> MB</td>
+				<td class="value"><?php printf("%.2f",$totalTraffic); ?> MB</td>
 			</tr>
 			<tr>
 				<td colspan="4" class="section">Uptime Usage</td>
@@ -396,13 +396,17 @@ function displayDetails() {
 <?php
 				} else {
 ?>
-					<td class="value"><?php echo $topupUptimeRemaining; ?> Min</td>
+					<td class="value"><?php printf("%.2f",$topupUptimeRemaining); ?> Min</td>
 <?php
 				}
 				if (isset($currentUptimeTopup['Used']) && isset($currentUptimeTopup['Cap'])) {
 ?>
-					<td class="value"><?php echo $currentUptimeTopup['Used'];
-							print("/".$currentUptimeTopup['Cap']); ?> Min</td>
+					<td class="value">
+						<?php
+							printf("%.2f",$currentUptimeTopup['Used']);
+							print("/").$currentUptimeTopup['Cap'];
+						?> Min
+					</td>
 <?php
 				} else {
 ?>
@@ -410,7 +414,7 @@ function displayDetails() {
 <?php
 				}
 ?>
-				<td class="value"><?php echo $totalUptime; ?> Min</td>
+				<td class="value"><?php printf("%.2f",$totalUptime); ?> Min</td>
 			</tr>
 <!--
 			<tr>

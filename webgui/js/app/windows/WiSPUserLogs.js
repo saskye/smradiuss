@@ -193,11 +193,13 @@ function showWiSPUserLogsWindow(id) {
 				},
 				{
 					header: "Input Mbyte",
-					dataIndex: 'AcctInputMbyte'
+					dataIndex: 'AcctInput',
+					renderer: renderUsageFloat
 				},
 				{
 					header: "Output Mbyte",
-					dataIndex: 'AcctOutputMbyte'
+					dataIndex: 'AcctOutput',
+					renderer: renderUsageFloat
 				},
 				{
 					header: "Session Uptime",
@@ -243,8 +245,8 @@ function showWiSPUserLogsWindow(id) {
 				{type: 'string',  dataIndex: 'CalledStationID'},
 				{type: 'string',  dataIndex: 'AcctSessionID'},
 				{type: 'string',  dataIndex: 'FramedIPAddress'},
-				{type: 'numeric',  dataIndex: 'AcctInputMbyte'},
-				{type: 'numeric',  dataIndex: 'AcctOutputMbyte'},
+				{type: 'numeric',  dataIndex: 'AcctInput'},
+				{type: 'numeric',  dataIndex: 'AcctOutput'},
 				{type: 'numeric',  dataIndex: 'AcctSessionTime'},
 				{type: 'string',  dataIndex: 'ConnectTermReason'}
 			]
@@ -343,5 +345,6 @@ function showWiSPUserLogsWindow(id) {
 	});
 	wispUserLogsWindow.show();
 }
+
 
 // vim: ts=4

@@ -144,11 +144,11 @@ function getAdminUserLogsSummary($params) {
 
 	$res = DBSelect("
 		SELECT
-			@TP@accounting.AcctSessionTime,
-			@TP@accounting.AcctInputOctets,
-			@TP@accounting.AcctInputGigawords,
-			@TP@accounting.AcctOutputOctets,
-			@TP@accounting.AcctOutputGigawords
+			SUM(@TP@accounting.AcctSessionTime) / 60 AS TotalSessionTime,
+			SUM(@TP@accounting.AcctInputOctets) / 1024 / 1024 +
+			SUM(@TP@accounting.AcctInputGigawords) * 4096 +
+			SUM(@TP@accounting.AcctOutputOctets) / 1024 / 1024 +
+			SUM(@TP@accounting.AcctOutputGigawords) * 4096 AS TotalTraffic
 		FROM
 			@TP@accounting, @TP@users
 		WHERE
@@ -163,35 +163,17 @@ function getAdminUserLogsSummary($params) {
 	}
 
 	# Set total traffic and uptime used
-	$totalTraffic = 0;
-	$totalUptime = 0;
-	while ($row = $res->fetchObject()) {
-
-		# Traffic in
-		if (isset($row->acctinputoctets) && $row->acctinputoctets > 0) {
-			$totalTraffic += ceil($row->acctinputoctets / 1024 / 1024);
-		}
-		if (isset($row->acctinputgigawords) && $row->acctinputgigawords > 0) {
-			$totalTraffic += ceil($row->acctinputgigawords * 4096);
-		}
-		# Traffic out
-		if (isset($row->acctoutputoctets) && $row->acctoutputoctets > 0) {
-			$totalTraffic += ceil($row->acctoutputoctets / 1024 / 1024);
-		}
-		if (isset($row->acctoutputgigawords) && $row->acctoutputgigawords > 0) {
-			$totalTraffic += ceil($row->acctoutputgigawords * 4096);
-		}
-
-		# Uptime
-		$sessionTimeItem = 0;
-		if (isset($row->acctsessiontime) && $row->acctsessiontime > 0) {
-			$totalUptime += ceil($row->acctsessiontime / 60);
-		}
-	}
+	$row = $res->fetchObject();
 
 	# Add usage to our return array
-	$resultArray['trafficUsage'] = (int)$totalTraffic;
-	$resultArray['uptimeUsage'] = (int)$totalUptime;
+	$resultArray['trafficUsage'] = 0;
+	$resultArray['uptimeUsage'] = 0;
+	if (isset($row->totaltraffic) && $row->totaltraffic > 0) {
+		$resultArray['trafficUsage'] += $row->totaltraffic;
+	}
+	if (isset($row->totalsessiontime) && $row->totalsessiontime > 0) {
+		$resultArray['uptimeUsage'] += $row->totalsessiontime;
+	}
 
 	# Loop through topups and add to return array
 	$resultArray['trafficTopups'] = 0;
@@ -241,12 +223,12 @@ function getAdminUserLogs($params) {
 					@TP@accounting.CalledStationID,
 					@TP@accounting.AcctSessionID,
 					@TP@accounting.FramedIPAddress,
-					@TP@accounting.AcctInputOctets,
-					@TP@accounting.AcctInputGigawords,
-					@TP@accounting.AcctOutputOctets,
-					@TP@accounting.AcctOutputGigawords,
+					@TP@accounting.AcctInputOctets / 1024 / 1024 +
+					@TP@accounting.AcctInputGigawords * 4096 AS AcctInput,
+					@TP@accounting.AcctOutputOctets / 1024 / 1024 +
+					@TP@accounting.AcctOutputGigawords * 4096 AS AcctOutput,
 					@TP@accounting.AcctTerminateCause,
-					@TP@accounting.AcctSessionTime
+					@TP@accounting.AcctSessionTime / 60 AS AcctSessionTime
 				FROM
 					@TP@accounting, @TP@users
 				WHERE
@@ -266,26 +248,20 @@ function getAdminUserLogs($params) {
 	while ($row = $sth->fetchObject()) {
 
 		# Input
-		$acctInputMbyte = 0;
-		if (isset($row->acctinputoctets) && $row->acctinputoctets > 0) {
-			$acctInputMbyte += ceil($row->acctinputoctets / 1024 / 1024);
-		}
-		if (isset($row->acctinputgigawords) && $row->acctinputgigawords > 0) {
-			$acctInputMbyte += ceil($row->acctinputgigawords * 4096);
+		$acctInput = 0;
+		if (isset($row->acctinput) && $row->acctinput > 0) {
+			$acctInput += $row->acctinput;
 		}
 		# Output
-		$acctOutputMbyte = 0;
-		if (isset($row->acctoutputoctets) && $row->acctoutputoctets > 0) {
-			$acctOutputMbyte += ceil($row->acctoutputoctets / 1024 / 1024);
-		}
-		if (isset($row->acctoutputgigawords) && $row->acctoutputgigawords > 0) {
-			$acctOutputMbyte += ceil($row->acctoutputgigawords * 4096);
+		$acctOutput = 0;
+		if (isset($row->acctoutput) && $row->acctoutput > 0) {
+			$acctOutput += $row->acctoutput;
 		}
 
 		# Uptime
 		$acctSessionTime = 0;
 		if (isset($row->acctsessiontime) && $row->acctsessiontime > 0) {
-			$acctSessionTime += ceil($row->acctsessiontime / 60);
+			$acctSessionTime += $row->acctsessiontime;
 		}
 
 		# Build array for this row
@@ -305,8 +281,8 @@ function getAdminUserLogs($params) {
 		$item['CalledStationID'] = $row->calledstationid;
 		$item['AcctSessionID'] = $row->acctsessionid;
 		$item['FramedIPAddress'] = $row->framedipaddress;
-		$item['AcctInputMbyte'] = (int)$acctInputMbyte;
-		$item['AcctOutputMbyte'] = (int)$acctOutputMbyte;
+		$item['AcctInput'] = $acctInput;
+		$item['AcctOutput'] = $acctOutput;
 		$item['AcctSessionTime'] = (int)$acctSessionTime;
 		$item['ConnectTermReason'] = strRadiusTermCode($row->acctterminatecause);
 

@@ -118,17 +118,17 @@ function displayLogs() {
 			# Accounting query FIXME nas receive and transmit rates
 			$sql = "
 				SELECT
-						EventTimestamp, 
-						CallingStationID, 
-						AcctSessionTime, 
-						AcctInputOctets, 
-						AcctInputGigawords, 
-						AcctOutputOctets, 
-						AcctOutputGigawords, 
+						EventTimestamp,
+						CallingStationID,
+						AcctSessionTime / 60 AS AcctSessionTime,
+						AcctInputOctets / 1024 / 1024 +
+						AcctInputGigawords * 4096 AS AcctInputMbyte,
+						AcctOutputOctets / 1024 / 1024 +
+						AcctOutputGigawords * 4096 AS AcctOutputMbyte,
 						AcctTerminateCause
-				FROM 
-						${DB_TABLE_PREFIX}accounting 
-				WHERE 
+				FROM
+						${DB_TABLE_PREFIX}accounting
+				WHERE
 						Username = ".$db->quote($_SESSION['username'])."
 						$extraSQL
 				ORDER BY
@@ -147,34 +147,28 @@ function displayLogs() {
 
 				# Input data calculation
 				$inputData = 0;
-				if (isset($row->acctinputoctets) && $row->acctinputoctets > 0) {
-					$inputData += ceil($row->acctinputoctets / 1024 / 1024);
-				}
-				if (isset($row->acctinputgigawords) && $row->acctinputgigawords > 0) {
-					$inputData += ceil($row->acctinputgigawords * 4096);
+				if (isset($row->acctinputmbyte) && $row->acctinputmbyte > 0) {
+					$inputData += $row->acctinputmbyte;
 				}
 				$totalInput += $inputData;
 
 				# Output data calculation
 				$outputData = 0;
-				if (isset($row->acctoutputoctets) && $row->acctoutputoctets > 0) {
-					$outputData += ceil($row->acctoutputoctets / 1024 / 1024);
-				}
-				if (isset($row->acctoutputgigawords) && $row->acctoutputgigawords > 0) {
-					$outputData += ceil($row->acctoutputgigawords * 4096);
+				if (isset($row->acctoutputmbyte) && $row->acctoutputmbyte > 0) {
+					$outputData += $row->acctoutputmbyte;
 				}
 				$totalOutput += $outputData;
 
 				# Uptime calculation
 				$sessionTime = 0;
 				if (isset($row->acctsessiontime) && $row->acctsessiontime > 0) {
-					$sessionTime += ceil($row->acctsessiontime / 60);
+					$sessionTime += $row->acctsessiontime;
 				}
 				$totalTime += $sessionTime;
 ?>
 				<tr>
 					<td class="desc"><?php echo $row->eventtimestamp; ?></td>
-					<td class="desc"><?php echo $sessionTime; ?></td>
+					<td class="desc"><?php printf("%.2f",$sessionTime); ?></td>
 					<td class="desc"><?php echo $row->callingstationid; ?></td>
 					<td class="center desc"><?php echo strRadiusTermCode($row->acctterminatecause); ?></td>
 					<td class="center desc">
@@ -191,8 +185,8 @@ function displayLogs() {
 							}
 						?>
 					</td>
-					<td class="right desc"><?php echo $inputData; ?></td>
-					<td class="right desc"><?php echo $outputData; ?></td>
+					<td class="right desc"><?php printf("%.2f",$inputData); ?></td>
+					<td class="right desc"><?php printf("%.2f",$outputData); ?></td>
 				</tr>
 <?php
 			}
@@ -207,12 +201,12 @@ function displayLogs() {
 ?>
 				<tr>
 					<td colspan="6" class="right">Sub Total:</td>
-					<td class="right desc"><?php echo $totalInput; ?></td>
-					<td class="right desc"><?php echo $totalOutput; ?></td>
+					<td class="right desc"><?php printf("%.2f",$totalInput); ?></td>
+					<td class="right desc"><?php printf("%.2f",$totalOutput); ?></td>
 				</tr>
 				<tr>
 					<td colspan="6" class="right">Total:</td>
-					<td colspan="2" class="center desc"><?php echo $totalTraffic; ?></td>
+					<td colspan="2" class="center desc"><?php printf("%.2f",$totalTraffic); ?></td>
 				</tr>
 <?php
 			}

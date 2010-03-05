@@ -610,8 +610,8 @@
 			$res->addField('CalledStationID','string');
 			$res->addField('AcctSessionID','string');
 			$res->addField('FramedIPAddress','string');
-			$res->addField('AcctInputMbyte','int');
-			$res->addField('AcctOutputMbyte','int');
+			$res->addField('AcctInput','float');
+			$res->addField('AcctOutput','float');
 			$res->addField('AcctSessionTime','int');
 			$res->addField('ConnectTermReason','string');
 			$res->parseArray($rawData);
@@ -984,8 +984,8 @@
 			$res->addField('CalledStationID','string');
 			$res->addField('AcctSessionID','string');
 			$res->addField('FramedIPAddress','string');
-			$res->addField('AcctInputMbyte','int');
-			$res->addField('AcctOutputMbyte','int');
+			$res->addField('AcctInput','float');
+			$res->addField('AcctOutput','float');
 			$res->addField('AcctSessionTime','int');
 			$res->addField('ConnectTermReason','string');
 			$res->parseArray($rawData);
