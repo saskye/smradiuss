@@ -50,18 +50,26 @@ sub Init
 	# Setup configuration
 	$config = $server->{'inifile'};
 
+	# Setup database config
 	my $db;
 	$db->{'DSN'} = $config->{'database'}{'dsn'};
 	$db->{'Username'} = $config->{'database'}{'username'};
 	$db->{'Password'} = $config->{'database'}{'password'};
 	$db->{'enabled'} = 0;
-
 	# Check we have all the config we need
 	if (!defined($db->{'DSN'})) {
 		$server->log(LOG_NOTICE,"smradius/config.pm: No 'DSN' defined in config file for 'database'");
 	}
-
 	$server->{'smradius'}{'database'} = $db;
+
+	# Setup event timezone config
+	if (defined($config->{'server'}{'event_timezone'})) {
+		$server->{'smradius'}{'event_timezone'} = $config->{'server'}{'event_timezone'};
+	} else {
+		$server->{'smradius'}{'event_timezone'} = "GMT";
+	}
+		
+	$server->log(LOG_NOTICE,"smradius/config.pm: Using timezone '".$server->{'smradius'}{'event_timezone'}."'");
 }
 
 

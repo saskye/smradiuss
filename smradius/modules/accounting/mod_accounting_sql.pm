@@ -321,7 +321,7 @@ sub getUsage
 	$template->{'user'} = $user;
 
 	# Current PeriodKey
-	my $now = DateTime->now;
+	my $now = DateTime->now->set_time_zone($server->{'smradius'}->{'event_timezone'});
 	$template->{'query'}->{'PeriodKey'} = $now->strftime("%Y-%m");
 
 	# Replace template entries
@@ -409,7 +409,7 @@ sub acct_log
 	$template->{'user'} = $user;
 
 	# Current PeriodKey
-	my $now = DateTime->now;
+	my $now = DateTime->now->set_time_zone($server->{'smradius'}->{'event_timezone'});
 	my $periodKey = $now->strftime("%Y-%m");
 
 	# For our queries
@@ -711,7 +711,7 @@ sub cleanup
 	my ($server) = @_;
 
 	# The datetime now..
-	my $now = DateTime->now;
+	my $now = DateTime->now->set_time_zone($server->{'smradius'}->{'event_timezone'});
 
 	# If this is a new year
 	my ($prevYear,$prevMonth);

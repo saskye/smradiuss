@@ -298,7 +298,7 @@ sub cleanup
 	DBFreeRes($sth);
 
 	# The datetime now
-	my $now = DateTime->now;
+	my $now = DateTime->now->set_time_zone($server->{'smradius'}->{'event_timezone'});
 	# Make datetime
 	my $thisMonth = DateTime->new( year => $now->year, month => $now->month, day => 1 );
 

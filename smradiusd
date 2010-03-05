@@ -133,7 +133,7 @@ sub configure {
 			'min_spare_servers',
 			'max_spare_servers',
 			'max_servers',
-			'max_requests',
+			'max_requests'
 	);
 	foreach my $param (@server_params) {
 		$server->{$param} = $config{'server'}{$param} if (defined($config{'server'}{$param}));
@@ -501,7 +501,12 @@ sub process_request {
 	$user->{'_Internal'} = {
 		'Timestamp-Unix' => defined($pkt->rawattr('Event-Timestamp')) ? $pkt->rawattr('Event-Timestamp') : time()
 	};
-	my $eventTimestamp = DateTime->from_epoch( epoch => $user->{'_Internal'}->{'Timestamp-Unix'} );
+	# VERY IMPORTANT!!!!!!
+	# Timestamp AND Timestamp-Unix are in the CONVERTED timezone (event_timezone)
+	my $eventTimestamp = DateTime->from_epoch(
+			epoch => $user->{'_Internal'}->{'Timestamp-Unix'},
+			time_zone => $self->{'smradius'}->{'event_timezone'} 
+	);
 	$user->{'_Internal'}->{'Timestamp'} = $eventTimestamp->strftime('%Y-%m-%d %H:%M:%S');
 
 	# Set username
