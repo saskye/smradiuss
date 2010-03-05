@@ -29,6 +29,7 @@ use smradius::util;
 use POSIX qw(ceil);
 use DateTime;
 use Math::BigInt;
+use Math::BigFloat;
 
 
 # Exporter stuff
@@ -335,9 +336,9 @@ sub getUsage
 
 	# Our usage hash
 	my %usageTotals;
-	$usageTotals{'TotalTimeUsage'} = 0;
-	$usageTotals{'TotalDataInput'} = 0;
-	$usageTotals{'TotalDataOutput'} = 0;
+	$usageTotals{'TotalSessionTime'} = Math::BigInt->new();
+	$usageTotals{'TotalDataInput'} = Math::BigInt->new();
+	$usageTotals{'TotalDataOutput'} = Math::BigInt->new();
 
 	# Pull in usage and add up
 	while (my $row = hashifyLCtoMC($sth->fetchrow_hashref(),
@@ -346,30 +347,41 @@ sub getUsage
 
 		# Look for session time
 		if (defined($row->{'AcctSessionTime'}) && $row->{'AcctSessionTime'} > 0) {
-			$usageTotals{'TotalTimeUsage'} += ceil($row->{'AcctSessionTime'} / 60);
+			$usageTotals{'TotalSessionTime'}->badd($row->{'AcctSessionTime'});
 		}
 		# Add input usage if we have any
 		if (defined($row->{'AcctInputOctets'}) && $row->{'AcctInputOctets'} > 0) {
-			$usageTotals{'TotalDataInput'} += ceil($row->{'AcctInputOctets'} / 1024 / 1024);
+			$usageTotals{'TotalDataInput'}->badd($row->{'AcctInputOctets'});
 		}
 		if (defined($row->{'AcctInputGigawords'}) && $row->{'AcctInputGigawords'} > 0) {
-			$usageTotals{'TotalDataInput'} += ceil($row->{'AcctInputGigawords'} * 4096);
+			my $inputGigawords = Math::BigInt->new($row->{'AcctInputGigawords'});
+			$inputGigawords->bmul(UINT_MAX);
+			$usageTotals{'TotalDataInput'}->badd($inputGigawords);
 		}
 		# Add output usage if we have any
 		if (defined($row->{'AcctOutputOctets'}) && $row->{'AcctOutputOctets'} > 0) {
-			$usageTotals{'TotalDataOutput'} += ceil($row->{'AcctOutputOctets'} / 1024 / 1024);
+			$usageTotals{'TotalDataOutput'}->badd($row->{'AcctOutputOctets'});
 		}
 		if (defined($row->{'AcctOutputGigawords'}) && $row->{'AcctOutputGigawords'} > 0) {
-			$usageTotals{'TotalDataOutput'} += ceil($row->{'AcctOutputGigawords'} * 4096);
+			my $outputGigawords = Math::BigInt->new($row->{'AcctOutputGigawords'});
+			$outputGigawords->bmul(UINT_MAX);
+			$usageTotals{'TotalDataOutput'}->badd($outputGigawords);
 		}
 	}
 	DBFreeRes($sth);
 
-	# Rounding up
-	$usageTotals{'TotalDataUsage'} = $usageTotals{'TotalDataInput'} + $usageTotals{'TotalDataOutput'};
-	$usageTotals{'TotalTimeUsage'} = $usageTotals{'TotalTimeUsage'};
+	# Convert to bigfloat for accuracy
+	my $totalData = Math::BigFloat->new();
+	$totalData->badd($usageTotals{'TotalDataOutput'})->badd($usageTotals{'TotalDataInput'});
+	my $totalTime = Math::BigFloat->new();
+	$totalTime->badd($usageTotals{'TotalSessionTime'});
 
-	return \%usageTotals;
+	# Rounding up
+	my %res;
+	$res{'TotalDataUsage'} = $totalData->bdiv('1024')->bdiv('1024')->bceil()->bstr();
+	$res{'TotalSessionTime'} = $totalTime->bdiv('60')->bceil()->bstr();
+
+	return \%res;
 }
 
 
@@ -750,49 +762,58 @@ sub cleanup
 		if (defined($usageTotals{$row->{'Username'}})) {
 			# Look for session time
 			if (defined($row->{'AcctSessionTime'}) && $row->{'AcctSessionTime'} > 0) {
-				$usageTotals{$row->{'Username'}}{'TotalSessionTime'} += ceil($row->{'AcctSessionTime'} / 60);
+				$usageTotals{$row->{'Username'}}{'TotalSessionTime'}->badd($row->{'AcctSessionTime'});
 			}
 			# Add input usage if we have any
 			if (defined($row->{'AcctInputOctets'}) && $row->{'AcctInputOctets'} > 0) {
-				$usageTotals{$row->{'Username'}}{'TotalInput'} += ceil($row->{'AcctInputOctets'} / 1024 / 1024);
+				$usageTotals{$row->{'Username'}}{'TotalDataInput'}->badd($row->{'AcctInputOctets'});
 			}
 			if (defined($row->{'AcctInputGigawords'}) && $row->{'AcctInputGigawords'} > 0) {
-				$usageTotals{$row->{'Username'}}{'TotalInput'} += ceil($row->{'AcctInputGigawords'} * 4096);
+				my $inputGigawords = Math::BigInt->new($row->{'AcctInputGigawords'});
+				$inputGigawords->bmul(UINT_MAX);
+				$usageTotals{$row->{'Username'}}{'TotalDataInput'}->badd($inputGigawords);
 			}
 			# Add output usage if we have any
 			if (defined($row->{'AcctOutputOctets'}) && $row->{'AcctOutputOctets'} > 0) {
-				$usageTotals{$row->{'Username'}}{'TotalOutput'} += ceil($row->{'AcctOutputOctets'} / 1024 / 1024);
+				$usageTotals{$row->{'Username'}}{'TotalDataOutput'}->badd($row->{'AcctOutputOctets'});
 			}
 			if (defined($row->{'AcctOutputGigawords'}) && $row->{'AcctOutputGigawords'} > 0) {
-				$usageTotals{$row->{'Username'}}{'TotalOutput'} += ceil($row->{'AcctOutputGigawords'} * 4096);
+				my $outputGigawords = Math::BigInt->new($row->{'AcctOutputGigawords'});
+				$outputGigawords->bmul(UINT_MAX);
+				$usageTotals{$row->{'Username'}}{'TotalDataOutput'}->badd($outputGigawords);
 			}
 
 		# This is a new record...
 		} else {
+
+			# Make BigInts for this user
+			$usageTotals{$row->{'Username'}}{'TotalSessionTime'} = Math::BigInt->new();
+			$usageTotals{$row->{'Username'}}{'TotalDataInput'} = Math::BigInt->new();
+			$usageTotals{$row->{'Username'}}{'TotalDataOutput'} = Math::BigInt->new();
+
 			# Look for session time
 			if (defined($row->{'AcctSessionTime'}) && $row->{'AcctSessionTime'} > 0) {
-				$usageTotals{$row->{'Username'}}{'TotalSessionTime'} = ceil($row->{'AcctSessionTime'} / 60);
-			} else {
-				$usageTotals{$row->{'Username'}}{'TotalSessionTime'} = 0;
+				$usageTotals{$row->{'Username'}}{'TotalSessionTime'}->badd($row->{'AcctSessionTime'});
 			}
-
-			# Total up the input usage
-			$usageTotals{$row->{'Username'}}{'TotalInput'} = 0;
+			# Add input usage if we have any
 			if (defined($row->{'AcctInputOctets'}) && $row->{'AcctInputOctets'} > 0) {
-				$usageTotals{$row->{'Username'}}{'TotalInput'} = ceil($row->{'AcctInputOctets'} / 1024 / 1024);
+				$usageTotals{$row->{'Username'}}{'TotalDataInput'}->badd($row->{'AcctInputOctets'});
 			}
 			if (defined($row->{'AcctInputGigawords'}) && $row->{'AcctInputGigawords'} > 0) {
-				$usageTotals{$row->{'Username'}}{'TotalInput'} = ceil($row->{'AcctInputGigawords'} * 4096);
+				my $inputGigawords = Math::BigInt->new($row->{'AcctInputGigawords'});
+				$inputGigawords->bmul(UINT_MAX);
+				$usageTotals{$row->{'Username'}}{'TotalDataInput'}->badd($inputGigawords);
 			}
-
-			# Total up the output usage
-			$usageTotals{$row->{'Username'}}{'TotalOutput'} = 0;
+			# Add output usage if we have any
 			if (defined($row->{'AcctOutputOctets'}) && $row->{'AcctOutputOctets'} > 0) {
-				$usageTotals{$row->{'Username'}}{'TotalOutput'} = ceil($row->{'AcctOutputOctets'} / 1024 / 1024);
+				$usageTotals{$row->{'Username'}}{'TotalDataOutput'}->badd($row->{'AcctOutputOctets'});
 			}
 			if (defined($row->{'AcctOutputGigawords'}) && $row->{'AcctOutputGigawords'} > 0) {
-				$usageTotals{$row->{'Username'}}{'TotalOutput'} = ceil($row->{'AcctOutputGigawords'} * 4096);
+				my $outputGigawords = Math::BigInt->new($row->{'AcctOutputGigawords'});
+				$outputGigawords->bmul(UINT_MAX);
+				$usageTotals{$row->{'Username'}}{'TotalDataOutput'}->badd($outputGigawords);
 			}
+
 		}
 	}
 
@@ -816,6 +837,18 @@ sub cleanup
 
 	# Loop through users and insert totals
 	foreach my $username (keys %usageTotals) {
+
+		# Convert to bigfloat for accuracy
+		my $totalDataOutput = Math::BigFloat->new($usageTotals{$username}{'TotalDataOutput'});
+		my $totalDataInput = Math::BigFloat->new($usageTotals{$username}{'TotalDataInput'});
+		my $totalTime = Math::BigFloat->new($usageTotals{$username}{'TotalSessionTime'});
+
+		# Rounding up
+		my $res;
+		$res->{'TotalDataInput'} = $totalDataInput->bdiv('1024')->bdiv('1024')->bceil()->bstr();
+		$res->{'TotalDataOutput'} = $totalDataOutput->bdiv('1024')->bdiv('1024')->bceil()->bstr();
+		$res->{'TotalSessionTime'} = $totalTime->bdiv('60')->bceil()->bstr();
+
 		@dbDoParams = ('
 			INSERT INTO
 				@TP@accounting_summary
@@ -831,9 +864,9 @@ sub cleanup
 			',
 			$username,
 			$lastMonth,
-			$usageTotals{$username}{'TotalSessionTime'},
-			$usageTotals{$username}{'TotalInput'},
-			$usageTotals{$username}{'TotalOutput'}
+			$res->{'TotalSessionTime'},
+			$res->{'TotalDataInput'},
+			$res->{'TotalDataOutput'}
 		);
 
 		if ($sth) {

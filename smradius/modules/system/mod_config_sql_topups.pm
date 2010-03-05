@@ -30,6 +30,8 @@ use smradius::attributes;
 use POSIX qw(ceil);
 use DateTime;
 use Date::Parse;
+use Math::BigInt;
+use Math::BigFloat;
 
 
 
@@ -358,9 +360,9 @@ sub cleanup
 
 		# Our usage hash
 		my %usageTotals;
-		$usageTotals{'TotalTimeUsage'} = 0;
-		$usageTotals{'TotalDataInput'} = 0;
-		$usageTotals{'TotalDataOutput'} = 0;
+		$usageTotals{'TotalSessionTime'} = Math::BigInt->new();
+		$usageTotals{'TotalDataInput'} = Math::BigInt->new();
+		$usageTotals{'TotalDataOutput'} = Math::BigInt->new();
 
 		# Pull in usage and add up
 		while (my $row = hashifyLCtoMC($sth->fetchrow_hashref(),
@@ -369,28 +371,38 @@ sub cleanup
 
 			# Look for session time
 			if (defined($row->{'AcctSessionTime'}) && $row->{'AcctSessionTime'} > 0) {
-				$usageTotals{'TotalTimeUsage'} += ceil($row->{'AcctSessionTime'} / 60);
+				$usageTotals{'TotalSessionTime'}->badd($row->{'AcctSessionTime'});
 			}
 			# Add input usage if we have any
 			if (defined($row->{'AcctInputOctets'}) && $row->{'AcctInputOctets'} > 0) {
-				$usageTotals{'TotalDataInput'} += ceil($row->{'AcctInputOctets'} / 1024 / 1024);
+				$usageTotals{'TotalDataInput'}->badd($row->{'AcctInputOctets'});
 			}
 			if (defined($row->{'AcctInputGigawords'}) && $row->{'AcctInputGigawords'} > 0) {
-				$usageTotals{'TotalDataInput'} += ceil($row->{'AcctInputGigawords'} * 4096);
+				my $inputGigawords = Math::BigInt->new($row->{'AcctInputGigawords'});
+				$inputGigawords->bmul(UINT_MAX);
+				$usageTotals{'TotalDataInput'}->badd($inputGigawords);
 			}
 			# Add output usage if we have any
 			if (defined($row->{'AcctOutputOctets'}) && $row->{'AcctOutputOctets'} > 0) {
-				$usageTotals{'TotalDataOutput'} += ceil($row->{'AcctOutputOctets'} / 1024 / 1024);
+				$usageTotals{'TotalDataOutput'}->badd($row->{'AcctOutputOctets'});
 			}
 			if (defined($row->{'AcctOutputGigawords'}) && $row->{'AcctOutputGigawords'} > 0) {
-				$usageTotals{'TotalDataOutput'} += ceil($row->{'AcctOutputGigawords'} * 4096);
+				my $outputGigawords = Math::BigInt->new($row->{'AcctOutputGigawords'});
+				$outputGigawords->bmul(UINT_MAX);
+				$usageTotals{'TotalDataOutput'}->badd($outputGigawords);
 			}
 		}
 		DBFreeRes($sth);
 
+		# Convert to bigfloat for accuracy
+		my $totalData = Math::BigFloat->new();
+		$totalData->badd($usageTotals{'TotalDataOutput'})->badd($usageTotals{'TotalDataInput'});
+		my $totalTime = Math::BigFloat->new();
+		$totalTime->badd($usageTotals{'TotalSessionTime'});
+
 		# Rounding up
-		$usageTotals{'TotalDataUsage'} = $usageTotals{'TotalDataInput'} + $usageTotals{'TotalDataOutput'};
-		$usageTotals{'TotalTimeUsage'} = $usageTotals{'TotalTimeUsage'};
+		$usageTotals{'TotalDataUsage'} = $totalData->bdiv('1024')->bdiv('1024')->bceil()->bstr();
+		$usageTotals{'TotalSessionTime'} = $totalTime->bdiv('60')->bceil()->bstr();
 
 		# Get user traffic and uptime limits from group attributes
 		# FIXME - Support for realm config
@@ -756,7 +768,7 @@ sub cleanup
 
 		if (defined($capRecord{'UptimeLimit'})) {
 			# Check traffic used against cap
-			$uptimeOverUsage = $usageTotals{'TotalTimeUsage'} - $capRecord{'UptimeLimit'};
+			$uptimeOverUsage = $usageTotals{'TotalSessionTime'} - $capRecord{'UptimeLimit'};
 		# If there is no limit, this may be a prepaid user
 		} else {
 			$capRecord{'UptimeLimit'} = 0;
@@ -766,7 +778,7 @@ sub cleanup
 			foreach my $topup (@uptimeTopups) {
 				$capRecord{'UptimeLimit'} += $topup->{'Value'};
 			}
-			$uptimeOverUsage = $usageTotals{'TotalTimeUsage'} - $capRecord{'UptimeLimit'};
+			$uptimeOverUsage = $usageTotals{'TotalSessionTime'} - $capRecord{'UptimeLimit'};
 		}
 
 		# User has started using topup uptime..
