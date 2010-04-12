@@ -41,7 +41,7 @@ function showAdminGroupAttributesWindow(groupID) {
 					tooltip:'Add attribute',
 					iconCls:'silk-table_add',
 					handler: function() {
-						showAdminGroupAttributeAddEditWindow(groupID);
+						showAdminGroupAttributeAddEditWindow(AdminGroupAttributesWindow,groupID);
 					}
 				}, 
 				'-', 
@@ -54,7 +54,7 @@ function showAdminGroupAttributesWindow(groupID) {
 						// Check if we have selected item
 						if (selectedItem) {
 							// If so display window
-							showAdminGroupAttributeAddEditWindow(groupID,selectedItem.data.ID);
+							showAdminGroupAttributeAddEditWindow(AdminGroupAttributesWindow,groupID,selectedItem.data.ID);
 						} else {
 							AdminGroupAttributesWindow.getEl().mask();
 
@@ -161,7 +161,7 @@ function showAdminGroupAttributesWindow(groupID) {
 
 
 // Display edit/add form
-function showAdminGroupAttributeAddEditWindow(groupID,attrID) {
+function showAdminGroupAttributeAddEditWindow(AdminGroupAttributesWindow,groupID,attrID) {
 
 	var submitAjaxConfig;
 	var icon;
@@ -170,28 +170,48 @@ function showAdminGroupAttributeAddEditWindow(groupID,attrID) {
 	if (attrID) {
 		icon = 'silk-table_edit';
 		submitAjaxConfig = {
-			ID: attrID,
-			SOAPFunction: 'updateAdminGroupAttribute',
-			SOAPParams: 
-				'0:ID,'+
-				'0:Name,'+
-				'0:Operator,'+
-				'0:Value,'+
-				'0:Disabled:boolean'
+			params: {
+				ID: attrID,
+				SOAPFunction: 'updateAdminGroupAttribute',
+				SOAPParams: 
+					'0:ID,'+
+					'0:Name,'+
+					'0:Operator,'+
+					'0:Value,'+
+					'0:Disabled:boolean'
+			},
+			onSuccess: function() {
+				var store = Ext.getCmp(AdminGroupAttributesWindow.gridPanelID).getStore();
+				store.load({
+					params: {
+						limit: 25
+					}
+				});
+			}
 		};
 
 	// We doing an Add
 	} else {
 		icon = 'silk-table_add';
 		submitAjaxConfig = {
-			GroupID: groupID,
-			SOAPFunction: 'addAdminGroupAttribute',
-			SOAPParams: 
-				'0:GroupID,'+
-				'0:Name,'+
-				'0:Operator,'+
-				'0:Value,'+
-				'0:Disabled:boolean'
+			params: {
+				GroupID: groupID,
+				SOAPFunction: 'addAdminGroupAttribute',
+				SOAPParams: 
+					'0:GroupID,'+
+					'0:Name,'+
+					'0:Operator,'+
+					'0:Value,'+
+					'0:Disabled:boolean'
+			},
+			onSuccess: function() {
+				var store = Ext.getCmp(AdminGroupAttributesWindow.gridPanelID).getStore();
+				store.load({
+					params: {
+						limit: 25
+					}
+				});
+			}
 		};
 	}
 	
@@ -289,9 +309,9 @@ function showAdminGroupAttributeAddEditWindow(groupID,attrID) {
 
 
 // Display remove form
-function showAdminGroupAttributeRemoveWindow(parent,id) {
-	// Mask parent window
-	parent.getEl().mask();
+function showAdminGroupAttributeRemoveWindow(AdminGroupAttributesWindow,id) {
+	// Mask AdminGroupAttributesWindow window
+	AdminGroupAttributesWindow.getEl().mask();
 
 	// Display remove confirm window
 	Ext.Msg.show({
@@ -305,7 +325,7 @@ function showAdminGroupAttributeRemoveWindow(parent,id) {
 			if (buttonId == 'yes') {
 
 				// Do ajax request
-				uxAjaxRequest(parent,{
+				uxAjaxRequest(AdminGroupAttributesWindow,{
 					params: {
 						ID: id,
 						SOAPUsername: globalConfig.soap.username,
@@ -314,13 +334,21 @@ function showAdminGroupAttributeRemoveWindow(parent,id) {
 						SOAPModule: 'AdminGroupAttributes',
 						SOAPFunction: 'removeAdminGroupAttribute',
 						SOAPParams: 'ID'
+					},
+					customSuccess: function() {
+						var store = Ext.getCmp(AdminGroupAttributesWindow.gridPanelID).getStore();
+						store.load({
+							params: {
+								limit: 25
+							}
+						});
 					}
 				});
 
 
 			// Unmask if user answered no
 			} else {
-				parent.getEl().unmask();
+				AdminGroupAttributesWindow.getEl().unmask();
 			}
 		}
 	});

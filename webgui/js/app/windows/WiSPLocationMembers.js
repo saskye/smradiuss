@@ -105,9 +105,9 @@ function showWiSPLocationMembersWindow(locationID) {
 
 
 // Display remove form
-function showWiSPLocationMemberRemoveWindow(parent,id) {
-	// Mask parent window
-	parent.getEl().mask();
+function showWiSPLocationMemberRemoveWindow(WiSPLocationMembersWindow,id) {
+	// Mask WiSPLocationMembersWindow window
+	WiSPLocationMembersWindow.getEl().mask();
 
 	// Display remove confirm window
 	Ext.Msg.show({
@@ -121,7 +121,7 @@ function showWiSPLocationMemberRemoveWindow(parent,id) {
 			if (buttonId == 'yes') {
 
 				// Do ajax request
-				uxAjaxRequest(parent,{
+				uxAjaxRequest(WiSPLocationMembersWindow,{
 					params: {
 						ID: id,
 						SOAPUsername: globalConfig.soap.username,
@@ -130,13 +130,21 @@ function showWiSPLocationMemberRemoveWindow(parent,id) {
 						SOAPModule: 'WiSPLocationMembers',
 						SOAPFunction: 'removeWiSPLocationMember',
 						SOAPParams: 'ID'
+					},
+					customSuccess: function() {
+						var store = Ext.getCmp(WiSPLocationMembersWindow.gridPanelID).getStore();
+						store.load({
+							params: {
+								limit: 25
+							}
+						});
 					}
 				});
 
 
 			// Unmask if user answered no
 			} else {
-				parent.getEl().unmask();
+				WiSPLocationMembersWindow.getEl().unmask();
 			}
 		}
 	});

@@ -41,7 +41,7 @@ function showAdminUserWindow() {
 					tooltip:'Add user',
 					iconCls:'silk-user_add',
 					handler: function() {
-						showAdminUserAddEditWindow();
+						showAdminUserAddEditWindow(AdminUserWindow);
 					}
 				}, 
 				'-', 
@@ -54,7 +54,7 @@ function showAdminUserWindow() {
 						// Check if we have selected item
 						if (selectedItem) {
 							// If so display window
-							showAdminUserAddEditWindow(selectedItem.data.ID);
+							showAdminUserAddEditWindow(AdminUserWindow,selectedItem.data.ID);
 						} else {
 							AdminUserWindow.getEl().mask();
 
@@ -260,7 +260,7 @@ function showAdminUserWindow() {
 
 
 // Display edit/add form
-function showAdminUserAddEditWindow(id) {
+function showAdminUserAddEditWindow(AdminUserWindow,id) {
 
 	var submitAjaxConfig;
 	var icon;
@@ -269,20 +269,40 @@ function showAdminUserAddEditWindow(id) {
 	if (id) {
 		icon = 'silk-user_edit';
 		submitAjaxConfig = {
-			ID: id,
-			SOAPFunction: 'updateAdminUser',
-			SOAPParams: 
-				'0:ID,'+
-				'0:Username'
+			params: {
+				ID: id,
+				SOAPFunction: 'updateAdminUser',
+				SOAPParams: 
+					'0:ID,'+
+					'0:Username'
+			},
+			onSuccess: function() {
+				var store = Ext.getCmp(AdminUserWindow.gridPanelID).getStore();
+				store.load({
+					params: {
+						limit: 25
+					}
+				});
+			}
 		};
 
 	// We doing an Add
 	} else {
 		icon = 'silk-user_add';
 		submitAjaxConfig = {
-			SOAPFunction: 'createAdminUser',
-			SOAPParams: 
-				'0:Username'
+			params: {
+				SOAPFunction: 'createAdminUser',
+				SOAPParams: 
+					'0:Username'
+			},
+			onSuccess: function() {
+				var store = Ext.getCmp(AdminUserWindow.gridPanelID).getStore();
+				store.load({
+					params: {
+						limit: 25
+					}
+				});
+			}
 		};
 	}
 
@@ -343,9 +363,9 @@ function showAdminUserAddEditWindow(id) {
 
 
 // Display edit/add form
-function showAdminUserRemoveWindow(parent,id) {
-	// Mask parent window
-	parent.getEl().mask();
+function showAdminUserRemoveWindow(AdminUserWindow,id) {
+	// Mask AdminUserWindow window
+	AdminUserWindow.getEl().mask();
 
 	// Display remove confirm window
 	Ext.Msg.show({
@@ -359,7 +379,7 @@ function showAdminUserRemoveWindow(parent,id) {
 			if (buttonId == 'yes') {
 
 				// Do ajax request
-				uxAjaxRequest(parent,{
+				uxAjaxRequest(AdminUserWindow,{
 					params: {
 						ID: id,
 						SOAPUsername: globalConfig.soap.username,
@@ -368,13 +388,21 @@ function showAdminUserRemoveWindow(parent,id) {
 						SOAPModule: 'AdminUsers',
 						SOAPFunction: 'removeAdminUser',
 						SOAPParams: 'ID'
+					},
+					customSuccess: function() {
+						var store = Ext.getCmp(AdminUserWindow.gridPanelID).getStore();
+						store.load({
+							params: {
+								limit: 25
+							}
+						});
 					}
 				});
 
 
 			// Unmask if user answered no
 			} else {
-				parent.getEl().unmask();
+				AdminUserWindow.getEl().unmask();
 			}
 		}
 	});

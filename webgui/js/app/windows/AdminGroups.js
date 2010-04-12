@@ -41,7 +41,7 @@ function showAdminGroupWindow() {
 					tooltip:'Add group',
 					iconCls:'silk-group_add',
 					handler: function() {
-						showAdminGroupAddEditWindow();
+						showAdminGroupAddEditWindow(AdminGroupWindow);
 					}
 				}, 
 				'-', 
@@ -54,7 +54,7 @@ function showAdminGroupWindow() {
 						// Check if we have selected item
 						if (selectedItem) {
 							// If so display window
-							showAdminGroupAddEditWindow(selectedItem.data.ID);
+							showAdminGroupAddEditWindow(AdminGroupWindow,selectedItem.data.ID);
 						} else {
 							AdminGroupWindow.getEl().mask();
 
@@ -216,7 +216,7 @@ function showAdminGroupWindow() {
 
 
 // Display edit/add form
-function showAdminGroupAddEditWindow(id) {
+function showAdminGroupAddEditWindow(AdminGroupWindow,id) {
 
 	var submitAjaxConfig;
 	var icon;
@@ -226,20 +226,40 @@ function showAdminGroupAddEditWindow(id) {
 	if (id) {
 		icon = 'silk-group_edit';
 		submitAjaxConfig = {
-			ID: id,
-			SOAPFunction: 'updateAdminGroup',
-			SOAPParams: 
-				'0:ID,'+
-				'0:Name'
+			params: {
+				ID: id,
+				SOAPFunction: 'updateAdminGroup',
+				SOAPParams: 
+					'0:ID,'+
+					'0:Name'
+			},
+			onSuccess: function() {
+				var store = Ext.getCmp(AdminGroupWindow.gridPanelID).getStore();
+				store.load({
+					params: {
+						limit: 25
+					}
+				});
+			}
 		};
 
 	// We doing an Add
 	} else {
 		icon = 'silk-group_add';
 		submitAjaxConfig = {
-			SOAPFunction: 'createAdminGroup',
-			SOAPParams: 
-				'0:Name'
+			params: {
+				SOAPFunction: 'createAdminGroup',
+				SOAPParams: 
+					'0:Name'
+			},
+			onSuccess: function() {
+				var store = Ext.getCmp(AdminGroupWindow.gridPanelID).getStore();
+				store.load({
+					params: {
+						limit: 25
+					}
+				});
+			}
 		};
 	}
 	
@@ -299,10 +319,10 @@ function showAdminGroupAddEditWindow(id) {
 
 
 
-// Display edit/add form
-function showAdminGroupRemoveWindow(parent,id) {
-	// Mask parent window
-	parent.getEl().mask();
+// Display remove form
+function showAdminGroupRemoveWindow(AdminGroupWindow,id) {
+	// Mask AdminGroupWindow window
+	AdminGroupWindow.getEl().mask();
 
 	// Display remove confirm window
 	Ext.Msg.show({
@@ -316,7 +336,7 @@ function showAdminGroupRemoveWindow(parent,id) {
 			if (buttonId == 'yes') {
 
 				// Do ajax request
-				uxAjaxRequest(parent,{
+				uxAjaxRequest(AdminGroupWindow,{
 					params: {
 						ID: id,
 						SOAPUsername: globalConfig.soap.username,
@@ -325,13 +345,21 @@ function showAdminGroupRemoveWindow(parent,id) {
 						SOAPModule: 'AdminGroups',
 						SOAPFunction: 'removeAdminGroup',
 						SOAPParams: 'ID'
+					},
+					customSuccess: function() {
+						var store = Ext.getCmp(AdminGroupWindow.gridPanelID).getStore();
+						store.load({
+							params: {
+								limit: 25
+							}
+						});
 					}
 				});
 
 
 			// Unmask if user answered no
 			} else {
-				parent.getEl().unmask();
+				AdminGroupWindow.getEl().unmask();
 			}
 		}
 	});

@@ -41,7 +41,7 @@ function showAdminRealmWindow() {
 					tooltip:'Add realm',
 					iconCls:'silk-world_add',
 					handler: function() {
-						showAdminRealmAddEditWindow();
+						showAdminRealmAddEditWindow(AdminRealmWindow);
 					}
 				}, 
 				'-',
@@ -54,7 +54,7 @@ function showAdminRealmWindow() {
 						// Check if we have selected item
 						if (selectedItem) {
 							// If so display window
-							showAdminRealmAddEditWindow(selectedItem.data.ID);
+							showAdminRealmAddEditWindow(AdminRealmWindow,selectedItem.data.ID);
 						} else {
 							AdminRealmWindow.getEl().mask();
 
@@ -204,7 +204,7 @@ function showAdminRealmWindow() {
 
 
 // Display edit/add form
-function showAdminRealmAddEditWindow(id) {
+function showAdminRealmAddEditWindow(AdminRealmWindow,id) {
 
 	var submitAjaxConfig;
 	var icon;
@@ -214,20 +214,40 @@ function showAdminRealmAddEditWindow(id) {
 	if (id) {
 		icon = 'silk-world_edit';
 		submitAjaxConfig = {
-			ID: id,
-			SOAPFunction: 'updateAdminRealm',
-			SOAPParams: 
-				'0:ID,'+
-				'0:Name'
+			params: {
+				ID: id,
+				SOAPFunction: 'updateAdminRealm',
+				SOAPParams: 
+					'0:ID,'+
+					'0:Name'
+			},
+			onSuccess: function() {
+				var store = Ext.getCmp(AdminRealmWindow.gridPanelID).getStore();
+				store.load({
+					params: {
+						limit: 25
+					}
+				});
+			}
 		};
 
 	// We doing an Add
 	} else {
 		icon = 'silk-world_add';
 		submitAjaxConfig = {
-			SOAPFunction: 'createAdminRealm',
-			SOAPParams: 
-				'0:Name'
+			params: {
+				SOAPFunction: 'createAdminRealm',
+				SOAPParams: 
+					'0:Name'
+			},
+			onSuccess: function() {
+				var store = Ext.getCmp(AdminRealmWindow.gridPanelID).getStore();
+				store.load({
+					params: {
+						limit: 25
+					}
+				});
+			}
 		};
 	}
 
@@ -285,10 +305,10 @@ function showAdminRealmAddEditWindow(id) {
 
 
 
-// Display edit/add form
-function showAdminRealmRemoveWindow(parent,id) {
-	// Mask parent window
-	parent.getEl().mask();
+// Display remove form
+function showAdminRealmRemoveWindow(AdminRealmWindow,id) {
+	// Mask AdminRealmWindow window
+	AdminRealmWindow.getEl().mask();
 
 	// Display remove confirm window
 	Ext.Msg.show({
@@ -302,7 +322,7 @@ function showAdminRealmRemoveWindow(parent,id) {
 			if (buttonId == 'yes') {
 
 				// Do ajax request
-				uxAjaxRequest(parent,{
+				uxAjaxRequest(AdminRealmWindow,{
 					params: {
 						ID: id,
 						SOAPUsername: globalConfig.soap.username,
@@ -311,13 +331,21 @@ function showAdminRealmRemoveWindow(parent,id) {
 						SOAPModule: 'AdminRealms',
 						SOAPFunction: 'removeAdminRealm',
 						SOAPParams: 'ID'
+					},
+					customSuccess: function() {
+						var store = Ext.getCmp(AdminRealmWindow.gridPanelID).getStore();
+						store.load({
+							params: {
+								limit: 25
+							}
+						});
 					}
 				});
 
 
 			// Unmask if user answered no
 			} else {
-				parent.getEl().unmask();
+				AdminRealmWindow.getEl().unmask();
 			}
 		}
 	});

@@ -41,7 +41,7 @@ function showWiSPLocationWindow() {
 					tooltip:'Add location',
 					iconCls:'silk-map_add',
 					handler: function() {
-						showWiSPLocationAddEditWindow();
+						showWiSPLocationAddEditWindow(WiSPLocationWindow);
 					}
 				}, 
 				'-',
@@ -54,7 +54,7 @@ function showWiSPLocationWindow() {
 						// Check if we have selected item
 						if (selectedItem) {
 							// If so display window
-							showWiSPLocationAddEditWindow(selectedItem.data.ID);
+							showWiSPLocationAddEditWindow(WiSPLocationWindow,selectedItem.data.ID);
 						} else {
 							WiSPLocationWindow.getEl().mask();
 
@@ -170,7 +170,7 @@ function showWiSPLocationWindow() {
 
 
 // Display edit/add form
-function showWiSPLocationAddEditWindow(id) {
+function showWiSPLocationAddEditWindow(WiSPLocationWindow,id) {
 
 	var submitAjaxConfig;
 	var icon;
@@ -179,20 +179,40 @@ function showWiSPLocationAddEditWindow(id) {
 	if (id) {
 		icon = 'silk-map_edit';
 		submitAjaxConfig = {
-			ID: id,
-			SOAPFunction: 'updateWiSPLocation',
-			SOAPParams: 
-				'0:ID,'+
-				'0:Name'
+			params: {
+				ID: id,
+				SOAPFunction: 'updateWiSPLocation',
+				SOAPParams: 
+					'0:ID,'+
+					'0:Name'
+			},
+			onSuccess: function() {
+				var store = Ext.getCmp(WiSPLocationWindow.gridPanelID).getStore();
+				store.load({
+					params: {
+						limit: 25
+					}
+				});
+			}
 		};
 
 	// We doing an Add
 	} else {
 		icon = 'silk-map_add';
 		submitAjaxConfig = {
-			SOAPFunction: 'createWiSPLocation',
-			SOAPParams: 
-				'0:Name'
+			params: {
+				SOAPFunction: 'createWiSPLocation',
+				SOAPParams: 
+					'0:Name'
+			},
+			onSuccess: function() {
+				var store = Ext.getCmp(WiSPLocationWindow.gridPanelID).getStore();
+				store.load({
+					params: {
+						limit: 25
+					}
+				});
+			}
 		};
 	}
 	
@@ -249,9 +269,9 @@ function showWiSPLocationAddEditWindow(id) {
 
 
 // Display remove form
-function showWiSPLocationRemoveWindow(parent,id) {
-	// Mask parent window
-	parent.getEl().mask();
+function showWiSPLocationRemoveWindow(WiSPLocationWindow,id) {
+	// Mask WiSPLocationWindow window
+	WiSPLocationWindow.getEl().mask();
 
 	// Display remove confirm window
 	Ext.Msg.show({
@@ -265,7 +285,7 @@ function showWiSPLocationRemoveWindow(parent,id) {
 			if (buttonId == 'yes') {
 
 				// Do ajax request
-				uxAjaxRequest(parent,{
+				uxAjaxRequest(WiSPLocationWindow,{
 					params: {
 						id: id,
 						SOAPUsername: globalConfig.soap.username,
@@ -274,13 +294,21 @@ function showWiSPLocationRemoveWindow(parent,id) {
 						SOAPModule: 'WiSPLocations',
 						SOAPFunction: 'removeWiSPLocation',
 						SOAPParams: 'id'
+					},
+					customSuccess: function() {
+						var store = Ext.getCmp(WiSPLocationWindow.gridPanelID).getStore();
+						store.load({
+							params: {
+								limit: 25
+							}
+						});
 					}
 				});
 
 
 			// Unmask if user answered no
 			} else {
-				parent.getEl().unmask();
+				WiSPLocationWindow.getEl().unmask();
 			}
 		}
 	});

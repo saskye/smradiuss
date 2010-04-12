@@ -41,7 +41,7 @@ function showAdminRealmAttributesWindow(realmID) {
 					tooltip:'Add attribute',
 					iconCls:'silk-table_add',
 					handler: function() {
-						showAdminRealmAttributeAddEditWindow(realmID);
+						showAdminRealmAttributeAddEditWindow(AdminRealmAttributesWindow,realmID);
 					}
 				}, 
 				'-', 
@@ -54,7 +54,7 @@ function showAdminRealmAttributesWindow(realmID) {
 						// Check if we have selected item
 						if (selectedItem) {
 							// If so display window
-							showAdminRealmAttributeAddEditWindow(realmID,selectedItem.data.ID);
+							showAdminRealmAttributeAddEditWindow(AdminRealmAttributesWindow,realmID,selectedItem.data.ID);
 						} else {
 							AdminRealmAttributesWindow.getEl().mask();
 
@@ -161,7 +161,7 @@ function showAdminRealmAttributesWindow(realmID) {
 
 
 // Display edit/add form
-function showAdminRealmAttributeAddEditWindow(realmID,attrID) {
+function showAdminRealmAttributeAddEditWindow(AdminRealmAttributesWindow,realmID,attrID) {
 
 	var submitAjaxConfig;
 	var icon;
@@ -171,28 +171,48 @@ function showAdminRealmAttributeAddEditWindow(realmID,attrID) {
 	if (attrID) {
 		icon = 'silk-table_edit';
 		submitAjaxConfig = {
-			ID: attrID,
-			SOAPFunction: 'updateAdminRealmAttribute',
-			SOAPParams: 
-				'0:ID,'+
-				'0:Name,'+
-				'0:Operator,'+
-				'0:Value,'+
-				'0:Disabled:boolean'
+			params: {
+				ID: attrID,
+				SOAPFunction: 'updateAdminRealmAttribute',
+				SOAPParams: 
+					'0:ID,'+
+					'0:Name,'+
+					'0:Operator,'+
+					'0:Value,'+
+					'0:Disabled:boolean'
+			},
+			onSuccess: function() {
+				var store = Ext.getCmp(AdminRealmAttributesWindow.gridPanelID).getStore();
+				store.load({
+					params: {
+						limit: 25
+					}
+				});
+			}
 		};
 
 	// We doing an Add
 	} else {
 		icon = 'silk-table_add';
 		submitAjaxConfig = {
-			RealmID: realmID,
-			SOAPFunction: 'addAdminRealmAttribute',
-			SOAPParams: 
-				'0:RealmID,'+
-				'0:Name,'+
-				'0:Operator,'+
-				'0:Value,'+
-				'0:Disabled:boolean'
+			params: {
+				RealmID: realmID,
+				SOAPFunction: 'addAdminRealmAttribute',
+				SOAPParams: 
+					'0:RealmID,'+
+					'0:Name,'+
+					'0:Operator,'+
+					'0:Value,'+
+					'0:Disabled:boolean'
+			},
+			onSuccess: function() {
+				var store = Ext.getCmp(AdminRealmAttributesWindow.gridPanelID).getStore();
+				store.load({
+					params: {
+						limit: 25
+					}
+				});
+			}
 		};
 	}
 	
@@ -290,9 +310,9 @@ function showAdminRealmAttributeAddEditWindow(realmID,attrID) {
 
 
 // Display remove form
-function showAdminRealmAttributeRemoveWindow(parent,id) {
-	// Mask parent window
-	parent.getEl().mask();
+function showAdminRealmAttributeRemoveWindow(AdminRealmAttributesWindow,id) {
+	// Mask AdminRealmAttributesWindow window
+	AdminRealmAttributesWindow.getEl().mask();
 
 	// Display remove confirm window
 	Ext.Msg.show({
@@ -306,7 +326,7 @@ function showAdminRealmAttributeRemoveWindow(parent,id) {
 			if (buttonId == 'yes') {
 
 				// Do ajax request
-				uxAjaxRequest(parent,{
+				uxAjaxRequest(AdminRealmAttributesWindow,{
 					params: {
 						ID: id,
 						SOAPUsername: globalConfig.soap.username,
@@ -315,13 +335,21 @@ function showAdminRealmAttributeRemoveWindow(parent,id) {
 						SOAPModule: 'AdminRealmAttributes',
 						SOAPFunction: 'removeAdminRealmAttribute',
 						SOAPParams: 'ID'
+					},
+					customSuccess: function() {
+						var store = Ext.getCmp(AdminRealmAttributesWindow.gridPanelID).getStore();
+						store.load({
+							params: {
+								limit: 25
+							}
+						});
 					}
 				});
 
 
 			// Unmask if user answered no
 			} else {
-				parent.getEl().unmask();
+				AdminRealmAttributesWindow.getEl().unmask();
 			}
 		}
 	});

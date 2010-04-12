@@ -40,7 +40,7 @@ function showAdminUserTopupsWindow(userID) {
 					tooltip:'Add topup',
 					iconCls:'silk-chart_bar_add',
 					handler: function() {
-						showAdminUserTopupAddEditWindow(userID,0);
+						showAdminUserTopupAddEditWindow(adminUserTopupsWindow,userID,0);
 					}
 				},
 				'-',
@@ -53,7 +53,7 @@ function showAdminUserTopupsWindow(userID) {
 						// Check if we have selected item
 						if (selectedItem) {
 							// If so display window
-							showAdminUserTopupAddEditWindow(userID,selectedItem.data.ID);
+							showAdminUserTopupAddEditWindow(adminUserTopupsWindow,userID,selectedItem.data.ID);
 						} else {
 							adminUserTopupsWindow.getEl().mask();
 
@@ -166,7 +166,7 @@ function showAdminUserTopupsWindow(userID) {
 
 
 // Display edit/add form
-function showAdminUserTopupAddEditWindow(userID,topupID) {
+function showAdminUserTopupAddEditWindow(adminUserTopupsWindow,userID,topupID) {
 	var today = new Date();
 	var firstOfMonth = today.getFirstDateOfMonth();
 	var firstOfNext = today.getLastDateOfMonth().add(Date.DAY, 1);
@@ -178,21 +178,41 @@ function showAdminUserTopupAddEditWindow(userID,topupID) {
 	if (topupID) {
 		icon = 'silk-chart_bar_edit';
 		submitAjaxConfig = {
-			ID: topupID,
-			SOAPFunction: 'updateAdminUserTopup',
-			SOAPParams: 
-				'0:ID,0:Value,0:Type,'+
-				'0:ValidFrom,0:ValidTo'
+			params: {
+				ID: topupID,
+				SOAPFunction: 'updateAdminUserTopup',
+				SOAPParams: 
+					'0:ID,0:Value,0:Type,'+
+					'0:ValidFrom,0:ValidTo'
+			},
+			onSuccess: function() {
+				var store = Ext.getCmp(adminUserTopupsWindow.gridPanelID).getStore();
+				store.load({
+					params: {
+						limit: 25
+					}
+				});
+			}
 		};
 	// We doing an Add
 	} else {
 		icon = 'silk-chart_bar_add';
 		submitAjaxConfig = {
-			UserID: userID,
-			SOAPFunction: 'createAdminUserTopup',
-			SOAPParams:
-				'0:UserID,0:Value,0:Type,'+
-				'0:ValidFrom,0:ValidTo'
+			params: {
+				UserID: userID,
+				SOAPFunction: 'createAdminUserTopup',
+				SOAPParams:
+					'0:UserID,0:Value,0:Type,'+
+					'0:ValidFrom,0:ValidTo'
+			},
+			onSuccess: function() {
+				var store = Ext.getCmp(adminUserTopupsWindow.gridPanelID).getStore();
+				store.load({
+					params: {
+						limit: 25
+					}
+				});
+			}
 		};
 	}
 
@@ -291,9 +311,9 @@ function showAdminUserTopupAddEditWindow(userID,topupID) {
 
 
 // Display edit/add form
-function showAdminUserTopupRemoveWindow(parent,id) {
-	// Mask parent window
-	parent.getEl().mask();
+function showAdminUserTopupRemoveWindow(adminUserTopupsWindow,id) {
+	// Mask adminUserTopupsWindow window
+	adminUserTopupsWindow.getEl().mask();
 
 	// Display remove confirm window
 	Ext.Msg.show({
@@ -307,7 +327,7 @@ function showAdminUserTopupRemoveWindow(parent,id) {
 			if (buttonId == 'yes') {
 
 				// Do ajax request
-				uxAjaxRequest(parent,{
+				uxAjaxRequest(adminUserTopupsWindow,{
 					params: {
 						id: id,
 						SOAPUsername: globalConfig.soap.username,
@@ -316,13 +336,21 @@ function showAdminUserTopupRemoveWindow(parent,id) {
 						SOAPModule: 'AdminUsers',
 						SOAPFunction: 'removeAdminUserTopup',
 						SOAPParams: 'id'
+					},
+					customSuccess: function() {
+						var store = Ext.getCmp(adminUserTopupsWindow.gridPanelID).getStore();
+						store.load({
+							params: {
+								limit: 25
+							}
+						});
 					}
 				});
 
 
 			// Unmask if user answered no
 			} else {
-				parent.getEl().unmask();
+				adminUserTopupsWindow.getEl().unmask();
 			}
 		}
 	});

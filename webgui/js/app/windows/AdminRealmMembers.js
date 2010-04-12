@@ -106,9 +106,9 @@ function showAdminRealmMembersWindow(realmID) {
 
 
 // Display remove form
-function showAdminRealmMemberRemoveWindow(parent,id) {
-	// Mask parent window
-	parent.getEl().mask();
+function showAdminRealmMemberRemoveWindow(AdminRealmMembersWindow,id) {
+	// Mask AdminRealmMembersWindow window
+	AdminRealmMembersWindow.getEl().mask();
 
 	// Display remove confirm window
 	Ext.Msg.show({
@@ -122,7 +122,7 @@ function showAdminRealmMemberRemoveWindow(parent,id) {
 			if (buttonId == 'yes') {
 
 				// Do ajax request
-				uxAjaxRequest(parent,{
+				uxAjaxRequest(AdminRealmMembersWindow,{
 					params: {
 						ID: id,
 						SOAPUsername: globalConfig.soap.username,
@@ -131,13 +131,21 @@ function showAdminRealmMemberRemoveWindow(parent,id) {
 						SOAPModule: 'AdminRealmMembers',
 						SOAPFunction: 'removeAdminRealmMember',
 						SOAPParams: 'ID'
+					},
+					customSuccess: function() {
+						var store = Ext.getCmp(AdminRealmMembersWindow.gridPanelID).getStore();
+						store.load({
+							params: {
+								limit: 25
+							}
+						});
 					}
 				});
 
 
 			// Unmask if user answered no
 			} else {
-				parent.getEl().unmask();
+				AdminRealmMembersWindow.getEl().unmask();
 			}
 		}
 	});

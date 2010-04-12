@@ -40,7 +40,7 @@ function showAdminClientWindow() {
 					tooltip:'Add client',
 					iconCls:'silk-server_add',
 					handler: function() {
-						showAdminClientAddEditWindow();
+						showAdminClientAddEditWindow(AdminClientWindow);
 					}
 				}, 
 				'-',
@@ -53,7 +53,7 @@ function showAdminClientWindow() {
 						// Check if we have selected item
 						if (selectedItem) {
 							// If so display window
-							showAdminClientAddEditWindow(selectedItem.data.ID);
+							showAdminClientAddEditWindow(AdminClientWindow,selectedItem.data.ID);
 						} else {
 							AdminClientWindow.getEl().mask();
 
@@ -202,7 +202,7 @@ function showAdminClientWindow() {
 
 
 // Display edit/add form
-function showAdminClientAddEditWindow(id) {
+function showAdminClientAddEditWindow(AdminClientWindow,id) {
 
 	var submitAjaxConfig;
 	var icon;
@@ -211,22 +211,42 @@ function showAdminClientAddEditWindow(id) {
 	if (id) {
 		icon = 'silk-server_edit';
 		submitAjaxConfig = {
-			ID: id,
-			SOAPFunction: 'updateAdminClient',
-			SOAPParams: 
-				'0:ID,'+
-				'0:Name,'+
-				'0:AccessList'
+			params: {
+				ID: id,
+				SOAPFunction: 'updateAdminClient',
+				SOAPParams: 
+					'0:ID,'+
+					'0:Name,'+
+					'0:AccessList'
+			},
+			onSuccess: function() {
+				var store = Ext.getCmp(AdminClientWindow.gridPanelID).getStore();
+				store.load({
+					params: {
+						limit: 25
+					}
+				});
+			}
 		};
 
 	// We doing an Add
 	} else {
 		icon = 'silk-server_add';
 		submitAjaxConfig = {
-			SOAPFunction: 'createAdminClient',
-			SOAPParams: 
-				'0:Name,'+
-				'0:AccessList'
+			params: {
+				SOAPFunction: 'createAdminClient',
+				SOAPParams: 
+					'0:Name,'+
+					'0:AccessList'
+			},
+			onSuccess: function() {
+				var store = Ext.getCmp(AdminClientWindow.gridPanelID).getStore();
+				store.load({
+					params: {
+						limit: 25
+					}
+				});
+			}
 		};
 	}
 
@@ -287,10 +307,10 @@ function showAdminClientAddEditWindow(id) {
 }
 
 
-// Display edit/add form
-function showAdminClientRemoveWindow(parent,id) {
-	// Mask parent window
-	parent.getEl().mask();
+// Display remove form
+function showAdminClientRemoveWindow(AdminClientWindow,id) {
+	// Mask AdminClientWindow window
+	AdminClientWindow.getEl().mask();
 
 	// Display remove confirm window
 	Ext.Msg.show({
@@ -304,7 +324,7 @@ function showAdminClientRemoveWindow(parent,id) {
 			if (buttonId == 'yes') {
 
 				// Do ajax request
-				uxAjaxRequest(parent,{
+				uxAjaxRequest(AdminClientWindow,{
 					params: {
 						ID: id,
 						SOAPUsername: globalConfig.soap.username,
@@ -313,13 +333,21 @@ function showAdminClientRemoveWindow(parent,id) {
 						SOAPModule: 'AdminClients',
 						SOAPFunction: 'removeAdminClient',
 						SOAPParams: 'ID'
+					},
+					customSuccess: function() {
+						var store = Ext.getCmp(AdminClientWindow.gridPanelID).getStore();
+						store.load({
+							params: {
+								limit: 25
+							}
+						});
 					}
 				});
 
 
 			// Unmask if user answered no
 			} else {
-				parent.getEl().unmask();
+				AdminClientWindow.getEl().unmask();
 			}
 		}
 	});

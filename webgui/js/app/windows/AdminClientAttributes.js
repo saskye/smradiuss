@@ -41,7 +41,7 @@ function showAdminClientAttributesWindow(clientID) {
 					tooltip:'Add attribute',
 					iconCls:'silk-table_add',
 					handler: function() {
-						showAdminClientAttributeAddEditWindow(clientID);
+						showAdminClientAttributeAddEditWindow(AdminClientAttributesWindow,clientID);
 					}
 				}, 
 				'-', 
@@ -54,7 +54,7 @@ function showAdminClientAttributesWindow(clientID) {
 						// Check if we have selected item
 						if (selectedItem) {
 							// If so display window
-							showAdminClientAttributeAddEditWindow(clientID,selectedItem.data.ID);
+							showAdminClientAttributeAddEditWindow(AdminClientAttributesWindow,clientID,selectedItem.data.ID);
 						} else {
 							AdminClientAttributesWindow.getEl().mask();
 
@@ -161,7 +161,7 @@ function showAdminClientAttributesWindow(clientID) {
 
 
 // Display edit/add form
-function showAdminClientAttributeAddEditWindow(clientID,attrID) {
+function showAdminClientAttributeAddEditWindow(AdminClientAttributesWindow,clientID,attrID) {
 
 	var submitAjaxConfig;
 	var icon;
@@ -171,28 +171,48 @@ function showAdminClientAttributeAddEditWindow(clientID,attrID) {
 	if (attrID) {
 		icon = 'silk-table_edit';
 		submitAjaxConfig = {
-			ID: attrID,
-			SOAPFunction: 'updateAdminClientAttribute',
-			SOAPParams: 
-				'0:ID,'+
-				'0:Name,'+
-				'0:Operator,'+
-				'0:Value,'+
-				'0:Disabled:boolean'
+			params: {
+				ID: attrID,
+				SOAPFunction: 'updateAdminClientAttribute',
+				SOAPParams: 
+					'0:ID,'+
+					'0:Name,'+
+					'0:Operator,'+
+					'0:Value,'+
+					'0:Disabled:boolean'
+			},
+			onSuccess: function() {
+				var store = Ext.getCmp(AdminClientAttributesWindow.gridPanelID).getStore();
+				store.load({
+					params: {
+						limit: 25
+					}
+				});
+			}
 		};
 
 	// We doing an Add
 	} else {
 		icon = 'silk-table_add';
 		submitAjaxConfig = {
-			ClientID: clientID,
-			SOAPFunction: 'addAdminClientAttribute',
-			SOAPParams: 
-				'0:ClientID,'+
-				'0:Name,'+
-				'0:Operator,'+
-				'0:Value,'+
-				'0:Disabled:boolean'
+			params: {
+				ClientID: clientID,
+				SOAPFunction: 'addAdminClientAttribute',
+				SOAPParams: 
+					'0:ClientID,'+
+					'0:Name,'+
+					'0:Operator,'+
+					'0:Value,'+
+					'0:Disabled:boolean'
+			},
+			onSuccess: function() {
+				var store = Ext.getCmp(AdminClientAttributesWindow.gridPanelID).getStore();
+				store.load({
+					params: {
+						limit: 25
+					}
+				});
+			}
 		};
 	}
 	
@@ -290,9 +310,9 @@ function showAdminClientAttributeAddEditWindow(clientID,attrID) {
 
 
 // Display remove form
-function showAdminClientAttributeRemoveWindow(parent,id) {
-	// Mask parent window
-	parent.getEl().mask();
+function showAdminClientAttributeRemoveWindow(AdminClientAttributesWindow,id) {
+	// Mask AdminClientAttributesWindow window
+	AdminClientAttributesWindow.getEl().mask();
 
 	// Display remove confirm window
 	Ext.Msg.show({
@@ -306,7 +326,7 @@ function showAdminClientAttributeRemoveWindow(parent,id) {
 			if (buttonId == 'yes') {
 
 				// Do ajax request
-				uxAjaxRequest(parent,{
+				uxAjaxRequest(AdminClientAttributesWindow,{
 					params: {
 						ID: id,
 						SOAPUsername: globalConfig.soap.username,
@@ -315,13 +335,21 @@ function showAdminClientAttributeRemoveWindow(parent,id) {
 						SOAPModule: 'AdminClientAttributes',
 						SOAPFunction: 'removeAdminClientAttribute',
 						SOAPParams: 'ID'
+					},
+					customSuccess: function() {
+						var store = Ext.getCmp(AdminClientAttributesWindow.gridPanelID).getStore();
+						store.load({
+							params: {
+								limit: 25
+							}
+						});
 					}
 				});
 
 
 			// Unmask if user answered no
 			} else {
-				parent.getEl().unmask();
+				AdminClientAttributesWindow.getEl().unmask();
 			}
 		}
 	});

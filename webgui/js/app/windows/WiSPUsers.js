@@ -41,7 +41,7 @@ function showWiSPUserWindow() {
 					tooltip:'Add user',
 					iconCls:'silk-user_add',
 					handler: function() {
-						showWiSPUserAddEditWindow();
+						showWiSPUserAddEditWindow(WiSPUserWindow);
 					}
 				},
 				'-',
@@ -54,7 +54,7 @@ function showWiSPUserWindow() {
 						// Check if we have selected item
 						if (selectedItem) {
 							// If so display window
-							showWiSPUserAddEditWindow(selectedItem.data.ID);
+							showWiSPUserAddEditWindow(WiSPUserWindow,selectedItem.data.ID);
 						} else {
 							WiSPUserWindow.getEl().mask();
 
@@ -228,7 +228,7 @@ function showWiSPUserWindow() {
 
 
 // Display edit/add form
-function showWiSPUserAddEditWindow(id) {
+function showWiSPUserAddEditWindow(WiSPUserWindow,id) {
 
 	var submitAjaxConfig;
 	var editMode;
@@ -325,6 +325,14 @@ function showWiSPUserAddEditWindow(id) {
 					'0:RGroups,'+
 					'0:RAttributes'
 			},
+			onSuccess: function() {
+				var store = Ext.getCmp(WiSPUserWindow.gridPanelID).getStore();
+				store.load({
+					params: {
+						limit: 25
+					}
+				});
+			},
 
 			hook: function() {
 				// Get modified attribute records
@@ -399,6 +407,14 @@ function showWiSPUserAddEditWindow(id) {
 					'0:Groups,'+
 					'0:Number,'+
 					'0:Prefix'
+			},
+			onSuccess: function() {
+				var store = Ext.getCmp(WiSPUserWindow.gridPanelID).getStore();
+				store.load({
+					params: {
+						limit: 25
+					}
+				});
 			},
 
 			hook: function() {
@@ -858,10 +874,10 @@ function showWiSPUserAddEditWindow(id) {
 
 
 
-// Display edit/add form
-function showWiSPUserRemoveWindow(parent,id) {
-	// Mask parent window
-	parent.getEl().mask();
+// Display remove form
+function showWiSPUserRemoveWindow(WiSPUserWindow,id) {
+	// Mask WiSPUserWindow window
+	WiSPUserWindow.getEl().mask();
 
 	// Display remove confirm window
 	Ext.Msg.show({
@@ -875,7 +891,7 @@ function showWiSPUserRemoveWindow(parent,id) {
 			if (buttonId == 'yes') {
 
 				// Do ajax request
-				uxAjaxRequest(parent,{
+				uxAjaxRequest(WiSPUserWindow,{
 					params: {
 						ID: id,
 						SOAPUsername: globalConfig.soap.username,
@@ -884,13 +900,21 @@ function showWiSPUserRemoveWindow(parent,id) {
 						SOAPModule: 'WiSPUsers',
 						SOAPFunction: 'removeWiSPUser',
 						SOAPParams: 'ID'
+					},
+					customSuccess: function() {
+						var store = Ext.getCmp(WiSPUserWindow.gridPanelID).getStore();
+						store.load({
+							params: {
+								limit: 25
+							}
+						});
 					}
 				});
 
 
 			// Unmask if user answered no
 			} else {
-				parent.getEl().unmask();
+				WiSPUserWindow.getEl().unmask();
 			}
 		}
 	});

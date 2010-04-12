@@ -112,9 +112,9 @@ function showAdminGroupMembersWindow(groupID) {
 
 
 // Display remove form
-function showAdminGroupMemberRemoveWindow(parent,id) {
-	// Mask parent window
-	parent.getEl().mask();
+function showAdminGroupMemberRemoveWindow(AdminGroupMembersWindow,id) {
+	// Mask AdminGroupMembersWindow window
+	AdminGroupMembersWindow.getEl().mask();
 
 	// Display remove confirm window
 	Ext.Msg.show({
@@ -128,7 +128,7 @@ function showAdminGroupMemberRemoveWindow(parent,id) {
 			if (buttonId == 'yes') {
 
 				// Do ajax request
-				uxAjaxRequest(parent,{
+				uxAjaxRequest(AdminGroupMembersWindow,{
 					params: {
 						ID: id,
 						SOAPUsername: globalConfig.soap.username,
@@ -137,13 +137,21 @@ function showAdminGroupMemberRemoveWindow(parent,id) {
 						SOAPModule: 'AdminGroupMembers',
 						SOAPFunction: 'removeAdminGroupMember',
 						SOAPParams: 'ID'
+					},
+					customSuccess: function() {
+						var store = Ext.getCmp(AdminGroupMembersWindow.gridPanelID).getStore();
+						store.load({
+							params: {
+								limit: 25
+							}
+						});
 					}
 				});
 
 
 			// Unmask if user answered no
 			} else {
-				parent.getEl().unmask();
+				AdminGroupMembersWindow.getEl().unmask();
 			}
 		}
 	});

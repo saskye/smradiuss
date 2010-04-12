@@ -40,7 +40,7 @@ function showWiSPUserTopupsWindow(userID) {
 					tooltip:'Add topup',
 					iconCls:'silk-chart_bar_add',
 					handler: function() {
-						showWiSPUserTopupAddEditWindow(userID,0);
+						showWiSPUserTopupAddEditWindow(wispUserTopupsWindow,userID,0);
 					}
 				}, 
 				'-',
@@ -53,7 +53,7 @@ function showWiSPUserTopupsWindow(userID) {
 						// Check if we have selected item
 						if (selectedItem) {
 							// If so display window
-							showWiSPUserTopupAddEditWindow(userID,selectedItem.data.ID);
+							showWiSPUserTopupAddEditWindow(wispUserTopupsWindow,userID,selectedItem.data.ID);
 						} else {
 							wispUserTopupsWindow.getEl().mask();
 
@@ -166,7 +166,7 @@ function showWiSPUserTopupsWindow(userID) {
 
 
 // Display edit/add form
-function showWiSPUserTopupAddEditWindow(userID,topupID) {
+function showWiSPUserTopupAddEditWindow(wispUserTopupsWindow,userID,topupID) {
 	var today = new Date();
 	var firstOfMonth = today.getFirstDateOfMonth();
 	var firstOfNext = today.getLastDateOfMonth().add(Date.DAY, 1);
@@ -178,21 +178,41 @@ function showWiSPUserTopupAddEditWindow(userID,topupID) {
 	if (topupID) {
 		icon = 'silk-chart_bar_edit';
 		submitAjaxConfig = {
-			ID: topupID,
-			SOAPFunction: 'updateWiSPUserTopup',
-			SOAPParams: 
-				'0:ID,0:Value,0:Type,'+
-				'0:ValidFrom,0:ValidTo'
+			params: {
+				ID: topupID,
+				SOAPFunction: 'updateWiSPUserTopup',
+				SOAPParams: 
+					'0:ID,0:Value,0:Type,'+
+					'0:ValidFrom,0:ValidTo'
+			},
+			onSuccess: function() {
+				var store = Ext.getCmp(wispUserTopupsWindow.gridPanelID).getStore();
+				store.load({
+					params: {
+						limit: 25
+					}
+				});
+			}
 		};
 	// We doing an Add
 	} else {
 		icon = 'silk-chart_bar_add';
 		submitAjaxConfig = {
-			UserID: userID,
-			SOAPFunction: 'createWiSPUserTopup',
-			SOAPParams: 
-				'0:UserID,0:Value,0:Type,'+
-				'0:ValidFrom,0:ValidTo'
+			params: {
+				UserID: userID,
+				SOAPFunction: 'createWiSPUserTopup',
+				SOAPParams: 
+					'0:UserID,0:Value,0:Type,'+
+					'0:ValidFrom,0:ValidTo'
+			},
+			onSuccess: function() {
+				var store = Ext.getCmp(wispUserTopupsWindow.gridPanelID).getStore();
+				store.load({
+					params: {
+						limit: 25
+					}
+				});
+			}
 		};
 	}
 
@@ -290,10 +310,10 @@ function showWiSPUserTopupAddEditWindow(userID,topupID) {
 
 
 
-// Display edit/add form
-function showWiSPUserTopupRemoveWindow(parent,id) {
-	// Mask parent window
-	parent.getEl().mask();
+// Display remove form
+function showWiSPUserTopupRemoveWindow(wispUserTopupsWindow,id) {
+	// Mask wispUserTopupsWindow window
+	wispUserTopupsWindow.getEl().mask();
 
 	// Display remove confirm window
 	Ext.Msg.show({
@@ -307,7 +327,7 @@ function showWiSPUserTopupRemoveWindow(parent,id) {
 			if (buttonId == 'yes') {
 
 				// Do ajax request
-				uxAjaxRequest(parent,{
+				uxAjaxRequest(wispUserTopupsWindow,{
 					params: {
 						id: id,
 						SOAPUsername: globalConfig.soap.username,
@@ -316,13 +336,21 @@ function showWiSPUserTopupRemoveWindow(parent,id) {
 						SOAPModule: 'WiSPUsers',
 						SOAPFunction: 'removeWiSPUserTopup',
 						SOAPParams: 'id'
+					},
+					customSuccess: function() {
+						var store = Ext.getCmp(wispUserTopupsWindow.gridPanelID).getStore();
+						store.load({
+							params: {
+								limit: 25
+							}
+						});
 					}
 				});
 
 
 			// Unmask if user answered no
 			} else {
-				parent.getEl().unmask();
+				wispUserTopupsWindow.getEl().unmask();
 			}
 		}
 	});
