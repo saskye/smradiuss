@@ -434,7 +434,7 @@ function displayDetails() {
 				</td>
 			</tr>
 			</form>
---!>
+-->
 
 <?php
 		}
