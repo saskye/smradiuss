@@ -1,11 +1,13 @@
 # Microsoft CHAP version 1 and 2 support
-# Copyright (C) 2007-2009, AllWorldIT
+# Copyright (C) 2007-2010, AllWorldIT
 #
 # References: 
 #	RFC1994 - PPP Challenge Handshake Authentication Protocol (CHAP)
 #	RFC2443 - Microsoft PPP CHAP Extensions
 #	RFC2759 - Microsoft PPP CHAP Extensions, Version 2
 #	RFC2548 - Microsoft Vendor-specific RADIUS Attributes
+#	RFC3079 - Deriving Keys for use with Microsoft Point-to-Point 
+#	          Encryption (MPPE)
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -38,6 +40,7 @@ use Crypt::DES;
 use Crypt::RC4;
 use Digest::SHA1;
 use Digest::MD4 qw( md4 );
+use Digest::MD5 qw( );
 
 # Don't use unicode
 use bytes;
@@ -48,6 +51,8 @@ require Exporter;
 our (@ISA,@EXPORT,@EXPORT_OK);
 @ISA = qw(Exporter);
 @EXPORT = qw(
+);
+@EXPORT_OK = qw(
 	GenerateNTResponse
 	ChallengeHash
 	NtPasswordHash
@@ -56,8 +61,6 @@ our (@ISA,@EXPORT,@EXPORT_OK);
 	GenerateAuthenticatorResponse
 	CheckAuthenticatorResponse
 	NtChallengeResponse
-);
-@EXPORT_OK = qw(
 );
 
 
@@ -142,22 +145,29 @@ sub authenticate
 		my $challenge = @{$rawChallenge}[0];
 		my $response = substr(@{$rawResponse}[0],2);
 
-#		print(STDERR "RECEIVED\n");
-#		print(STDERR "Challenge: len = ".length($challenge).", hex = ".unpack("H*",$challenge)."\n");
-#		print(STDERR "Reponse  : len = ".length($response).", hex = ".unpack("H*",$response)."\n");
-#		print(STDERR "\n\n");
-
-#		print(STDERR "CHOPPED OFFF!!\n");
 		# Chop off NtResponse
 		my $NtResponse = substr($response,24,24);
-#		print(STDERR "NTRespons: len = ".length($NtResponse).", hex = ".unpack("H*",$NtResponse)."\n");
-#		print(STDERR "\n\n");
 
-#		print(STDERR "TEST\n");
 		# Generate our response
 		my $ourResponse = NtChallengeResponse($challenge,$unicodePassword);
-#		print(STDERR "Calculate: len = ".length($ourResponse).", hex = ".unpack("H*",$ourResponse)."\n");
-#		print(STDERR "\n\n");
+
+
+# MPPE Code
+##################
+		my $NtPasswordHash = NtPasswordHash($unicodePassword);
+		my $HashNtPasswordHash = HashNtPasswordHash($NtPasswordHash);
+
+		my $sendkey = pack("x8a16",$HashNtPasswordHash);
+		my $recvkey;
+		
+		setReplyVAttribute($server,$user->{'ReplyVAttributes'}, {
+			'Vendor' => 311,
+			'Name' => 'MS-CHAP-MPPE-Keys',
+			'Operator' => ":=",
+			'Value' => $sendkey
+		});
+##################
+
 
 		# Check responses match
 		if ($NtResponse eq $ourResponse) {
@@ -174,29 +184,13 @@ sub authenticate
 		my $ident = unpack("C", substr(@{$rawResponse2}[0],0,1));
 		my $response = substr(@{$rawResponse2}[0],2);
 
-#		print(STDERR "RECEIVED\n");
-#		print(STDERR "Challenge: len = ".length($challenge).", hex = ".unpack("H*",$challenge)."\n");
-#		print(STDERR "Ident    : $ident\n");
-#		print(STDERR "Response : len = ".length($response).", hex = ".unpack("H*",$response)."\n");
-#		print(STDERR "\n\n");
-
-
-
-#		print(STDERR "CHOPPED OFFF!!\n");
 		# Grab peer challenge and response
 		my $peerChallenge = substr($response,0,16);
 		my $NtResponse = substr($response,24,24);
-#		print(STDERR "PeerChallenge: len = ".length($peerChallenge).", hex = ".unpack("H*",$peerChallenge)."\n");
-#		print(STDERR "NTResponse: len = ".length($NtResponse).", hex = ".unpack("H*",$NtResponse)."\n");
-#		print(STDERR "\n\n");
 
-#		print(STDERR "TEST\n");
 		# Generate our challenge and our response
 		my $ourChallenge = ChallengeHash($peerChallenge,$challenge,$username);
 		my $ourResponse = NtChallengeResponse($ourChallenge,$unicodePassword);
-#		print(STDERR "OurChallenge: len = ".length($ourChallenge).", hex = ".unpack("H*",$ourChallenge)."\n");
-#		print(STDERR "OurResponse: len = ".length($ourResponse).", hex = ".unpack("H*",$ourResponse)."\n");
-#		print(STDERR "\n\n");
 
 		# Check response match
 		if ($NtResponse eq $ourResponse) {
@@ -204,8 +198,57 @@ sub authenticate
 			my $authenticatorResponse = pack("C",$ident) . GenerateAuthenticatorResponse($unicodePassword,$ourResponse,
 					$peerChallenge,$challenge,$username);
 
-#			print(STDERR "Authenticator Response: len = ".length($authenticatorResponse).
-#					", hex = ".unpack("H*",$authenticatorResponse)."\n");
+			# MPPE Code
+################################
+
+			my $NtPasswordHash = NtPasswordHash($unicodePassword);
+			my $HashNtPasswordHash = HashNtPasswordHash($NtPasswordHash);
+
+			# Create master key
+			my $MasterKey = GetMasterKey($HashNtPasswordHash,$NtResponse);
+
+			# Create MPPE keys
+			my $mppe_sendKey = GetAsymmetricStartKey($MasterKey,16,1,1);
+			my $mppe_recvKey = GetAsymmetricStartKey($MasterKey,16,1,0);
+
+
+			# Generate salts ... this should be in its own module and salt_offset should be global
+			my $salt_offset = 0;
+			my $salt1 = pack("C2",(0x80 | ( (($salt_offset++) & 0x0f) << 3) |
+   	            (rand(255) & 0x07)),rand(255));
+			my $salt2 = pack("C2",(0x80 | ( (($salt_offset++) & 0x0f) << 3) |
+   	            (rand(255) & 0x07)),rand(255));
+
+			# Encode keys
+			my $mppe_sendKey_e = mppe_encode_key(
+					getAttributeValue($user->{'ConfigAttributes'},"SMRadius-Config-Secret"),
+					$packet->authenticator,
+					$salt1,
+					$mppe_sendKey
+			);
+			my $mppe_recvKey_e = mppe_encode_key(
+					getAttributeValue($user->{'ConfigAttributes'},"SMRadius-Config-Secret"),
+					$packet->authenticator,
+					$salt2,
+					$mppe_recvKey
+			);
+
+			# Finally setup arguments
+			setReplyVAttribute($server,$user->{'ReplyVAttributes'}, {
+				'Vendor' => 311,
+				'Name' => 'MS-MPPE-Recv-Key',
+				'Operator' => ":=",
+				'Value' => $mppe_recvKey_e
+			});
+
+			setReplyVAttribute($server,$user->{'ReplyVAttributes'}, {
+				'Vendor' => 311,
+				'Name' => 'MS-MPPE-Send-Key',
+				'Operator' => ":=",
+				'Value' => $mppe_sendKey_e
+			});
+#################################
+
 
 			setReplyVAttribute($server,$user->{'ReplyVAttributes'}, {
 				'Vendor' => 311,
@@ -767,6 +810,221 @@ sub NtChallengeResponse {
 	return $Response;
 }
 
+
+
+#
+# RFC 3079
+#
+
+#GetMasterKey(
+#	IN  16-octet  PasswordHashHash,
+#	IN  24-octet  NTResponse,
+#	OUT 16-octet  MasterKey )
+#{
+#	20-octet Digest
+#
+#	ZeroMemory(Digest, sizeof(Digest));
+#
+#	/*
+#	 * SHSInit(), SHSUpdate() and SHSFinal()
+#	 * are an implementation of the Secure Hash Standard [7].
+#	 */
+#
+#	SHSInit(Context);
+#	SHSUpdate(Context, PasswordHashHash, 16);
+#	SHSUpdate(Context, NTResponse, 24);
+#	SHSUpdate(Context, Magic1, 27);
+#	SHSFinal(Context, Digest);
+#
+#	MoveMemory(MasterKey, Digest, 16);
+#}
+sub GetMasterKey
+{
+	my ($PasswordHashHash,$NTResponse) = @_;
+
+
+	# "Magic" constants used in key derivations - in hex
+	my @Magic1 =
+		("54", "68", "69", "73", "20", "69", "73", "20", "74",
+		 "68", "65", "20", "4d", "50", "50", "45", "20", "4d",
+		 "61", "73", "74", "65", "72", "20", "4b", "65", "79");
+
+	my $sha = Digest::SHA1->new();
+	$sha->add($PasswordHashHash);
+	$sha->add($NTResponse);
+	foreach my $item (@Magic1) {
+		$sha->add(pack("H*",$item));
+	}
+	my $Digest = $sha->digest();
+	# Cut off MasterKey
+	my $MasterKey = substr($Digest,0,16);
+
+	return $MasterKey;
+}
+
+
+
+
+#VOID
+#GetAsymetricStartKey(
+#	IN   16-octet      MasterKey,
+#	OUT  8-to-16 octet SessionKey,
+#	IN   INTEGER       SessionKeyLength,
+#	IN   BOOLEAN       IsSend,
+#	IN   BOOLEAN       IsServer )
+#{
+#
+#	20-octet Digest;
+#
+#	ZeroMemory(Digest, 20);
+#
+#	if (IsSend) {
+#		if (IsServer) {
+#			s = Magic3
+#		} else {
+#			s = Magic2
+#		}
+#	} else {
+#		if (IsServer) {
+#			s = Magic2
+#		} else {
+#			s = Magic3
+#		}
+#	}
+#
+#	/*
+#	 * SHSInit(), SHSUpdate() and SHSFinal()
+#	 * are an implementation of the Secure Hash Standard [7].
+#	 */
+#
+#	SHSInit(Context);
+#	SHSUpdate(Context, MasterKey, 16);
+#	SHSUpdate(Context, SHSpad1, 40);
+#	SHSUpdate(Context, s, 84);
+#	SHSUpdate(Context, SHSpad2, 40);
+#	SHSFinal(Context, Digest);
+#
+#	MoveMemory(SessionKey, Digest, SessionKeyLength);
+#}
+sub GetAsymmetricStartKey
+{
+	my ($MasterKey,$SessionKeyLength,$IsSend,$IsServer) = @_;
+
+
+	# "Magic" constants used in key derivations - in hex
+	my @Magic2 =
+		("4f", "6e", "20", "74", "68", "65", "20", "63", "6c", "69",
+		 "65", "6e", "74", "20", "73", "69", "64", "65", "2c", "20",
+		 "74", "68", "69", "73", "20", "69", "73", "20", "74", "68",
+		 "65", "20", "73", "65", "6e", "64", "20", "6b", "65", "79",
+		 "3b", "20", "6f", "6e", "20", "74", "68", "65", "20", "73",
+		 "65", "72", "76", "65", "72", "20", "73", "69", "64", "65",
+		 "2c", "20", "69", "74", "20", "69", "73", "20", "74", "68",
+		 "65", "20", "72", "65", "63", "65", "69", "76", "65", "20",
+		 "6b", "65", "79", "2e");
+
+	my @Magic3 =
+		("4f", "6e", "20", "74", "68", "65", "20", "63", "6c", "69",
+		 "65", "6e", "74", "20", "73", "69", "64", "65", "2c", "20",
+		 "74", "68", "69", "73", "20", "69", "73", "20", "74", "68",
+		 "65", "20", "72", "65", "63", "65", "69", "76", "65", "20",
+		 "6b", "65", "79", "3b", "20", "6f", "6e", "20", "74", "68",
+		 "65", "20", "73", "65", "72", "76", "65", "72", "20", "73",
+		 "69", "64", "65", "2c", "20", "69", "74", "20", "69", "73",
+		 "20", "74", "68", "65", "20", "73", "65", "6e", "64", "20",
+		 "6b", "65", "79", "2e");
+
+	# Pads used in key derivation - in hex
+	my @SHSpad1 =
+		("00", "00", "00", "00", "00", "00", "00", "00", "00", "00",
+		 "00", "00", "00", "00", "00", "00", "00", "00", "00", "00",
+		 "00", "00", "00", "00", "00", "00", "00", "00", "00", "00",
+		 "00", "00", "00", "00", "00", "00", "00", "00", "00", "00");
+
+	my @SHSpad2 =
+		("f2", "f2", "f2", "f2", "f2", "f2", "f2", "f2", "f2", "f2",
+		 "f2", "f2", "f2", "f2", "f2", "f2", "f2", "f2", "f2", "f2",
+		 "f2", "f2", "f2", "f2", "f2", "f2", "f2", "f2", "f2", "f2",
+		 "f2", "f2", "f2", "f2", "f2", "f2", "f2", "f2", "f2", "f2");
+
+	my @s;
+	if ($IsSend) {
+		if ($IsServer) {
+			@s = @Magic3;
+		} else {
+			@s = @Magic2;
+		}
+	} else {
+		if ($IsServer) {
+			@s = @Magic2;
+		} else {
+			@s = @Magic3;
+		}
+	}
+
+	my $sha = Digest::SHA1->new();
+	$sha->add($MasterKey);
+	foreach my $item (@SHSpad1) {
+		$sha->add(pack("H*",$item));
+	}
+	foreach my $item (@s) {
+		$sha->add(pack("H*",$item));
+	}
+	foreach my $item (@SHSpad2) {
+		$sha->add(pack("H*",$item));
+	}
+	my $digest = $sha->digest();
+	# Cut off SessionKey
+	my $SessionKey = substr($digest,0,$SessionKeyLength);
+
+	return $SessionKey;
+}
+
+
+# Function to encode a key
+sub mppe_encode_key
+{
+	my ($secret,$vector,$salt,$enckey) = @_;
+
+
+	# Ok, to do this we need the length of the key first
+	my @plain = (
+		16, # Length
+		unpack("C*",pack("a31",$enckey))
+	);
+	
+	# Create our first digest
+	my $sha = Digest::MD5->new();
+	$sha->add($secret);
+	$sha->add($vector);
+	$sha->add($salt);
+	# Unpack digest for calculation
+	my @buf = unpack("C*",$sha->digest());
+
+	# Calculate
+	for(my $i=0; $i < 16; $i++) {
+		$plain[$i] ^= $buf[$i];
+	}
+
+	# Second round
+	$sha = Digest::MD5->new();
+	$sha->add($secret);
+	# Add the values we calculated above
+	for (my $i = 0; $i < 16; $i++) {
+		$sha->add(pack("C",$plain[$i]));
+	}
+	# Unpack digest for calculation
+	@buf = unpack("C*",$sha->digest());
+
+	# Calculate
+	for (my $i = 0; $i < 16; $i++) {
+		$plain[$i+16] ^= $buf[$i];
+	}
+	# Pack salt, and result
+	my $key = pack("a2C32",$salt,@plain);
+
+	return $key;
+}
 
 
 1;
