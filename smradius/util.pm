@@ -64,7 +64,7 @@ sub templateReplace
 	my @valueArray = ();
 
 	# Replace blanks
-	while (my ($entireMacro,$section,$item,$default) = ($string =~ /(\%{([a-z]+)\.([a-z0-9\-]+)(?:=([^}]+))?})/i )) {
+	while (my ($entireMacro,$section,$item,$default) = ($string =~ /(\%{([a-z]+)\.([a-z0-9\-]+)(?:=([^}]*))?})/i )) {
 		# Replace macro with ?	
 		$string =~ s/$entireMacro/\?/;
 
