@@ -108,7 +108,7 @@ sub init
 			%{request.NAS-Port-Type},
 			%{request.Calling-Station-Id},
 			%{request.Called-Station-Id},
-			%{request.NAS-Port-Id},
+			%{request.NAS-Port-Id=},
 			%{request.Acct-Session-Id},
 			%{request.Framed-IP-Address},
 			%{request.Acct-Authentic},
@@ -137,6 +137,7 @@ sub init
 			Username = %{request.User-Name}
 			AND AcctSessionID = %{request.Acct-Session-Id}
 			AND NASIPAddress = %{request.NAS-IP-Address}
+			AND NASPortID = %{request.NAS-Port-Id=}
 		GROUP BY
 			PeriodKey
 		ORDER BY
@@ -159,6 +160,7 @@ sub init
 			Username = %{request.User-Name}
 			AND AcctSessionID = %{request.Acct-Session-Id}
 			AND NASIPAddress = %{request.NAS-IP-Address}
+			AND NASPortID = %{request.NAS-Port-Id=}
 			AND PeriodKey = %{query.PeriodKey}
 	';
 
@@ -177,6 +179,7 @@ sub init
 			Username = %{request.User-Name}
 			AND AcctSessionID = %{request.Acct-Session-Id}
 			AND NASIPAddress = %{request.NAS-IP-Address}
+			AND NASPortID = %{request.NAS-Port-Id=}
 			AND PeriodKey = %{query.PeriodKey}
 	';
 
@@ -190,6 +193,7 @@ sub init
 			Username = %{request.User-Name}
 			AND AcctSessionID = %{request.Acct-Session-Id}
 			AND NASIPAddress = %{request.NAS-IP-Address}
+			AND NASPortID = %{request.NAS-Port-Id=}
 	';
 
 	$config->{'accounting_usage_query'} = '
@@ -215,6 +219,7 @@ sub init
 			Username = %{request.User-Name}
 			AND AcctSessionID = %{request.Acct-Session-Id}
 			AND NASIPAddress = %{request.NAS-IP-Address}
+			AND NASPortID = %{request.NAS-Port-Id=}
 			AND PeriodKey = %{query.PeriodKey}
 		ORDER BY
 			ID
@@ -226,7 +231,6 @@ sub init
 			@TP@accounting
 		WHERE
 			ID = %{query.DuplicateID}
-			AND PeriodKey = %{query.PeriodKey}
 	';
 
 	# Setup SQL queries
@@ -523,7 +527,7 @@ sub acct_log
 			}
 
 			# Check if we updated duplicates, if we did, fix them
-			if ($sth > 1) {
+			if ($sth ne "0E0" && $sth > 1) {
 				fixDuplicates($server, $template);
 			}
 
@@ -541,7 +545,7 @@ sub acct_log
 			}
 
 			# Check if we updated duplicates, if we did, fix them
-			if ($sth > 1) {
+			if ($sth ne "0E0" && $sth > 1) {
 				fixDuplicates($server, $template);
 			}
 
@@ -642,7 +646,7 @@ sub acct_log
 		}
 
 		# Check if we updated duplicates, if we did, fix them
-		if ($sth > 1) {
+		if ($sth ne "0E0" && $sth > 1) {
 			fixDuplicates($server, $template);
 		}
 	}
