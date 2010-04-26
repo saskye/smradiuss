@@ -35,6 +35,7 @@ use Config::IniFiles;
 use DateTime;
 use Getopt::Long;
 use Sys::Syslog;
+use Time::HiRes qw( gettimeofday tv_interval );
 
 use smradius::version;
 use smradius::constants;
@@ -308,12 +309,12 @@ sub post_configure_hook {
 
 
 	# Init config
-	$self->log(LOG_NOTICE,"[SMRADIUS] Initializing configuration...");
+	$self->log(LOG_INFO,"[SMRADIUS] Initializing configuration...");
 	smradius::config::Init($self);
-	$self->log(LOG_NOTICE,"[SMRADIUS] Configuration initialized.");
+	$self->log(LOG_INFO,"[SMRADIUS] Configuration initialized.");
 
 	# Load dictionaries
-	$self->log(LOG_NOTICE,"[SMRADIUS] Initializing dictionaries...");
+	$self->log(LOG_INFO,"[SMRADIUS] Initializing dictionaries...");
 	my $dict = new Radius::Dictionary;
 	foreach my $df (@{$config->{'dictionary_list'}}) {
 		# Load dictionary
@@ -322,11 +323,11 @@ sub post_configure_hook {
 		}
 		$self->log(LOG_DEBUG,"[SMRADIUS] Loaded module '$df'.");
 	}
-	$self->log(LOG_NOTICE,"[SMRADIUS] Dictionaries initialized.");
+	$self->log(LOG_INFO,"[SMRADIUS] Dictionaries initialized.");
 	# Store the dictionary
 	$self->{'radius'}->{'dictionary'} = $dict;
 
-	$self->log(LOG_NOTICE,"[SMRADIUS] Initializing modules...");
+	$self->log(LOG_INFO,"[SMRADIUS] Initializing modules...");
 	# Load modules
 	foreach my $module (@{$config->{'module_list'}}) {
 		# Split off dir and mod name
@@ -344,12 +345,12 @@ sub post_configure_hook {
 			$self->log(LOG_DEBUG,"[SMRADIUS] Plugin '$module' loaded.");
 		}
 	}
-	$self->log(LOG_NOTICE,"[SMRADIUS] Plugins initialized.");
+	$self->log(LOG_INFO,"[SMRADIUS] Plugins initialized.");
 
-	$self->log(LOG_NOTICE,"[SMRADIUS] Initializing system modules.");
+	$self->log(LOG_INFO,"[SMRADIUS] Initializing system modules.");
 	# Init caching engine
 #	awitpt::cache::Init($self);
-	$self->log(LOG_NOTICE,"[SMRADIUS] System modules initialized.");
+	$self->log(LOG_INFO,"[SMRADIUS] System modules initialized.");
 
 }
 
@@ -447,6 +448,9 @@ sub process_request {
 		return;
 	}
 
+	# Profiling...
+	my $timer0 = [gettimeofday];
+
 	# Parse packet
 	my $pkt = new Radius::Packet($self->{'radius'}->{'dictionary'},$udp_packet);
 
@@ -479,10 +483,10 @@ sub process_request {
 		my $timepassed = time() - $self->{'client'}->{'dbh_status'};
 		# Then check...
 		if ($timepassed >= $timeout) {
-			$self->log(LOG_NOTICE,"[SMRADIUS] Client BYPASS timeout exceeded, reconnecting...");
+			$self->log(LOG_WARN,"[SMRADIUS] Client BYPASS timeout exceeded, reconnecting...");
 			exit 0;
 		} else {
-			$self->log(LOG_NOTICE,"[SMRADIUS] Client still in BYPASS mode, ".( $timeout - $timepassed ).
+			$self->log(LOG_WARN,"[SMRADIUS] Client still in BYPASS mode, ".( $timeout - $timepassed ).
 					"s left till next reconnect");
 			return;
 		}
@@ -490,6 +494,13 @@ sub process_request {
 
 	# Setup database handle
 	awitpt::db::dblayer::setHandle($self->{'client'}->{'dbh'});
+
+	# Log line to use with logging
+	my $logLine = ""; my $logReason = "UNKNOWN";
+	foreach my $attr ($pkt->attributes) {
+		$logLine .= " $attr: '".$pkt->rawattr($attr)."',";
+	}
+	chop($logLine);
 
 	# Main user hash with everything in
 	my $user;
@@ -526,7 +537,8 @@ sub process_request {
 
 			# Check result
 			if (!defined($res)) {
-				$self->log(LOG_DEBUG,"[SMRADIUS] CONFIG: Error with plugin '".$module->{'Name'}."'");
+				$self->log(LOG_WARN,"[SMRADIUS] CONFIG: Error with plugin '".$module->{'Name'}."'");
+				$logReason = "Config Error";
 
 			# Check if we skipping this plugin
 			} elsif ($res == MOD_RES_SKIP) {
@@ -534,11 +546,13 @@ sub process_request {
 
 			# Check if we got a positive result back
 			} elsif ($res == MOD_RES_ACK) {
-				$self->log(LOG_NOTICE,"[SMRADIUS] CONFIG: Configuration retrieved from '".$module->{'Name'}."'");
+				$self->log(LOG_INFO,"[SMRADIUS] CONFIG: Configuration retrieved from '".$module->{'Name'}."'");
+				$logReason = "Config Retrieved";
 
 			# Check if we got a negative result back
 			} elsif ($res == MOD_RES_NACK) {
-				$self->log(LOG_NOTICE,"[SMRADIUS] CONFIG: Configuration rejection when using '".$module->{'Name'}."'");
+				$self->log(LOG_INFO,"[SMRADIUS] CONFIG: Configuration rejection when using '".$module->{'Name'}."'");
+				$logReason = "Config Rejected";
 				goto CHECK_RESULT;
 			}
 		}
@@ -571,7 +585,8 @@ sub process_request {
 
 				# Check result
 				if (!defined($res)) {
-					$self->log(LOG_DEBUG,"[SMRADIUS] FIND: Error with plugin '".$module->{'Name'}."'");
+					$self->log(LOG_WARN,"[SMRADIUS] FIND: Error with plugin '".$module->{'Name'}."'");
+					$logReason = "Error Finding User";
 
 				# Check if we skipping this plugin
 				} elsif ($res == MOD_RES_SKIP) {
@@ -579,14 +594,15 @@ sub process_request {
 
 				# Check if we got a positive result back
 				} elsif ($res == MOD_RES_ACK) {
-					$self->log(LOG_NOTICE,"[SMRADIUS] FIND: Username found with '".$module->{'Name'}."'");
+					$self->log(LOG_INFO,"[SMRADIUS] FIND: Username found with '".$module->{'Name'}."'");
 					$userdb = $module;
 					$user->{'_UserDB_Data'} = $userdb_data;
 					last;
 
 				# Or a negative result
 				} elsif ($res == MOD_RES_NACK) {
-					$self->log(LOG_NOTICE,"[SMRADIUS] FIND: Username not found with '".$module->{'Name'}."'");
+					$self->log(LOG_INFO,"[SMRADIUS] FIND: Username not found with '".$module->{'Name'}."'");
+					$logReason = "User Not Found";
 					last;
 
 				}
@@ -625,7 +641,8 @@ sub process_request {
 
 				# Check result
 				if (!defined($res)) {
-					$self->log(LOG_DEBUG,"[SMRADIUS] ACCT: Error with plugin '".$module->{'Name'}."'");
+					$self->log(LOG_WARN,"[SMRADIUS] ACCT: Error with plugin '".$module->{'Name'}."'");
+					$logReason = "Accounting Log Error";
 
 				# Check if we skipping this plugin
 				} elsif ($res == MOD_RES_SKIP) {
@@ -633,11 +650,13 @@ sub process_request {
 
 				# Check if we got a positive result back
 				} elsif ($res == MOD_RES_ACK) {
-					$self->log(LOG_NOTICE,"[SMRADIUS] ACCT: Accounting logged using '".$module->{'Name'}."'");
+					$self->log(LOG_INFO,"[SMRADIUS] ACCT: Accounting logged using '".$module->{'Name'}."'");
+					$logReason = "Accounting Logged";
 
 				# Check if we got a negative result back
 				} elsif ($res == MOD_RES_NACK) {
-					$self->log(LOG_NOTICE,"[SMRADIUS] ACCT: Accounting NOT LOGGED using '".$module->{'Name'}."'");
+					$self->log(LOG_INFO,"[SMRADIUS] ACCT: Accounting NOT LOGGED using '".$module->{'Name'}."'");
+					$logReason = "Accounting NOT Logged";
 				}
 			}
 		}
@@ -662,7 +681,8 @@ sub process_request {
 
 				# Check result
 				if (!defined($res)) {
-					$self->log(LOG_DEBUG,"[SMRADIUS] POST-ACCT: Error with plugin '".$module->{'Name'}."'");
+					$self->log(LOG_WARN,"[SMRADIUS] POST-ACCT: Error with plugin '".$module->{'Name'}."'");
+					$logReason = "Post Accounting Error";
 
 				# Check if we skipping this plugin
 				} elsif ($res == MOD_RES_SKIP) {
@@ -670,11 +690,13 @@ sub process_request {
 
 				# Check if we got a positive result back
 				} elsif ($res == MOD_RES_ACK) {
-					$self->log(LOG_NOTICE,"[SMRADIUS] POST-ACCT: Passed post accounting hook by '".$module->{'Name'}."'");
+					$self->log(LOG_INFO,"[SMRADIUS] POST-ACCT: Passed post accounting hook by '".$module->{'Name'}."'");
+					$logReason = "Post Accounting Success";
 
 				# Or a negative result
 				} elsif ($res == MOD_RES_NACK) {
-					$self->log(LOG_NOTICE,"[SMRADIUS] POST-ACCT: Failed post accounting hook by '".$module->{'Name'}."'");
+					$self->log(LOG_INFO,"[SMRADIUS] POST-ACCT: Failed post accounting hook by '".$module->{'Name'}."'");
+					$logReason = "Failed Post Accounting";
 					$PODUser = 1;
 				}
 			}
@@ -694,6 +716,14 @@ sub process_request {
 			$resp->set_attr('Framed-IP-Address',$pkt->attr('Framed-IP-Address'));
 			$resp->set_attr('NAS-IP-Address',$pkt->attr('NAS-IP-Address'));
 
+			# Add onto logline
+			$logLine .= ". REPLY => ";
+			foreach my $attr ($resp->attributes) {
+				$logLine .= " $attr: '".$resp->rawattr($attr)."',";
+			}
+			chop($logLine);
+
+			# Grab packet
 			$udp_packet = auth_resp($resp->pack, getAttributeValue($user->{'ConfigAttributes'},"SMRadius-Config-Secret"));
 
 			# Check for POD Servers and send disconnect
@@ -753,6 +783,9 @@ sub process_request {
 						$podSock->recv($data, 65536);
 						if (!$data) {
 							$self->log(LOG_ERR,"[SMRADIUS] POST-ACCT: Receive data failed");
+							$logReason = "POD Failure";
+						} else {
+							$logReason = "User POD";
 						}
 
 						#my @stuff = unpack('C C n a16 a*', $data);
@@ -821,7 +854,7 @@ sub process_request {
 
 				# Check result
 				if (!defined($res)) {
-					$self->log(LOG_DEBUG,"[SMRADIUS] AUTH: Error with plugin '".$module->{'Name'}."'");
+					$self->log(LOG_ERR,"[SMRADIUS] AUTH: Error with plugin '".$module->{'Name'}."'");
 
 				# Check if we skipping this plugin
 				} elsif ($res == MOD_RES_SKIP) {
@@ -829,14 +862,16 @@ sub process_request {
 
 				# Check if we got a positive result back
 				} elsif ($res == MOD_RES_ACK) {
-					$self->log(LOG_NOTICE,"[SMRADIUS] AUTH: Authenticated by '".$module->{'Name'}."'");
+					$self->log(LOG_INFO,"[SMRADIUS] AUTH: Authenticated by '".$module->{'Name'}."'");
+					$logReason = "User Authenticated";
 					$mechanism = $module;
 					$authenticated = 1;
 					last;
 
 				# Or a negative result
 				} elsif ($res == MOD_RES_NACK) {
-					$self->log(LOG_NOTICE,"[SMRADIUS] AUTH: Failed authentication by '".$module->{'Name'}."'");
+					$self->log(LOG_INFO,"[SMRADIUS] AUTH: Failed authentication by '".$module->{'Name'}."'");
+					$logReason = "User NOT Authenticated";
 					$mechanism = $module;
 					last;
 
@@ -856,7 +891,7 @@ sub process_request {
 
 					# Check result
 					if (!defined($res)) {
-						$self->log(LOG_DEBUG,"[SMRADIUS] POST-AUTH: Error with plugin '".$module->{'Name'}."'");
+						$self->log(LOG_ERR,"[SMRADIUS] POST-AUTH: Error with plugin '".$module->{'Name'}."'");
 
 					# Check if we skipping this plugin
 					} elsif ($res == MOD_RES_SKIP) {
@@ -864,11 +899,13 @@ sub process_request {
 
 					# Check if we got a positive result back
 					} elsif ($res == MOD_RES_ACK) {
-						$self->log(LOG_NOTICE,"[SMRADIUS] POST-AUTH: Passed authenticated by '".$module->{'Name'}."'");
+						$self->log(LOG_INFO,"[SMRADIUS] POST-AUTH: Passed authenticated by '".$module->{'Name'}."'");
+						$logReason = "Post Authentication Success"; 
 
 					# Or a negative result
 					} elsif ($res == MOD_RES_NACK) {
-						$self->log(LOG_NOTICE,"[SMRADIUS] POST-AUTH: Failed authentication by '".$module->{'Name'}."'");
+						$self->log(LOG_INFO,"[SMRADIUS] POST-AUTH: Failed authentication by '".$module->{'Name'}."'");
+						$logReason = "Post Authentication Failure"; 
 						$authenticated = 0;
 						# Do we want to run the other modules ??
 						last;
@@ -906,6 +943,7 @@ sub process_request {
 		# Check if we authenticated or not
 		if ($authenticated && $authorized) {
 			$self->log(LOG_DEBUG,"[SMRADIUS] Authenticated and authorized");
+			$logReason = "User Authorized"; 
 
 			my $resp = Radius::Packet->new($self->{'radius'}->{'dictionary'});
 		 	$resp->set_code('Access-Accept');
@@ -951,6 +989,13 @@ sub process_request {
 					}
 				}
 			}
+	
+			# Add onto logline
+			$logLine .= ". REPLY => ";
+			foreach my $attr ($resp->attributes) {
+				$logLine .= " $attr: '".$resp->rawattr($attr)."',";
+			}
+			chop($logLine);
 
 			$udp_packet = auth_resp($resp->pack, getAttributeValue($user->{'ConfigAttributes'},"SMRadius-Config-Secret"));
 			$server->{'client'}->send($udp_packet);
@@ -961,6 +1006,7 @@ CHECK_RESULT:
 		# Check if found and authenticated
 		if (!$authenticated || !$authorized) {
 			$self->log(LOG_DEBUG,"[SMRADIUS] Authentication or authorization failure");
+			$logReason = "User NOT Authenticated or Authorized"; 
 
 			my $resp = Radius::Packet->new($self->{'radius'}->{'dictionary'});
 		 	$resp->set_code('Access-Reject');
@@ -974,6 +1020,11 @@ CHECK_RESULT:
 	} else {
 		$self->log(LOG_WARN,"[SMRADIUS] We cannot handle code: '".$pkt->code."'");
 	}
+
+	# END
+	my $timer1 = [gettimeofday];
+	my $timediff = tv_interval($timer0,$timer1);
+	$self->log(LOG_NOTICE,"[SMRADIUS] Result: $logReason (${timediff}s) => $logLine");
 
 	return;
 }
