@@ -289,8 +289,6 @@ function showAdminGroupAddEditWindow(AdminGroupWindow,id) {
 				{
 					fieldLabel: 'Name',
 					name: 'Name',
-					vtype: 'usernamePart',
-					maskRe: usernamePartRe,
 					allowBlank: false
 				}
 			]

@@ -759,13 +759,11 @@ function showWiSPUserAddEditWindow(WiSPUserWindow,id) {
 								{
 									fieldLabel: 'First Name',
 									name: 'Firstname',
-									vtype: 'usernamePart',
 									allowBlank: true
 								},
 								{
 									fieldLabel: 'Last Name',
 									name: 'Lastname',
-									vtype: 'usernamePart',
 									allowBlank: true
 								},
 								{
