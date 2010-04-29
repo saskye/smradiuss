@@ -334,7 +334,7 @@ function showAdminUserAddEditWindow(AdminUserWindow,id) {
 					name: 'Username',
 					vtype: 'usernameRadius',
 					maskRe: usernameRadiusPartRe,
-					allowBlank: false,
+					allowBlank: false
 				}
 			]
 		},
