@@ -63,7 +63,7 @@ function getAdminClientRealms($params) {
 		$item = array();
 
 		$item['ID'] = $row->id;
-		$item['Name'] = $row->name;
+		$item['Name'] = htmlspecialchars($row->name);
 
 		# Push this row onto array
 		array_push($resultArray,$item);
