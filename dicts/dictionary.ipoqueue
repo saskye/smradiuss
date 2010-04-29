@@ -1,0 +1,8 @@
+# IPOQueue vendor specific dictionary
+# Copyright (C) 2010, AllWorldIT
+#
+# IPOQueue Attributes                                                
+
+VENDOR          ipoque          30012
+ATTRIBUTE       ipoque-class    			1       string       ipoque
+
