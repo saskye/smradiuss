@@ -603,6 +603,18 @@ function showWiSPUserAddEditWindow(WiSPUserWindow,id) {
 		store: attributeStore
 	});
 
+	// Editor combobox ID
+	var editorComboBoxID = Ext.id();
+
+	// Render display value
+	editorComboBoxRenderer = function(editorComboBoxID) {
+		var combo = Ext.getCmp(editorComboBoxID);
+		return function(value){
+			var record = combo.findRecord(combo.valueField, value);
+			return record ? record.get(combo.displayField) : value;
+		}
+	}
+
 	// Build the group editor grid
 	var groupEditor = new Ext.grid.EditorGridPanel({
 		plain: true,
@@ -679,6 +691,7 @@ function showWiSPUserAddEditWindow(WiSPUserWindow,id) {
 				dataIndex: 'Name',
 				width: 150,
 				editor: new Ext.form.ComboBox({
+					id: editorComboBoxID,
 					allowBlank: false,
 					store: new Ext.ux.JsonStore({
 						sortInfo: { field: "Name", direction: "ASC" },
@@ -696,7 +709,8 @@ function showWiSPUserAddEditWindow(WiSPUserWindow,id) {
 					forceSelection: true,
 					triggerAction: 'all',
 					editable: false
-				})
+				}),
+				renderer: editorComboBoxRenderer(editorComboBoxID)
 			}
 		]),
 		store: groupStore
