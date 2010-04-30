@@ -702,6 +702,18 @@ function showWiSPUserAddEditWindow(WiSPUserWindow,id) {
 		store: groupStore
 	});
 
+	var locationStore = new Ext.ux.JsonStore({
+		sortInfo: { field: "Name", direction: "ASC" },
+		baseParams: {
+			SOAPUsername: globalConfig.soap.username,
+			SOAPPassword: globalConfig.soap.password,
+			SOAPAuthType: globalConfig.soap.authtype,
+			SOAPModule: 'WiSPUsers',
+			SOAPFunction: 'getWiSPLocations',
+			SOAPParams: '__null,__search'
+		}
+	})
+
 	// Create window
 	var wispUserFormWindow = new Ext.ux.GenericFormWindow(
 		// Window config
@@ -784,17 +796,7 @@ function showWiSPUserAddEditWindow(WiSPUserWindow,id) {
 									allowBlank: true,
 									width: 140,
 
-									store: new Ext.ux.JsonStore({
-										sortInfo: { field: "Name", direction: "ASC" },
-										baseParams: {
-											SOAPUsername: globalConfig.soap.username,
-											SOAPPassword: globalConfig.soap.password,
-											SOAPAuthType: globalConfig.soap.authtype,
-											SOAPModule: 'WiSPUsers',
-											SOAPFunction: 'getWiSPLocations',
-											SOAPParams: '__null,__search'
-										}
-									}),
+									store: locationStore,
 									displayField: 'Name',
 									valueField: 'ID',
 									hiddenName: 'LocationID',
@@ -864,6 +866,7 @@ function showWiSPUserAddEditWindow(WiSPUserWindow,id) {
 				SOAPParams: 'ID'
 			}
 		});
+		locationStore.load();
 		attributeStore.load();
 		groupStore.load();
 	}
