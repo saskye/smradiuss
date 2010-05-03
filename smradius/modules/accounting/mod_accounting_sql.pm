@@ -97,6 +97,13 @@ sub init
 			NASIdentifier,
 			NASIPAddress,
 			AcctDelayTime,
+			AcctSessionTime,
+			AcctInputOctets,
+			AcctInputGigawords,
+			AcctInputPackets,
+			AcctOutputOctets,
+			AcctOutputGigawords,
+			AcctOutputPackets,
 			PeriodKey
 		)
 		VALUES
@@ -117,6 +124,13 @@ sub init
 			%{request.NAS-Identifier},
 			%{request.NAS-IP-Address},
 			%{request.Acct-Delay-Time},
+			%{request.SessionTime},
+			%{request.InputOctets},
+			%{request.InputGigawords},
+			%{request.InputPackets},
+			%{request.OutputOctets},
+			%{request.OutputGigawords},
+			%{request.OutputPackets},
 			%{query.PeriodKey}
 		)
 	';
@@ -156,25 +170,6 @@ sub init
 			AcctOutputGigawords = %{query.OutputGigawords},
 			AcctOutputPackets = %{query.OutputPackets},
 			AcctStatusType = %{request.Acct-Status-Type}
-		WHERE
-			Username = %{request.User-Name}
-			AND AcctSessionID = %{request.Acct-Session-Id}
-			AND NASIPAddress = %{request.NAS-IP-Address}
-			AND NASPortID = %{request.NAS-Port-Id=}
-			AND PeriodKey = %{query.PeriodKey}
-	';
-
-	$config->{'accounting_stop_query'} = '
-		UPDATE
-			@TP@accounting
-		SET
-			AcctSessionTime = %{query.SessionTime},
-			AcctInputOctets = %{query.InputOctets},
-			AcctInputGigawords = %{query.InputGigawords},
-			AcctInputPackets = %{query.InputPackets},
-			AcctOutputOctets = %{query.OutputOctets},
-			AcctOutputGigawords = %{query.OutputGigawords},
-			AcctOutputPackets = %{query.OutputPackets}
 		WHERE
 			Username = %{request.User-Name}
 			AND AcctSessionID = %{request.Acct-Session-Id}
@@ -261,15 +256,6 @@ sub init
 						@{$scfg->{'mod_accounting_sql'}->{'accounting_update_query'}});
 			} else {
 				$config->{'accounting_update_query'} = $scfg->{'mod_accounting_sql'}->{'accounting_update_query'};
-			}
-		}
-		if (defined($scfg->{'mod_accounting_sql'}->{'accounting_stop_query'}) &&
-				$scfg->{'mod_accounting_sql'}->{'accounting_stop_query'} ne "") {
-			if (ref($scfg->{'mod_accounting_sql'}->{'accounting_stop_query'}) eq "ARRAY") {
-				$config->{'accounting_stop_query'} = join(' ',
-						@{$scfg->{'mod_accounting_sql'}->{'accounting_stop_query'}});
-			} else {
-				$config->{'accounting_stop_query'} = $scfg->{'mod_accounting_sql'}->{'accounting_stop_query'};
 			}
 		}
 		if (defined($scfg->{'mod_accounting_sql'}->{'accounting_stop_status_query'}) &&
@@ -420,27 +406,11 @@ sub acct_log
 	$template->{'query'}->{'PeriodKey'} = $periodKey;
 
 	#
-	# S T A R T   P A C K E T
+	# U P D A T E   &   S T O P   P A C K E T
 	#
-
-	if ($packet->attr('Acct-Status-Type') eq "Start") {
-
-		# Replace template entries
-		my @dbDoParams = templateReplace($config->{'accounting_start_query'},$template);
-
-		# Insert into database
-		my $sth = DBDo(@dbDoParams);
-		if (!$sth) {
-			$server->log(LOG_ERR,"[MOD_ACCOUNTING_SQL] Failed to insert accounting START record: ".
-					awitpt::db::dblayer::Error());
-			return MOD_RES_NACK;
-		}
-
-	#
-	# U P D A T E   P A C K E T
-	#
-
-	} elsif ($packet->attr('Acct-Status-Type') eq "Alive") {
+	# If its a new period we're going to trigger START
+	my $newPeriod;
+	if ($packet->attr('Acct-Status-Type') eq "Stop" || $packet->attr('Acct-Status-Type') eq "Alive") {
 		# Replace template entries
 		my @dbDoParams = templateReplace($config->{'accounting_update_get_records_query'},$template);
 
@@ -465,7 +435,6 @@ sub acct_log
 		my $totalSessionTime = Math::BigInt->new($template->{'request'}->{'Acct-Session-Time'});
 
 		# Loop through previous records and subtract them from our session totals
-		my $startNewPeriod = 0;
 		while (my $sessionPart = $sth->fetchrow_hashref()) {
 			$sessionPart = hashifyLCtoMC(
 				$sessionPart,
@@ -486,7 +455,6 @@ sub acct_log
 			my $sessionSessionTime = Math::BigInt->new($sessionPart->{'SessionTime'});
 
 			# Check if this record is from an earlier period
-			$startNewPeriod = 0;
 			if (defined($sessionPart->{'PeriodKey'}) && $sessionPart->{'PeriodKey'} ne $periodKey) {
 
 				# Subtract from our total, we can hit NEG!!! ... we check for that below
@@ -497,7 +465,7 @@ sub acct_log
 				$totalSessionTime->bsub($sessionSessionTime);
 
 				# We need to continue this session in a new entry
-				$startNewPeriod = 1;
+				$newPeriod = 1;
 			}
 		}
 		DBFreeRes($sth);
@@ -534,161 +502,64 @@ sub acct_log
 
 		$template->{'query'}->{'SessionTime'} = $totalSessionTime->bstr();
 
-		# Check if we doing an update
-		if ($startNewPeriod == 0) {
-			# Replace template entries
-			@dbDoParams = templateReplace($config->{'accounting_update_query'},$template);
-
-			# Update database
-			my $sth = DBDo(@dbDoParams);
-			if (!$sth) {
-				$server->log(LOG_ERR,"[MOD_ACCOUNTING_SQL] Failed to update accounting ALIVE record: ".
-						awitpt::db::dblayer::Error());
-				return MOD_RES_NACK;
-			}
-
-			# Check if we updated duplicates, if we did, fix them
-			if ($sth ne "0E0" && $sth > 1) {
-				fixDuplicates($server, $template);
-			}
-
-		# Else do a start record to continue session
-		} else {
-			# Replace template entries
-			my @dbDoParams = templateReplace($config->{'accounting_start_query'},$template);
-
-			# Insert into database
-			my $sth = DBDo(@dbDoParams);
-			if (!$sth) {
-				$server->log(LOG_ERR,"[MOD_ACCOUNTING_SQL] Failed to insert accounting START record: ".
-						awitpt::db::dblayer::Error());
-				return MOD_RES_NACK;
-			}
-
-			# Check if we updated duplicates, if we did, fix them
-			if ($sth ne "0E0" && $sth > 1) {
-				fixDuplicates($server, $template);
-			}
-
-			$startNewPeriod = 0;
-		}
-
-	#
-	# S T O P   P A C K E T
-	#
-
-	} elsif ($packet->attr('Acct-Status-Type') eq "Stop") {
 
 		# Replace template entries
-		my @dbDoParams = templateReplace($config->{'accounting_update_get_records_query'},$template);
+		@dbDoParams = templateReplace($config->{'accounting_update_query'},$template);
 
-		# Fetch data
-		my $sth = DBSelect(@dbDoParams);
-		if (!$sth) {
-			$server->log(LOG_ERR,"[MOD_ACCOUNTING_SQL] Database query failed: ".awitpt::db::dblayer::Error());
-			return MOD_RES_NACK;
-		}
-
-		# Convert session total gigawords/octets into bytes
-		my $totalInputBytes = Math::BigInt->new();
-		$totalInputBytes->badd($template->{'request'}->{'Acct-Input-Gigawords'})->bmul(UINT_MAX);
-		$totalInputBytes->badd($template->{'request'}->{'Acct-Input-Octets'});
-		my $totalOutputBytes = Math::BigInt->new();
-		$totalOutputBytes->badd($template->{'request'}->{'Acct-Output-Gigawords'})->bmul(UINT_MAX);
-		$totalOutputBytes->badd($template->{'request'}->{'Acct-Output-Octets'});
-		# Packets, no conversion
-		my $totalInputPackets = Math::BigInt->new($template->{'request'}->{'Acct-Input-Packets'});
-		my $totalOutputPackets = Math::BigInt->new($template->{'request'}->{'Acct-Output-Packets'});
-		# We don't need bigint here, but why not ... lets keep everything standard
-		my $totalSessionTime = Math::BigInt->new($template->{'request'}->{'Acct-Session-Time'});
-
-		while (my $sessionPart = $sth->fetchrow_hashref()) {
-			$sessionPart = hashifyLCtoMC(
-				$sessionPart,
-				qw(InputOctets InputPackets OutputOctets OutputPackets InputGigawords OutputGigawords SessionTime PeriodKey)
-			);
-
-			# Convert this session usage to bytes
-			my $sessionInputBytes = Math::BigInt->new();
-			$sessionInputBytes->badd($sessionPart->{'InputGigawods'})->bmul(UINT_MAX);
-			$sessionInputBytes->badd($sessionPart->{'InputOctets'});
-			my $sessionOutputBytes = Math::BigInt->new();
-			$sessionOutputBytes->badd($sessionPart->{'OutputGigawods'})->bmul(UINT_MAX);
-			$sessionOutputBytes->badd($sessionPart->{'OutputOctets'});
-			# And packets
-			my $sessionInputPackets = Math::BigInt->new($sessionPart->{'InputPackets'});
-			my $sessionOutputPackets = Math::BigInt->new($sessionPart->{'OutputPackets'});
-			# Finally session time
-			my $sessionSessionTime = Math::BigInt->new($sessionPart->{'SessionTime'});
-
-			# Subtract this period/session usage from total
-			if (defined($sessionPart->{'PeriodKey'}) && $sessionPart->{'PeriodKey'} ne $periodKey) {
-
-				# Subtract from our total, we can hit NEG!!! ... we check for that below
-				$totalInputBytes->bsub($sessionInputBytes);
-				$totalOutputBytes->bsub($sessionOutputBytes);
-				$totalInputPackets->bsub($sessionInputPackets);
-				$totalOutputPackets->bsub($sessionOutputPackets);
-				$totalSessionTime->bsub($sessionSessionTime);
-			}
-		}
-		DBFreeRes($sth);
-
-		# Sanitize
-		if ($totalInputBytes->is_neg()) {	
-			$totalInputBytes->bzero();
-		}
-		if ($totalOutputBytes->is_neg()) {	
-			$totalOutputBytes->bzero();
-		}
-		if ($totalInputPackets->is_neg()) {	
-			$totalInputPackets->bzero();
-		}
-		if ($totalOutputPackets->is_neg()) {	
-			$totalOutputPackets->bzero();
-		}
-		if ($totalSessionTime->is_neg()) {	
-			$totalSessionTime->bzero();
-		}
-
-		# Re-calculate
-		my ($inputGigawordsStr,$inputOctetsStr) = $totalInputBytes->bdiv(UINT_MAX);
-		my ($outputGigawordsStr,$outputOctetsStr) = $totalOutputBytes->bdiv(UINT_MAX);
-
-		# Conversion to strings
-		$template->{'query'}->{'InputGigawords'} = $inputGigawordsStr->bstr();
-		$template->{'query'}->{'InputOctets'} = $inputOctetsStr->bstr();
-		$template->{'query'}->{'OutputGigawords'} = $outputGigawordsStr->bstr();
-		$template->{'query'}->{'OutputOctets'} = $outputOctetsStr->bstr();
-
-		$template->{'query'}->{'InputPackets'} = $totalInputPackets->bstr();
-		$template->{'query'}->{'OutputPackets'} = $totalOutputPackets->bstr();
-
-		$template->{'query'}->{'SessionTime'} = $totalSessionTime->bstr();
-
-		# Replace template entries
-		@dbDoParams = templateReplace($config->{'accounting_stop_query'},$template);
-
-		# Update database (totals)
+		# Update database
 		$sth = DBDo(@dbDoParams);
 		if (!$sth) {
-			$server->log(LOG_ERR,"[MOD_ACCOUNTING_SQL] Failed to update accounting STOP record: ".awitpt::db::dblayer::Error());
+			$server->log(LOG_ERR,"[MOD_ACCOUNTING_SQL] Failed to update accounting ALIVE record: ".
+					awitpt::db::dblayer::Error());
 			return MOD_RES_NACK;
 		}
 
+		# If we updated *something* ...
+		if ($sth ne "0E0") {
+			# Be very sneaky .... if we updated something, this is obviously NOT a new period
+			$newPeriod = 0;
+			# If we updated a few things ... possibly duplicates?
+ 			if ($sth > 1) {
+				fixDuplicates($server, $template);
+			}
+		}
+	}
+
+
+	#
+	# S T A R T   P A C K E T
+	#
+	# Possible aswell if we are missing a start packet for this session or for the period
+	#
+
+	if ($packet->attr('Acct-Status-Type') eq "Start" || $newPeriod) {
 		# Replace template entries
-		@dbDoParams = templateReplace($config->{'accounting_stop_status_query'},$template);
+		my @dbDoParams = templateReplace($config->{'accounting_start_query'},$template);
+
+		# Insert into database
+		my $sth = DBDo(@dbDoParams);
+		if (!$sth) {
+			$server->log(LOG_ERR,"[MOD_ACCOUNTING_SQL] Failed to insert accounting START record: ".
+					awitpt::db::dblayer::Error());
+			return MOD_RES_NACK;
+		}
+	}
+
+
+	#
+	# S T O P   P A C K E T   specifics
+	#
+
+	if ($packet->attr('Acct-Status-Type') eq "Stop") {
+
+		# Replace template entries
+		my @dbDoParams = templateReplace($config->{'accounting_stop_status_query'},$template);
 
 		# Update database (status)
-		$sth = DBDo(@dbDoParams);
+		my $sth = DBDo(@dbDoParams);
 		if (!$sth) {
 			$server->log(LOG_ERR,"[MOD_ACCOUNTING_SQL] Failed to update accounting STOP record: ".awitpt::db::dblayer::Error());
 			return MOD_RES_NACK;
-		}
-
-		# Check if we updated duplicates, if we did, fix them
-		if ($sth ne "0E0" && $sth > 1) {
-			fixDuplicates($server, $template);
 		}
 	}
 
