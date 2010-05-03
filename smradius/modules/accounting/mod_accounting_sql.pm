@@ -596,11 +596,12 @@ sub acct_log
 		my $totalOutputBytes = Math::BigInt->new();
 		$totalOutputBytes->badd($template->{'request'}->{'Acct-Output-Gigawords'})->bmul(UINT_MAX);
 		$totalOutputBytes->badd($template->{'request'}->{'Acct-Output-Octets'});
+		# Packets, no conversion
+		my $totalInputPackets = Math::BigInt->new($template->{'request'}->{'Acct-Input-Packets'});
+		my $totalOutputPackets = Math::BigInt->new($template->{'request'}->{'Acct-Output-Packets'});
+		# We don't need bigint here, but why not ... lets keep everything standard
+		my $totalSessionTime = Math::BigInt->new($template->{'request'}->{'Acct-Session-Time'});
 
-		# Loop through records and subtract from our totals if needed
-		$template->{'query'}->{'InputPackets'} = $template->{'request'}->{'Acct-Input-Packets'};
-		$template->{'query'}->{'OutputPackets'} = $template->{'request'}->{'Acct-Output-Packets'};
-		$template->{'query'}->{'SessionTime'} = $template->{'request'}->{'Acct-Session-Time'};
 		while (my $sessionPart = $sth->fetchrow_hashref()) {
 			$sessionPart = hashifyLCtoMC(
 				$sessionPart,
@@ -614,27 +615,41 @@ sub acct_log
 			my $sessionOutputBytes = Math::BigInt->new();
 			$sessionOutputBytes->badd($sessionPart->{'OutputGigawods'})->bmul(UINT_MAX);
 			$sessionOutputBytes->badd($sessionPart->{'OutputOctets'});
+			# And packets
+			my $sessionInputPackets = Math::BigInt->new($sessionPart->{'InputPackets'});
+			my $sessionOutputPackets = Math::BigInt->new($sessionPart->{'OutputPackets'});
+			# Finally session time
+			my $sessionSessionTime = Math::BigInt->new($sessionPart->{'SessionTime'});
 
 			# Subtract this period/session usage from total
 			if (defined($sessionPart->{'PeriodKey'}) && $sessionPart->{'PeriodKey'} ne $periodKey) {
 
-				# Subtract from our total
+				# Subtract from our total, we can hit NEG!!! ... we check for that below
 				$totalInputBytes->bsub($sessionInputBytes);
-				$totalOutputBytes->bsub($sessionInputBytes);
-
-				# Subtract other usage
-				if (defined($sessionPart->{'InputPackets'}) && $sessionPart->{'InputPackets'} > 0) {
-					$template->{'query'}->{'InputPackets'} -= $sessionPart->{'InputPackets'};
-				}
-				if (defined($sessionPart->{'OutputPackets'}) && $sessionPart->{'OutputPackets'} > 0) {
-					$template->{'query'}->{'OutputPackets'} -= $sessionPart->{'OutputPackets'};
-				}
-				if (defined($sessionPart->{'SessionTime'}) && $sessionPart->{'SessionTime'} > 0) {
-					$template->{'query'}->{'SessionTime'} -= $sessionPart->{'SessionTime'};
-				}
+				$totalOutputBytes->bsub($sessionOutputBytes);
+				$totalInputPackets->bsub($sessionInputPackets);
+				$totalOutputPackets->bsub($sessionOutputPackets);
+				$totalSessionTime->bsub($sessionSessionTime);
 			}
 		}
 		DBFreeRes($sth);
+
+		# Sanitize
+		if ($totalInputBytes->is_neg()) {	
+			$totalInputBytes->bzero();
+		}
+		if ($totalOutputBytes->is_neg()) {	
+			$totalOutputBytes->bzero();
+		}
+		if ($totalInputPackets->is_neg()) {	
+			$totalInputPackets->bzero();
+		}
+		if ($totalOutputPackets->is_neg()) {	
+			$totalOutputPackets->bzero();
+		}
+		if ($totalSessionTime->is_neg()) {	
+			$totalSessionTime->bzero();
+		}
 
 		# Re-calculate
 		my ($inputGigawordsStr,$inputOctetsStr) = $totalInputBytes->bdiv(UINT_MAX);
@@ -645,6 +660,11 @@ sub acct_log
 		$template->{'query'}->{'InputOctets'} = $inputOctetsStr->bstr();
 		$template->{'query'}->{'OutputGigawords'} = $outputGigawordsStr->bstr();
 		$template->{'query'}->{'OutputOctets'} = $outputOctetsStr->bstr();
+
+		$template->{'query'}->{'InputPackets'} = $totalInputPackets->bstr();
+		$template->{'query'}->{'OutputPackets'} = $totalOutputPackets->bstr();
+
+		$template->{'query'}->{'SessionTime'} = $totalSessionTime->bstr();
 
 		# Replace template entries
 		@dbDoParams = templateReplace($config->{'accounting_stop_query'},$template);
