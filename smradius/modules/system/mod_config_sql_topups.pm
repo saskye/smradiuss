@@ -103,7 +103,7 @@ sub init
 			@TP@users
 		WHERE
 			@TP@topups.UserID = @TP@users.ID
-			AND @TP@topups.ValidFrom >= ?
+			AND @TP@topups.ValidFrom = ?
 			AND @TP@topups.ValidTo >= ?
 			AND @TP@topups.Depleted = 0
 			AND @TP@users.Username = ?
@@ -187,7 +187,7 @@ sub getTopups
 	DBFreeRes($sth);
 
 	# Query database
-	$sth = DBSelect($config->{'get_topups_query'},$thisMonth,$now,$username);
+	$sth = DBSelect($config->{'get_topups_query'},$thisMonth->ymd,$now->ymd,$username);
 	if (!$sth) {
 		$server->log(LOG_ERR,"Failed to get topup information: ".awitpt::db::dblayer::Error());
 		return MOD_RES_NACK;

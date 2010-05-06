@@ -509,9 +509,13 @@ sub process_request {
 	$user->{'ReplyVAttributes'} = {};
 
 	# Private data
-	$user->{'_Internal'} = {
-		'Timestamp-Unix' => defined($pkt->rawattr('Event-Timestamp')) ? $pkt->rawattr('Event-Timestamp') : time()
-	};
+	# Where we going to get the timestamp to use from?, from the packet, if its there, or from ourselves
+	if (defined($pkt->rawattr('Event-Timestamp') && $self->{'smradius'}->{'use_packet_timestamp'})) {
+		$user->{'_Internal'}->{'Timestamp-Unix'} = $pkt->rawattr('Event-Timestamp');
+	} else {
+		$user->{'_Internal'}->{'Timestamp-Unix'} = time();
+	}
+
 	# VERY IMPORTANT!!!!!!
 	# Timestamp AND Timestamp-Unix are in the CONVERTED timezone (event_timezone)
 	my $eventTimestamp = DateTime->from_epoch(

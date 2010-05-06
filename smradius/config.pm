@@ -69,6 +69,20 @@ sub Init
 		$server->{'smradius'}{'event_timezone'} = "GMT";
 	}
 		
+	# Should we use the packet timestamp?
+	if (defined($config->{'server'}{'use_packet_timestamp'})) {
+		if ($config->{'server'}{'use_packet_timestamp'} =~ /^\s*(yes|true|1)\s*$/i) {
+			$server->{'smradius'}{'use_packet_timestamp'} = 1;
+		} elsif ($config->{'server'}{'use_packet_timestamp'} =~ /^\s*(no|false|0)\s*$/i) {
+			$server->{'smradius'}{'use_packet_timestamp'} = 0;
+		} else {
+			$server->log(LOG_NOTICE,"smradius/config.pm: Value for 'use_packet_timestamp' is invalid");
+		}
+	} else {
+		$server->{'smradius'}{'use_packet_timestamp'} = 0;
+	}
+		
+	$server->log(LOG_NOTICE,"smradius/config.pm: Using ". ( $server->{'smradius'}{'use_packet_timestamp'} ? 'packet' : 'server' ) ." timestamp");
 	$server->log(LOG_NOTICE,"smradius/config.pm: Using timezone '".$server->{'smradius'}{'event_timezone'}."'");
 }
 
