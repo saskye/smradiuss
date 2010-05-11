@@ -68,7 +68,7 @@ sub init
 	# Default configs...
 	$config->{'userdb_find_query'} = '
 		SELECT
-			ID
+			ID, Disabled
 		FROM
 			@TP@users
 		WHERE
@@ -171,6 +171,13 @@ sub find
 
 	# Grab record data
 	my $row = $sth->fetchrow_hashref();
+
+	# Dont use disabled user
+	my $res = isBoolean($row->{'disabled'});
+	if ($res) {
+		$server->log(LOG_DEBUG,"[MOD_USERDB_SQL] User '".$user->{'Username'}."' is disabled");
+		return MOD_RES_SKIP;
+	}
 
 	DBFreeRes($sth);
 

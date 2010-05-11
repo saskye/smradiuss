@@ -30,6 +30,7 @@ our (@ISA,@EXPORT);
 @EXPORT = qw(
 	niceUndef
 	templateReplace
+	isBoolean
 );
 
 
@@ -77,6 +78,38 @@ sub templateReplace
 	}
 
 	return ($string, @valueArray);
+}
+
+
+## @fn isBoolean($var)
+# Check if a variable is boolean
+#
+# @param var Variable to check
+#
+# @return 1, 0 or undef
+sub isBoolean
+{
+	my $var = shift;
+
+
+	# Check if we're defined
+	if (!defined($var)) {
+		return undef;
+	}
+
+	# Nuke whitespaces
+	$var =~ s/\s//g;
+
+	# Allow true, on, set, enabled, 1, false, off, unset, disabled, 0
+	if ($var =~ /^(?:true|on|set|enabled|1)$/i) {
+		return 1;
+	}
+	if ($var =~ /^(?:false|off|unset|disabled|0)$/i) {
+		return 0;
+	}
+
+	# Invalid or unknown
+	return undef;
 }
 
 
