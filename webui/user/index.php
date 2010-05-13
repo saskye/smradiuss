@@ -25,6 +25,12 @@ include("include/header.php");
 # NB: We will only end up here if we authenticated!
 
 
+# Displays error
+function webuiError($msg) {
+	echo isset($msg) ? $msg : "Unknown error";
+}
+
+
 # Display details
 function displayDetails() { 
 	global $db;
@@ -33,17 +39,22 @@ function displayDetails() {
 	# Get user's ID
 	$sql = "
 		SELECT
-			ID
+			ID, Username
 		FROM
 			${DB_TABLE_PREFIX}users
 		WHERE
 			Username = ".$db->quote($_SESSION['username'])."
 	";
 	$res = $db->query($sql);
+	if (!(is_object($res))) {
+		webuiError("Error fetching user information");
+	}
+
 	$row = $res->fetchObject();
 
 	# Set user ID
 	$userID = $row->id;
+	$username = $row->username;
 
 	# Get accounting data
 	$currentMonth = date("Y-m");
@@ -63,6 +74,9 @@ function displayDetails() {
 			PeriodKey = ".$db->quote($currentMonth)."
 	";
 	$res = $db->query($sql);
+	if (!(is_object($res))) {
+		webuiError("Error fetching user accounting");
+	}
 
 	# Set total traffic and uptime used
 	$totalTraffic = 0;
@@ -85,7 +99,34 @@ function displayDetails() {
 		$totalUptime += $row->acctsessiontime;
 	}
 
-	# Fetch user uptime and traffic cap
+	# Fetch user uptime and traffic cap (group attributes)
+	$sql = "
+		SELECT
+			${DB_TABLE_PREFIX}group_attributes.Name, ${DB_TABLE_PREFIX}group_attributes.Value
+		FROM
+			${DB_TABLE_PREFIX}group_attributes, ${DB_TABLE_PREFIX}users_to_groups
+		WHERE
+			${DB_TABLE_PREFIX}users_to_groups.GroupID = ${DB_TABLE_PREFIX}group_attributes.GroupID
+			AND ${DB_TABLE_PREFIX}users_to_groups.UserID = ".$db->quote($userID)."
+	";
+	$res = $db->query($sql);
+	if (!(is_object($res))) {
+		webuiError("Error fetching user attributes");
+	}
+
+	# Initial values
+	$trafficCap = "Prepaid";
+	$uptimeCap = "Prepaid";
+	while ($row = $res->fetchObject()) {
+		if ($row->name === "SMRadius-Capping-Traffic-Limit") {
+			$trafficCap = (int)$row->value;
+		}
+		if ($row->name === "SMRadius-Capping-Uptime-Limit") {
+			$uptimeCap = (int)$row->value;
+		}
+	}
+
+	# Fetch user uptime and traffic cap (user attributes)
 	$sql = "
 		SELECT
 			Name, Value
@@ -95,15 +136,16 @@ function displayDetails() {
 			UserID = ".$db->quote($userID)."
 	";
 	$res = $db->query($sql);
+	if (!(is_object($res))) {
+		webuiError("Error fetching user attributes");
+	}
 
-	# Set uptime and traffic cap
-	$trafficCap = "Prepaid";
-	$uptimeCap = "Prepaid";
+	# Override group_attributes with user attributes
 	while ($row = $res->fetchObject()) {
-		if ($row->name == "SMRadius-Capping-Traffic-Limit") {
+		if ($row->name === "SMRadius-Capping-Traffic-Limit") {
 			$trafficCap = (int)$row->value;
 		}
-		if ($row->name == "SMRadius-Capping-Uptime-Limit") {
+		if ($row->name === "SMRadius-Capping-Uptime-Limit") {
 			$uptimeCap = (int)$row->value;
 		}
 	}
@@ -111,10 +153,11 @@ function displayDetails() {
 	# Fetch user uptime and traffic summary
 	$sql = "
 		SELECT
-			${DB_TABLE_PREFIX}topups_summary.TopupID,
 			${DB_TABLE_PREFIX}topups_summary.Balance,
 			${DB_TABLE_PREFIX}topups.Type,
-			${DB_TABLE_PREFIX}topups.Value
+			${DB_TABLE_PREFIX}topups.Value,
+			${DB_TABLE_PREFIX}topups.ValidFrom,
+			${DB_TABLE_PREFIX}topups.ValidTo
 		FROM
 			${DB_TABLE_PREFIX}topups_summary,
 			${DB_TABLE_PREFIX}topups
@@ -127,489 +170,360 @@ function displayDetails() {
 			${DB_TABLE_PREFIX}topups.Timestamp
 	";
 	$res = $db->query($sql);
+	if (!(is_object($res))) {
+		webuiError("Error fetching topup summaries");
+	}
 
 	# Store summary topups
 	$topups = array();
+	$i = 0;
 	while ($row = $res->fetchObject()) {
-		$id = $row->topupid;
-		$topups[$id] = array();
-		$topups[$id]['Type'] = $row->type;
-		$topups[$id]['Limit'] = $row->balance;
-		$topups[$id]['OriginalLimit'] = $row->value;
+
+		$topups[$i] = array();
+
+		$topups[$i]['Type'] = $row->type;
+		$topups[$i]['CurrentLimit'] = $row->balance;
+		$topups[$i]['Limit'] = $row->value;
+		$topups[$i]['ValidFrom'] = $row->validfrom;
+		$topups[$i]['Expires'] = $row->validto;
+
+		$i++;
 	}
 
 	# Fetch user uptime and traffic topups
-	$thisMonthUnixTime = strtotime($currentMonth);
-	$now = time();
+	$thisMonthTimestamp = date("Y-m").'-01';
+	$now = date("Y-m-d");
 	$sql = "
 		SELECT
-			ID, Value, Type
+			Value, Type, ValidFrom, ValidTo
 		FROM
-			${DB_TABLE_PREFIX}topups
+			topups
 		WHERE
-			${DB_TABLE_PREFIX}topups.UserID = ".$db->quote($userID)."
-			AND ${DB_TABLE_PREFIX}topups.ValidFrom >= ".$db->quote($thisMonthUnixTime)."
-			AND ${DB_TABLE_PREFIX}topups.ValidTo > ".$db->quote($now)."
-			AND ${DB_TABLE_PREFIX}topups.Depleted = 0
+			UserID = ".$db->quote($userID)."
+			AND ValidFrom = ".$db->quote($thisMonthTimestamp)."
+			AND ValidTo >= ".$db->quote($now)."
+			AND Depleted = 0
 		ORDER BY
-			${DB_TABLE_PREFIX}topups.Timestamp
+			Timestamp
 	";
 	$res = $db->query($sql);
+	if (!(is_object($res))) {
+		webuiError("Error fetching topup");
+	}
 
 	# Store normal topups
 	while ($row = $res->fetchObject()) {
-		$id = $row->id;
+		$topups[$i] = array();
+		$topups[$i]['Type'] = $row->type;
+		$topups[$i]['Limit'] = $row->value;
+		$topups[$i]['ValidFrom'] = $row->validfrom;
+		$topups[$i]['Expires'] = $row->validto;
 
-		if (!isset($topups[$id])) {
-			$topups[$id] = array();
-			$topups[$id]['Type'] = $row->type;
-			$topups[$id]['Limit'] = $row->value;
-		}
+		$i++;
 	}
 
-	# Set excess traffic usage
-	$excessTraffic = 0;
-	if (is_numeric($trafficCap) && $trafficCap > 0) {
-		$excessTraffic += $totalTraffic - $trafficCap;
-	} elseif (is_string($trafficCap)) {
-		$excessTraffic += $totalTraffic;
-	}
+	# Calculate topup usage for prepaid and normal users
+	if (!($trafficCap === "Unlimited")) {
 
-	# Set excess uptime usage
-	$excessUptime = 0;
-	if (is_numeric($uptimeCap) && $uptimeCap > 0) {
-		$excessUptime += $totalUptime - $uptimeCap;
-	} elseif (is_string($uptimeCap)) {
-		$excessUptime += $totalUptime;
-	}
-
-	# Loop through traffic topups and check for current topup, total topups not being used
-	if (is_string($trafficCap) || $trafficCap != 0) {
-		$currentTrafficTopup = array();
-		$topupTrafficRemaining = 0;
-		$i = 0;
-		# User is using traffic from topups
-		if ($excessTraffic > 0) {
-			foreach ($topups as $topupItem) {
-				if ($topupItem['Type'] == 1) {
-					if ($excessTraffic <= 0) {
-						$topupTrafficRemaining += $topupItem['Limit'];
-						next($topupItem);
-					} elseif ($excessTraffic >= $topupItem['Limit']) {
-						$excessTraffic -= $topupItem['Limit'];
-					} else {
-						if (isset($topupItem['OriginalLimit'])) {
-							$currentTrafficTopup['Cap'] = $topupItem['OriginalLimit'];
-						} else {
-							$currentTrafficTopup['Cap'] = $topupItem['Limit'];
-						}
-						$currentTrafficTopup['Used'] = $excessTraffic;
-						$excessTraffic -= $topupItem['Limit'];
-					}
-				}
-			}
-		# User has not used traffic topups yet
+		# Excess usage
+		$excess = 0;
+		if ($trafficCap === "Prepaid") {
+			$excess = $totalTraffic;
 		} else {
-			foreach ($topups as $topupItem) {
-				if ($topupItem['Type'] == 1) {
-					if ($i == 0) {
-						if (isset($topupItem['OriginalLimit'])) {
-							$currentTrafficTopup['Cap'] = $topupItem['OriginalLimit'];
-						} else {
-							$currentTrafficTopup['Cap'] = $topupItem['Limit'];
-						}
-						$i = 1;
-							$currentTrafficTopup['Used'] = 0;
-					} else {
-						$topupTrafficRemaining += $topupItem['Limit'];
-					}
-				}
-			}
+			$excess = $totalTraffic > $trafficCap ? ($totalTraffic - $trafficCap) : 0;
 		}
-	}
 
-	# Loop through uptime topups and check for current topup, total topups not being used
-	if (is_string($uptimeCap) || $uptimeCap != 0) {
-		$currentUptimeTopup = array();
-		$topupUptimeRemaining = 0;
+		# Loop through all valid topups
+		$totalTrafficTopupsAvail = 0;
+		$trafficRows = array();
 		$i = 0;
-		# User is using uptime from topups
-		if ($excessUptime > 0) {
-			foreach ($topups as $topupItem) {
-				if ($topupItem['Type'] == 2) {
-					if ($excessUptime <= 0) {
-						$topupUptimeRemaining += $topupItem['Limit'];
-						next($topupItem);
-					} elseif ($excessUptime >= $topupItem['Limit']) {
-						$excessUptime -= $topupItem['Limit'];
-					} else {
-						if (isset($topupItem['OriginalLimit'])) {
-							$currentUptimeTopup['Cap'] = $topupItem['OriginalLimit'];
-						} else {
-							$currentUptimeTopup['Cap'] = $topupItem['Limit'];
-						}
-						$currentUptimeTopup['Used'] = $excessUptime;
-						$excessUptime -= $topupItem['Limit'];
-					}
-				}
-			}
-		# User has not used uptime topups yet
-		} else {
-			foreach ($topups as $topupItem) {
-				if ($topupItem['Type'] == 2) {
-					if ($i == 0) {
-						if (isset($topupItem['OriginalLimit'])) {
-							$currentUptimeTopup['Cap'] = $topupItem['OriginalLimit'];
-						} else {
-							$currentUptimeTopup['Cap'] = $topupItem['Limit'];
-						}
-						$i = 1;
-							$currentUptimeTopup['Used'] = 0;
-					} else {
-						$topupUptimeRemaining += $topupItem['Limit'];
-					}
+		foreach ($topups as $topup) {
+
+			# Traffic topups
+			if ($topup['Type'] == 1) {
+
+				# Topup not currently in use
+				if ($excess <= 0) {
+					$trafficRows[$i] = array();
+
+					$trafficRows[$i]['Cap'] = $topup['Limit'];
+					$trafficRows[$i]['Used'] = isset($topup['CurrentLimit']) ? ($topup['Limit'] - $topup['CurrentLimit']) : 0;
+					$trafficRows[$i]['ValidFrom'] = $topup['ValidFrom'];
+					$trafficRows[$i]['Expires'] = $topup['Expires'];
+
+					# Set total available topups
+					$totalTrafficTopupsAvail += $topup['Limit'];
+
+					$i++;
+
+				# Topup currently in use
+				} elseif ($excess < $topup['Limit']) {
+					$trafficRows[$i] = array();
+
+					$trafficRows[$i]['Cap'] = $topup['Limit'];
+					$trafficRows[$i]['Used'] = $excess;
+					$trafficRows[$i]['ValidFrom'] = $topup['ValidFrom'];
+					$trafficRows[$i]['Expires'] = $topup['Expires'];
+
+					# Set total available topups
+					$totalTrafficTopupsAvail += $topup['Limit'];
+
+					# Set current topup
+					$currentTrafficTopup = array();
+					$currentTrafficTopup['Used'] = $excess;
+					$currentTrafficTopup['Cap'] = $topup['Limit'];
+
+					# If we hit this topup then all the rest of them are available
+					$excess = 0;
+
+					$i++;
+
+				# Topup has been used up
+				} else {
+					$trafficRows[$i] = array();
+
+					$trafficRows[$i]['Cap'] = $topup['Limit'];
+					$trafficRows[$i]['Used'] = $topup['Limit'];
+					$trafficRows[$i]['ValidFrom'] = $topup['ValidFrom'];
+					$trafficRows[$i]['Expires'] = $topup['Expires'];
+
+					# Subtract this topup from excess usage
+					$excess -= $topup['Limit'];
+
+					$i ++;
 				}
 			}
 		}
 	}
 
-/*
-	# Fetch user phone and email info
-	$sql = "
-		SELECT
-				Phone, Email
-		FROM
-				${DB_TABLE_PREFIX}wisp_userdata
-		WHERE
-				UserID = '$userID'
-	";
+	# Calculate topup usage for prepaid and normal users
+	if (!($uptimeCap === "Unlimited")) {
 
-	$res = $db->query($sql);
+		# Excess usage
+		$excess = 0;
+		if ($uptimeCap === "Prepaid") {
+			$excess = $totalUptime;
+		} else {
+			$excess = $totalUptime > $uptimeCap ? ($totalUptime - $uptimeCap) : 0;
+		}
 
-	$userPhone = "Not set";
-	$userEmail = "Not set";
-	if ($res->rowCount() > 0) {
-		$row = $res->fetchObject();
-		$userPhone = $row->phone;
-		$userEmail = $row->email;
+		# Loop through all valid topups
+		$totalUptimeTopupsAvail = 0;
+		$uptimeRows = array();
+		$i = 0;
+		foreach ($topups as $topup) {
+
+			# Uptime topups
+			if ($topup['Type'] == 2) {
+
+				# Topup not currently in use
+				if ($excess <= 0) {
+					$uptimeRows[$i] = array();
+
+					$uptimeRows[$i]['Cap'] = $topup['Limit'];
+					$uptimeRows[$i]['Used'] = isset($topup['CurrentLimit']) ? ($topup['Limit'] - $topup['CurrentLimit']) : 0;
+					$uptimeRows[$i]['ValidFrom'] = $topup['ValidFrom'];
+					$uptimeRows[$i]['Expires'] = $topup['Expires'];
+
+					# Set total available topups
+					$totalUptimeTopupsAvail += $topup['Limit'];
+
+					$i++;
+
+				# Topup currently in use
+				} elseif ($excess < $topup['Limit']) {
+					$uptimeRows[$i] = array();
+
+					$uptimeRows[$i]['Cap'] = $topup['Limit'];
+					$uptimeRows[$i]['Used'] = $excess;
+					$uptimeRows[$i]['ValidFrom'] = $topup['ValidFrom'];
+					$uptimeRows[$i]['Expires'] = $topup['Expires'];
+
+					# Set total available topups
+					$totalUptimeTopupsAvail += $topup['Limit'];
+
+					# Set current topup
+					$currentUptimeTopup = array();
+					$currentUptimeTopup['Used'] = $excess;
+					$currentUptimeTopup['Cap'] = $topup['Limit'];
+
+					# If we hit this topup then all the rest of them are available
+					$excess = 0;
+
+					$i++;
+
+				# Topup has been used up
+				} else {
+					$uptimeRows[$i] = array();
+
+					$uptimeRows[$i]['Cap'] = $topup['Limit'];
+					$uptimeRows[$i]['Used'] = $topup['Limit'];
+					$uptimeRows[$i]['ValidFrom'] = $topup['ValidFrom'];
+					$uptimeRows[$i]['Expires'] = $topup['Expires'];
+
+					# Subtract this topup from excess usage
+					$excess -= $topup['Limit'];
+
+					$i++;
+				}
+			}
+		}
 	}
-*/
 
-	# These two items need fixing
-	$isDialup = 0;
-	$userService = "Not set";
-
+	# HTML
 ?>
 	<table class="blockcenter">
 		<tr>
-			<td colspan="4" class="section">Account Information</td>
+			<td width="500" colspan="4" class="section">Account Information</td>
 		</tr>
 		<tr>
-			<td colspan="2" class="title">Username</td>
-			<td colspan="2" class="title">Service</td>
+			<td align="center" class="title">Username</td>
+			<td align="center" class="title">Traffic Cap</td>
+			<td align="center" class="title">Uptime Cap</td>
 		</tr>
 		<tr>
-			<td colspan="2" class="value"><?php echo $_SESSION['username']; ?></td>
-			<td colspan="2" class="value"><?php echo $userService; ?></td>
-		</tr>
-<?php
-		# Only display cap for DSL users
-		if (!$isDialup) {
-?>
-			<tr>
-				<td colspan="4" class="section">Traffic Usage</td>
-			</tr>
-			<tr>
-				<td class="title">Cap</td>
-				<td class="title">Unused Topup</td>
-				<td class="title">Current Topup</td>
-				<td class="title">Used This Month</td>
-			</tr>
-			<tr>
-<?php
-				if (is_numeric($trafficCap) && $trafficCap > 0) {
-?>
-					<td class="value"><?php echo $trafficCap; ?> MB</td>
-<?php
-				} elseif (is_numeric($trafficCap) && $trafficCap == 0) {
-?>
-					<td class="value">Uncapped</td>
-<?php
-				} else {
-?>
-					<td class="value"><?php echo $trafficCap; ?></td>
-<?php
-				}
-				if (is_numeric($trafficCap) && $trafficCap == 0) {
-?>
-					<td class="value">N/A</td>
-<?php
-				} else {
-?>
-					<td class="value"><?php printf("%.2f",$topupTrafficRemaining); ?> MB</td>
-<?php
-				}
-				if (isset($currentTrafficTopup['Used']) && isset($currentTrafficTopup['Cap'])) {
-?>
-					<td class="value">
-						<?php 
-							printf("%.2f",$currentTrafficTopup['Used']);
-							print("/").$currentTrafficTopup['Cap'];
-						?> MB
-					</td>
-<?php
-				} else {
-?>
-					<td class="value">N/A</td>
-<?php
-				}
-?>
-				<td class="value"><?php printf("%.2f",$totalTraffic); ?> MB</td>
-			</tr>
-			<tr>
-				<td colspan="4" class="section">Uptime Usage</td>
-			</tr>
-			<tr>
-				<td class="title">Cap</td>
-				<td class="title">Unused Topup</td>
-				<td class="title">Current Topup</td>
-				<td class="title">Used This Month</td>
-			</tr>
-			<tr>
-<?php
-				if (is_numeric($uptimeCap) && $uptimeCap > 0) {
-?>
-					<td class="value"><?php echo $uptimeCap; ?> Min</td>
-<?php
-				} elseif (is_numeric($uptimeCap) && $uptimeCap == 0) {
-?>
-					<td class="value">Uncapped</td>
-<?php
-				} else {
-?>
-					<td class="value"><?php echo $uptimeCap; ?></td>
-<?php
-				}
-				if (is_numeric($uptimeCap) && $uptimeCap == 0) {
-?>
-					<td class="value">N/A</td>
-<?php
-				} else {
-?>
-					<td class="value"><?php printf("%.2f",$topupUptimeRemaining); ?> Min</td>
-<?php
-				}
-				if (isset($currentUptimeTopup['Used']) && isset($currentUptimeTopup['Cap'])) {
-?>
-					<td class="value">
-						<?php
-							printf("%.2f",$currentUptimeTopup['Used']);
-							print("/").$currentUptimeTopup['Cap'];
-						?> Min
-					</td>
-<?php
-				} else {
-?>
-					<td class="value">N/A</td>
-<?php
-				}
-?>
-				<td class="value"><?php printf("%.2f",$totalUptime); ?> Min</td>
-			</tr>
-<!--
-			<tr>
-				<td colspan="2" class="section">Notifications</td>
-			</tr>
-			<form method="post">
-			<tr>
-				<td class="title">Email Address</td>
-				<td class="value">
-					<input type="text" name="notifyMethodEmail" value="php echo $userEmail; "></input>
-				</td>
-			</tr>
-			<tr>
-				<td class="title">Cell Number</td>
-				<td class="value">
-					<input type="text" name="notifyMethodCell" value="php echo $userPhone; "></input>
-				</td>
-			</tr>
-			</form>
--->
-
-<?php
-		}
-?>
-		<tr>
-			<td></td>
-		</tr>
-		<tr>
-			<td></td>
-		</tr>
-		<tr>
-			<td colspan="4" align="center">
-				<a href="logs.php">Usage Logs</a>
+			<td align="center" class="value"><?php echo $username; ?></td>
+			<td align="center" class="value">
+				<?php
+					if (is_numeric($trafficCap) && $trafficCap == 0) {
+						echo "Unlimited";
+					} elseif (is_string($trafficCap) && $trafficCap === "Prepaid") {
+						echo $trafficCap;
+					} else {
+						echo $trafficCap." MB";
+					}
+				?>
+			</td>
+			<td align="center" class="value">
+				<?php
+					if (is_numeric($uptimeCap) && $uptimeCap == 0) {
+						echo "Unlimited";
+					} elseif (is_string($uptimeCap) && $uptimeCap === "Prepaid") {
+						echo $uptimeCap;
+					} else {
+						echo $uptimeCap." MB";
+					}
+				?>
 			</td>
 		</tr>
+		<tr>
+			<td>&nbsp;</td>
+		</tr>
+		<tr>
+			<td colspan="4" class="section">Traffic Usage</td>
+		</tr>
+		<tr>
+			<td align="center" class="title">Active Topup</td>
+			<td align="center" class="title">Total Topup</td>
+			<td align="center" class="title">Total Usage</td>
+		</tr>
+			<td align="center" class="value">
+				<?php
+					if (isset($currentTrafficTopup) && (!(is_numeric($trafficCap) && $trafficCap == 0))) {
+						echo sprintf("%.2f",$currentTrafficTopup['Used'])."/".sprintf($currentTrafficTopup['Cap'])." MB";
+					} else {
+						echo "None";
+					}
+				?>
+			</td>
+			<td align="center" class="value"><?php echo $totalTrafficTopupsAvail." MB"; ?></td>
+			<td align="center" class="value"><?php echo sprintf("%.2f",$totalTraffic)." MB"; ?></td>
+		<tr>
+		</tr>
+		<tr>
+			<td>&nbsp;</td>
+		</tr>
+		<tr>
+			<td colspan="4" class="section">Uptime Usage</td>
+		</tr>
+		<tr>
+			<td align="center" class="title">Active Topup</td>
+			<td align="center" class="title">Total Topup</td>
+			<td align="center" class="title">Total Usage</td>
+		</tr>
+		<tr>
+			<td align="center" class="value">
+				<?php
+					if (isset($currentUptimeTopup) && (!(is_numeric($uptimeCap) && $uptimeCap == 0))) {
+						echo sprintf("%.2f",$currentUptimeTopup['Used'])."/".sprintf($currentUptimeTopup['Cap'])." MB";
+					} else {
+						echo "None";
+					}
+				?>
+			</td>
+			<td align="center" class="value"><?php echo $totalUptimeTopupsAvail." MB"; ?></td>
+			<td align="center" class="value"><?php echo sprintf("%.2f",$totalUptime)." Min"; ?></td>
+		</tr>
 	</table>
+	<p>&nbsp;</p>
+<?php
+	# Dont display if we unlimited
+	if (!(is_numeric($trafficCap) && $trafficCap == "0")) {
+?>
+		<table class="blockcenter">
+			<tr>
+				<td width="500" colspan="3" class="section">Topup Overview: Traffic</td>
+			</tr>
+			<tr>
+				<td align="center" class="title">Used</td>
+				<td align="center" class="title">Valid From</td>
+				<td align="center" class="title">Valid To</td>
+			</tr>
+<?php
+			foreach ($trafficRows as $trafficRow) {
+?>
+				<tr>
+					<td align="center" class="value">
+<?php
+							echo sprintf("%.2f",$trafficRow['Used'])."/".sprintf($trafficRow['Cap'])." MB";
+?>
+					</td>
+					<td align="center" class="value"><?php echo $trafficRow['ValidFrom']; ?></td>
+					<td align="center" class="value"><?php echo $trafficRow['Expires']; ?></td>
+				</tr>
+<?php
+			}
+?>
+		</table>
+<?php
+	}
 
-	<br><br>
-
-	<font size="-1">
-		Note:
-		<li>Please contact your ISP if you have any problem using this interface.</li>
-	</font>
+	# Dont display if we unlimited
+	if (!(is_numeric($uptimeCap) && $uptimeCap == "0")) {
+?>
+		<p>&nbsp;</p>
+		<table class="blockcenter">
+			<tr>
+				<td width="500" colspan="3" class="section">Topup Overview: Uptime</td>
+			</tr>
+			<tr>
+				<td align="center" class="title">Used</td>
+				<td align="center" class="title">Valid From</td>
+				<td align="center" class="title">Valid To</td>
+			</tr>
+<?php
+			foreach ($uptimeRows as $uptimeRow) {
+?>
+				<tr>
+					<td align="center" class="value">
+<?php
+						echo sprintf("%.2f",$uptimeRow['Used'])."/".sprintf($uptimeRow['Cap'])." MB";
+?>
+					</td>
+					<td align="center" class="value"><?php echo $uptimeRow['ValidFrom']; ?></td>
+					<td align="center" class="value"><?php echo $uptimeRow['Expires']; ?></td>
+				</tr>
+<?php
+			}
+?>
+		</table>
+<?php
+	}
+?>
+	<p>&nbsp;</p>
+	<p align="center"><a href="logs.php">Usage Logs</a></p>
 <?php
 }
-
-/*
-# If this is a post and we're updating
-if (isset($_POST['notifyUpdate']) && $_POST['notifyUpdate'] == "update") {
-
-	$username = $_SESSION['username'];
-
-	# Get user's ID
-	$sql = "
-		SELECT
-				ID
-		FROM
-				${DB_TABLE_PREFIX}users
-		WHERE
-				Username = '$username'
-		";
-
-	$res = $db->query($sql);
-	$row = $res->fetchObject();
-	$userID = $row->id;
-
-	$sql = "
-			SELECT
-					Name, Value
-			FROM
-					${DB_TABLE_PREFIX}user_attributes
-			WHERE
-					UserID = '$userID'
-			";
-
-	$res = $db->query($sql);
-
-	$userPhone = "Unavailable";
-	$userEmail = "Unavailable";
-
-	while ($row = $res->fetchObject()) {
-		if ($row->name == "SMRadius-Notify-Phone") {
-			$userPhone = $row->value;
-		}
-		if ($row->name == "SMRadius-Notify-Email") {
-			$userEmail = $row->value;
-		}
-	}
-
-	# If we want to update email address
-	if (isset($_POST['notifyMethodEmail']) && !empty($_POST['notifyMethodEmail'])) {
-
-		$db->beginTransaction();
-
-		# Unavailble if no email address is set yet
-		if ($userEmail == "Unavailable") {
-
-			# Prepare to insert email address for the first time
-			$emailStatement = $db->prepare("INSERT INTO 
-														${DB_TABLE_PREFIX}user_attributes (UserID,Name,Operator,Value)
-											VALUES 
-														('$userID','SMRadius-Notify-Email','=*',?)
-											");
-
-			$emailResult = $emailStatement->execute(array($_POST['notifyMethodEmail'],));
-
-			# If successful, commit
-			if ($emailResult) {
-				$db->commit();
-				echo "<center>Email address updated</center>";
-			# Else, rollback changes and give error
-			} else {
-				$db->rollback();
-				echo "<center>Error updating email address, please contact your ISP.</center>";
-			}
-
-		} else {
-			# Prepare to update existing email address
-			$emailStatement = $db->prepare("UPDATE
-													${DB_TABLE_PREFIX}user_attributes
-											SET
-													Value = ? 
-											WHERE
-													Name = 'SMRadius-Notify-Email'
-											AND
-													UserID = '$userID'
-											");
-
-			$emailResult = $emailStatement->execute(array($_POST['notifyMethodEmail'],));
-
-			# If successful, commit
-			if ($emailResult) {
-				$db->commit();
-				echo "<center>Email address updated</center>";
-			# Else, rollback changes and give error
-			} else {
-				$db->rollback();
-				echo "<center>Error updating email address, please contact your ISP.</center>";
-			}
-		}
-	}
-
-	# If we want to update phone number
-	if (isset($_POST['notifyMethodCell']) && !empty($_POST['notifyMethodCell'])) {
-
-		$db->beginTransaction();
-
-		# Unavailable if there is none found for this user
-		if ($userPhone == "Unavailable") {
-			# Prepare to insert first number
-			$phoneStatement = $db->prepare("INSERT INTO 
-														${DB_TABLE_PREFIX}user_attributes (UserID,Name,Operator,Value)
-											VALUES 
-														('$userID','SMRadius-Notify-Phone','=*',?)
-											");
-
-			$phoneResult = $phoneStatement->execute(array($_POST['notifyMethodCell'],));
-
-			# If successful, commit
-			if ($phoneResult) {
-				$db->commit();
-				echo "<center>Mobile phone number updated</center>";
-			# Else, rollback changes and give error
-			} else {
-				$db->rollback();
-				echo "<center>Error updating mobile phone number, please contact your ISP.</center>";
-			}
-
-		} else {
-			# Prepare to update existing number 
-			$phoneStatement = $db->prepare("UPDATE
-													${DB_TABLE_PREFIX}user_attributes
-											SET
-													Value = ? 
-											WHERE
-													Name = 'SMRadius-Notify-Phone'
-											AND
-													UserID = '$userID'
-											");
-
-			$phoneResult = $phoneStatement->execute(array($_POST['notifyMethodPhone'],));
-
-			# If successful, commit
-			if ($emailResult) {
-				$db->commit();
-				echo "<center>Mobile phone number updated</center>";
-			# Else, rollback changes and give error
-			} else {
-				$db->rollback();
-				echo "<center>Error updating mobile phone number, please contact your ISP.</center>";
-			}
-		}
-	}
-}
-*/
 
 displayDetails();
 
