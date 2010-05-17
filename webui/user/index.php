@@ -479,7 +479,7 @@ function displayDetails() {
 ?>
 					</td>
 					<td align="center" class="value"><?php echo $trafficRow['ValidFrom']; ?></td>
-					<td align="center" class="value"><?php echo $trafficRow['Expires']; ?></td>
+					<td align="center" class="value"><?php $thisDate = strtotime($trafficRow['Expires']); echo date("Y-m-d",$thisDate);?></td>
 				</tr>
 <?php
 			}
@@ -511,7 +511,7 @@ function displayDetails() {
 ?>
 					</td>
 					<td align="center" class="value"><?php echo $uptimeRow['ValidFrom']; ?></td>
-					<td align="center" class="value"><?php echo $uptimeRow['Expires']; ?></td>
+					<td align="center" class="value"><?php $thisDate = strtotime($uptimeRow['Expires']); echo date("Y-m-d",$thisDate);?></td>
 				</tr>
 <?php
 			}
