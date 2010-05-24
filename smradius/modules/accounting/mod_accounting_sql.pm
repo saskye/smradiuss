@@ -193,11 +193,11 @@ sub init
 
 	$config->{'accounting_usage_query'} = '
 		SELECT
-			AcctInputOctets,
-			AcctOutputOctets,
-			AcctInputGigawords,
-			AcctOutputGigawords,
-			AcctSessionTime
+			SUM(AcctInputOctets) AS AcctInputOctets,
+			SUM(AcctOutputOctets) AS AcctOutputOctets,
+			SUM(AcctInputGigawords) AS AcctInputGigawords,
+			SUM(AcctOutputGigawords) AS AcctOutputGigawords,
+			SUM(AcctSessionTime) AS AcctSessionTime
 		FROM
 			@TP@accounting
 		WHERE

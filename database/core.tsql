@@ -244,6 +244,7 @@ CREATE TABLE @PREFIX@accounting (
 	PeriodKey		VARCHAR(255)
 ) @CREATE_TABLE_SUFFIX@;
 CREATE INDEX @PREFIX@accounting_idx1 ON @PREFIX@accounting (Username);
+CREATE INDEX @PREFIX@accounting_idx2 ON @PREFIX@accounting (PeriodKey);
 
 
 
