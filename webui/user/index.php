@@ -257,7 +257,7 @@ function displayDetails() {
 					$i++;
 
 				# Topup currently in use
-				} elseif ($excess < $topup['Limit']) {
+				} elseif (!isset($topup['CurrentLimit']) && $excess < $topup['Limit']) {
 					$trafficRows[$i] = array();
 
 					$trafficRows[$i]['Cap'] = $topup['Limit'];
@@ -278,6 +278,23 @@ function displayDetails() {
 
 					$i++;
 
+				} elseif (isset($topup['CurrentLimit']) && $excess < $topup['CurrentLimit']) {
+					$trafficRows[$i] = array();
+
+					$trafficRows[$i]['Cap'] = $topup['Limit'];
+					$trafficRows[$i]['Expires'] = $topup['Expires'];
+					$trafficRows[$i]['ValidFrom'] = $topup['ValidFrom'];
+
+					$trafficRows[$i]['Used'] = ($topup['Limit'] - $topup['CurrentLimit']) + $excess;
+
+					# Set total available topups
+					$totalTrafficTopupsAvail += $topup['Limit'];
+
+					# If we hit this topup then all the rest of them are available
+					$excess = 0;
+
+					$i++;
+
 				# Topup has been used up
 				} else {
 					$trafficRows[$i] = array();
@@ -290,7 +307,7 @@ function displayDetails() {
 					# Subtract this topup from excess usage
 					$excess -= $topup['Limit'];
 
-					$i ++;
+					$i++;
 				}
 			}
 		}
@@ -331,7 +348,7 @@ function displayDetails() {
 					$i++;
 
 				# Topup currently in use
-				} elseif ($excess < $topup['Limit']) {
+				} elseif (!isset($topup['CurrentLimit']) && $excess < $topup['Limit']) {
 					$uptimeRows[$i] = array();
 
 					$uptimeRows[$i]['Cap'] = $topup['Limit'];
@@ -346,6 +363,23 @@ function displayDetails() {
 					$currentUptimeTopup = array();
 					$currentUptimeTopup['Used'] = $excess;
 					$currentUptimeTopup['Cap'] = $topup['Limit'];
+
+					# If we hit this topup then all the rest of them are available
+					$excess = 0;
+
+					$i++;
+
+				} elseif (isset($topup['CurrentLimit']) && $excess < $topup['CurrentLimit']) {
+					$uptimeRows[$i] = array();
+
+					$uptimeRows[$i]['Cap'] = $topup['Limit'];
+					$uptimeRows[$i]['Expires'] = $topup['Expires'];
+					$uptimeRows[$i]['ValidFrom'] = $topup['ValidFrom'];
+
+					$uptimeRows[$i]['Used'] = ($topup['Limit'] - $topup['CurrentLimit']) + $excess;
+
+					# Set total available topups
+					$totalUptimeTopupsAvail += $topup['Limit'];
 
 					# If we hit this topup then all the rest of them are available
 					$excess = 0;
@@ -458,7 +492,7 @@ function displayDetails() {
 	<p>&nbsp;</p>
 <?php
 	# Dont display if we unlimited
-	if (!(is_numeric($trafficCap) && $trafficCap == "0")) {
+	if (!(is_numeric($trafficCap) && $trafficCap == 0)) {
 ?>
 		<table class="blockcenter">
 			<tr>
@@ -478,8 +512,8 @@ function displayDetails() {
 							echo sprintf("%.2f",$trafficRow['Used'])."/".sprintf($trafficRow['Cap'])." MB";
 ?>
 					</td>
-					<td align="center" class="value"><?php echo $trafficRow['ValidFrom']; ?></td>
-					<td align="center" class="value"><?php $thisDate = strtotime($trafficRow['Expires']); echo date("Y-m-d",$thisDate);?></td>
+					<td align="center" class="value"><?php $validFrom = strtotime($trafficRow['ValidFrom']); echo date("Y-m-d",$validFrom);?></td>
+					<td align="center" class="value"><?php $validTo = strtotime($trafficRow['Expires']); echo date("Y-m-d",$validTo);?></td>
 				</tr>
 <?php
 			}
@@ -489,7 +523,7 @@ function displayDetails() {
 	}
 
 	# Dont display if we unlimited
-	if (!(is_numeric($uptimeCap) && $uptimeCap == "0")) {
+	if (!(is_numeric($uptimeCap) && $uptimeCap == 0)) {
 ?>
 		<p>&nbsp;</p>
 		<table class="blockcenter">
@@ -510,8 +544,8 @@ function displayDetails() {
 						echo sprintf("%.2f",$uptimeRow['Used'])."/".sprintf($uptimeRow['Cap'])." MB";
 ?>
 					</td>
-					<td align="center" class="value"><?php echo $uptimeRow['ValidFrom']; ?></td>
-					<td align="center" class="value"><?php $thisDate = strtotime($uptimeRow['Expires']); echo date("Y-m-d",$thisDate);?></td>
+					<td align="center" class="value"><?php $validFrom = strtotime($uptimeRow['ValidFrom']); echo date("Y-m-d",$validFrom);?></td>
+					<td align="center" class="value"><?php $validTo = strtotime($uptimeRow['Expires']); echo date("Y-m-d",$validTo);?></td>
 				</tr>
 <?php
 			}
