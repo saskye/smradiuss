@@ -63,13 +63,13 @@ function displayDetails() {
 		SELECT
 			SUM(AcctSessionTime) / 60 AS AcctSessionTime,
 			SUM(AcctInputOctets) / 1024 / 1024 +
-			SUM(AcctInputGigawords) * 4096 AS AcctInputTraffic,
+			SUM(AcctInputGigawords) * 4096 +
 			SUM(AcctOutputOctets) / 1024 / 1024 +
-			SUM(AcctOutputGigawords) * 4096 AS AcctOutputTraffic
+			SUM(AcctOutputGigawords) * 4096 AS TotalTraffic
 		FROM
 			${DB_TABLE_PREFIX}accounting
 		WHERE
-			Username = ".$db->quote($_SESSION['username'])."
+			Username = ".$db->quote($username)."
 		AND
 			PeriodKey = ".$db->quote($currentMonth)."
 	";
@@ -85,15 +85,10 @@ function displayDetails() {
 	# Pull in row
 	$row = $res->fetchObject();
 
-	# Traffic in
-	if (isset($row->acctinputtraffic) && $row->acctinputtraffic > 0) {
-		$totalTraffic += $row->acctinputtraffic;
+	# Traffic
+	if (isset($row->totaltraffic) && $row->totaltraffic > 0) {
+		$totalTraffic += $row->totaltraffic;
 	}
-	# Traffic out
-	if (isset($row->acctoutputtraffic) && $row->acctoutputtraffic > 0) {
-		$totalTraffic += $row->acctoutputtraffic;
-	}
-
 	# Uptime
 	if (isset($row->acctsessiontime) && $row->acctsessiontime > 0) {
 		$totalUptime += $row->acctsessiontime;
@@ -167,7 +162,7 @@ function displayDetails() {
 			AND ${DB_TABLE_PREFIX}topups_summary.PeriodKey = ".$db->quote($currentMonth)."
 			AND ${DB_TABLE_PREFIX}topups_summary.Depleted = 0
 		ORDER BY
-			${DB_TABLE_PREFIX}topups.Timestamp
+			${DB_TABLE_PREFIX}topups.Timestamp ASC
 	";
 	$res = $db->query($sql);
 	if (!(is_object($res))) {
@@ -204,7 +199,7 @@ function displayDetails() {
 			AND ValidTo >= ".$db->quote($now)."
 			AND Depleted = 0
 		ORDER BY
-			Timestamp
+			Timestamp ASC
 	";
 	$res = $db->query($sql);
 	if (!(is_object($res))) {
@@ -223,7 +218,8 @@ function displayDetails() {
 	}
 
 	# Calculate topup usage for prepaid and normal users
-	if (!($trafficCap === "Unlimited")) {
+	$totalTrafficTopupsAvail = 0;
+	if (!(is_numeric($trafficCap) && $trafficCap == 0)) {
 
 		# Excess usage
 		$excess = 0;
@@ -234,13 +230,17 @@ function displayDetails() {
 		}
 
 		# Loop through all valid topups
-		$totalTrafficTopupsAvail = 0;
 		$trafficRows = array();
 		$i = 0;
 		foreach ($topups as $topup) {
 
 			# Traffic topups
 			if ($topup['Type'] == 1) {
+
+				# Note this usage from previous topups as well
+				if (isset($topup['CurrentLimit'])) {
+					$totalTraffic += ($topup['Limit'] - $topup['CurrentLimit']);
+				}
 
 				# Topup not currently in use
 				if ($excess <= 0) {
@@ -290,6 +290,11 @@ function displayDetails() {
 					# Set total available topups
 					$totalTrafficTopupsAvail += $topup['Limit'];
 
+					# Set current topup
+					$currentTrafficTopup = array();
+					$currentTrafficTopup['Used'] = ($topup['Limit'] - $topup['CurrentLimit']) + $excess;
+					$currentTrafficTopup['Cap'] = $topup['Limit'];
+
 					# If we hit this topup then all the rest of them are available
 					$excess = 0;
 
@@ -304,6 +309,9 @@ function displayDetails() {
 					$trafficRows[$i]['ValidFrom'] = $topup['ValidFrom'];
 					$trafficRows[$i]['Expires'] = $topup['Expires'];
 
+					# Set total available topups
+					$totalTrafficTopupsAvail += $topup['Limit'];
+
 					# Subtract this topup from excess usage
 					$excess -= $topup['Limit'];
 
@@ -314,7 +322,8 @@ function displayDetails() {
 	}
 
 	# Calculate topup usage for prepaid and normal users
-	if (!($uptimeCap === "Unlimited")) {
+	$totalUptimeTopupsAvail = 0;
+	if (!(is_numeric($uptimeCap) && $uptimeCap == 0)) {
 
 		# Excess usage
 		$excess = 0;
@@ -325,13 +334,17 @@ function displayDetails() {
 		}
 
 		# Loop through all valid topups
-		$totalUptimeTopupsAvail = 0;
 		$uptimeRows = array();
 		$i = 0;
 		foreach ($topups as $topup) {
 
 			# Uptime topups
 			if ($topup['Type'] == 2) {
+
+				# Note this usage from previous topups as well
+				if (isset($topup['CurrentLimit'])) {
+					$totalUptime += ($topup['Limit'] - $topup['CurrentLimit']);
+				}
 
 				# Topup not currently in use
 				if ($excess <= 0) {
@@ -381,6 +394,11 @@ function displayDetails() {
 					# Set total available topups
 					$totalUptimeTopupsAvail += $topup['Limit'];
 
+					# Set current topup
+					$currentUptimeTopup = array();
+					$currentUptimeTopup['Used'] = ($topup['Limit'] - $topup['CurrentLimit']) + $excess;
+					$currentUptimeTopup['Cap'] = $topup['Limit'];
+
 					# If we hit this topup then all the rest of them are available
 					$excess = 0;
 
@@ -394,6 +412,9 @@ function displayDetails() {
 					$uptimeRows[$i]['Used'] = $topup['Limit'];
 					$uptimeRows[$i]['ValidFrom'] = $topup['ValidFrom'];
 					$uptimeRows[$i]['Expires'] = $topup['Expires'];
+
+					# Set total available topups
+					$totalUptimeTopupsAvail += $topup['Limit'];
 
 					# Subtract this topup from excess usage
 					$excess -= $topup['Limit'];
