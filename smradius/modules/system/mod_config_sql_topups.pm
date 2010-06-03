@@ -597,7 +597,7 @@ sub cleanup
 				@TP@topups.Depleted = 0
 				AND @TP@topups.UserID = @TP@users.ID
 				AND @TP@users.Username = ?
-				AND @TP@topups.ValidFrom <= ?
+				AND @TP@topups.ValidFrom = ?
 				AND @TP@topups.ValidTo >= ?
 			ORDER BY
 				@TP@topups.Timestamp
