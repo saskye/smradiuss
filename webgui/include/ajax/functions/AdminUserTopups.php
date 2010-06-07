@@ -46,7 +46,15 @@ function updateAdminUserTopup($params) {
 # Delete user topup
 function removeAdminUserTopup($params) {
 
-	# Perform query
+	# Delete topup summary
+	$res = DBDo("DELETE FROM @TP@topups_summary WHERE TopupID = ?",array($params[0]));
+
+	# Return result
+	if ($res !== TRUE) {
+		return $res;
+	}
+
+	# Delete topup
 	$res = DBDo("DELETE FROM @TP@topups WHERE ID = ?",array($params[0]));
 
 	# Return result
