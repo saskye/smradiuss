@@ -410,13 +410,12 @@ sub cleanup
 			SELECT
 				@TP@group_attributes.Name, @TP@group_attributes.Operator, @TP@group_attributes.Value
 			FROM
-				@TP@group_attributes, @TP@users_to_groups, @TP@users
+				@TP@group_attributes, @TP@users_to_groups
 			WHERE
 				@TP@group_attributes.GroupID = @TP@users_to_groups.GroupID
-				AND @TP@users_to_groups.UserID = @TP@users.ID
-				AND @TP@users.Username = ?
+				AND @TP@users_to_groups.UserID = ?
 			',
-			$userName
+			$userID
 		);
 
 		if (!$sth) {
@@ -467,14 +466,13 @@ sub cleanup
 		# Get user traffic and uptime limits from user attributes
 		$sth = DBSelect('
 			SELECT
-				@TP@user_attributes.Name, @TP@user_attributes.Operator, @TP@user_attributes.Value
+				Name, Operator, Value
 			FROM
-				@TP@user_attributes, @TP@users
+				@TP@user_attributes
 			WHERE
-				@TP@user_attributes.UserID = @TP@users.ID
-				AND @TP@users.Username = ?
+				UserID = ?
 			',
-			$userName
+			$userID
 		);
 
 		if (!$sth) {
@@ -527,21 +525,20 @@ sub cleanup
 			SELECT
 				@TP@topups_summary.TopupID,
 				@TP@topups_summary.Balance,
-				@TP@topups.Value,
 				@TP@topups.ValidTo,
 				@TP@topups.Type
 			FROM
-				@TP@topups_summary, @TP@topups, @TP@users
+				@TP@topups_summary, @TP@topups
 			WHERE
 				@TP@topups_summary.Depleted = 0
+				AND @TP@topups.Depleted = 0
 				AND @TP@topups_summary.TopupID = @TP@topups.ID
-				AND @TP@users.ID = @TP@topups.UserID
-				AND @TP@users.Username = ?
+				AND @TP@topups.UserID = ?
 				AND @TP@topups_summary.PeriodKey = ?
 			ORDER BY
 				@TP@topups.Timestamp
 			',
-			$userName, $prevPeriodKey
+			$userID, $prevPeriodKey
 		);
 
 		if (!$sth) {
@@ -567,7 +564,6 @@ sub cleanup
 					push(@trafficSummary, { 
 							TopupID => $row->{'TopupID'},
 							Balance => $row->{'Balance'},
-							Value => $row->{'Value'},
 							ValidTo => $unix_validTo,
 							Type => $row->{'Type'}
 					});
@@ -575,7 +571,6 @@ sub cleanup
 					push(@uptimeSummary, { 
 							TopupID => $row->{'TopupID'},
 							Balance => $row->{'Balance'},
-							Value => $row->{'Value'},
 							ValidTo => $unix_validTo,
 							Type => $row->{'Type'}
 					});
@@ -590,19 +585,18 @@ sub cleanup
 		# Get topups from last month
 		$sth = DBSelect('
 			SELECT
-				@TP@topups.ID, @TP@topups.Value, @TP@topups.Type, @TP@topups.ValidTo
+				ID, Value, Type, ValidTo
 			FROM
-				@TP@topups, @TP@users
+				@TP@topups
 			WHERE
-				@TP@topups.Depleted = 0
-				AND @TP@topups.UserID = @TP@users.ID
-				AND @TP@users.Username = ?
-				AND @TP@topups.ValidFrom = ?
-				AND @TP@topups.ValidTo >= ?
+				Depleted = 0
+				AND UserID = ?
+				AND ValidFrom = ?
+				AND ValidTo >= ?
 			ORDER BY
-				@TP@topups.Timestamp
+				Timestamp
 			',
-			$userName,$lastMonth,$thisMonth
+			$userID,$lastMonth,$thisMonth
 		);
 
 		if (!$sth) {
@@ -644,30 +638,20 @@ sub cleanup
 
 		# List of summaries depleted
 		my @depletedSummary = ();
+		my @depletedTopups = ();
+
 		# Summaries to be edited/repeated
 		my @summaryTopups = ();
-		# List of depleted topups, looping through summaries may
-		# deplete a topup and topups table must be updated too
-		my @depletedTopups = ();
 
 		# Format this month period key
 		my $periodKey = $thisMonth->strftime("%Y-%m");
 
-		my $uptimeOverUsage = 0;
+		# Calculate excess usage if necessary
 		my $trafficOverUsage = 0;
-		if (defined($capRecord{'TrafficLimit'})) {
-			# Check traffic used against cap 
+		if (defined($capRecord{'TrafficLimit'}) && $capRecord{'TrafficLimit'} > 0) {
 			$trafficOverUsage = $usageTotals{'TotalDataUsage'} - $capRecord{'TrafficLimit'};
-		# If there is no limit, this may be a prepaid user
-		} else {
-			$capRecord{'TrafficLimit'} = 0;
-			foreach my $prevTopup (@trafficSummary) {
-				$capRecord{'TrafficLimit'} += $prevTopup->{'Balance'};
-			}
-			foreach my $topup (@trafficTopups) {
-				$capRecord{'TrafficLimit'} += $topup->{'Value'};
-			}
-			$trafficOverUsage = $usageTotals{'TotalDataUsage'} - $capRecord{'TrafficLimit'};
+		} elsif (!(defined($capRecord{'TrafficLimit'}))) {
+			$trafficOverUsage = $usageTotals{'TotalDataUsage'};
 		}
 
 		# User has started using topup bandwidth..
@@ -675,15 +659,14 @@ sub cleanup
 
 			# Loop with previous topups, setting them depleted or repeating as necessary
 			foreach my $summaryItem (@trafficSummary) {
+
 				# Summary has not been used, if valid add to list to be repeated
 				if ($trafficOverUsage <= 0 && $summaryItem->{'ValidTo'} >= $unix_nextMonth) {
 					push(@summaryTopups, {
 							ID => $summaryItem->{'TopupID'},
 							PeriodKey => $periodKey,
-							Balance => $summaryItem->{'Value'}
+							Balance => $summaryItem->{'Balance'}
 					});
-					# This topup has not been touched and will be carried over
-					next;
 				# Topup summary depleted
 				} elsif ($summaryItem->{'Balance'} <= $trafficOverUsage) {
 					push(@depletedSummary, $summaryItem->{'TopupID'});
@@ -691,7 +674,6 @@ sub cleanup
 
 					# Excess traffic remaining
 					$trafficOverUsage -= $summaryItem->{'Balance'};
-
 				# Topup summary still alive
 				} else {
 					my $trafficRemaining = $summaryItem->{'Balance'} - $trafficOverUsage;
@@ -702,13 +684,12 @@ sub cleanup
 								Balance => $trafficRemaining
 						});
 					}
-					# All excess traffic has been "paid" for
-					$trafficOverUsage = 0;
 				}
 			}
 
 			# Loop with topups, setting them depleted or adding summary as necessary
 			foreach my $topup (@trafficTopups) {
+
 				# Topup has not been used, if valid add to summary
 				if ($trafficOverUsage <= 0 && $topup->{'ValidTo'} >= $unix_nextMonth) {
 					push(@summaryTopups, {
@@ -716,17 +697,17 @@ sub cleanup
 							PeriodKey => $periodKey,
 							Balance => $topup->{'Value'}
 					});
-					# This topup has not been touched and will be carried over
-					next;
 				# Topup depleted
 				} elsif ($topup->{'Value'} <= $trafficOverUsage) {
 					push(@depletedTopups, $topup->{'ID'});
+
 					# Excess traffic remaining
 					$trafficOverUsage -= $topup->{'Value'};
 				# Topup still alive
 				} else {
 					# Check if this summary exists in the list
 					my $trafficRemaining = $topup->{'Value'} - $trafficOverUsage;
+
 					if ($topup->{'ValidTo'} >= $unix_nextMonth) {
 						push(@summaryTopups, {
 								ID => $topup->{'ID'},
@@ -734,8 +715,6 @@ sub cleanup
 								Balance => $trafficRemaining
 						});
 					}
-					# All excess traffic has been "paid" for
-					$trafficOverUsage = 0;
 				}
 			}
 
@@ -748,7 +727,7 @@ sub cleanup
 					push(@summaryTopups, {
 							ID => $summaryItem->{'TopupID'},
 							PeriodKey => $periodKey,
-							Balance => $summaryItem->{'Value'}
+							Balance => $summaryItem->{'Balance'}
 					});
 				}
 			}
@@ -766,19 +745,12 @@ sub cleanup
 		}
 
 
-		if (defined($capRecord{'UptimeLimit'})) {
-			# Check traffic used against cap
+		# Calculate excess usage if necessary
+		my $uptimeOverUsage = 0;
+		if (defined($capRecord{'UptimeLimit'}) && $capRecord{'UptimeLimit'} > 0) {
 			$uptimeOverUsage = $usageTotals{'TotalSessionTime'} - $capRecord{'UptimeLimit'};
-		# If there is no limit, this may be a prepaid user
-		} else {
-			$capRecord{'UptimeLimit'} = 0;
-			foreach my $prevTopup (@uptimeSummary) {
-				$capRecord{'UptimeLimit'} += $prevTopup->{'Balance'};
-			}
-			foreach my $topup (@uptimeTopups) {
-				$capRecord{'UptimeLimit'} += $topup->{'Value'};
-			}
-			$uptimeOverUsage = $usageTotals{'TotalSessionTime'} - $capRecord{'UptimeLimit'};
+		} elsif (!(defined($capRecord{'UptimeLimit'}))) {
+			$uptimeOverUsage = $usageTotals{'TotalSessionTime'};
 		}
 
 		# User has started using topup uptime..
@@ -791,10 +763,8 @@ sub cleanup
 					push(@summaryTopups, {
 							ID => $summaryItem->{'TopupID'},
 							PeriodKey => $periodKey,
-							Balance => $summaryItem->{'Value'}
+							Balance => $summaryItem->{'Balance'}
 					});
-					# This topup has not been touched and will be carried over
-					next;
 				# Topup summary depleted
 				} elsif ($summaryItem->{'Balance'} <= $uptimeOverUsage) {
 					push(@depletedSummary, $summaryItem->{'TopupID'});
@@ -802,7 +772,6 @@ sub cleanup
 
 					# Excess uptime remaining
 					$uptimeOverUsage -= $summaryItem->{'Balance'};
-
 				# Topup summary still alive
 				} else {
 					my $uptimeRemaining = $summaryItem->{'Balance'} - $uptimeOverUsage;
@@ -813,8 +782,6 @@ sub cleanup
 								Balance => $uptimeRemaining
 						});
 					}
-					# All excess uptime has been "paid" for
-					$uptimeOverUsage = 0;
 				}
 			}
 
@@ -827,8 +794,6 @@ sub cleanup
 							PeriodKey => $periodKey,
 							Balance => $topup->{'Value'}
 					});
-					# This topup has not been touched and will be carried over
-					next;
 				# Topup depleted
 				} elsif ($topup->{'Value'} <= $uptimeOverUsage) {
 					push(@depletedTopups, $topup->{'ID'});
@@ -844,8 +809,6 @@ sub cleanup
 								Balance => $uptimeRemaining
 						});
 					}
-					# All excess uptime has been "paid" for
-					$uptimeOverUsage = 0;
 				}
 			}
 
@@ -858,7 +821,7 @@ sub cleanup
 					push(@summaryTopups, {
 							ID => $summaryItem->{'TopupID'},
 							PeriodKey => $periodKey,
-							Balance => $summaryItem->{'Value'}
+							Balance => $summaryItem->{'Balance'}
 					});
 				}
 			}
