@@ -299,39 +299,27 @@ sub cleanup
 
 	# The datetime now
 	my $now = DateTime->now->set_time_zone($server->{'smradius'}->{'event_timezone'});
-	# Make datetime
+
+	# This month..
 	my $thisMonth = DateTime->new( year => $now->year, month => $now->month, day => 1 );
 
-	# Get begin date of last month
-	my ($prevYear,$prevMonth);
-	if ($now->month == 1) {
-		$prevYear = $now->year - 1;
-		$prevMonth = 12;
-	} else {
-		$prevYear = $now->year;
-		$prevMonth = $now->month - 1;
-	}
-	my $lastMonth = DateTime->new( year => $prevYear, month => $prevMonth, day => 1 );
+	# Last month..
+	my $lastMonth = $thisMonth->clone()->subtract( months => 1 );
 	my $prevPeriodKey = $lastMonth->strftime("%Y-%m");
 
-	# Get begin date of next month
-	my ($folYear,$folMonth);
-	if ($now->month == 12) {
-		$folYear = $now->year + 1;
-		$folMonth = 1;
-	} else {
-		$folYear = $now->year;
-		$folMonth = $now->month + 1;
-	}
-	my $nextMonth = DateTime->new( year => $folYear, month => $folMonth, day => 1 );
+	# Next month..
+	my $nextMonth = $thisMonth->clone()->add( months => 1 );
 	my $unix_nextMonth = $nextMonth->epoch();
+
+	# Get a timestamp for this user
+	my $depletedTimestamp = $now->strftime('%Y-%m-%d %H:%M:%S');
 
 	# Start of multiple queries
 	DBBegin();
 
 	# Loop through users
 	foreach my $userID (keys %users) {
-		my $userName = $users{$userID};
+		my $username = $users{$userID};
 
 		# TODO - in future we must be more dynamic, we may not be using SQL accunting
 
@@ -349,7 +337,7 @@ sub cleanup
 				PeriodKey = ?
 				AND Username = ?
 			',
-			$prevPeriodKey,$userName
+			$prevPeriodKey,$username
 		);
 
 		if (!$sth) {
@@ -438,11 +426,11 @@ sub cleanup
 						if (defined($row->{'Value'}) && $row->{'Value'} =~ /^[\d]+$/) {
 							$capRecord{'TrafficLimit'} = $row->{'Value'};
 						} else {
-							$server->log(LOG_ERR,"[MOD_CONFIG_SQL_TOPUPS] Cleanup => SMRadius-Capping-Traffic-Limit value invalid for user '".$userName."'");
+							$server->log(LOG_ERR,"[MOD_CONFIG_SQL_TOPUPS] Cleanup => SMRadius-Capping-Traffic-Limit value invalid for user '".$username."'");
 						}
 					} else {
 						$server->log(LOG_ERR,"[MOD_CONFIG_SQL_TOPUPS] Cleanup => Incorrect '".$row->{'Name'}."' operator '"
-								.$row->{'Operator'}."' used  for user '".$userName."'");
+								.$row->{'Operator'}."' used  for user '".$username."'");
 					}
 				}
 				if ($row->{'Name'} eq 'SMRadius-Capping-Uptime-Limit') {
@@ -450,11 +438,11 @@ sub cleanup
 						if (defined($row->{'Value'}) && $row->{'Value'} =~ /^[\d]+$/) {
 							$capRecord{'UptimeLimit'} = $row->{'Value'};
 						} else {
-							$server->log(LOG_ERR,"[MOD_CONFIG_SQL_TOPUPS] Cleanup => SMRadius-Capping-Uptime-Limit value invalid for user '".$userName."'");
+							$server->log(LOG_ERR,"[MOD_CONFIG_SQL_TOPUPS] Cleanup => SMRadius-Capping-Uptime-Limit value invalid for user '".$username."'");
 						}
 					} else {
 						$server->log(LOG_ERR,"[MOD_CONFIG_SQL_TOPUPS] Cleanup => Incorrect '".$row->{'Name'}."' operator '"
-								.$row->{'Operator'}."' used  for user '".$userName."'");
+								.$row->{'Operator'}."' used  for user '".$username."'");
 					}
 				}
 			}
@@ -494,11 +482,11 @@ sub cleanup
 						if (defined($row->{'Value'}) && $row->{'Value'} =~ /^[\d]+$/) {
 							$capRecord{'TrafficLimit'} = $row->{'Value'};
 						} else {
-							$server->log(LOG_ERR,"[MOD_CONFIG_SQL_TOPUPS] Cleanup => SMRadius-Capping-Traffic-Limit value invalid for user '".$userName."'");
+							$server->log(LOG_ERR,"[MOD_CONFIG_SQL_TOPUPS] Cleanup => SMRadius-Capping-Traffic-Limit value invalid for user '".$username."'");
 						}
 					} else {
 						$server->log(LOG_ERR,"[MOD_CONFIG_SQL_TOPUPS] Cleanup => Incorrect '".$row->{'Name'}."' operator '"
-								.$row->{'Operator'}."' used  for user '".$userName."'");
+								.$row->{'Operator'}."' used  for user '".$username."'");
 					}
 				}
 				if ($row->{'Name'} eq 'SMRadius-Capping-Uptime-Limit') {
@@ -506,11 +494,11 @@ sub cleanup
 						if (defined($row->{'Value'}) && $row->{'Value'} =~ /^[\d]+$/) {
 							$capRecord{'UptimeLimit'} = $row->{'Value'};
 						} else {
-							$server->log(LOG_ERR,"[MOD_CONFIG_SQL_TOPUPS] Cleanup => SMRadius-Capping-Uptime-Limit value invalid for user '".$userName."'");
+							$server->log(LOG_ERR,"[MOD_CONFIG_SQL_TOPUPS] Cleanup => SMRadius-Capping-Uptime-Limit value invalid for user '".$username."'");
 						}
 					} else {
 						$server->log(LOG_ERR,"[MOD_CONFIG_SQL_TOPUPS] Cleanup => Incorrect '".$row->{'Name'}."' operator '"
-								.$row->{'Operator'}."' used  for user '".$userName."'");
+								.$row->{'Operator'}."' used  for user '".$username."'");
 					}
 				}
 			}
@@ -909,11 +897,12 @@ sub cleanup
 				UPDATE
 					@TP@topups
 				SET
-					Depleted = 1
+					Depleted = 1,
+					SMAdminDepletedOn = ?
 				WHERE
 					ID = ?
 				',
-				$topupID
+				$depletedTimestamp,$topupID
 			);
 			if (!$sth) {
 				$server->log(LOG_ERR,"[MOD_CONFIG_SQL_TOPUPS] Cleanup => Failed to update topups: ".
@@ -929,11 +918,12 @@ sub cleanup
 				UPDATE
 					@TP@topups_summary
 				SET
-					Depleted = 1
+					Depleted = 1,
+					SMAdminDepletedOn = ?
 				WHERE
 					TopupID = ?
 				',
-				$topupID
+				$depletedTimestamp,$topupID
 			);
 			if (!$sth) {
 				$server->log(LOG_ERR,"[MOD_CONFIG_SQL_TOPUPS] Cleanup => Failed to update topups_summary: ".
