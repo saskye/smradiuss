@@ -1,3 +1,9 @@
+r574:
+	# Database
+
+	ALTER TABLE topups ADD COLUMN SMAdminDepletedOn DATETIME;
+	ALTER TABLE topups_summary ADD COLUMN SMAdminDepletedOn DATETIME;
+
 r538:
 	# Database
 
