@@ -237,11 +237,6 @@ function displayDetails() {
 			# Traffic topups
 			if ($topup['Type'] == 1) {
 
-				# Note this usage from previous topups as well
-				if (isset($topup['CurrentLimit'])) {
-					$totalTraffic += ($topup['Limit'] - $topup['CurrentLimit']);
-				}
-
 				# Topup not currently in use
 				if ($excess <= 0) {
 					$trafficRows[$i] = array();
@@ -252,7 +247,7 @@ function displayDetails() {
 					$trafficRows[$i]['Expires'] = $topup['Expires'];
 
 					# Set total available topups
-					$totalTrafficTopupsAvail += $topup['Limit'];
+					$totalTrafficTopupsAvail += isset($topup['CurrentLimit']) ? $topup['CurrentLimit'] : $topup['Limit'];
 
 					$i++;
 
@@ -288,7 +283,7 @@ function displayDetails() {
 					$trafficRows[$i]['Used'] = ($topup['Limit'] - $topup['CurrentLimit']) + $excess;
 
 					# Set total available topups
-					$totalTrafficTopupsAvail += $topup['Limit'];
+					$totalTrafficTopupsAvail += $topup['CurrentLimit'];
 
 					# Set current topup
 					$currentTrafficTopup = array();
@@ -309,11 +304,8 @@ function displayDetails() {
 					$trafficRows[$i]['ValidFrom'] = $topup['ValidFrom'];
 					$trafficRows[$i]['Expires'] = $topup['Expires'];
 
-					# Set total available topups
-					$totalTrafficTopupsAvail += $topup['Limit'];
-
 					# Subtract this topup from excess usage
-					$excess -= $topup['Limit'];
+					$excess -= isset($topup['CurrentLimit']) ? $topup['CurrentLimit'] : $topup['Limit'];
 
 					$i++;
 				}
@@ -341,11 +333,6 @@ function displayDetails() {
 			# Uptime topups
 			if ($topup['Type'] == 2) {
 
-				# Note this usage from previous topups as well
-				if (isset($topup['CurrentLimit'])) {
-					$totalUptime += ($topup['Limit'] - $topup['CurrentLimit']);
-				}
-
 				# Topup not currently in use
 				if ($excess <= 0) {
 					$uptimeRows[$i] = array();
@@ -356,7 +343,7 @@ function displayDetails() {
 					$uptimeRows[$i]['Expires'] = $topup['Expires'];
 
 					# Set total available topups
-					$totalUptimeTopupsAvail += $topup['Limit'];
+					$totalUptimeTopupsAvail += isset($topup['CurrentLimit']) ? $topup['CurrentLimit'] : $topup['Limit'];
 
 					$i++;
 
@@ -392,7 +379,7 @@ function displayDetails() {
 					$uptimeRows[$i]['Used'] = ($topup['Limit'] - $topup['CurrentLimit']) + $excess;
 
 					# Set total available topups
-					$totalUptimeTopupsAvail += $topup['Limit'];
+					$totalUptimeTopupsAvail += $topup['CurrentLimit'];
 
 					# Set current topup
 					$currentUptimeTopup = array();
@@ -413,11 +400,8 @@ function displayDetails() {
 					$uptimeRows[$i]['ValidFrom'] = $topup['ValidFrom'];
 					$uptimeRows[$i]['Expires'] = $topup['Expires'];
 
-					# Set total available topups
-					$totalUptimeTopupsAvail += $topup['Limit'];
-
 					# Subtract this topup from excess usage
-					$excess -= $topup['Limit'];
+					$excess -= isset($topup['CurrentLimit']) ? $topup['CurrentLimit'] : $topup['Limit'];
 
 					$i++;
 				}
