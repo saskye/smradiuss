@@ -267,7 +267,7 @@ function getAdminUserLogsSummary($params) {
 				$resultArray['AllTrafficTopups'][$t]['ValidTo'] = $topupItem['ValidTo'];
 				$t++;
 
-				$resultArray['trafficTopups'] += isset($topupItem['CurrentLimit']) ? $topupITem['CurrentLimit'] : $topupItem['Limit'];
+				$resultArray['trafficTopups'] += isset($topupItem['CurrentLimit']) ? $topupItem['CurrentLimit'] : $topupItem['Limit'];
 				$resultArray['TotalTrafficTopups'] += $topupItem['Limit'];
 
 				# Subtract this topup from excessTraffic usage
@@ -334,7 +334,7 @@ function getAdminUserLogsSummary($params) {
 				$resultArray['AllUptimeTopups'][$u]['ValidTo'] = $topupItem['ValidTo'];
 				$u++;
 
-				$resultArray['uptimeTopups'] += isset($topupItem['CurrentLimit']) ? $topupITem['CurrentLimit'] : $topupItem['Limit'];
+				$resultArray['uptimeTopups'] += isset($topupItem['CurrentLimit']) ? $topupItem['CurrentLimit'] : $topupItem['Limit'];
 				$resultArray['TotalUptimeTopups'] += $topupItem['Limit'];
 
 				# Subtract this topup from excessUptime usage
