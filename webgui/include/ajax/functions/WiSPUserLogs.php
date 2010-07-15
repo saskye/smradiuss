@@ -200,6 +200,8 @@ function getWiSPUserLogsSummary($params) {
 	# Loop through topups and add to return array
 	$resultArray['trafficTopups'] = 0;
 	$resultArray['uptimeTopups'] = 0;
+	$resultArray['TotalTrafficTopups'] = 0;
+	$resultArray['TotalUptimeTopups'] = 0;
 	# Traffic and uptime topups
 	$resultArray['AllTrafficTopups'] = array();
 	$resultArray['AllUptimeTopups'] = array();
@@ -219,6 +221,7 @@ function getWiSPUserLogsSummary($params) {
 
 				# Set total available topups
 				$resultArray['trafficTopups'] += isset($topupItem['CurrentLimit']) ? $topupItem['CurrentLimit'] : $topupItem['Limit'];
+				$resultArray['TotalTrafficTopups'] += $topupItem['Limit'];
 
 			# Topup currently in use
 			} elseif (!isset($topupItem['CurrentLimit']) && $excessTraffic < $topupItem['Limit']) {
@@ -233,6 +236,7 @@ function getWiSPUserLogsSummary($params) {
 
 				# Set total available topups
 				$resultArray['trafficTopups'] += $topupItem['Limit'];
+				$resultArray['TotalTrafficTopups'] += $topupItem['Limit'];
 
 				# If we hit this topup then all the rest of them are available
 				$excessTraffic = 0;
@@ -248,6 +252,7 @@ function getWiSPUserLogsSummary($params) {
 
 				# Set total available topups
 				$resultArray['trafficTopups'] += $topupItem['CurrentLimit'];
+				$resultArray['TotalTrafficTopups'] += $topupItem['Limit'];
 
 				# If we hit this topup then all the rest of them are available
 				$excessTraffic = 0;
@@ -263,6 +268,7 @@ function getWiSPUserLogsSummary($params) {
 				$t++;
 
 				$resultArray['trafficTopups'] += isset($topupItem['CurrentLimit']) ? $topupITem['CurrentLimit'] : $topupItem['Limit'];
+				$resultArray['TotalTrafficTopups'] += $topupItem['Limit'];
 
 				# Subtract this topup from excessTraffic usage
 				$excessTraffic -= isset($topupItem['CurrentLimit']) ? $topupItem['CurrentLimit'] : $topupItem['Limit'];
@@ -282,6 +288,7 @@ function getWiSPUserLogsSummary($params) {
 
 				# Set total available topups
 				$resultArray['uptimeTopups'] += isset($topupItem['CurrentLimit']) ? $topupItem['CurrentLimit'] : $topupItem['Limit'];
+				$resultArray['TotalUptimeTopups'] += $topupItem['Limit'];
 
 			# Topup currently in use
 			} elseif (!isset($topupItem['CurrentLimit']) && $excessUptime < $topupItem['Limit']) {
@@ -296,6 +303,7 @@ function getWiSPUserLogsSummary($params) {
 
 				# Set total available topups
 				$resultArray['uptimeTopups'] += $topupItem['Limit'];
+				$resultArray['TotalUptimeTopups'] += $topupItem['Limit'];
 
 				# If we hit this topup then all the rest of them are available
 				$excessUptime = 0;
@@ -311,6 +319,7 @@ function getWiSPUserLogsSummary($params) {
 
 				# Set total available topups
 				$resultArray['uptimeTopups'] += $topupItem['CurrentLimit'];
+				$resultArray['TotalUptimeTopups'] += $topupItem['Limit'];
 
 				# If we hit this topup then all the rest of them are available
 				$excessUptime = 0;
@@ -326,6 +335,7 @@ function getWiSPUserLogsSummary($params) {
 				$u++;
 
 				$resultArray['uptimeTopups'] += isset($topupItem['CurrentLimit']) ? $topupITem['CurrentLimit'] : $topupItem['Limit'];
+				$resultArray['TotalUptimeTopups'] += $topupItem['Limit'];
 
 				# Subtract this topup from excessUptime usage
 				$excessUptime -= isset($topupItem['CurrentLimit']) ? $topupItem['CurrentLimit'] : $topupItem['Limit'];

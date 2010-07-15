@@ -292,14 +292,16 @@ function showAdminUserLogsWindow(id) {
 					// Topups
 					var trafficTopups = response.data.trafficTopups;
 					var uptimeTopups = response.data.uptimeTopups;
+					var totalTrafficTopups = response.data.TotalTrafficTopups;
+					var totalUptimeTopups = response.data.TotalUptimeTopups;
 
 					// Format string before printing
 					var trafficString = '';
 					// Prepaid traffic
 					if (trafficCap == -1) {
 						trafficCap = 'Prepaid';
-						trafficString += sprintf('Traffic:\nCap: %s \nTopup: %d MB\nUsage: %d/%d MB\n',
-								trafficCap,trafficTopups,trafficUsage,trafficTopups);
+						trafficString += sprintf('Traffic:\nCap: %s \nTopup Available: %d MB\nTotal Topups: %d MB\nUsage: %d/%d MB\n',
+								trafficCap,trafficTopups,totalTrafficTopups,trafficUsage,trafficTopups);
 						trafficString += '---\n';
 					// Uncapped traffic
 					} else if (trafficCap == 0) {
@@ -309,9 +311,9 @@ function showAdminUserLogsWindow(id) {
 					// Capped traffic
 					} else {
 						var combinedTrafficCap = trafficCap + trafficTopups;
-						trafficString += sprintf('Traffic:\nCap: %d MB\nTopup: %d MB\n'+
+						trafficString += sprintf('Traffic:\nCap: %d MB\nTopup Available: %d MB\nTotal Topups: %d MB\n'+
 								'Usage: %d/%d MB\n',
-								trafficCap,trafficTopups,trafficUsage,combinedTrafficCap);
+								trafficCap,trafficTopups,totalTrafficTopups,trafficUsage,combinedTrafficCap);
 						trafficString += '---\n';
 					}
 
@@ -320,9 +322,9 @@ function showAdminUserLogsWindow(id) {
 					// Prepaid uptime
 					if (uptimeCap == -1) {
 						uptimeCap = 'Prepaid';
-						uptimeString += sprintf('Uptime:\nCap: %s \nTopup: %d Min\n'+
+						uptimeString += sprintf('Uptime:\nCap: %s \nTopup Available: %d Min\nTotal Topups: %d Min\n'+
 								'Usage: %d/%d Min\n',
-								uptimeCap,uptimeTopups,uptimeUsage,uptimeTopups);
+								uptimeCap,uptimeTopups,totalUptimeTopups,uptimeUsage,uptimeTopups);
 						uptimeString += '---\n';
 					// Uncapped uptime
 					} else if (uptimeCap == 0) {
@@ -332,9 +334,9 @@ function showAdminUserLogsWindow(id) {
 					// Capped uptime
 					} else {
 						var combinedUptimeCap = uptimeCap + uptimeTopups;
-						uptimeString += sprintf('Uptime:\nCap: %d Min\nTopup: %d Min\n'+
+						uptimeString += sprintf('Uptime:\nCap: %d Min\nTopup Available: %d Min\nTotal Topups: %d Min\n'+
 								'Usage: %d/%d Min\n',
-								uptimeCap,uptimeTopups,uptimeUsage,combinedUptimeCap);
+								uptimeCap,uptimeTopups,totalUptimeTopups,uptimeUsage,combinedUptimeCap);
 						uptimeString += '---\n';
 					}
 

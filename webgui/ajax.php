@@ -370,6 +370,8 @@
 			$res->addField('uptimeUsage','int');
 			$res->addField('trafficTopups','int');
 			$res->addField('uptimeTopups','int');
+			$res->addField('TotalTrafficTopups','int');
+			$res->addField('TotalUptimeTopups','int');
 			$res->addField('AllTrafficTopups','array');
 			$res->addField('AllUptimeTopups','array');
 			$res->parseHash($rawData);
@@ -391,6 +393,8 @@
 			$res->addField('uptimeUsage','int');
 			$res->addField('trafficTopups','int');
 			$res->addField('uptimeTopups','int');
+			$res->addField('TotalTrafficTopups','int');
+			$res->addField('TotalUptimeTopups','int');
 			$res->addField('AllTrafficTopups','array');
 			$res->addField('AllUptimeTopups','array');
 			$res->parseHash($rawData);
