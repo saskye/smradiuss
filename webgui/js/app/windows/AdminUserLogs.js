@@ -112,20 +112,21 @@ function showAdminUserLogsWindow(id) {
 					id: summaryFormID,
 					region: 'center',
 					split: true,
-					border: true,
+					border: false,
 					autoScroll: true,
 					defaultType: 'textarea',
-					height: 180,
+					height: 300,
 					width: 400,
-					labelWidth: 80,
+					labelWidth: 0,
 					items: [
 						{
 							id: summaryTotalID,
 							name: 'summaryTotal',
 							readOnly: true,
-							height: 139,
-							width: 275,
+							height: 300,
+							width: 400,
 							fieldLabel: 'Summary',
+							hideLabel: true,
 							fieldClass: 'font-family: monospace; font-size: 10px;',
 							value: ''
 						}
@@ -297,19 +298,21 @@ function showAdminUserLogsWindow(id) {
 					// Prepaid traffic
 					if (trafficCap == -1) {
 						trafficCap = 'Prepaid';
-						trafficString += sprintf('               Traffic\nCap: %s MB Topup: %d MB\n'+
-								'Usage: %d/%d MB\n=====================================\n',
+						trafficString += sprintf('Traffic:\nCap: %s \nTopup: %d MB\nUsage: %d/%d MB\n',
 								trafficCap,trafficTopups,trafficUsage,trafficTopups);
+						trafficString += '---\n';
 					// Uncapped traffic
 					} else if (trafficCap == 0) {
-						trafficString += sprintf('               Traffic\nCap: Uncapped Used: %d MB\n=====================================\n',
+						trafficString += sprintf('Traffic:\nCap: Uncapped\nUsage: %d MB\n',
 								trafficUsage);
+						trafficString += '---\n';
 					// Capped traffic
 					} else {
 						var combinedTrafficCap = trafficCap + trafficTopups;
-						trafficString += sprintf('               Traffic\nCap: %d MB Topup: %d MB\n'+
-								'Usage: %d/%d MB\n=====================================\n',
+						trafficString += sprintf('Traffic:\nCap: %d MB\nTopup: %d MB\n'+
+								'Usage: %d/%d MB\n',
 								trafficCap,trafficTopups,trafficUsage,combinedTrafficCap);
+						trafficString += '---\n';
 					}
 
 					// Format string before printing
@@ -317,25 +320,55 @@ function showAdminUserLogsWindow(id) {
 					// Prepaid uptime
 					if (uptimeCap == -1) {
 						uptimeCap = 'Prepaid';
-						uptimeString += sprintf('               Uptime\nCap: %s Min Topup: %d Min\n'+
-								'Usage: %d/%d Min',
+						uptimeString += sprintf('Uptime:\nCap: %s \nTopup: %d Min\n'+
+								'Usage: %d/%d Min\n',
 								uptimeCap,uptimeTopups,uptimeUsage,uptimeTopups);
+						uptimeString += '---\n';
 					// Uncapped uptime
 					} else if (uptimeCap == 0) {
-						uptimeString += sprintf('               Uptime\nCap: Uncapped Used: %d Min',
+						uptimeString += sprintf('Uptime:\nCap: Uncapped\nUsage: %d Min\n',
 								uptimeUsage);
+						uptimeString += '---\n';
 					// Capped uptime
 					} else {
 						var combinedUptimeCap = uptimeCap + uptimeTopups;
-						uptimeString += sprintf('               Uptime\nCap: %d Min Topup: %d Min\n'+
-								'Usage: %d/%d Min',
+						uptimeString += sprintf('Uptime:\nCap: %d Min\nTopup: %d Min\n'+
+								'Usage: %d/%d Min\n',
 								uptimeCap,uptimeTopups,uptimeUsage,combinedUptimeCap);
+						uptimeString += '---\n';
+					}
+
+					// Topup breakdown
+					var tTopups = response.data.AllTrafficTopups;
+					var uTopups = response.data.AllUptimeTopups;
+
+					// Format topups string
+					var topupString = '';
+					if (tTopups.length > 0) {
+						topupString += 'Valid Traffic Topups:';
+					}
+					for (var i = 0; i < tTopups.length; i++) {
+						var id = tTopups[i].ID;
+						var used = tTopups[i].Used;
+						var cap = tTopups[i].Cap;
+						var validTo = tTopups[i].ValidTo;
+						topupString += sprintf('\nID: %s\nUsage: %d/%d MB\nValid Until: %s\n--',id,used,cap,validTo);
+					}
+					if (uTopups.length > 0) {
+						topupString += 'Valid Uptime Topups:';
+					}
+					for (var i = 0; i < uTopups.length; i++) {
+						var id = uTopups[i].ID;
+						var used = uTopups[i].Used;
+						var cap = uTopups[i].Cap;
+						var validTo = uTopups[i].ValidTo;
+						topupString += sprintf('\nID: %s\nUsage: %d/%d MB\nValid Until: %s\n--',id,used,cap,validTo);
 					}
 
 					// Get summary field
 					var form = Ext.getCmp(summaryFormID);
 					var summaryField = Ext.getCmp(summaryTotalID);
-					summaryField.setValue(trafficString+uptimeString);
+					summaryField.setValue(trafficString+uptimeString+topupString);
 				},
 				failure: function (result) {
 					Ext.MessageBox.alert('Failed', 'Couldn\'t fetch data: '+result.date);

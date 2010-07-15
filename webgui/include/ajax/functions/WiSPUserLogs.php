@@ -82,8 +82,10 @@ function getWiSPUserLogsSummary($params) {
 	$res = DBSelect("
 		SELECT
 			@TP@topups_summary.Balance,
+			@TP@topups.ID,
 			@TP@topups.Type,
-			@TP@topups.Value
+			@TP@topups.Value,
+			@TP@topups.ValidTo
 		FROM
 			@TP@topups_summary,
 			@TP@topups
@@ -107,6 +109,8 @@ function getWiSPUserLogsSummary($params) {
 	$i = 0;
 	while ($row = $res->fetchObject()) {
 		$topups[$i] = array();
+		$topups[$i]['ID'] = $row->id;
+		$topups[$i]['ValidTo'] = $row->validto;
 		$topups[$i]['Type'] = $row->type;
 		$topups[$i]['CurrentLimit'] = $row->balance;
 		$topups[$i]['Limit'] = $row->value;
@@ -118,7 +122,7 @@ function getWiSPUserLogsSummary($params) {
 	$periodKeyEnd->modify("+1 month");
 	$res = DBSelect("
 		SELECT
-			Value, Type
+			ID, Value, Type, ValidTo
 		FROM
 			@TP@topups
 		WHERE
@@ -139,6 +143,8 @@ function getWiSPUserLogsSummary($params) {
 	# Store normal topups
 	while ($row = $res->fetchObject()) {
 		$topups[$i] = array();
+		$topups[$i]['ID'] = $row->id;
+		$topups[$i]['ValidTo'] = $row->validto;
 		$topups[$i]['Type'] = $row->type;
 		$topups[$i]['Limit'] = $row->value;
 		$i++;
@@ -194,34 +200,69 @@ function getWiSPUserLogsSummary($params) {
 	# Loop through topups and add to return array
 	$resultArray['trafficTopups'] = 0;
 	$resultArray['uptimeTopups'] = 0;
+	# Traffic and uptime topups
+	$resultArray['AllTrafficTopups'] = array();
+	$resultArray['AllUptimeTopups'] = array();
+	$t = 0; $u = 0;
 	foreach ($topups as $topupItem) {
 		if ($topupItem['Type'] == 1) {
 			# Topup not currently in use
 			if ($excessTraffic <= 0) {
-				$resultArray['trafficUsage'] += isset($topupItem['CurrentLimit']) ? ($topupItem['Limit'] - $topupItem['CurrentLimit']) : 0;
+
+				# Add stats to topup array
+				$resultArray['AllTrafficTopups'][$t] = array();
+				$resultArray['AllTrafficTopups'][$t]['Used'] = isset($topupItem['CurrentLimit']) ? ($topupItem['Limit'] - $topupItem['CurrentLimit']) : 0;
+				$resultArray['AllTrafficTopups'][$t]['Cap'] = (int)$topupItem['Limit'];
+				$resultArray['AllTrafficTopups'][$t]['ID'] = $topupItem['ID'];
+				$resultArray['AllTrafficTopups'][$t]['ValidTo'] = $topupItem['ValidTo'];
+				$t++;
 
 				# Set total available topups
-				$resultArray['trafficTopups'] += $topupItem['Limit'];
+				$resultArray['trafficTopups'] += isset($topupItem['CurrentLimit']) ? $topupItem['CurrentLimit'] : $topupItem['Limit'];
 
 			# Topup currently in use
 			} elseif (!isset($topupItem['CurrentLimit']) && $excessTraffic < $topupItem['Limit']) {
+
+				# Add stats to topup array
+				$resultArray['AllTrafficTopups'][$t] = array();
+				$resultArray['AllTrafficTopups'][$t]['Used'] = $excessTraffic;
+				$resultArray['AllTrafficTopups'][$t]['Cap'] = (int)$topupItem['Limit'];
+				$resultArray['AllTrafficTopups'][$t]['ID'] = $topupItem['ID'];
+				$resultArray['AllTrafficTopups'][$t]['ValidTo'] = $topupItem['ValidTo'];
+				$t++;
+
 				# Set total available topups
 				$resultArray['trafficTopups'] += $topupItem['Limit'];
 
 				# If we hit this topup then all the rest of them are available
 				$excessTraffic = 0;
 			} elseif (isset($topupItem['CurrentLimit']) && $excessTraffic < $topupItem['CurrentLimit']) {
-				$resultArray['trafficUsage'] += ($topupItem['Limit'] - $topupItem['CurrentLimit']);
+
+				# Add stats to topup array
+				$resultArray['AllTrafficTopups'][$t] = array();
+				$resultArray['AllTrafficTopups'][$t]['Used'] = ($topupItem['Limit'] - $topupItem['CurrentLimit']) + $excessTraffic;
+				$resultArray['AllTrafficTopups'][$t]['Cap'] = (int)$topupItem['Limit'];
+				$resultArray['AllTrafficTopups'][$t]['ID'] = $topupItem['ID'];
+				$resultArray['AllTrafficTopups'][$t]['ValidTo'] = $topupItem['ValidTo'];
+				$t++;
 
 				# Set total available topups
-				$resultArray['trafficTopups'] += $topupItem['Limit'];
+				$resultArray['trafficTopups'] += $topupItem['CurrentLimit'];
 
 				# If we hit this topup then all the rest of them are available
 				$excessTraffic = 0;
 			# Topup has been used up
 			} else {
-				$resultArray['trafficUsage'] += isset($topupItem['CurrentLimit']) ? ($topupItem['Limit'] - $topupItem['CurrentLimit']) : 0;
-				$resultArray['trafficTopups'] += $topupItem['Limit'];
+
+				# Add stats to topup array
+				$resultArray['AllTrafficTopups'][$t] = array();
+				$resultArray['AllTrafficTopups'][$t]['Used'] = (int)$topupItem['Limit'];
+				$resultArray['AllTrafficTopups'][$t]['Cap'] = (int)$topupItem['Limit'];
+				$resultArray['AllTrafficTopups'][$t]['ID'] = $topupItem['ID'];
+				$resultArray['AllTrafficTopups'][$t]['ValidTo'] = $topupItem['ValidTo'];
+				$t++;
+
+				$resultArray['trafficTopups'] += isset($topupItem['CurrentLimit']) ? $topupITem['CurrentLimit'] : $topupItem['Limit'];
 
 				# Subtract this topup from excessTraffic usage
 				$excessTraffic -= isset($topupItem['CurrentLimit']) ? $topupItem['CurrentLimit'] : $topupItem['Limit'];
@@ -230,30 +271,61 @@ function getWiSPUserLogsSummary($params) {
 		if ($topupItem['Type'] == 2) {
 			# Topup not currently in use
 			if ($excessUptime <= 0) {
-				$resultArray['uptimeUsage'] += isset($topupItem['CurrentLimit']) ? ($topupItem['Limit'] - $topupItem['CurrentLimit']) : 0;
+
+				# Add stats to topup array
+				$resultArray['AllUptimeTopups'][$u] = array();
+				$resultArray['AllUptimeTopups'][$u]['Used'] = isset($topupItem['CurrentLimit']) ? ($topupItem['Limit'] - $topupItem['CurrentLimit']) : 0;
+				$resultArray['AllUptimeTopups'][$u]['Cap'] = (int)$topupItem['Limit'];
+				$resultArray['AllUptimeTopups'][$u]['ID'] = $topupItem['ID'];
+				$resultArray['AllUptimeTopups'][$u]['ValidTo'] = $topupItem['ValidTo'];
+				$u++;
 
 				# Set total available topups
-				$resultArray['uptimeTopups'] += $topupItem['Limit'];
+				$resultArray['uptimeTopups'] += isset($topupItem['CurrentLimit']) ? $topupItem['CurrentLimit'] : $topupItem['Limit'];
 
 			# Topup currently in use
 			} elseif (!isset($topupItem['CurrentLimit']) && $excessUptime < $topupItem['Limit']) {
+
+				# Add stats to topup array
+				$resultArray['AllUptimeTopups'][$u] = array();
+				$resultArray['AllUptimeTopups'][$u]['Used'] = $excessTraffic;
+				$resultArray['AllUptimeTopups'][$u]['Cap'] = (int)$topupItem['Limit'];
+				$resultArray['AllUptimeTopups'][$u]['ID'] = $topupItem['ID'];
+				$resultArray['AllUptimeTopups'][$u]['ValidTo'] = $topupItem['ValidTo'];
+				$u++;
+
 				# Set total available topups
 				$resultArray['uptimeTopups'] += $topupItem['Limit'];
 
 				# If we hit this topup then all the rest of them are available
 				$excessUptime = 0;
 			} elseif (isset($topupItem['CurrentLimit']) && $excessUptime < $topupItem['CurrentLimit']) {
-				$resultArray['uptimeUsage'] += ($topupItem['Limit'] - $topupItem['CurrentLimit']);
+
+				# Add stats to topup array
+				$resultArray['AllUptimeTopups'][$u] = array();
+				$resultArray['AllUptimeTopups'][$u]['Used'] = ($topupItem['Limit'] - $topupItem['CurrentLimit']) + $excessTraffic;
+				$resultArray['AllUptimeTopups'][$u]['Cap'] = (int)$topupItem['Limit'];
+				$resultArray['AllUptimeTopups'][$u]['ID'] = $topupItem['ID'];
+				$resultArray['AllUptimeTopups'][$u]['ValidTo'] = $topupItem['ValidTo'];
+				$u++;
 
 				# Set total available topups
-				$resultArray['uptimeTopups'] += $topupItem['Limit'];
+				$resultArray['uptimeTopups'] += $topupItem['CurrentLimit'];
 
 				# If we hit this topup then all the rest of them are available
 				$excessUptime = 0;
 			# Topup has been used up
 			} else {
-				$resultArray['uptimeUsage'] += isset($topupItem['CurrentLimit']) ? ($topupItem['Limit'] - $topupItem['CurrentLimit']) : 0;
-				$resultArray['uptimeTopups'] += $topupItem['Limit'];
+
+				# Add stats to topup array
+				$resultArray['AllUptimeTopups'][$u] = array();
+				$resultArray['AllUptimeTopups'][$u]['Used'] = (int)$topupItem['Limit'];
+				$resultArray['AllUptimeTopups'][$u]['Cap'] = (int)$topupItem['Limit'];
+				$resultArray['AllUptimeTopups'][$u]['ID'] = $topupItem['ID'];
+				$resultArray['AllUptimeTopups'][$u]['ValidTo'] = $topupItem['ValidTo'];
+				$u++;
+
+				$resultArray['uptimeTopups'] += isset($topupItem['CurrentLimit']) ? $topupITem['CurrentLimit'] : $topupItem['Limit'];
 
 				# Subtract this topup from excessUptime usage
 				$excessUptime -= isset($topupItem['CurrentLimit']) ? $topupItem['CurrentLimit'] : $topupItem['Limit'];
