@@ -300,7 +300,7 @@ function showWiSPUserLogsWindow(id) {
 					// Prepaid traffic
 					if (trafficCap == -1) {
 						trafficCap = 'Prepaid';
-						trafficString += sprintf('Traffic:\nCap: %s \nTopup Available: %d MB\nTotal Topups: %d MB\nUsage: %d/%d MB\n',
+						trafficString += sprintf('Traffic:\nCap: %s \nTopup balance for current month: %d MB\nTotal Topups: %d MB\nUsage: %d/%d MB\n',
 								trafficCap,trafficTopups,totalTrafficTopups,trafficUsage,trafficTopups);
 						trafficString += '---\n';
 					// Uncapped traffic
@@ -311,7 +311,7 @@ function showWiSPUserLogsWindow(id) {
 					// Capped traffic
 					} else {
 						var combinedTrafficCap = trafficCap + trafficTopups;
-						trafficString += sprintf('Traffic:\nCap: %d MB\nTopup Available: %d MB\nTotal Topups: %d MB\n'+
+						trafficString += sprintf('Traffic:\nCap: %d MB\nTopup balance for current month: %d MB\nTotal Topups: %d MB\n'+
 								'Usage: %d/%d MB\n',
 								trafficCap,trafficTopups,totalTrafficTopups,trafficUsage,combinedTrafficCap);
 						trafficString += '---\n';
@@ -322,7 +322,7 @@ function showWiSPUserLogsWindow(id) {
 					// Prepaid uptime
 					if (uptimeCap == -1) {
 						uptimeCap = 'Prepaid';
-						uptimeString += sprintf('Uptime:\nCap: %s \nTopup Available: %d Min\nTotal Topups: %d Min\n'+
+						uptimeString += sprintf('Uptime:\nCap: %s \nTopup balance for current month: %d Min\nTotal Topups: %d Min\n'+
 								'Usage: %d/%d Min\n',
 								uptimeCap,uptimeTopups,totalUptimeTopups,uptimeUsage,uptimeTopups);
 						uptimeString += '---\n';
@@ -334,7 +334,7 @@ function showWiSPUserLogsWindow(id) {
 					// Capped uptime
 					} else {
 						var combinedUptimeCap = uptimeCap + uptimeTopups;
-						uptimeString += sprintf('Uptime:\nCap: %d Min\nTopup Available: %d Min\nTotal Topups: %d Min\n'+
+						uptimeString += sprintf('Uptime:\nCap: %d Min\nTopup balance for current month: %d Min\nTotal Topups: %d Min\n'+
 								'Usage: %d/%d Min\n',
 								uptimeCap,uptimeTopups,totalUptimeTopups,uptimeUsage,combinedUptimeCap);
 						uptimeString += '---\n';
