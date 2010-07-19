@@ -510,7 +510,7 @@ sub process_request {
 
 	# Private data
 	# Where we going to get the timestamp to use from?, from the packet, if its there, or from ourselves
-	if (defined($pkt->rawattr('Event-Timestamp') && $self->{'smradius'}->{'use_packet_timestamp'})) {
+	if (defined($pkt->rawattr('Event-Timestamp')) && $self->{'smradius'}->{'use_packet_timestamp'}) {
 		$user->{'_Internal'}->{'Timestamp-Unix'} = $pkt->rawattr('Event-Timestamp');
 	} else {
 		$user->{'_Internal'}->{'Timestamp-Unix'} = time();
