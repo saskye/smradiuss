@@ -1,5 +1,5 @@
 # SQL config database support
-# Copyright (C) 2007-2009, AllWorldIT
+# Copyright (C) 2007-2010, AllWorldIT
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
