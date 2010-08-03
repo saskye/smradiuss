@@ -1,9 +1,16 @@
 <?php
 
 include_once("include/db.php");
+include_once("include/util.php");
 
 # Add user attribute
 function addAdminUserAttribute($params) {
+
+	# Check Disabled param
+	$disabled = isBoolean($params[0]['Disabled']);
+	if ($disabled < 0) {
+		return NULL;
+	}
 
 	# Perform query
 	$res = DBDo("
@@ -15,7 +22,7 @@ function addAdminUserAttribute($params) {
 						$params[0]['Name'],
 						$params[0]['Operator'],
 						$params[0]['Value'],
-						$params[0]['Disabled'])
+						$disabled)
 	);
 
 	# Return result
@@ -43,12 +50,18 @@ function removeAdminUserAttribute($params) {
 # Edit attribute
 function updateAdminUserAttribute($params) {
 
+	# Check Disabled param
+	$disabled = isBoolean($params[0]['Disabled']);
+	if ($disabled < 0) {
+		return NULL;
+	}
+
 	# Perform query
 	$res = DBDo("UPDATE @TP@user_attributes SET Name = ?, Operator = ?, Value = ?, Disabled = ? WHERE ID = ?",
 				array($params[0]['Name'],
 				$params[0]['Operator'],
 				$params[0]['Value'],
-				$params[0]['Disabled'],
+				$disabled,
 				$params[0]['ID'])
 	);
 

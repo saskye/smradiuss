@@ -103,6 +103,7 @@ function displayDetails() {
 		WHERE
 			${DB_TABLE_PREFIX}users_to_groups.GroupID = ${DB_TABLE_PREFIX}group_attributes.GroupID
 			AND ${DB_TABLE_PREFIX}users_to_groups.UserID = ".$db->quote($userID)."
+			AND ${DB_TABLE_PREFIX}group_attributes.Disabled = 0
 	";
 	$res = $db->query($sql);
 	if (!(is_object($res))) {
@@ -129,6 +130,7 @@ function displayDetails() {
 			${DB_TABLE_PREFIX}user_attributes
 		WHERE
 			UserID = ".$db->quote($userID)."
+			AND Disabled = 0
 	";
 	$res = $db->query($sql);
 	if (!(is_object($res))) {

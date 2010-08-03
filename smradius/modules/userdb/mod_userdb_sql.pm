@@ -83,6 +83,7 @@ sub init
 		WHERE
 			@TP@users_to_groups.UserID = %{userdb.id}
 			AND @TP@group_attributes.GroupID = @TP@users_to_groups.GroupID
+			AND @TP@group_attributes.Disabled = 0
 	';
 
 	$config->{'userdb_get_user_attributes_query'} = '
@@ -92,6 +93,7 @@ sub init
 			@TP@user_attributes
 		WHERE
 			UserID = %{userdb.ID}
+			AND Disabled = 0
 	';
 	
 

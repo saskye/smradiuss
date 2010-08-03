@@ -1,9 +1,16 @@
 <?php
 
 include_once("include/db.php");
+include_once("include/util.php");
 
 # Add group attribute
 function addAdminGroupAttribute($params) {
+
+	# Check Disabled param
+	$disabled = isBoolean($params[0]['Disabled']);
+	if ($disabled < 0) {
+		return NULL;
+	}
 
 	$res = DBDo("
 				INSERT INTO 
@@ -14,7 +21,7 @@ function addAdminGroupAttribute($params) {
 						$params[0]['Name'],
 						$params[0]['Operator'],
 						$params[0]['Value'],
-						$params[0]['Disabled'])
+						$disabled)
 	);
 
 	# Return result
@@ -41,11 +48,17 @@ function removeAdminGroupAttribute($params) {
 # Edit group attribute
 function updateAdminGroupAttribute($params) {
 
+	# Check Disabled param
+	$disabled = isBoolean($params[0]['Disabled']);
+	if ($disabled < 0) {
+		return NULL;
+	}
+
 	$res = DBDo("UPDATE @TP@group_attributes SET Name = ?, Operator = ?, Value = ?, Disabled = ? WHERE ID = ?",
 				array($params[0]['Name'],
 				$params[0]['Operator'],
 				$params[0]['Value'],
-				$params[0]['Disabled'],
+				$disabled,
 				$params[0]['ID'])
 	);
 
