@@ -1,0 +1,3012 @@
+------------------------------------------------------------------------
+r583 | randerson | 2010-08-03 09:11:54 +0000 (Tue, 03 Aug 2010) | 2 lines
+
+Enable the use of the disabled parameter for admin user and group attributes in the webgui. Allow smradiusd to select enabled attributes.
+
+------------------------------------------------------------------------
+r582 | randerson | 2010-07-20 12:17:16 +0000 (Tue, 20 Jul 2010) | 2 lines
+
+Updated copyright dates
+
+------------------------------------------------------------------------
+r581 | randerson | 2010-07-19 10:35:28 +0000 (Mon, 19 Jul 2010) | 2 lines
+
+Description text is easier to understand
+
+------------------------------------------------------------------------
+r580 | randerson | 2010-07-19 06:38:21 +0000 (Mon, 19 Jul 2010) | 2 lines
+
+Fixed check for use packet timestamp
+
+------------------------------------------------------------------------
+r579 | randerson | 2010-07-15 09:14:48 +0000 (Thu, 15 Jul 2010) | 2 lines
+
+Fixed spelling mistake
+
+------------------------------------------------------------------------
+r578 | randerson | 2010-07-15 08:57:53 +0000 (Thu, 15 Jul 2010) | 2 lines
+
+Added total topup available
+
+------------------------------------------------------------------------
+r577 | randerson | 2010-07-15 08:17:44 +0000 (Thu, 15 Jul 2010) | 2 lines
+
+Use same usage display calculations as admin interface
+
+------------------------------------------------------------------------
+r576 | randerson | 2010-07-15 07:48:33 +0000 (Thu, 15 Jul 2010) | 3 lines
+
+Show usage summary only related to current month
+List current topups and usages
+
+------------------------------------------------------------------------
+r575 | randerson | 2010-06-30 19:56:41 +0000 (Wed, 30 Jun 2010) | 2 lines
+
+Updated upgrading instructions for r574
+
+------------------------------------------------------------------------
+r574 | randerson | 2010-06-30 14:46:18 +0000 (Wed, 30 Jun 2010) | 4 lines
+
+Renamed $userName to $username
+Use built in DateTime methods
+Added SMAdminDepletedOn functionality and columns
+
+------------------------------------------------------------------------
+r573 | randerson | 2010-06-21 12:13:40 +0000 (Mon, 21 Jun 2010) | 4 lines
+
+Use userID instead of Username in queries
+Remove 'value' element if it's not needed
+Remove unnecessary next and setting excess usage to zero
+
+------------------------------------------------------------------------
+r572 | randerson | 2010-06-07 14:22:41 +0000 (Mon, 07 Jun 2010) | 2 lines
+
+Allow the topup_summary and topup to be deleted if there is a summary linked to the topup
+
+------------------------------------------------------------------------
+r571 | randerson | 2010-06-03 08:06:22 +0000 (Thu, 03 Jun 2010) | 2 lines
+
+We don't want to look for previous topups, this causes smadmin to to calculate usage when it doesn't need to
+
+------------------------------------------------------------------------
+r570 | randerson | 2010-05-31 11:53:26 +0000 (Mon, 31 May 2010) | 3 lines
+
+Simplified topup query
+Results for admin interface are now in line with user interface
+
+------------------------------------------------------------------------
+r569 | randerson | 2010-05-24 08:03:41 +0000 (Mon, 24 May 2010) | 3 lines
+
+Deferred usage calculations to the database
+Indexed PeriodKey column
+
+------------------------------------------------------------------------
+r568 | randerson | 2010-05-24 07:09:04 +0000 (Mon, 24 May 2010) | 2 lines
+
+Take into account usage from a summary topup when adding to total topup usage
+
+------------------------------------------------------------------------
+r567 | randerson | 2010-05-17 06:44:05 +0000 (Mon, 17 May 2010) | 2 lines
+
+Show date in the format: Y-m-d
+
+------------------------------------------------------------------------
+r566 | randerson | 2010-05-13 11:35:42 +0000 (Thu, 13 May 2010) | 3 lines
+
+List valid topups
+Cleaned up data and uptime calculation
+
+------------------------------------------------------------------------
+r565 | randerson | 2010-05-11 07:47:07 +0000 (Tue, 11 May 2010) | 3 lines
+
+Added isBoolean function
+Check if user is disabled
+
+------------------------------------------------------------------------
+r564 | randerson | 2010-05-06 11:54:44 +0000 (Thu, 06 May 2010) | 4 lines
+
+Added config option use_packet_timestamp to specify packet timestamp or server timestamp
+Pass datetime as text to DBSelect
+Selected topups ValidFrom must equal the first of the current month
+
+------------------------------------------------------------------------
+r563 | randerson | 2010-05-03 11:46:36 +0000 (Mon, 03 May 2010) | 2 lines
+
+Refactored acct_log function
+
+------------------------------------------------------------------------
+r562 | randerson | 2010-05-03 07:12:37 +0000 (Mon, 03 May 2010) | 2 lines
+
+Dont use negative values in subtraction
+
+------------------------------------------------------------------------
+r561 | nkukard | 2010-05-01 09:30:25 +0000 (Sat, 01 May 2010) | 2 lines
+
+* If we have somehow gotten duplicate sessions and we roll over to midnight, we must not rollunder to -4G and record 4G minus the difference in usage as the new session usage. Lets record 0 instead.
+
+------------------------------------------------------------------------
+r560 | randerson | 2010-04-30 12:48:34 +0000 (Fri, 30 Apr 2010) | 2 lines
+
+Resolve group ID to Name after editing
+
+------------------------------------------------------------------------
+r559 | randerson | 2010-04-30 11:22:50 +0000 (Fri, 30 Apr 2010) | 2 lines
+
+Resolve location ID to Name
+
+------------------------------------------------------------------------
+r558 | randerson | 2010-04-29 12:17:27 +0000 (Thu, 29 Apr 2010) | 2 lines
+
+Corrected spelling
+
+------------------------------------------------------------------------
+r557 | randerson | 2010-04-29 12:13:14 +0000 (Thu, 29 Apr 2010) | 2 lines
+
+Removed trailing comma
+
+------------------------------------------------------------------------
+r556 | randerson | 2010-04-29 08:00:10 +0000 (Thu, 29 Apr 2010) | 2 lines
+
+Added dictionary.ipoqueue
+
+------------------------------------------------------------------------
+r555 | randerson | 2010-04-29 07:08:52 +0000 (Thu, 29 Apr 2010) | 2 lines
+
+Removed character restrictions
+
+------------------------------------------------------------------------
+r554 | randerson | 2010-04-29 06:39:11 +0000 (Thu, 29 Apr 2010) | 2 lines
+
+Use character codes for displaying special characters
+
+------------------------------------------------------------------------
+r553 | randerson | 2010-04-26 14:27:49 +0000 (Mon, 26 Apr 2010) | 3 lines
+
+
+* Improved logging
+
+------------------------------------------------------------------------
+r552 | randerson | 2010-04-26 11:31:59 +0000 (Mon, 26 Apr 2010) | 3 lines
+
+* More accurate result testing after updates
+* Modified NAS-Port-Id to use a blank default if not defined (in the case of vpn's)
+
+------------------------------------------------------------------------
+r551 | randerson | 2010-04-26 11:24:12 +0000 (Mon, 26 Apr 2010) | 2 lines
+
+* Allow blank "" defaults in templates
+
+------------------------------------------------------------------------
+r550 | nkukard | 2010-04-17 18:33:05 +0000 (Sat, 17 Apr 2010) | 2 lines
+
+* Implemented MPPE keys from RFC3079
+
+------------------------------------------------------------------------
+r549 | randerson | 2010-04-14 14:08:17 +0000 (Wed, 14 Apr 2010) | 2 lines
+
+Fixed broken tag
+
+------------------------------------------------------------------------
+r548 | randerson | 2010-04-12 07:02:35 +0000 (Mon, 12 Apr 2010) | 3 lines
+
+Reload store on add, edit and remove
+Use window name on all removes
+
+------------------------------------------------------------------------
+r547 | randerson | 2010-03-05 12:23:09 +0000 (Fri, 05 Mar 2010) | 2 lines
+
+* Added event timezone configuration option
+
+------------------------------------------------------------------------
+r546 | randerson | 2010-03-05 09:05:46 +0000 (Fri, 05 Mar 2010) | 2 lines
+
+* Fixed typo with hash key name
+
+------------------------------------------------------------------------
+r545 | randerson | 2010-03-05 08:28:07 +0000 (Fri, 05 Mar 2010) | 12 lines
+
+* Calculate totals based on byte values of all log lines, then round up to nearest Mbyte
+
+ webgui/ajax.php                                 |    8 +-
+ webgui/include/ajax/functions/AdminUserLogs.php |   80 ++++++++----------------
+ webgui/include/ajax/functions/WiSPUserLogs.php  |   80 ++++++++----------------
+ webgui/js/app/windows/AdminUserLogs.js          |   11 ++-
+ webgui/js/app/windows/WiSPUserLogs.js           |   11 ++-
+ webui/user/index.php                            |   68 ++++++++++----------
+ webui/user/logs.php                             |   48 ++++++--------
+ 7 files changed, 131 insertions(+), 175 deletions(-)
+
+
+------------------------------------------------------------------------
+r544 | randerson | 2010-03-05 07:52:10 +0000 (Fri, 05 Mar 2010) | 7 lines
+
+* Calculate accounting based on bytes for log line entires and round up to Mbyte for totals
+
+ accounting/mod_accounting_sql.pm |   97 ++++++++++++++++++++++++++-------------
+ system/mod_config_sql_topups.pm  |   36 +++++++++-----
+ 2 files changed, 89 insertions(+), 44 deletions(-)
+
+
+------------------------------------------------------------------------
+r543 | randerson | 2009-11-12 10:33:12 +0000 (Thu, 12 Nov 2009) | 2 lines
+
+When fetching caps, check for valid operator and values
+
+------------------------------------------------------------------------
+r542 | randerson | 2009-11-05 08:55:10 +0000 (Thu, 05 Nov 2009) | 3 lines
+
+Cosmetic changes
+Use ceil while calculating instead of on total
+
+------------------------------------------------------------------------
+r541 | randerson | 2009-11-04 11:26:55 +0000 (Wed, 04 Nov 2009) | 2 lines
+
+Use ceil while calculating instead of using it on the total
+
+------------------------------------------------------------------------
+r540 | randerson | 2009-11-04 10:23:14 +0000 (Wed, 04 Nov 2009) | 2 lines
+
+Correctly handle large numbers for topups cleanup function
+
+------------------------------------------------------------------------
+r539 | randerson | 2009-11-03 14:26:31 +0000 (Tue, 03 Nov 2009) | 2 lines
+
+Correctly handle large numbers pulled in with accounting_usage_query
+
+------------------------------------------------------------------------
+r538 | randerson | 2009-11-03 13:21:29 +0000 (Tue, 03 Nov 2009) | 3 lines
+
+Correctly handle large numbers for accounting_summary
+Note: database schema for accounting_summary has been changed
+
+------------------------------------------------------------------------
+r537 | randerson | 2009-11-02 07:56:27 +0000 (Mon, 02 Nov 2009) | 3 lines
+
+Added check for undefined attribute values
+Added group attributes support
+
+------------------------------------------------------------------------
+r536 | randerson | 2009-10-26 07:53:04 +0000 (Mon, 26 Oct 2009) | 2 lines
+
+Fixed parameter name
+
+------------------------------------------------------------------------
+r535 | randerson | 2009-10-23 07:37:15 +0000 (Fri, 23 Oct 2009) | 2 lines
+
+Allow for table prefix use
+
+------------------------------------------------------------------------
+r534 | randerson | 2009-10-14 11:00:49 +0000 (Wed, 14 Oct 2009) | 2 lines
+
+Added check for duplicate accounting records when updating
+
+------------------------------------------------------------------------
+r533 | randerson | 2009-10-14 10:58:49 +0000 (Wed, 14 Oct 2009) | 2 lines
+
+Updated TODO list
+
+------------------------------------------------------------------------
+r532 | randerson | 2009-10-13 07:30:24 +0000 (Tue, 13 Oct 2009) | 2 lines
+
+Configure topups only if we have a username
+
+------------------------------------------------------------------------
+r531 | randerson | 2009-10-12 10:53:09 +0000 (Mon, 12 Oct 2009) | 2 lines
+
+Check that we have attribute name, operator and value before adding
+
+------------------------------------------------------------------------
+r530 | randerson | 2009-10-12 09:48:59 +0000 (Mon, 12 Oct 2009) | 2 lines
+
+Added missing AcctSessionTime data for WiSPUserLogs
+
+------------------------------------------------------------------------
+r529 | randerson | 2009-10-12 08:54:58 +0000 (Mon, 12 Oct 2009) | 2 lines
+
+Remove use of variables
+
+------------------------------------------------------------------------
+r528 | randerson | 2009-10-12 08:36:09 +0000 (Mon, 12 Oct 2009) | 2 lines
+
+Aesthetic changes
+
+------------------------------------------------------------------------
+r527 | randerson | 2009-10-12 08:27:58 +0000 (Mon, 12 Oct 2009) | 2 lines
+
+Cannot add wisp user attributes without at least three values (name, operator, value)
+
+------------------------------------------------------------------------
+r526 | randerson | 2009-10-12 07:27:22 +0000 (Mon, 12 Oct 2009) | 3 lines
+
+Use periodKey for fetching summaries
+Show depleted topups
+
+------------------------------------------------------------------------
+r525 | randerson | 2009-10-12 07:25:46 +0000 (Mon, 12 Oct 2009) | 2 lines
+
+Fixed pulling in of custom topups
+
+------------------------------------------------------------------------
+r524 | randerson | 2009-10-07 13:40:57 +0000 (Wed, 07 Oct 2009) | 3 lines
+
+Missing break in switch
+Fixed incorrect relational operator in topups query
+
+------------------------------------------------------------------------
+r523 | randerson | 2009-10-05 11:11:54 +0000 (Mon, 05 Oct 2009) | 5 lines
+
+Fixed traffic usage total
+Fixed incorrect uptime display
+Added date input validation
+NASTransmitRate and NASReceiveRate now display blank if not available
+
+------------------------------------------------------------------------
+r522 | randerson | 2009-10-02 08:44:38 +0000 (Fri, 02 Oct 2009) | 2 lines
+
+Use PeriodKey for fetching logs instead of Eventtimestamp, this fixes the fetching of data from incorrect dates
+
+------------------------------------------------------------------------
+r521 | randerson | 2009-09-11 09:31:39 +0000 (Fri, 11 Sep 2009) | 2 lines
+
+Update pre-existing summary records instead of recreating record
+
+------------------------------------------------------------------------
+r520 | randerson | 2009-09-09 10:50:42 +0000 (Wed, 09 Sep 2009) | 3 lines
+
+Only select the first date of every months for topups
+Better topup icons
+
+------------------------------------------------------------------------
+r519 | randerson | 2009-09-03 10:38:30 +0000 (Thu, 03 Sep 2009) | 2 lines
+
+Added missing PeriodKey in database schema
+
+------------------------------------------------------------------------
+r518 | randerson | 2009-09-02 08:02:08 +0000 (Wed, 02 Sep 2009) | 3 lines
+
+Updated terminate cause as per RFC 2866
+Fixed incorrect row name when fetching terminate cause
+
+------------------------------------------------------------------------
+r517 | randerson | 2009-09-01 14:20:16 +0000 (Tue, 01 Sep 2009) | 2 lines
+
+Use default port '1700' for POD server if none specified
+
+------------------------------------------------------------------------
+r516 | nkukard | 2009-09-01 10:01:12 +0000 (Tue, 01 Sep 2009) | 2 lines
+
+* Bumped version
+
+------------------------------------------------------------------------
+r513 | randerson | 2009-08-31 14:41:39 +0000 (Mon, 31 Aug 2009) | 2 lines
+
+Added missing license information
+
+------------------------------------------------------------------------
+r512 | randerson | 2009-08-25 07:17:51 +0000 (Tue, 25 Aug 2009) | 3 lines
+
+Update accounting summaries if required
+Updated TODO
+
+------------------------------------------------------------------------
+r511 | randerson | 2009-08-24 14:51:29 +0000 (Mon, 24 Aug 2009) | 2 lines
+
+Updated TODO
+
+------------------------------------------------------------------------
+r510 | randerson | 2009-08-24 12:14:12 +0000 (Mon, 24 Aug 2009) | 3 lines
+
+Fixed accounting start, update and stop records handling sessions spanning over multiple periods
+Added UPGRADING file for upgrading information from previous revision
+
+------------------------------------------------------------------------
+r509 | randerson | 2009-08-19 10:24:44 +0000 (Wed, 19 Aug 2009) | 2 lines
+
+Updated TODO
+
+------------------------------------------------------------------------
+r508 | randerson | 2009-08-12 13:59:04 +0000 (Wed, 12 Aug 2009) | 2 lines
+
+Fixed up comments
+
+------------------------------------------------------------------------
+r507 | randerson | 2009-08-11 11:40:04 +0000 (Tue, 11 Aug 2009) | 2 lines
+
+Updated todo
+
+------------------------------------------------------------------------
+r506 | randerson | 2009-08-11 11:08:49 +0000 (Tue, 11 Aug 2009) | 2 lines
+
+We dont use AcctInputPackets in accounting_summary
+
+------------------------------------------------------------------------
+r505 | randerson | 2009-08-11 11:05:43 +0000 (Tue, 11 Aug 2009) | 2 lines
+
+Add ymd datetime string instead of just year and month
+
+------------------------------------------------------------------------
+r504 | randerson | 2009-08-11 10:54:25 +0000 (Tue, 11 Aug 2009) | 2 lines
+
+Load modules and config the same as smradiusd
+
+------------------------------------------------------------------------
+r503 | randerson | 2009-08-07 11:32:35 +0000 (Fri, 07 Aug 2009) | 2 lines
+
+Cleaner error checks
+
+------------------------------------------------------------------------
+r502 | randerson | 2009-08-07 07:38:52 +0000 (Fri, 07 Aug 2009) | 2 lines
+
+Fetch SMRadius-Config-PODServer configuration when attempting to disconnect
+
+------------------------------------------------------------------------
+r501 | randerson | 2009-08-06 08:16:55 +0000 (Thu, 06 Aug 2009) | 2 lines
+
+Use pruneModifiedRecords instead of checking each item to see if it should be added
+
+------------------------------------------------------------------------
+r500 | randerson | 2009-08-06 07:28:02 +0000 (Thu, 06 Aug 2009) | 2 lines
+
+Upaded logs icons
+
+------------------------------------------------------------------------
+r499 | randerson | 2009-08-06 07:08:04 +0000 (Thu, 06 Aug 2009) | 2 lines
+
+Fixed up error handling
+
+------------------------------------------------------------------------
+r498 | randerson | 2009-08-06 07:03:09 +0000 (Thu, 06 Aug 2009) | 3 lines
+
+Removed deprecated gridfilters code
+Load correct files for gridfilters
+
+------------------------------------------------------------------------
+r497 | randerson | 2009-08-06 07:00:01 +0000 (Thu, 06 Aug 2009) | 2 lines
+
+Removed old css file
+
+------------------------------------------------------------------------
+r496 | randerson | 2009-08-04 13:10:08 +0000 (Tue, 04 Aug 2009) | 2 lines
+
+Only cap users after showing logs for both traffic and uptime now
+
+------------------------------------------------------------------------
+r495 | randerson | 2009-08-04 10:08:51 +0000 (Tue, 04 Aug 2009) | 2 lines
+
+Fixed server getting usage for current month when getUsage called from capping module
+
+------------------------------------------------------------------------
+r494 | randerson | 2009-08-04 10:06:29 +0000 (Tue, 04 Aug 2009) | 2 lines
+
+Updated TODO
+
+------------------------------------------------------------------------
+r493 | randerson | 2009-08-04 06:40:56 +0000 (Tue, 04 Aug 2009) | 2 lines
+
+Updated TODO
+
+------------------------------------------------------------------------
+r492 | randerson | 2009-08-04 06:23:20 +0000 (Tue, 04 Aug 2009) | 2 lines
+
+Fixed wisp editor grids
+
+------------------------------------------------------------------------
+r491 | randerson | 2009-07-31 14:55:36 +0000 (Fri, 31 Jul 2009) | 2 lines
+
+Updated TODO
+
+------------------------------------------------------------------------
+r490 | randerson | 2009-07-31 13:15:55 +0000 (Fri, 31 Jul 2009) | 2 lines
+
+Removed debugging
+
+------------------------------------------------------------------------
+r489 | randerson | 2009-07-31 10:12:14 +0000 (Fri, 31 Jul 2009) | 2 lines
+
+Dont encode when fetching one realm
+
+------------------------------------------------------------------------
+r488 | randerson | 2009-07-31 09:59:26 +0000 (Fri, 31 Jul 2009) | 2 lines
+
+Display special html characters for realms
+
+------------------------------------------------------------------------
+r487 | nkukard | 2009-07-28 11:22:20 +0000 (Tue, 28 Jul 2009) | 2 lines
+
+* Added support for vendor attributes in the form of  [vendor_id:attribute_name]
+
+------------------------------------------------------------------------
+r486 | randerson | 2009-07-28 09:27:00 +0000 (Tue, 28 Jul 2009) | 2 lines
+
+Updated TODO
+
+------------------------------------------------------------------------
+r485 | nkukard | 2009-07-28 09:22:47 +0000 (Tue, 28 Jul 2009) | 2 lines
+
+* Cosmetic fix
+
+------------------------------------------------------------------------
+r484 | randerson | 2009-07-28 09:16:56 +0000 (Tue, 28 Jul 2009) | 2 lines
+
+Reject connection if no realms are found
+
+------------------------------------------------------------------------
+r483 | randerson | 2009-07-24 11:17:28 +0000 (Fri, 24 Jul 2009) | 2 lines
+
+Fixed ID handling
+
+------------------------------------------------------------------------
+r482 | randerson | 2009-07-24 09:37:23 +0000 (Fri, 24 Jul 2009) | 2 lines
+
+Removed trailing commas
+
+------------------------------------------------------------------------
+r481 | randerson | 2009-07-24 08:28:13 +0000 (Fri, 24 Jul 2009) | 3 lines
+
+List realm members and remove member from realm
+Fixed space between realm buttons
+
+------------------------------------------------------------------------
+r480 | randerson | 2009-07-23 11:55:02 +0000 (Thu, 23 Jul 2009) | 4 lines
+
+Fixed getting config from realms
+Added default config get
+Added client config get
+
+------------------------------------------------------------------------
+r479 | randerson | 2009-07-23 10:52:19 +0000 (Thu, 23 Jul 2009) | 2 lines
+
+Fixed icons
+
+------------------------------------------------------------------------
+r478 | randerson | 2009-07-23 10:05:20 +0000 (Thu, 23 Jul 2009) | 3 lines
+
+Support add/remove/edit clients and client_attributes
+Link and unlink clients to and from realms
+
+------------------------------------------------------------------------
+r477 | randerson | 2009-07-23 09:39:57 +0000 (Thu, 23 Jul 2009) | 2 lines
+
+Fixed location icons
+
+------------------------------------------------------------------------
+r476 | nkukard | 2009-07-23 09:35:45 +0000 (Thu, 23 Jul 2009) | 2 lines
+
+* Fixed icon for locations
+
+------------------------------------------------------------------------
+r475 | nkukard | 2009-07-23 09:27:04 +0000 (Thu, 23 Jul 2009) | 2 lines
+
+* Added silk icons
+
+------------------------------------------------------------------------
+r474 | nkukard | 2009-07-23 09:26:01 +0000 (Thu, 23 Jul 2009) | 2 lines
+
+* Fixed statusbar
+
+------------------------------------------------------------------------
+r473 | nkukard | 2009-07-23 09:22:26 +0000 (Thu, 23 Jul 2009) | 2 lines
+
+* Add status bar to libraries
+
+------------------------------------------------------------------------
+r472 | nkukard | 2009-07-23 08:40:08 +0000 (Thu, 23 Jul 2009) | 2 lines
+
+* updated todo
+
+------------------------------------------------------------------------
+r471 | nkukard | 2009-07-23 08:38:24 +0000 (Thu, 23 Jul 2009) | 2 lines
+
+* Updated TODO
+
+------------------------------------------------------------------------
+r470 | nkukard | 2009-07-23 08:35:43 +0000 (Thu, 23 Jul 2009) | 2 lines
+
+* Updated todo
+
+------------------------------------------------------------------------
+r469 | nkukard | 2009-07-23 08:11:06 +0000 (Thu, 23 Jul 2009) | 2 lines
+
+* Improved startup of application
+
+------------------------------------------------------------------------
+r468 | randerson | 2009-07-22 13:27:41 +0000 (Wed, 22 Jul 2009) | 2 lines
+
+Use formPanelID and gridPanelID
+
+------------------------------------------------------------------------
+r467 | randerson | 2009-07-22 13:23:50 +0000 (Wed, 22 Jul 2009) | 3 lines
+
+Error if no fields were entered
+Skip change of username if it is empty
+
+------------------------------------------------------------------------
+r466 | randerson | 2009-07-21 10:30:28 +0000 (Tue, 21 Jul 2009) | 2 lines
+
+Fixed incorrect case in hash
+
+------------------------------------------------------------------------
+r465 | randerson | 2009-07-21 10:19:56 +0000 (Tue, 21 Jul 2009) | 2 lines
+
+Use hashifyLCtoMC when using fetchrow_hashref()
+
+------------------------------------------------------------------------
+r464 | randerson | 2009-07-21 06:33:30 +0000 (Tue, 21 Jul 2009) | 2 lines
+
+Fixed: Use correct vtype for username
+
+------------------------------------------------------------------------
+r463 | randerson | 2009-07-21 06:07:52 +0000 (Tue, 21 Jul 2009) | 2 lines
+
+Assign username before processing configs
+
+------------------------------------------------------------------------
+r462 | randerson | 2009-07-17 11:17:26 +0000 (Fri, 17 Jul 2009) | 2 lines
+
+clients, client_attributes and clients_to_realms tables for client control
+
+------------------------------------------------------------------------
+r461 | randerson | 2009-07-17 09:01:00 +0000 (Fri, 17 Jul 2009) | 2 lines
+
+Restructured db schema
+
+------------------------------------------------------------------------
+r460 | randerson | 2009-07-17 07:47:29 +0000 (Fri, 17 Jul 2009) | 2 lines
+
+Added license information for webgui
+
+------------------------------------------------------------------------
+r459 | randerson | 2009-07-16 14:34:07 +0000 (Thu, 16 Jul 2009) | 2 lines
+
+Better error handling when using DBDo
+
+------------------------------------------------------------------------
+r458 | randerson | 2009-07-16 10:59:32 +0000 (Thu, 16 Jul 2009) | 2 lines
+
+Remove topups belonging to user when deleting
+
+------------------------------------------------------------------------
+r457 | randerson | 2009-07-15 14:24:02 +0000 (Wed, 15 Jul 2009) | 2 lines
+
+Check if we have location if we editing a user
+
+------------------------------------------------------------------------
+r456 | randerson | 2009-07-15 14:03:31 +0000 (Wed, 15 Jul 2009) | 2 lines
+
+LocationID uses !empty instead of isset since "" strings are being passed
+
+------------------------------------------------------------------------
+r455 | randerson | 2009-07-15 12:47:18 +0000 (Wed, 15 Jul 2009) | 2 lines
+
+Removed resellers window link
+
+------------------------------------------------------------------------
+r454 | randerson | 2009-07-15 12:09:50 +0000 (Wed, 15 Jul 2009) | 3 lines
+
+Check if user is uncapped before sending disconnect
+Improved debug message display if user is uncapped
+
+------------------------------------------------------------------------
+r453 | randerson | 2009-07-15 12:05:44 +0000 (Wed, 15 Jul 2009) | 3 lines
+
+Added missing mod_config_sql_topups to config
+Added mod_config_sql_topups queries to config
+
+------------------------------------------------------------------------
+r452 | randerson | 2009-07-15 12:00:32 +0000 (Wed, 15 Jul 2009) | 2 lines
+
+Fixed missed table prefixes, part of last commit
+
+------------------------------------------------------------------------
+r451 | randerson | 2009-07-15 07:56:54 +0000 (Wed, 15 Jul 2009) | 2 lines
+
+Fixed indentation and table prefixes
+
+------------------------------------------------------------------------
+r450 | randerson | 2009-07-14 07:51:45 +0000 (Tue, 14 Jul 2009) | 2 lines
+
+Fixed wrong package name
+
+------------------------------------------------------------------------
+r449 | randerson | 2009-07-14 07:47:13 +0000 (Tue, 14 Jul 2009) | 2 lines
+
+NK: Fixed wrong configureation tag being used
+
+------------------------------------------------------------------------
+r448 | randerson | 2009-07-14 07:46:19 +0000 (Tue, 14 Jul 2009) | 2 lines
+
+NK: Fixed package names
+
+------------------------------------------------------------------------
+r447 | nkukard | 2009-07-14 07:38:34 +0000 (Tue, 14 Jul 2009) | 2 lines
+
+* Rename config items from plugins to modules
+
+------------------------------------------------------------------------
+r446 | randerson | 2009-07-14 06:39:04 +0000 (Tue, 14 Jul 2009) | 2 lines
+
+Added bar graph for user login
+
+------------------------------------------------------------------------
+r445 | nkukard | 2009-07-13 15:45:29 +0000 (Mon, 13 Jul 2009) | 2 lines
+
+* Preliminary work fixing up the modules
+
+------------------------------------------------------------------------
+r444 | nkukard | 2009-07-13 14:14:58 +0000 (Mon, 13 Jul 2009) | 2 lines
+
+* Renamed system modules into 'system' directory
+
+------------------------------------------------------------------------
+r443 | nkukard | 2009-07-13 14:02:42 +0000 (Mon, 13 Jul 2009) | 2 lines
+
+* Use AWITPT toolkit
+
+------------------------------------------------------------------------
+r442 | nkukard | 2009-07-13 13:39:40 +0000 (Mon, 13 Jul 2009) | 2 lines
+
+* Fixed trailing whitespaces
+
+------------------------------------------------------------------------
+r441 | nkukard | 2009-07-13 13:37:30 +0000 (Mon, 13 Jul 2009) | 2 lines
+
+* Code cleanup
+
+------------------------------------------------------------------------
+r440 | nkukard | 2009-07-13 13:29:07 +0000 (Mon, 13 Jul 2009) | 2 lines
+
+* Cosmetic fixes
+
+------------------------------------------------------------------------
+r439 | nkukard | 2009-07-13 13:26:31 +0000 (Mon, 13 Jul 2009) | 2 lines
+
+* Fixed trailing whitespaces
+
+------------------------------------------------------------------------
+r438 | nkukard | 2009-07-13 13:25:43 +0000 (Mon, 13 Jul 2009) | 2 lines
+
+* Fixed copyright and whitespaces
+
+------------------------------------------------------------------------
+r437 | nkukard | 2009-07-13 13:23:33 +0000 (Mon, 13 Jul 2009) | 2 lines
+
+* Updated list of authors
+
+------------------------------------------------------------------------
+r436 | nkukard | 2009-07-13 13:22:41 +0000 (Mon, 13 Jul 2009) | 2 lines
+
+* Updated TODO
+
+------------------------------------------------------------------------
+r435 | nkukard | 2009-07-13 13:21:30 +0000 (Mon, 13 Jul 2009) | 2 lines
+
+* Removed old code remains
+
+------------------------------------------------------------------------
+r434 | nkukard | 2009-07-13 13:20:16 +0000 (Mon, 13 Jul 2009) | 2 lines
+
+* Added mod_sql_config query config
+
+------------------------------------------------------------------------
+r433 | nkukard | 2009-07-13 13:17:12 +0000 (Mon, 13 Jul 2009) | 2 lines
+
+* Removed stray newline
+
+------------------------------------------------------------------------
+r432 | nkukard | 2009-07-13 13:16:26 +0000 (Mon, 13 Jul 2009) | 2 lines
+
+* Added missing requirements
+
+------------------------------------------------------------------------
+r431 | nkukard | 2009-07-13 13:07:10 +0000 (Mon, 13 Jul 2009) | 2 lines
+
+* Fixed wrong database name
+
+------------------------------------------------------------------------
+r430 | nkukard | 2009-07-13 13:06:07 +0000 (Mon, 13 Jul 2009) | 2 lines
+
+* removed stray config file
+
+------------------------------------------------------------------------
+r429 | randerson | 2009-07-10 14:37:32 +0000 (Fri, 10 Jul 2009) | 3 lines
+
+Fixed up summary
+Added session time to log window
+
+------------------------------------------------------------------------
+r428 | randerson | 2009-07-10 06:07:22 +0000 (Fri, 10 Jul 2009) | 2 lines
+
+Use util.js and sprintf.js from js/custom/
+
+------------------------------------------------------------------------
+r427 | randerson | 2009-07-09 11:23:54 +0000 (Thu, 09 Jul 2009) | 2 lines
+
+Use sprintf.js, util.js from js/custom/
+
+------------------------------------------------------------------------
+r426 | randerson | 2009-07-09 10:59:11 +0000 (Thu, 09 Jul 2009) | 2 lines
+
+Use js/custom/generic.js instead of local copy
+
+------------------------------------------------------------------------
+r425 | randerson | 2009-07-03 10:58:09 +0000 (Fri, 03 Jul 2009) | 2 lines
+
+Code restructuring
+
+------------------------------------------------------------------------
+r424 | randerson | 2009-07-03 08:11:08 +0000 (Fri, 03 Jul 2009) | 2 lines
+
+Global $db already set in db.php
+
+------------------------------------------------------------------------
+r423 | randerson | 2009-07-02 14:46:40 +0000 (Thu, 02 Jul 2009) | 2 lines
+
+Send email notification on successful multi user add
+
+------------------------------------------------------------------------
+r422 | randerson | 2009-07-02 11:26:47 +0000 (Thu, 02 Jul 2009) | 2 lines
+
+Admin email config item
+
+------------------------------------------------------------------------
+r421 | randerson | 2009-07-02 09:38:24 +0000 (Thu, 02 Jul 2009) | 3 lines
+
+Resized location field
+Incorrect GB / TB calculation
+
+------------------------------------------------------------------------
+r420 | randerson | 2009-07-02 09:15:07 +0000 (Thu, 02 Jul 2009) | 2 lines
+
+Add attributes and groups for multiple users
+
+------------------------------------------------------------------------
+r419 | randerson | 2009-07-02 08:35:02 +0000 (Thu, 02 Jul 2009) | 2 lines
+
+Update wisp user shows LocationID, correctly updates location now
+
+------------------------------------------------------------------------
+r418 | randerson | 2009-07-01 13:02:07 +0000 (Wed, 01 Jul 2009) | 2 lines
+
+Replaced operator and topup type input fields with combo box
+
+------------------------------------------------------------------------
+r417 | randerson | 2009-07-01 12:01:01 +0000 (Wed, 01 Jul 2009) | 2 lines
+
+Revert of 414 - not all users need passwords
+
+------------------------------------------------------------------------
+r416 | randerson | 2009-07-01 11:57:31 +0000 (Wed, 01 Jul 2009) | 2 lines
+
+Revert of 415
+
+------------------------------------------------------------------------
+r415 | randerson | 2009-07-01 11:47:10 +0000 (Wed, 01 Jul 2009) | 2 lines
+
+Revert of r413, some user's don't need passwords
+
+------------------------------------------------------------------------
+r414 | randerson | 2009-07-01 11:25:52 +0000 (Wed, 01 Jul 2009) | 2 lines
+
+Update/Add user password for Admin Users Control panel
+
+------------------------------------------------------------------------
+r413 | randerson | 2009-07-01 11:24:40 +0000 (Wed, 01 Jul 2009) | 2 lines
+
+Cleaned up code
+
+------------------------------------------------------------------------
+r412 | randerson | 2009-07-01 09:19:49 +0000 (Wed, 01 Jul 2009) | 2 lines
+
+Cleaned up code
+
+------------------------------------------------------------------------
+r411 | randerson | 2009-07-01 08:02:04 +0000 (Wed, 01 Jul 2009) | 2 lines
+
+Replaced form field with combobox
+
+------------------------------------------------------------------------
+r410 | randerson | 2009-06-30 14:45:34 +0000 (Tue, 30 Jun 2009) | 2 lines
+
+Added multi-user add
+
+------------------------------------------------------------------------
+r409 | randerson | 2009-06-30 10:02:13 +0000 (Tue, 30 Jun 2009) | 2 lines
+
+Added topups to admin control panels
+
+------------------------------------------------------------------------
+r408 | randerson | 2009-06-30 09:35:27 +0000 (Tue, 30 Jun 2009) | 2 lines
+
+Added WiSP User Topups
+
+------------------------------------------------------------------------
+r407 | randerson | 2009-06-29 12:51:01 +0000 (Mon, 29 Jun 2009) | 2 lines
+
+vim specific tab space setting
+
+------------------------------------------------------------------------
+r406 | randerson | 2009-06-29 11:18:56 +0000 (Mon, 29 Jun 2009) | 2 lines
+
+Fixed WiSP User Logs
+
+------------------------------------------------------------------------
+r405 | randerson | 2009-06-29 10:55:13 +0000 (Mon, 29 Jun 2009) | 3 lines
+
+Fixed eventtimestamp filter and column display
+Removed 'add port lock' button
+
+------------------------------------------------------------------------
+r404 | randerson | 2009-06-29 10:19:57 +0000 (Mon, 29 Jun 2009) | 2 lines
+
+Convert string to valid formatted datetime
+
+------------------------------------------------------------------------
+r403 | nkukard | 2009-06-26 09:07:09 +0000 (Fri, 26 Jun 2009) | 2 lines
+
+* Added externals to pull in shared project data
+
+------------------------------------------------------------------------
+r402 | nkukard | 2009-06-26 09:04:04 +0000 (Fri, 26 Jun 2009) | 2 lines
+
+* Removed now external javascript
+
+------------------------------------------------------------------------
+r401 | nkukard | 2009-06-26 08:38:46 +0000 (Fri, 26 Jun 2009) | 2 lines
+
+* Added externals to awit-extjs-framework
+
+------------------------------------------------------------------------
+r400 | nkukard | 2009-06-26 08:33:45 +0000 (Fri, 26 Jun 2009) | 2 lines
+
+* Remvoed resources, this will be externally linked to the awit shared extjs framework
+
+------------------------------------------------------------------------
+r399 | randerson | 2009-06-25 11:58:47 +0000 (Thu, 25 Jun 2009) | 3 lines
+
+Use $_SESSION['username']
+Cleanup
+
+------------------------------------------------------------------------
+r398 | randerson | 2009-06-25 10:02:30 +0000 (Thu, 25 Jun 2009) | 3 lines
+
+Use isset() instead of !empty()
+Correct column name $row->acctinputgigawords
+
+------------------------------------------------------------------------
+r397 | randerson | 2009-06-25 09:55:11 +0000 (Thu, 25 Jun 2009) | 2 lines
+
+Correct column name Name
+
+------------------------------------------------------------------------
+r396 | randerson | 2009-06-25 09:38:37 +0000 (Thu, 25 Jun 2009) | 2 lines
+
+Use isset() instead of !empty()
+
+------------------------------------------------------------------------
+r395 | randerson | 2009-06-25 08:18:27 +0000 (Thu, 25 Jun 2009) | 2 lines
+
+Use db->quote()
+
+------------------------------------------------------------------------
+r394 | randerson | 2009-06-25 08:12:09 +0000 (Thu, 25 Jun 2009) | 2 lines
+
+Use $_SESSION['username'] instead of $username
+
+------------------------------------------------------------------------
+r393 | randerson | 2009-06-24 14:15:03 +0000 (Wed, 24 Jun 2009) | 2 lines
+
+Correct row name acctinputgigawords
+
+------------------------------------------------------------------------
+r392 | randerson | 2009-06-24 13:26:44 +0000 (Wed, 24 Jun 2009) | 3 lines
+
+Better uptime and traffic variable names
+Commented code not used
+
+------------------------------------------------------------------------
+r391 | randerson | 2009-06-24 12:25:59 +0000 (Wed, 24 Jun 2009) | 3 lines
+
+Display current topup being used with usage / cap
+Total additional topups not including current topup being used
+
+------------------------------------------------------------------------
+r390 | randerson | 2009-06-23 06:32:17 +0000 (Tue, 23 Jun 2009) | 2 lines
+
+Rounding up total uptime
+
+------------------------------------------------------------------------
+r389 | randerson | 2009-06-22 14:50:31 +0000 (Mon, 22 Jun 2009) | 2 lines
+
+Code cleanup
+
+------------------------------------------------------------------------
+r388 | randerson | 2009-06-22 14:39:25 +0000 (Mon, 22 Jun 2009) | 2 lines
+
+Show topups for this month
+
+------------------------------------------------------------------------
+r387 | randerson | 2009-06-22 12:08:38 +0000 (Mon, 22 Jun 2009) | 3 lines
+
+Remove notifications for now
+Show searched dates in date fields
+
+------------------------------------------------------------------------
+r386 | randerson | 2009-06-22 11:28:32 +0000 (Mon, 22 Jun 2009) | 2 lines
+
+Remove old admin webui and related files
+
+------------------------------------------------------------------------
+r385 | randerson | 2009-06-22 11:17:21 +0000 (Mon, 22 Jun 2009) | 2 lines
+
+Get phone and email from correct table
+
+------------------------------------------------------------------------
+r384 | randerson | 2009-06-22 10:43:33 +0000 (Mon, 22 Jun 2009) | 2 lines
+
+Fixed username variable name
+
+------------------------------------------------------------------------
+r383 | randerson | 2009-06-22 07:38:28 +0000 (Mon, 22 Jun 2009) | 2 lines
+
+Remove records referencing main tables
+
+------------------------------------------------------------------------
+r382 | randerson | 2009-06-22 06:24:59 +0000 (Mon, 22 Jun 2009) | 2 lines
+
+Fixed location remove
+
+------------------------------------------------------------------------
+r381 | randerson | 2009-06-19 13:52:20 +0000 (Fri, 19 Jun 2009) | 2 lines
+
+Added a few icons
+
+------------------------------------------------------------------------
+r380 | randerson | 2009-06-19 13:51:02 +0000 (Fri, 19 Jun 2009) | 2 lines
+
+Adjusted window size
+
+------------------------------------------------------------------------
+r379 | randerson | 2009-06-19 12:49:42 +0000 (Fri, 19 Jun 2009) | 2 lines
+
+Adjusted window size slightly
+
+------------------------------------------------------------------------
+r378 | randerson | 2009-06-19 12:33:22 +0000 (Fri, 19 Jun 2009) | 2 lines
+
+Added location select for adding WiSP user
+
+------------------------------------------------------------------------
+r377 | randerson | 2009-06-19 10:11:16 +0000 (Fri, 19 Jun 2009) | 2 lines
+
+Unlink location members before deleting location
+
+------------------------------------------------------------------------
+r376 | randerson | 2009-06-19 09:08:21 +0000 (Fri, 19 Jun 2009) | 3 lines
+
+Correctly remove all WiSP user information
+Change attribute value based on modifier
+
+------------------------------------------------------------------------
+r375 | randerson | 2009-06-19 06:04:17 +0000 (Fri, 19 Jun 2009) | 2 lines
+
+vim tab space setting
+
+------------------------------------------------------------------------
+r374 | randerson | 2009-06-19 06:02:06 +0000 (Fri, 19 Jun 2009) | 2 lines
+
+Adjusted window sizes
+
+------------------------------------------------------------------------
+r373 | randerson | 2009-06-18 14:42:44 +0000 (Thu, 18 Jun 2009) | 3 lines
+
+Better error handling
+Returns correct value now
+
+------------------------------------------------------------------------
+r372 | randerson | 2009-06-18 14:32:57 +0000 (Thu, 18 Jun 2009) | 2 lines
+
+Removed code not being used
+
+------------------------------------------------------------------------
+r371 | randerson | 2009-06-17 13:36:21 +0000 (Wed, 17 Jun 2009) | 2 lines
+
+Fixed incorrect entry/column name
+
+------------------------------------------------------------------------
+r370 | randerson | 2009-06-17 13:34:28 +0000 (Wed, 17 Jun 2009) | 2 lines
+
+Removed vtype: username for other entry boxes
+
+------------------------------------------------------------------------
+r369 | randerson | 2009-06-17 13:23:59 +0000 (Wed, 17 Jun 2009) | 2 lines
+
+Incorrect column name
+
+------------------------------------------------------------------------
+r368 | randerson | 2009-06-17 13:22:48 +0000 (Wed, 17 Jun 2009) | 2 lines
+
+Fixed SQL, some tables had been renamed
+
+------------------------------------------------------------------------
+r367 | randerson | 2009-06-17 07:21:51 +0000 (Wed, 17 Jun 2009) | 4 lines
+
+Code restructuring and tidying up
+Fixed handling of topups when there is no overusage
+Support for a prepaid system
+
+------------------------------------------------------------------------
+r366 | randerson | 2009-06-10 10:49:48 +0000 (Wed, 10 Jun 2009) | 3 lines
+
+Use summary topup with left over bandwidth from previous month and topups valid for current month to add to cap
+Fetches only topups within valid dates now
+
+------------------------------------------------------------------------
+r365 | randerson | 2009-06-09 11:26:02 +0000 (Tue, 09 Jun 2009) | 2 lines
+
+Changed PeriodKey to string value
+
+------------------------------------------------------------------------
+r364 | randerson | 2009-06-09 11:13:34 +0000 (Tue, 09 Jun 2009) | 2 lines
+
+Admin tool used to perform various tasks
+
+------------------------------------------------------------------------
+r363 | randerson | 2009-06-09 10:39:55 +0000 (Tue, 09 Jun 2009) | 2 lines
+
+Topups summary support for smadmin tool
+
+------------------------------------------------------------------------
+r362 | randerson | 2009-06-09 10:38:38 +0000 (Tue, 09 Jun 2009) | 2 lines
+
+Accounting summary support for smadmin tool
+
+------------------------------------------------------------------------
+r361 | randerson | 2009-06-09 10:34:50 +0000 (Tue, 09 Jun 2009) | 3 lines
+
+Added accounting_summary & topups_summary tables
+Added timestamp column to topups
+
+------------------------------------------------------------------------
+r360 | randerson | 2009-05-27 14:00:31 +0000 (Wed, 27 May 2009) | 2 lines
+
+Added uptime support for topups
+
+------------------------------------------------------------------------
+r359 | randerson | 2009-05-27 13:59:17 +0000 (Wed, 27 May 2009) | 2 lines
+
+Added type column for different types of values
+
+------------------------------------------------------------------------
+r358 | randerson | 2009-05-27 11:58:54 +0000 (Wed, 27 May 2009) | 2 lines
+
+Added topup support
+
+------------------------------------------------------------------------
+r357 | randerson | 2009-05-27 11:55:34 +0000 (Wed, 27 May 2009) | 2 lines
+
+Ignore list for each type
+
+------------------------------------------------------------------------
+r356 | randerson | 2009-05-25 14:37:04 +0000 (Mon, 25 May 2009) | 2 lines
+
+Removed debug code
+
+------------------------------------------------------------------------
+r355 | randerson | 2009-05-25 12:39:00 +0000 (Mon, 25 May 2009) | 2 lines
+
+* Fixed mysql syntax
+
+------------------------------------------------------------------------
+r354 | randerson | 2009-05-23 20:02:13 +0000 (Sat, 23 May 2009) | 2 lines
+
+* Fix up HTML a bit
+
+------------------------------------------------------------------------
+r353 | randerson | 2009-05-22 10:41:12 +0000 (Fri, 22 May 2009) | 2 lines
+
+Added date validation feature for checking if the account is allowed to connect or not on the current date
+
+------------------------------------------------------------------------
+r352 | randerson | 2009-05-22 10:39:28 +0000 (Fri, 22 May 2009) | 2 lines
+
+Copy of config for testing purposes
+
+------------------------------------------------------------------------
+r351 | randerson | 2009-05-20 08:14:48 +0000 (Wed, 20 May 2009) | 3 lines
+
+Modified createWiSPUser for adding correct data
+Better error handling
+
+------------------------------------------------------------------------
+r350 | randerson | 2009-05-20 08:12:24 +0000 (Wed, 20 May 2009) | 3 lines
+
+Added grid panel for groups with groups dropdown menu
+Added Add Many tab for later use
+
+------------------------------------------------------------------------
+r349 | randerson | 2009-05-20 08:10:00 +0000 (Wed, 20 May 2009) | 2 lines
+
+Added check for null array item
+
+------------------------------------------------------------------------
+r348 | randerson | 2009-05-19 10:18:42 +0000 (Tue, 19 May 2009) | 2 lines
+
+Implemented grid panel for adding wisp user attributes.
+
+------------------------------------------------------------------------
+r347 | randerson | 2009-05-18 06:18:46 +0000 (Mon, 18 May 2009) | 2 lines
+
+Removed topups from wisp users
+
+------------------------------------------------------------------------
+r346 | randerson | 2009-05-15 14:45:18 +0000 (Fri, 15 May 2009) | 2 lines
+
+Initial fixes for WiSPUser add
+
+------------------------------------------------------------------------
+r345 | randerson | 2009-05-15 08:48:47 +0000 (Fri, 15 May 2009) | 2 lines
+
+AdminRealmAttributes add, edit fields working
+
+------------------------------------------------------------------------
+r344 | randerson | 2009-05-15 08:35:10 +0000 (Fri, 15 May 2009) | 2 lines
+
+All AdminGroupAttributes fields for add, edit
+
+------------------------------------------------------------------------
+r343 | randerson | 2009-05-15 08:18:44 +0000 (Fri, 15 May 2009) | 2 lines
+
+All fields for AdminUserAttributes add and edit
+
+------------------------------------------------------------------------
+r342 | randerson | 2009-05-14 13:01:19 +0000 (Thu, 14 May 2009) | 2 lines
+
+Removed old function
+
+------------------------------------------------------------------------
+r341 | randerson | 2009-05-14 12:35:32 +0000 (Thu, 14 May 2009) | 2 lines
+
+WiSPUserLogs and related functions
+
+------------------------------------------------------------------------
+r340 | randerson | 2009-05-14 12:05:31 +0000 (Thu, 14 May 2009) | 2 lines
+
+AdminUserLogs and related functions, EventTimestamp display and search needs fixing
+
+------------------------------------------------------------------------
+r339 | randerson | 2009-05-14 08:42:00 +0000 (Thu, 14 May 2009) | 2 lines
+
+List location members, remove a user from a location
+
+------------------------------------------------------------------------
+r338 | randerson | 2009-05-14 08:39:57 +0000 (Thu, 14 May 2009) | 2 lines
+
+List group members, remove member of a group
+
+------------------------------------------------------------------------
+r337 | randerson | 2009-05-14 08:38:20 +0000 (Thu, 14 May 2009) | 2 lines
+
+Added realm attributes webgui support
+
+------------------------------------------------------------------------
+r336 | randerson | 2009-05-13 14:44:15 +0000 (Wed, 13 May 2009) | 3 lines
+
+Some support for listing group members
+Cosmetic changes
+
+------------------------------------------------------------------------
+r335 | randerson | 2009-05-13 13:21:21 +0000 (Wed, 13 May 2009) | 2 lines
+
+Display group attributes window
+
+------------------------------------------------------------------------
+r334 | randerson | 2009-05-13 13:19:56 +0000 (Wed, 13 May 2009) | 2 lines
+
+List, add, edit and remove group attributes
+
+------------------------------------------------------------------------
+r333 | randerson | 2009-05-13 11:26:20 +0000 (Wed, 13 May 2009) | 2 lines
+
+Pass userID to function for adding attribute to user
+
+------------------------------------------------------------------------
+r332 | randerson | 2009-05-13 11:04:15 +0000 (Wed, 13 May 2009) | 2 lines
+
+Added addAdminUserAttribute fucntion
+
+------------------------------------------------------------------------
+r331 | randerson | 2009-05-13 11:02:12 +0000 (Wed, 13 May 2009) | 2 lines
+
+addAdminUserAttribute udpated
+
+------------------------------------------------------------------------
+r330 | randerson | 2009-05-13 09:49:17 +0000 (Wed, 13 May 2009) | 2 lines
+
+Edit AdminUser Attribute
+
+------------------------------------------------------------------------
+r329 | randerson | 2009-05-13 09:26:08 +0000 (Wed, 13 May 2009) | 4 lines
+
+Small cosmetic changes
+Link group to user
+Remove user attribute fixes
+
+------------------------------------------------------------------------
+r328 | randerson | 2009-05-13 07:44:05 +0000 (Wed, 13 May 2009) | 3 lines
+
+List user's groups
+Unlink user from group
+
+------------------------------------------------------------------------
+r327 | randerson | 2009-05-13 07:41:43 +0000 (Wed, 13 May 2009) | 2 lines
+
+Improved formatting
+
+------------------------------------------------------------------------
+r326 | randerson | 2009-05-13 07:39:07 +0000 (Wed, 13 May 2009) | 2 lines
+
+Added db->quote function
+
+------------------------------------------------------------------------
+r325 | randerson | 2009-05-12 14:22:39 +0000 (Tue, 12 May 2009) | 2 lines
+
+Fixed up function a little, untested
+
+------------------------------------------------------------------------
+r324 | randerson | 2009-05-12 14:06:05 +0000 (Tue, 12 May 2009) | 2 lines
+
+Initial support for AdminUserGroups and functions
+
+------------------------------------------------------------------------
+r323 | randerson | 2009-05-12 14:04:35 +0000 (Tue, 12 May 2009) | 2 lines
+
+Initial support for AdminUser Logs
+
+------------------------------------------------------------------------
+r322 | randerson | 2009-05-12 14:03:19 +0000 (Tue, 12 May 2009) | 2 lines
+
+Added Attributes button
+
+------------------------------------------------------------------------
+r321 | randerson | 2009-05-12 14:01:27 +0000 (Tue, 12 May 2009) | 2 lines
+
+Use WiSPUsers and AdminUserGroups functions
+
+------------------------------------------------------------------------
+r320 | randerson | 2009-05-12 13:58:58 +0000 (Tue, 12 May 2009) | 2 lines
+
+Initial support for listing AdminUsers attributes
+
+------------------------------------------------------------------------
+r319 | randerson | 2009-05-12 13:56:51 +0000 (Tue, 12 May 2009) | 2 lines
+
+Fixed up WiSPUsers to use UserID
+
+------------------------------------------------------------------------
+r318 | randerson | 2009-05-12 13:50:29 +0000 (Tue, 12 May 2009) | 2 lines
+
+Added db begin, commit and rollback transaction functions
+
+------------------------------------------------------------------------
+r317 | randerson | 2009-05-11 15:02:22 +0000 (Mon, 11 May 2009) | 2 lines
+
+Added lastInsertID function
+
+------------------------------------------------------------------------
+r316 | randerson | 2009-05-11 10:22:45 +0000 (Mon, 11 May 2009) | 3 lines
+
+Rename AdminLocations to WiSPLocations
+Add, edit and remove now work
+
+------------------------------------------------------------------------
+r315 | randerson | 2009-05-08 12:59:58 +0000 (Fri, 08 May 2009) | 2 lines
+
+Added updateAdminGroup and getAdminGroup cases
+
+------------------------------------------------------------------------
+r314 | randerson | 2009-05-08 12:50:23 +0000 (Fri, 08 May 2009) | 2 lines
+
+Added edit group menu item
+
+------------------------------------------------------------------------
+r313 | randerson | 2009-05-08 12:49:01 +0000 (Fri, 08 May 2009) | 2 lines
+
+Added updateAdminGroup and getAdminGroup functions
+
+------------------------------------------------------------------------
+r312 | randerson | 2009-05-08 12:46:48 +0000 (Fri, 08 May 2009) | 2 lines
+
+Fixed spelling error
+
+------------------------------------------------------------------------
+r311 | randerson | 2009-05-08 10:56:11 +0000 (Fri, 08 May 2009) | 2 lines
+
+Modified showAdminGroupEditWindow to send SOAP params properly
+
+------------------------------------------------------------------------
+r310 | randerson | 2009-05-08 10:53:56 +0000 (Fri, 08 May 2009) | 2 lines
+
+Added createAdminGroup function
+
+------------------------------------------------------------------------
+r309 | randerson | 2009-05-08 10:52:20 +0000 (Fri, 08 May 2009) | 2 lines
+
+* Support $args in DBSelect*() functions
+
+------------------------------------------------------------------------
+r308 | randerson | 2009-05-08 10:51:23 +0000 (Fri, 08 May 2009) | 3 lines
+
+* Added admin group create function
+* Check type is defined before we try access it in the params
+
+------------------------------------------------------------------------
+r307 | randerson | 2009-05-07 18:25:20 +0000 (Thu, 07 May 2009) | 3 lines
+
+* Added passthrough errors to db.php & ajax.php
+* Fixed AdminGroups.php
+
+------------------------------------------------------------------------
+r306 | randerson | 2009-05-07 15:02:43 +0000 (Thu, 07 May 2009) | 2 lines
+
+Admin remove group
+
+------------------------------------------------------------------------
+r305 | randerson | 2009-05-07 15:01:42 +0000 (Thu, 07 May 2009) | 2 lines
+
+Added DBDo function, needs fixing
+
+------------------------------------------------------------------------
+r304 | randerson | 2009-05-07 08:54:04 +0000 (Thu, 07 May 2009) | 2 lines
+
+Dont use timestamp search for now
+
+------------------------------------------------------------------------
+r303 | randerson | 2009-05-07 08:52:34 +0000 (Thu, 07 May 2009) | 2 lines
+
+Updated ajax functions
+
+------------------------------------------------------------------------
+r302 | randerson | 2009-05-07 08:47:46 +0000 (Thu, 07 May 2009) | 2 lines
+
+Support new database handle code
+
+------------------------------------------------------------------------
+r301 | nkukard | 2009-05-07 06:41:23 +0000 (Thu, 07 May 2009) | 2 lines
+
+* Removed stray functions files
+
+------------------------------------------------------------------------
+r300 | nkukard | 2009-05-07 06:38:29 +0000 (Thu, 07 May 2009) | 2 lines
+
+* Removed JSON class from ajax.php
+
+------------------------------------------------------------------------
+r299 | nkukard | 2009-05-07 06:37:22 +0000 (Thu, 07 May 2009) | 2 lines
+
+* Moved functions to include/ajax/functions/ and made DB handle global
+
+------------------------------------------------------------------------
+r298 | nkukard | 2009-05-07 06:25:31 +0000 (Thu, 07 May 2009) | 2 lines
+
+* Moved JSON functions to json.php
+
+------------------------------------------------------------------------
+r297 | nkukard | 2009-05-07 06:20:55 +0000 (Thu, 07 May 2009) | 2 lines
+
+* Added DBSelect family of functions
+
+------------------------------------------------------------------------
+r296 | randerson | 2009-05-06 14:21:43 +0000 (Wed, 06 May 2009) | 2 lines
+
+Initial support for querying database
+
+------------------------------------------------------------------------
+r295 | randerson | 2009-05-06 11:42:05 +0000 (Wed, 06 May 2009) | 3 lines
+
+Added Admin guis, still needs work
+Added WiSP Locations gui
+
+------------------------------------------------------------------------
+r294 | nkukard | 2009-05-05 19:44:12 +0000 (Tue, 05 May 2009) | 2 lines
+
+* Added bare bones of webgui
+
+------------------------------------------------------------------------
+r293 | nkukard | 2009-05-04 11:05:01 +0000 (Mon, 04 May 2009) | 2 lines
+
+* Added template for more dynamic handling of attributes
+
+------------------------------------------------------------------------
+r292 | randerson | 2009-05-04 09:55:23 +0000 (Mon, 04 May 2009) | 2 lines
+
+Added Realm Add/Delete & Realm attributes support
+
+------------------------------------------------------------------------
+r291 | nkukard | 2009-05-02 16:01:15 +0000 (Sat, 02 May 2009) | 2 lines
+
+* Added internal event timestamp
+
+------------------------------------------------------------------------
+r290 | nkukard | 2009-05-02 16:00:23 +0000 (Sat, 02 May 2009) | 3 lines
+
+* Fixed up templating engine macros
+* Use internal timestamp instead of the one in the packet which is not always present
+
+------------------------------------------------------------------------
+r289 | nkukard | 2009-05-02 15:58:56 +0000 (Sat, 02 May 2009) | 2 lines
+
+* Removed redundant logging cruft
+
+------------------------------------------------------------------------
+r288 | nkukard | 2009-05-02 15:57:42 +0000 (Sat, 02 May 2009) | 2 lines
+
+* Updated default accounting configuration
+
+------------------------------------------------------------------------
+r287 | nkukard | 2009-05-02 14:51:55 +0000 (Sat, 02 May 2009) | 2 lines
+
+* Addes small javascript library for webui
+
+------------------------------------------------------------------------
+r286 | nkukard | 2009-05-02 14:51:00 +0000 (Sat, 02 May 2009) | 3 lines
+
+* Fixed up configuration variables handling in modules
+* Fixed up configuration module and cleaned up code
+
+------------------------------------------------------------------------
+r285 | nkukard | 2009-05-02 14:48:50 +0000 (Sat, 02 May 2009) | 3 lines
+
+* Updated database schema to be a bit more tolerant to missing data
+* Added INT_UNSIGNED token to convert-tsql
+
+------------------------------------------------------------------------
+r284 | nkukard | 2009-05-02 14:47:41 +0000 (Sat, 02 May 2009) | 2 lines
+
+* Implemented defaults in the templating system
+
+------------------------------------------------------------------------
+r283 | nkukard | 2009-05-02 14:47:08 +0000 (Sat, 02 May 2009) | 2 lines
+
+* Fixed case of template attributes
+
+------------------------------------------------------------------------
+r282 | nkukard | 2009-05-01 07:38:57 +0000 (Fri, 01 May 2009) | 2 lines
+
+* Fix colspan for no users found message
+
+------------------------------------------------------------------------
+r281 | nkukard | 2009-05-01 07:32:42 +0000 (Fri, 01 May 2009) | 3 lines
+
+* Fixed attribute name input box
+* Allow no operator to be selected to keep previous one
+
+------------------------------------------------------------------------
+r280 | nkukard | 2009-04-30 17:38:52 +0000 (Thu, 30 Apr 2009) | 2 lines
+
+* Fixed menu to point to wisp-locations-main.php
+
+------------------------------------------------------------------------
+r279 | nkukard | 2009-04-30 17:36:16 +0000 (Thu, 30 Apr 2009) | 2 lines
+
+* Rename wisp-locations-manage.php to wisp-locations-main.php 2/2
+
+------------------------------------------------------------------------
+r278 | nkukard | 2009-04-30 17:35:23 +0000 (Thu, 30 Apr 2009) | 2 lines
+
+* Rename wisp-locations-manage.php 1/2
+
+------------------------------------------------------------------------
+r277 | nkukard | 2009-04-30 17:33:28 +0000 (Thu, 30 Apr 2009) | 2 lines
+
+* Various cosmetic fixes
+
+------------------------------------------------------------------------
+r276 | randerson | 2009-04-30 14:16:53 +0000 (Thu, 30 Apr 2009) | 3 lines
+
+Better error handling
+Adding users still needs work
+
+------------------------------------------------------------------------
+r275 | randerson | 2009-04-30 13:16:07 +0000 (Thu, 30 Apr 2009) | 3 lines
+
+Cleaned up code
+Better error handling: still needs fixing
+
+------------------------------------------------------------------------
+r274 | randerson | 2009-04-30 11:58:14 +0000 (Thu, 30 Apr 2009) | 2 lines
+
+wisp-user-delete cleaned up and improved sql error handling
+
+------------------------------------------------------------------------
+r273 | randerson | 2009-04-30 11:56:35 +0000 (Thu, 30 Apr 2009) | 2 lines
+
+Better SQL error handling
+
+------------------------------------------------------------------------
+r272 | randerson | 2009-04-30 11:41:32 +0000 (Thu, 30 Apr 2009) | 2 lines
+
+Finished removing use of sessions
+
+------------------------------------------------------------------------
+r271 | randerson | 2009-04-30 11:36:06 +0000 (Thu, 30 Apr 2009) | 2 lines
+
+Remved $_SESSION, replaced with $_POST
+
+------------------------------------------------------------------------
+r270 | nkukard | 2009-04-30 11:23:07 +0000 (Thu, 30 Apr 2009) | 2 lines
+
+* wisp code cleanup
+
+------------------------------------------------------------------------
+r269 | randerson | 2009-04-30 11:15:01 +0000 (Thu, 30 Apr 2009) | 2 lines
+
+Change $_SESSIONs to $_POST
+
+------------------------------------------------------------------------
+r268 | nkukard | 2009-04-30 11:14:45 +0000 (Thu, 30 Apr 2009) | 2 lines
+
+* Updatd todo
+
+------------------------------------------------------------------------
+r267 | nkukard | 2009-04-30 11:12:36 +0000 (Thu, 30 Apr 2009) | 2 lines
+
+* Updated TODO
+
+------------------------------------------------------------------------
+r266 | nkukard | 2009-04-30 10:49:28 +0000 (Thu, 30 Apr 2009) | 2 lines
+
+* Updated todo
+
+------------------------------------------------------------------------
+r265 | randerson | 2009-04-30 10:49:25 +0000 (Thu, 30 Apr 2009) | 3 lines
+
+Fixed delete attribute page not displaying
+Minor cosmetic changes
+
+------------------------------------------------------------------------
+r264 | randerson | 2009-04-30 10:43:10 +0000 (Thu, 30 Apr 2009) | 2 lines
+
+Replaces session handling with $_POST
+
+------------------------------------------------------------------------
+r263 | nkukard | 2009-04-30 10:28:05 +0000 (Thu, 30 Apr 2009) | 2 lines
+
+* Code cleanup of user-*
+
+------------------------------------------------------------------------
+r262 | nkukard | 2009-04-30 10:17:43 +0000 (Thu, 30 Apr 2009) | 2 lines
+
+* Removed last occurance of SESSION variable
+
+------------------------------------------------------------------------
+r261 | nkukard | 2009-04-30 10:15:12 +0000 (Thu, 30 Apr 2009) | 2 lines
+
+* Group related code cleanup
+
+------------------------------------------------------------------------
+r260 | randerson | 2009-04-30 10:08:42 +0000 (Thu, 30 Apr 2009) | 2 lines
+
+Added heading
+
+------------------------------------------------------------------------
+r259 | randerson | 2009-04-30 09:59:11 +0000 (Thu, 30 Apr 2009) | 2 lines
+
+Correctly show user location
+
+------------------------------------------------------------------------
+r258 | nkukard | 2009-04-30 09:44:50 +0000 (Thu, 30 Apr 2009) | 2 lines
+
+* Updated TODO
+
+------------------------------------------------------------------------
+r257 | nkukard | 2009-04-30 09:31:25 +0000 (Thu, 30 Apr 2009) | 2 lines
+
+* Commit of cosmetic and code cleanups and addition of extra error checking in groups
+
+------------------------------------------------------------------------
+r256 | randerson | 2009-04-30 08:53:01 +0000 (Thu, 30 Apr 2009) | 2 lines
+
+Fixed user delete page
+
+------------------------------------------------------------------------
+r255 | randerson | 2009-04-30 08:46:24 +0000 (Thu, 30 Apr 2009) | 3 lines
+
+Added some group support for WiSPs: add
+Fixed delete WiSP user to delete group associations
+
+------------------------------------------------------------------------
+r254 | nkukard | 2009-04-30 08:43:27 +0000 (Thu, 30 Apr 2009) | 2 lines
+
+* Various cosmetic and error checking fixes
+
+------------------------------------------------------------------------
+r253 | randerson | 2009-04-30 08:04:03 +0000 (Thu, 30 Apr 2009) | 2 lines
+
+Fixed foreign key referencing wrong table name
+
+------------------------------------------------------------------------
+r252 | randerson | 2009-04-30 08:02:47 +0000 (Thu, 30 Apr 2009) | 2 lines
+
+Manage user locations: Add, delete, list members
+
+------------------------------------------------------------------------
+r251 | randerson | 2009-04-30 08:00:14 +0000 (Thu, 30 Apr 2009) | 2 lines
+
+Fixed queries for changed table name
+
+------------------------------------------------------------------------
+r250 | randerson | 2009-04-30 07:58:51 +0000 (Thu, 30 Apr 2009) | 3 lines
+
+Fixed insert location to userdata
+More error checking
+
+------------------------------------------------------------------------
+r249 | randerson | 2009-04-30 06:24:20 +0000 (Thu, 30 Apr 2009) | 2 lines
+
+Removed show ID number in column
+
+------------------------------------------------------------------------
+r248 | randerson | 2009-04-29 15:15:17 +0000 (Wed, 29 Apr 2009) | 3 lines
+
+Added checks for query fails - needs check for empty fields (MAC, Location)
+Failing to insert user, needs fixing
+
+------------------------------------------------------------------------
+r247 | randerson | 2009-04-29 15:11:12 +0000 (Wed, 29 Apr 2009) | 2 lines
+
+table name change
+
+------------------------------------------------------------------------
+r246 | randerson | 2009-04-29 15:09:56 +0000 (Wed, 29 Apr 2009) | 2 lines
+
+table name changes
+
+------------------------------------------------------------------------
+r245 | randerson | 2009-04-29 15:08:22 +0000 (Wed, 29 Apr 2009) | 2 lines
+
+table name change
+
+------------------------------------------------------------------------
+r244 | nkukard | 2009-04-29 13:49:23 +0000 (Wed, 29 Apr 2009) | 2 lines
+
+* Changed attribute name SMRadius-Capping-Time-Limit to SMRadius-Capping-UpTime-Limit, this makes way for another feature to be added soon
+
+------------------------------------------------------------------------
+r243 | randerson | 2009-04-29 13:48:06 +0000 (Wed, 29 Apr 2009) | 2 lines
+
+table name change
+
+------------------------------------------------------------------------
+r242 | nkukard | 2009-04-29 13:04:01 +0000 (Wed, 29 Apr 2009) | 2 lines
+
+* Fixed grammar error
+
+------------------------------------------------------------------------
+r241 | nkukard | 2009-04-29 13:02:57 +0000 (Wed, 29 Apr 2009) | 3 lines
+
+* Fixed bug where configuration items were not read in properly
+* Changed user. macros to userdb. in hard coded defaults
+
+------------------------------------------------------------------------
+r240 | nkukard | 2009-04-29 13:00:08 +0000 (Wed, 29 Apr 2009) | 3 lines
+
+* Rename %{user macros to %{userdb
+* Make userdb macros entirely dynamic
+
+------------------------------------------------------------------------
+r239 | nkukard | 2009-04-29 12:50:15 +0000 (Wed, 29 Apr 2009) | 3 lines
+
+* Fixed configuration for mod_userdb_sql
+* Use  request.  and not  authentication. as macros
+
+------------------------------------------------------------------------
+r238 | randerson | 2009-04-29 12:12:39 +0000 (Wed, 29 Apr 2009) | 3 lines
+
+Added location drop down
+Insert into wisp_userdata location
+
+------------------------------------------------------------------------
+r237 | nkukard | 2009-04-29 11:54:55 +0000 (Wed, 29 Apr 2009) | 2 lines
+
+* Fixed incorrect configuration, we need to load the config module for system, not the userdb module
+
+------------------------------------------------------------------------
+r236 | randerson | 2009-04-29 11:54:33 +0000 (Wed, 29 Apr 2009) | 2 lines
+
+Added manage locations menu item
+
+------------------------------------------------------------------------
+r235 | randerson | 2009-04-29 11:53:14 +0000 (Wed, 29 Apr 2009) | 2 lines
+
+Fixed spelling error
+
+------------------------------------------------------------------------
+r234 | randerson | 2009-04-29 11:46:00 +0000 (Wed, 29 Apr 2009) | 3 lines
+
+Renamed userdata -> wisp_userdata
+Added locations table and location ID foreign key to wisp_userdata
+
+------------------------------------------------------------------------
+r233 | nkukard | 2009-04-29 11:34:31 +0000 (Wed, 29 Apr 2009) | 2 lines
+
+* Readability fix in wisp user list
+
+------------------------------------------------------------------------
+r232 | nkukard | 2009-04-29 11:31:52 +0000 (Wed, 29 Apr 2009) | 2 lines
+
+* Small readability fix in userlist UI
+
+------------------------------------------------------------------------
+r231 | nkukard | 2009-04-28 15:18:22 +0000 (Tue, 28 Apr 2009) | 2 lines
+
+* Move TODO items to main TODO file
+
+------------------------------------------------------------------------
+r230 | randerson | 2009-04-28 14:57:39 +0000 (Tue, 28 Apr 2009) | 2 lines
+
+WiSP user add
+
+------------------------------------------------------------------------
+r229 | randerson | 2009-04-28 14:55:14 +0000 (Tue, 28 Apr 2009) | 2 lines
+
+Added TODO list
+
+------------------------------------------------------------------------
+r228 | nkukard | 2009-04-27 19:34:42 +0000 (Mon, 27 Apr 2009) | 3 lines
+
+* Fixed up handling of vattributes
+* Few cosmetic changes
+
+------------------------------------------------------------------------
+r227 | nkukard | 2009-04-27 19:32:58 +0000 (Mon, 27 Apr 2009) | 4 lines
+
+* Fixed handling of ident in return packet
+* Fixed Magic1 and Magic2 arrays
+* Few cosmetic changes
+
+------------------------------------------------------------------------
+r226 | nkukard | 2009-04-27 19:31:16 +0000 (Mon, 27 Apr 2009) | 2 lines
+
+* Added setting vattribute reply
+
+------------------------------------------------------------------------
+r225 | nkukard | 2009-04-27 19:29:56 +0000 (Mon, 27 Apr 2009) | 2 lines
+
+* Don't add raw value if not present for vattributes
+
+------------------------------------------------------------------------
+r224 | nkukard | 2009-04-27 13:27:34 +0000 (Mon, 27 Apr 2009) | 3 lines
+
+* Remove debugging info from authentication modules
+* Ensure that authentication modules use the attribute details, remove hardcoding
+
+------------------------------------------------------------------------
+r223 | nkukard | 2009-04-27 11:35:20 +0000 (Mon, 27 Apr 2009) | 2 lines
+
+* Added debug message to say its PAP we using
+
+------------------------------------------------------------------------
+r222 | nkukard | 2009-04-27 11:20:38 +0000 (Mon, 27 Apr 2009) | 2 lines
+
+* Make sure that PAP authentication uses the configured secret to decode the password
+
+------------------------------------------------------------------------
+r221 | nkukard | 2009-04-27 11:12:32 +0000 (Mon, 27 Apr 2009) | 2 lines
+
+* Reworked broken reply attributes
+
+------------------------------------------------------------------------
+r220 | nkukard | 2009-04-27 10:04:15 +0000 (Mon, 27 Apr 2009) | 4 lines
+
+* Fixed up config attributes in smradiusd
+* Added function to get attribute values in attributes.pm
+* Fixed some of the function names for attribute operations
+
+------------------------------------------------------------------------
+r219 | nkukard | 2009-04-27 08:56:24 +0000 (Mon, 27 Apr 2009) | 2 lines
+
+* Various config attribute handling fixes and cosmetic changes
+
+------------------------------------------------------------------------
+r218 | nkukard | 2009-04-27 08:54:42 +0000 (Mon, 27 Apr 2009) | 2 lines
+
+* Fix handling of config attributes
+
+------------------------------------------------------------------------
+r217 | nkukard | 2009-04-26 19:29:55 +0000 (Sun, 26 Apr 2009) | 2 lines
+
+* Copyright update
+
+------------------------------------------------------------------------
+r216 | nkukard | 2009-04-26 18:39:19 +0000 (Sun, 26 Apr 2009) | 2 lines
+
+* Remove husk of first webui attempt
+
+------------------------------------------------------------------------
+r215 | nkukard | 2009-04-26 18:38:19 +0000 (Sun, 26 Apr 2009) | 2 lines
+
+* Don't include the mysql schema, this is built using the tsql script
+
+------------------------------------------------------------------------
+r214 | randerson | 2009-04-26 18:35:05 +0000 (Sun, 26 Apr 2009) | 2 lines
+
+* Addition of user webui
+
+------------------------------------------------------------------------
+r213 | randerson | 2009-04-26 18:33:52 +0000 (Sun, 26 Apr 2009) | 2 lines
+
+* Commit of work of config attributes
+
+------------------------------------------------------------------------
+r212 | randerson | 2009-04-23 06:20:28 +0000 (Thu, 23 Apr 2009) | 3 lines
+
+Added initial support for system config
+Added initial support for realms and realm attributes
+
+------------------------------------------------------------------------
+r211 | randerson | 2009-04-21 15:04:41 +0000 (Tue, 21 Apr 2009) | 2 lines
+
+Fixed broken link
+
+------------------------------------------------------------------------
+r210 | randerson | 2009-04-21 07:17:50 +0000 (Tue, 21 Apr 2009) | 1 line
+
+
+------------------------------------------------------------------------
+r209 | randerson | 2009-04-21 07:01:23 +0000 (Tue, 21 Apr 2009) | 3 lines
+
+Improved formatting
+Fixed $_POST['user_id'] defined in user_attributes.php
+
+------------------------------------------------------------------------
+r208 | randerson | 2009-04-20 14:30:36 +0000 (Mon, 20 Apr 2009) | 2 lines
+
+Added better checks for SQL failing
+
+------------------------------------------------------------------------
+r207 | randerson | 2009-04-20 12:57:45 +0000 (Mon, 20 Apr 2009) | 2 lines
+
+Fixed syntax errors
+
+------------------------------------------------------------------------
+r206 | randerson | 2009-04-20 12:50:30 +0000 (Mon, 20 Apr 2009) | 2 lines
+
+Updated page link
+
+------------------------------------------------------------------------
+r205 | randerson | 2009-04-20 06:38:03 +0000 (Mon, 20 Apr 2009) | 2 lines
+
+Reload database
+
+------------------------------------------------------------------------
+r204 | randerson | 2009-04-17 09:38:17 +0000 (Fri, 17 Apr 2009) | 2 lines
+
+Changes database schemas, added wisp table
+
+------------------------------------------------------------------------
+r203 | randerson | 2009-04-17 08:16:20 +0000 (Fri, 17 Apr 2009) | 2 lines
+
+Fixed user delete: delete all users groups, userdetails etc
+
+------------------------------------------------------------------------
+r202 | randerson | 2009-04-17 08:14:41 +0000 (Fri, 17 Apr 2009) | 2 lines
+
+Fixed printing of session time
+
+------------------------------------------------------------------------
+r201 | randerson | 2009-04-16 12:21:24 +0000 (Thu, 16 Apr 2009) | 4 lines
+
+Fixed up syntax
+Improved security
+Improved readability
+
+------------------------------------------------------------------------
+r200 | randerson | 2009-04-15 14:37:19 +0000 (Wed, 15 Apr 2009) | 2 lines
+
+Syntax fixes, improved formatting
+
+------------------------------------------------------------------------
+r199 | randerson | 2009-04-15 06:05:32 +0000 (Wed, 15 Apr 2009) | 2 lines
+
+Fixed definitions
+
+------------------------------------------------------------------------
+r198 | randerson | 2009-04-15 06:04:47 +0000 (Wed, 15 Apr 2009) | 2 lines
+
+Use printf instead of ceil function
+
+------------------------------------------------------------------------
+r197 | randerson | 2009-04-15 06:03:04 +0000 (Wed, 15 Apr 2009) | 2 lines
+
+Fixed definitions
+
+------------------------------------------------------------------------
+r196 | randerson | 2009-04-15 06:01:12 +0000 (Wed, 15 Apr 2009) | 2 lines
+
+Fixed definitions
+
+------------------------------------------------------------------------
+r195 | randerson | 2009-04-07 14:29:43 +0000 (Tue, 07 Apr 2009) | 2 lines
+
+Removed white spaces
+
+------------------------------------------------------------------------
+r194 | randerson | 2009-04-07 14:04:32 +0000 (Tue, 07 Apr 2009) | 2 lines
+
+Added initial support for adding multiple users at once
+
+------------------------------------------------------------------------
+r193 | randerson | 2009-04-07 14:03:04 +0000 (Tue, 07 Apr 2009) | 2 lines
+
+Fixed success message
+
+------------------------------------------------------------------------
+r192 | randerson | 2009-04-07 14:00:21 +0000 (Tue, 07 Apr 2009) | 2 lines
+
+Added menu item for multi user add feature
+
+------------------------------------------------------------------------
+r191 | randerson | 2009-04-06 09:56:32 +0000 (Mon, 06 Apr 2009) | 2 lines
+
+Added view log menu item
+
+------------------------------------------------------------------------
+r190 | randerson | 2009-04-06 09:55:27 +0000 (Mon, 06 Apr 2009) | 3 lines
+
+Fixed update queries
+Added calling-station-id query
+
+------------------------------------------------------------------------
+r189 | randerson | 2009-04-06 09:53:25 +0000 (Mon, 06 Apr 2009) | 3 lines
+
+Insert mac address as Calling-Station-Id
+Removed address list
+
+------------------------------------------------------------------------
+r188 | randerson | 2009-04-06 09:49:33 +0000 (Mon, 06 Apr 2009) | 2 lines
+
+Added view for wisp user logs
+
+------------------------------------------------------------------------
+r187 | randerson | 2009-04-03 13:51:25 +0000 (Fri, 03 Apr 2009) | 2 lines
+
+fixed up wisp user support: select, insert and delete data from multiple tables
+
+------------------------------------------------------------------------
+r186 | randerson | 2009-04-03 13:48:07 +0000 (Fri, 03 Apr 2009) | 2 lines
+
+fixed spelling error
+
+------------------------------------------------------------------------
+r185 | randerson | 2009-04-03 13:45:20 +0000 (Fri, 03 Apr 2009) | 2 lines
+
+fixed syntax
+
+------------------------------------------------------------------------
+r184 | randerson | 2009-04-01 11:51:49 +0000 (Wed, 01 Apr 2009) | 2 lines
+
+Added inistal support for adding WiSP users
+
+------------------------------------------------------------------------
+r183 | randerson | 2009-04-01 11:50:43 +0000 (Wed, 01 Apr 2009) | 2 lines
+
+Added initial support for editing a WiSP user
+
+------------------------------------------------------------------------
+r182 | randerson | 2009-04-01 11:49:33 +0000 (Wed, 01 Apr 2009) | 2 lines
+
+Added initial support for deleting WiSP users
+
+------------------------------------------------------------------------
+r181 | randerson | 2009-04-01 11:47:36 +0000 (Wed, 01 Apr 2009) | 2 lines
+
+Add support for viewing and filtering user information
+
+------------------------------------------------------------------------
+r180 | randerson | 2009-04-01 11:42:56 +0000 (Wed, 01 Apr 2009) | 2 lines
+
+improved readability of code
+
+------------------------------------------------------------------------
+r179 | randerson | 2009-04-01 11:39:48 +0000 (Wed, 01 Apr 2009) | 2 lines
+
+changed link order
+
+------------------------------------------------------------------------
+r178 | randerson | 2009-04-01 11:38:41 +0000 (Wed, 01 Apr 2009) | 2 lines
+
+fixed syntax
+
+------------------------------------------------------------------------
+r177 | randerson | 2009-03-30 08:07:48 +0000 (Mon, 30 Mar 2009) | 2 lines
+
+Fixed up indentation
+
+------------------------------------------------------------------------
+r176 | randerson | 2009-03-27 13:49:47 +0000 (Fri, 27 Mar 2009) | 2 lines
+
+print totals and fixed up bandwidth usage calculations
+
+------------------------------------------------------------------------
+r175 | randerson | 2009-03-27 13:47:40 +0000 (Fri, 27 Mar 2009) | 2 lines
+
+function to return string value for terminate cause code
+
+------------------------------------------------------------------------
+r174 | randerson | 2009-03-27 11:16:53 +0000 (Fri, 27 Mar 2009) | 2 lines
+
+added search for logs using timestamp
+
+------------------------------------------------------------------------
+r173 | randerson | 2009-03-27 11:14:11 +0000 (Fri, 27 Mar 2009) | 2 lines
+
+syntax fix
+
+------------------------------------------------------------------------
+r172 | randerson | 2009-03-27 11:13:04 +0000 (Fri, 27 Mar 2009) | 2 lines
+
+added user logs item
+
+------------------------------------------------------------------------
+r171 | randerson | 2009-03-27 10:40:43 +0000 (Fri, 27 Mar 2009) | 2 lines
+
+Changed accounting column EventTimestamp to DATETIME
+
+------------------------------------------------------------------------
+r170 | randerson | 2009-03-27 10:35:28 +0000 (Fri, 27 Mar 2009) | 2 lines
+
+Convert to timestamp supported by database
+
+------------------------------------------------------------------------
+r169 | randerson | 2009-03-25 14:34:34 +0000 (Wed, 25 Mar 2009) | 2 lines
+
+display user logs
+
+------------------------------------------------------------------------
+r168 | randerson | 2009-03-25 14:33:42 +0000 (Wed, 25 Mar 2009) | 2 lines
+
+Added use logs menu item
+
+------------------------------------------------------------------------
+r167 | randerson | 2009-03-25 14:32:53 +0000 (Wed, 25 Mar 2009) | 2 lines
+
+removed old link
+
+------------------------------------------------------------------------
+r166 | randerson | 2009-03-25 11:11:35 +0000 (Wed, 25 Mar 2009) | 2 lines
+
+fixed menu links
+
+------------------------------------------------------------------------
+r165 | randerson | 2009-03-25 11:09:14 +0000 (Wed, 25 Mar 2009) | 2 lines
+
+file renaming
+
+------------------------------------------------------------------------
+r164 | randerson | 2009-03-25 11:06:19 +0000 (Wed, 25 Mar 2009) | 2 lines
+
+file renaming
+
+------------------------------------------------------------------------
+r163 | randerson | 2009-03-25 10:32:38 +0000 (Wed, 25 Mar 2009) | 2 lines
+
+remove old files
+
+------------------------------------------------------------------------
+r162 | randerson | 2009-03-25 10:19:02 +0000 (Wed, 25 Mar 2009) | 2 lines
+
+updated to list group memebers
+
+------------------------------------------------------------------------
+r161 | randerson | 2009-03-25 09:41:35 +0000 (Wed, 25 Mar 2009) | 2 lines
+
+tab link changed
+
+------------------------------------------------------------------------
+r160 | randerson | 2009-03-25 09:40:31 +0000 (Wed, 25 Mar 2009) | 2 lines
+
+added check for empty list
+
+------------------------------------------------------------------------
+r159 | randerson | 2009-03-25 09:38:54 +0000 (Wed, 25 Mar 2009) | 2 lines
+
+added check for empty list
+
+------------------------------------------------------------------------
+r158 | randerson | 2009-03-25 09:37:18 +0000 (Wed, 25 Mar 2009) | 2 lines
+
+tab link changed
+
+------------------------------------------------------------------------
+r157 | randerson | 2009-03-25 09:36:23 +0000 (Wed, 25 Mar 2009) | 2 lines
+
+added check for empty list
+
+------------------------------------------------------------------------
+r156 | randerson | 2009-03-25 09:34:48 +0000 (Wed, 25 Mar 2009) | 2 lines
+
+Added check for empty list
+
+------------------------------------------------------------------------
+r155 | randerson | 2009-03-25 08:42:00 +0000 (Wed, 25 Mar 2009) | 2 lines
+
+Fixed formatting
+
+------------------------------------------------------------------------
+r154 | randerson | 2009-03-25 08:40:38 +0000 (Wed, 25 Mar 2009) | 2 lines
+
+Fixed formatting
+
+------------------------------------------------------------------------
+r153 | randerson | 2009-03-25 07:59:05 +0000 (Wed, 25 Mar 2009) | 2 lines
+
+Changed title
+
+------------------------------------------------------------------------
+r152 | randerson | 2009-03-25 07:57:24 +0000 (Wed, 25 Mar 2009) | 2 lines
+
+Added check for empty list
+
+------------------------------------------------------------------------
+r151 | randerson | 2009-03-25 07:54:29 +0000 (Wed, 25 Mar 2009) | 2 lines
+
+Added check for empty list
+
+------------------------------------------------------------------------
+r150 | randerson | 2009-03-24 13:34:34 +0000 (Tue, 24 Mar 2009) | 3 lines
+
+fixed formatting
+removed white spaces
+
+------------------------------------------------------------------------
+r149 | randerson | 2009-03-24 13:31:08 +0000 (Tue, 24 Mar 2009) | 2 lines
+
+removed white space
+
+------------------------------------------------------------------------
+r148 | randerson | 2009-03-24 13:30:16 +0000 (Tue, 24 Mar 2009) | 2 lines
+
+removed white space
+
+------------------------------------------------------------------------
+r147 | randerson | 2009-03-24 13:29:24 +0000 (Tue, 24 Mar 2009) | 2 lines
+
+removed some unrelated items
+
+------------------------------------------------------------------------
+r146 | randerson | 2009-03-24 13:27:16 +0000 (Tue, 24 Mar 2009) | 2 lines
+
+fixed result data
+
+------------------------------------------------------------------------
+r145 | randerson | 2009-03-24 13:25:20 +0000 (Tue, 24 Mar 2009) | 2 lines
+
+fixed <select>
+
+------------------------------------------------------------------------
+r144 | randerson | 2009-03-24 13:23:55 +0000 (Tue, 24 Mar 2009) | 2 lines
+
+fixed formatting
+
+------------------------------------------------------------------------
+r143 | randerson | 2009-03-24 13:22:02 +0000 (Tue, 24 Mar 2009) | 2 lines
+
+fixed formatting
+
+------------------------------------------------------------------------
+r142 | randerson | 2009-03-24 13:20:22 +0000 (Tue, 24 Mar 2009) | 2 lines
+
+removed white spaces
+
+------------------------------------------------------------------------
+r141 | randerson | 2009-03-24 08:59:42 +0000 (Tue, 24 Mar 2009) | 2 lines
+
+Added group attribute add
+
+------------------------------------------------------------------------
+r140 | randerson | 2009-03-24 08:58:17 +0000 (Tue, 24 Mar 2009) | 3 lines
+
+Added check for empty query
+Added list group attributes
+
+------------------------------------------------------------------------
+r139 | randerson | 2009-03-24 08:56:45 +0000 (Tue, 24 Mar 2009) | 2 lines
+
+Added change group attribute
+
+------------------------------------------------------------------------
+r138 | randerson | 2009-03-24 08:55:03 +0000 (Tue, 24 Mar 2009) | 2 lines
+
+Fixed delete from group attributes
+
+------------------------------------------------------------------------
+r137 | randerson | 2009-03-24 08:53:12 +0000 (Tue, 24 Mar 2009) | 2 lines
+
+Added check for empty query
+
+------------------------------------------------------------------------
+r136 | randerson | 2009-03-24 08:51:46 +0000 (Tue, 24 Mar 2009) | 2 lines
+
+Add link and menu item for group attributes page
+
+------------------------------------------------------------------------
+r135 | randerson | 2009-03-24 06:51:28 +0000 (Tue, 24 Mar 2009) | 2 lines
+
+Remove users from group and delete group
+
+------------------------------------------------------------------------
+r134 | randerson | 2009-03-23 14:55:08 +0000 (Mon, 23 Mar 2009) | 2 lines
+
+Fixed up input box
+
+------------------------------------------------------------------------
+r133 | randerson | 2009-03-23 14:32:35 +0000 (Mon, 23 Mar 2009) | 2 lines
+
+Removed old messages
+
+------------------------------------------------------------------------
+r132 | randerson | 2009-03-23 14:18:02 +0000 (Mon, 23 Mar 2009) | 2 lines
+
+List users that belong to this group
+
+------------------------------------------------------------------------
+r131 | randerson | 2009-03-23 14:15:10 +0000 (Mon, 23 Mar 2009) | 2 lines
+
+List current user's groups
+
+------------------------------------------------------------------------
+r130 | randerson | 2009-03-23 14:09:19 +0000 (Mon, 23 Mar 2009) | 2 lines
+
+Assign group to selected user
+
+------------------------------------------------------------------------
+r129 | randerson | 2009-03-23 09:25:49 +0000 (Mon, 23 Mar 2009) | 2 lines
+
+Add a group
+
+------------------------------------------------------------------------
+r128 | randerson | 2009-03-23 09:24:24 +0000 (Mon, 23 Mar 2009) | 2 lines
+
+fixed link
+
+------------------------------------------------------------------------
+r127 | randerson | 2009-03-23 09:23:22 +0000 (Mon, 23 Mar 2009) | 2 lines
+
+fixed link
+
+------------------------------------------------------------------------
+r126 | randerson | 2009-03-23 09:22:43 +0000 (Mon, 23 Mar 2009) | 2 lines
+
+fixed link
+
+------------------------------------------------------------------------
+r125 | randerson | 2009-03-23 09:21:49 +0000 (Mon, 23 Mar 2009) | 2 lines
+
+initial support for deleting user's groups
+
+------------------------------------------------------------------------
+r124 | randerson | 2009-03-23 09:20:14 +0000 (Mon, 23 Mar 2009) | 2 lines
+
+fixed links
+
+------------------------------------------------------------------------
+r123 | randerson | 2009-03-23 09:19:11 +0000 (Mon, 23 Mar 2009) | 2 lines
+
+fixed link
+
+------------------------------------------------------------------------
+r122 | randerson | 2009-03-23 09:18:27 +0000 (Mon, 23 Mar 2009) | 2 lines
+
+fixed up menu and links
+
+------------------------------------------------------------------------
+r121 | randerson | 2009-03-23 09:16:35 +0000 (Mon, 23 Mar 2009) | 2 lines
+
+fixed back link
+
+------------------------------------------------------------------------
+r120 | randerson | 2009-03-23 09:15:48 +0000 (Mon, 23 Mar 2009) | 2 lines
+
+added menu items
+
+------------------------------------------------------------------------
+r119 | randerson | 2009-03-23 09:13:38 +0000 (Mon, 23 Mar 2009) | 2 lines
+
+list user's groups
+
+------------------------------------------------------------------------
+r118 | randerson | 2009-03-23 09:12:09 +0000 (Mon, 23 Mar 2009) | 2 lines
+
+fixed links for smradiusd
+
+------------------------------------------------------------------------
+r117 | randerson | 2009-03-23 09:11:09 +0000 (Mon, 23 Mar 2009) | 2 lines
+
+fixed up spelling for smradiusd
+
+------------------------------------------------------------------------
+r116 | randerson | 2009-03-20 09:50:22 +0000 (Fri, 20 Mar 2009) | 2 lines
+
+file renamed
+
+------------------------------------------------------------------------
+r115 | randerson | 2009-03-20 08:38:07 +0000 (Fri, 20 Mar 2009) | 2 lines
+
+renamed file
+
+------------------------------------------------------------------------
+r114 | randerson | 2009-03-20 08:36:54 +0000 (Fri, 20 Mar 2009) | 2 lines
+
+renamed file
+
+------------------------------------------------------------------------
+r113 | randerson | 2009-03-20 08:18:07 +0000 (Fri, 20 Mar 2009) | 2 lines
+
+File renamed
+
+------------------------------------------------------------------------
+r112 | randerson | 2009-03-20 08:16:55 +0000 (Fri, 20 Mar 2009) | 2 lines
+
+Renamed file
+
+------------------------------------------------------------------------
+r111 | randerson | 2009-03-20 08:02:34 +0000 (Fri, 20 Mar 2009) | 2 lines
+
+Add renamed file
+
+------------------------------------------------------------------------
+r110 | randerson | 2009-03-20 08:01:40 +0000 (Fri, 20 Mar 2009) | 2 lines
+
+Remove old file
+
+------------------------------------------------------------------------
+r109 | randerson | 2009-03-20 07:57:01 +0000 (Fri, 20 Mar 2009) | 2 lines
+
+Changed menu
+
+------------------------------------------------------------------------
+r108 | randerson | 2009-03-20 07:55:58 +0000 (Fri, 20 Mar 2009) | 2 lines
+
+Fixed check for attributes
+
+------------------------------------------------------------------------
+r107 | randerson | 2009-03-20 07:54:50 +0000 (Fri, 20 Mar 2009) | 2 lines
+
+Changed menu
+
+------------------------------------------------------------------------
+r106 | randerson | 2009-03-20 07:46:02 +0000 (Fri, 20 Mar 2009) | 2 lines
+
+Check for alphanumeric entry
+
+------------------------------------------------------------------------
+r105 | randerson | 2009-03-20 06:17:47 +0000 (Fri, 20 Mar 2009) | 2 lines
+
+Added capping feature to config
+
+------------------------------------------------------------------------
+r104 | randerson | 2009-03-20 06:16:58 +0000 (Fri, 20 Mar 2009) | 2 lines
+
+Send packet of disconnect after accounting hook
+
+------------------------------------------------------------------------
+r103 | randerson | 2009-03-20 06:15:31 +0000 (Fri, 20 Mar 2009) | 2 lines
+
+Removed description field
+
+------------------------------------------------------------------------
+r102 | randerson | 2009-03-20 06:12:52 +0000 (Fri, 20 Mar 2009) | 2 lines
+
+Return ack/nack for post accounting hook
+
+------------------------------------------------------------------------
+r101 | randerson | 2009-03-19 14:38:30 +0000 (Thu, 19 Mar 2009) | 2 lines
+
+Fixed indentation / spelling
+
+------------------------------------------------------------------------
+r100 | randerson | 2009-03-19 14:37:48 +0000 (Thu, 19 Mar 2009) | 2 lines
+
+Fixed indentation / spelling
+
+------------------------------------------------------------------------
+r99 | randerson | 2009-03-19 14:37:01 +0000 (Thu, 19 Mar 2009) | 2 lines
+
+Fixed indentation / spelling
+
+------------------------------------------------------------------------
+r98 | randerson | 2009-03-19 14:36:18 +0000 (Thu, 19 Mar 2009) | 2 lines
+
+Fixed indentation / spelling
+
+------------------------------------------------------------------------
+r97 | randerson | 2009-03-19 14:35:22 +0000 (Thu, 19 Mar 2009) | 2 lines
+
+Fixed indentation / spelling
+
+------------------------------------------------------------------------
+r96 | randerson | 2009-03-19 14:34:45 +0000 (Thu, 19 Mar 2009) | 2 lines
+
+Fixed indentation / spelling
+
+------------------------------------------------------------------------
+r95 | randerson | 2009-03-19 14:34:05 +0000 (Thu, 19 Mar 2009) | 2 lines
+
+Fixed indentation / spelling
+
+------------------------------------------------------------------------
+r94 | randerson | 2009-03-19 14:01:13 +0000 (Thu, 19 Mar 2009) | 2 lines
+
+Added check to see if user's attributes are empty
+
+------------------------------------------------------------------------
+r93 | randerson | 2009-03-19 13:58:48 +0000 (Thu, 19 Mar 2009) | 2 lines
+
+Changed order of list
+
+------------------------------------------------------------------------
+r92 | randerson | 2009-03-19 12:58:27 +0000 (Thu, 19 Mar 2009) | 2 lines
+
+Ability to remove selected attribute
+
+------------------------------------------------------------------------
+r91 | randerson | 2009-03-19 12:57:17 +0000 (Thu, 19 Mar 2009) | 2 lines
+
+Ability to add attribute to a user
+
+------------------------------------------------------------------------
+r90 | randerson | 2009-03-19 12:55:51 +0000 (Thu, 19 Mar 2009) | 2 lines
+
+session_start() for using some data in attributes_add.php
+
+------------------------------------------------------------------------
+r89 | randerson | 2009-03-19 10:43:22 +0000 (Thu, 19 Mar 2009) | 2 lines
+
+Removed links that aren't needed
+
+------------------------------------------------------------------------
+r88 | randerson | 2009-03-19 10:41:51 +0000 (Thu, 19 Mar 2009) | 3 lines
+
+Added operators
+Removed some lines
+
+------------------------------------------------------------------------
+r87 | randerson | 2009-03-19 09:57:14 +0000 (Thu, 19 Mar 2009) | 2 lines
+
+Renamed user-change.php -> attribute-change.php
+
+------------------------------------------------------------------------
+r86 | randerson | 2009-03-19 09:56:12 +0000 (Thu, 19 Mar 2009) | 2 lines
+
+Renamed user-change.php -> attribute-change.php
+
+------------------------------------------------------------------------
+r85 | randerson | 2009-03-19 09:53:45 +0000 (Thu, 19 Mar 2009) | 2 lines
+
+Changed menu order
+
+------------------------------------------------------------------------
+r84 | randerson | 2009-03-19 09:52:54 +0000 (Thu, 19 Mar 2009) | 2 lines
+
+Fixed tabs
+
+------------------------------------------------------------------------
+r83 | randerson | 2009-03-19 09:51:50 +0000 (Thu, 19 Mar 2009) | 2 lines
+
+Fixed tabs
+
+------------------------------------------------------------------------
+r82 | randerson | 2009-03-18 13:12:46 +0000 (Wed, 18 Mar 2009) | 2 lines
+
+Added changing of attributes
+
+------------------------------------------------------------------------
+r81 | randerson | 2009-03-18 11:20:02 +0000 (Wed, 18 Mar 2009) | 2 lines
+
+Initial user attributes listing
+
+------------------------------------------------------------------------
+r80 | randerson | 2009-03-18 11:15:44 +0000 (Wed, 18 Mar 2009) | 2 lines
+
+Removed old file
+
+------------------------------------------------------------------------
+r79 | randerson | 2009-03-18 11:14:43 +0000 (Wed, 18 Mar 2009) | 2 lines
+
+Changed link to user attributes
+
+------------------------------------------------------------------------
+r78 | randerson | 2009-03-18 11:01:47 +0000 (Wed, 18 Mar 2009) | 2 lines
+
+Removed old file
+
+------------------------------------------------------------------------
+r77 | randerson | 2009-03-18 11:00:42 +0000 (Wed, 18 Mar 2009) | 2 lines
+
+Renamed old file
+
+------------------------------------------------------------------------
+r76 | randerson | 2009-03-18 10:58:09 +0000 (Wed, 18 Mar 2009) | 2 lines
+
+Some preparation for attributes
+
+------------------------------------------------------------------------
+r75 | randerson | 2009-03-18 10:18:05 +0000 (Wed, 18 Mar 2009) | 2 lines
+
+Not used anymore
+
+------------------------------------------------------------------------
+r74 | randerson | 2009-03-18 10:16:37 +0000 (Wed, 18 Mar 2009) | 2 lines
+
+Displaying user list
+
+------------------------------------------------------------------------
+r73 | randerson | 2009-03-18 10:13:48 +0000 (Wed, 18 Mar 2009) | 2 lines
+
+User list display
+
+------------------------------------------------------------------------
+r72 | randerson | 2009-03-18 10:12:04 +0000 (Wed, 18 Mar 2009) | 2 lines
+
+Added code for adding users
+
+------------------------------------------------------------------------
+r71 | randerson | 2009-03-18 10:11:10 +0000 (Wed, 18 Mar 2009) | 2 lines
+
+Added code to delete a user
+
+------------------------------------------------------------------------
+r70 | randerson | 2009-03-18 10:09:00 +0000 (Wed, 18 Mar 2009) | 2 lines
+
+Removed old layout
+
+------------------------------------------------------------------------
+r69 | randerson | 2009-03-18 10:07:20 +0000 (Wed, 18 Mar 2009) | 2 lines
+
+Updated for use with SMRadiusd
+
+------------------------------------------------------------------------
+r68 | randerson | 2009-03-18 10:05:30 +0000 (Wed, 18 Mar 2009) | 2 lines
+
+Updated for use with SMRadiusd
+
+------------------------------------------------------------------------
+r67 | randerson | 2009-03-18 10:02:34 +0000 (Wed, 18 Mar 2009) | 2 lines
+
+Changed wording
+
+------------------------------------------------------------------------
+r66 | randerson | 2009-03-18 10:01:09 +0000 (Wed, 18 Mar 2009) | 2 lines
+
+Updated config
+
+------------------------------------------------------------------------
+r65 | randerson | 2009-03-18 09:57:54 +0000 (Wed, 18 Mar 2009) | 2 lines
+
+Updated dates
+
+------------------------------------------------------------------------
+r64 | randerson | 2009-03-17 11:07:23 +0000 (Tue, 17 Mar 2009) | 2 lines
+
+* Copied in cluebringer webui
+
+------------------------------------------------------------------------
+r63 | randerson | 2009-03-17 11:01:19 +0000 (Tue, 17 Mar 2009) | 2 lines
+
+* Renamed webui to webui1
+
+------------------------------------------------------------------------
+r62 | randerson | 2009-03-17 10:58:20 +0000 (Tue, 17 Mar 2009) | 2 lines
+
+* Few changes testing
+
+------------------------------------------------------------------------
+r61 | randerson | 2009-03-17 10:22:54 +0000 (Tue, 17 Mar 2009) | 2 lines
+
+* Copied over webui from old repo
+
+------------------------------------------------------------------------
+r60 | randerson | 2009-03-16 06:37:20 +0000 (Mon, 16 Mar 2009) | 2 lines
+
+Fixed up comments
+
+------------------------------------------------------------------------
+r59 | randerson | 2009-03-13 07:47:06 +0000 (Fri, 13 Mar 2009) | 3 lines
+
+Renamed authentication_try function
+Added features support
+
+------------------------------------------------------------------------
+r58 | randerson | 2009-03-13 07:39:06 +0000 (Fri, 13 Mar 2009) | 2 lines
+
+Renamed authentication_try function
+
+------------------------------------------------------------------------
+r57 | randerson | 2009-03-13 07:31:07 +0000 (Fri, 13 Mar 2009) | 2 lines
+
+Preliminary support for capping users
+
+------------------------------------------------------------------------
+r56 | randerson | 2009-03-13 07:24:10 +0000 (Fri, 13 Mar 2009) | 2 lines
+
+Added support for fetching usage information
+
+------------------------------------------------------------------------
+r55 | randerson | 2009-03-10 11:26:54 +0000 (Tue, 10 Mar 2009) | 2 lines
+
+Cleaned up a little
+
+------------------------------------------------------------------------
+r54 | randerson | 2009-03-10 11:25:57 +0000 (Tue, 10 Mar 2009) | 2 lines
+
+Authenticate with hash
+
+------------------------------------------------------------------------
+r53 | randerson | 2009-03-10 11:23:02 +0000 (Tue, 10 Mar 2009) | 2 lines
+
+Add attributes as hash
+
+------------------------------------------------------------------------
+r52 | randerson | 2009-03-10 11:19:55 +0000 (Tue, 10 Mar 2009) | 2 lines
+
+Compare with User-Password
+
+------------------------------------------------------------------------
+r51 | randerson | 2009-03-10 11:17:07 +0000 (Tue, 10 Mar 2009) | 2 lines
+
+Support multiple instances of same operator
+
+------------------------------------------------------------------------
+r50 | randerson | 2009-03-10 11:09:30 +0000 (Tue, 10 Mar 2009) | 2 lines
+
+Made Operator not unique and increased length
+
+------------------------------------------------------------------------
+r49 | nkukard | 2009-03-08 13:29:59 +0000 (Sun, 08 Mar 2009) | 2 lines
+
+* More work on the userdb sql module
+
+------------------------------------------------------------------------
+r48 | nkukard | 2009-03-08 13:28:53 +0000 (Sun, 08 Mar 2009) | 2 lines
+
+* Added user and group references in attribute tables
+
+------------------------------------------------------------------------
+r47 | nkukard | 2009-03-08 13:23:13 +0000 (Sun, 08 Mar 2009) | 2 lines
+
+* Move attribute code into the new attributes.pm module
+
+------------------------------------------------------------------------
+r46 | nkukard | 2009-03-08 13:21:44 +0000 (Sun, 08 Mar 2009) | 2 lines
+
+* Added new attributes API, now everything is in one place
+
+------------------------------------------------------------------------
+r45 | nkukard | 2009-03-07 19:25:29 +0000 (Sat, 07 Mar 2009) | 2 lines
+
+* Cosmetic fixup
+
+------------------------------------------------------------------------
+r44 | nkukard | 2009-03-07 19:11:34 +0000 (Sat, 07 Mar 2009) | 3 lines
+
+* User_find can now return _UserDB_Data attribute for use later
+* User_get now takes 3 parameters: self, user, packet
+
+------------------------------------------------------------------------
+r43 | randerson | 2009-03-06 14:39:49 +0000 (Fri, 06 Mar 2009) | 2 lines
+
+Initial support for user database
+
+------------------------------------------------------------------------
+r42 | randerson | 2009-03-06 07:50:07 +0000 (Fri, 06 Mar 2009) | 3 lines
+
+Initial database integration
+Spelling errors
+
+------------------------------------------------------------------------
+r41 | randerson | 2009-03-06 07:47:21 +0000 (Fri, 06 Mar 2009) | 2 lines
+
+Spelling errors
+
+------------------------------------------------------------------------
+r40 | randerson | 2009-03-06 07:45:40 +0000 (Fri, 06 Mar 2009) | 2 lines
+
+Fixed up accounting schema
+
+------------------------------------------------------------------------
+r39 | randerson | 2009-03-06 07:43:40 +0000 (Fri, 06 Mar 2009) | 2 lines
+
+Added function for fetching queries
+
+------------------------------------------------------------------------
+r38 | randerson | 2009-03-06 07:40:37 +0000 (Fri, 06 Mar 2009) | 3 lines
+
+
+Fixed up sql template queries
+
+------------------------------------------------------------------------
+r37 | randerson | 2009-03-06 05:27:16 +0000 (Fri, 06 Mar 2009) | 2 lines
+
+* Return the raw value for rawattr() and fallback to the translated value if there is no raw value
+
+------------------------------------------------------------------------
+r36 | randerson | 2009-03-05 11:02:29 +0000 (Thu, 05 Mar 2009) | 2 lines
+
+* Fixed package names, its smradius:: not cbp::
+
+------------------------------------------------------------------------
+r35 | randerson | 2009-03-03 14:56:23 +0000 (Tue, 03 Mar 2009) | 2 lines
+
+Added support for operators in reply
+
+------------------------------------------------------------------------
+r34 | randerson | 2009-03-03 12:26:43 +0000 (Tue, 03 Mar 2009) | 2 lines
+
+Added some support for operators
+
+------------------------------------------------------------------------
+r33 | randerson | 2009-03-03 10:59:06 +0000 (Tue, 03 Mar 2009) | 2 lines
+
+* Added niceUndef function to print undefined strings nicely
+
+------------------------------------------------------------------------
+r32 | nkukard | 2009-03-02 10:40:53 +0000 (Mon, 02 Mar 2009) | 2 lines
+
+* Acct-{Input,Output}-String should be Acct-{Input,Output}-Octets
+
+------------------------------------------------------------------------
+r31 | nkukard | 2009-03-02 10:39:38 +0000 (Mon, 02 Mar 2009) | 2 lines
+
+* Added default SQL queries
+
+------------------------------------------------------------------------
+r30 | nkukard | 2009-03-01 19:09:50 +0000 (Sun, 01 Mar 2009) | 2 lines
+
+* Added SQL accounting module
+
+------------------------------------------------------------------------
+r29 | nkukard | 2009-03-01 19:09:05 +0000 (Sun, 01 Mar 2009) | 2 lines
+
+* Updated copyright
+
+------------------------------------------------------------------------
+r28 | nkukard | 2009-03-01 19:07:59 +0000 (Sun, 01 Mar 2009) | 2 lines
+
+* Added default value option for template items
+
+------------------------------------------------------------------------
+r27 | nkukard | 2009-03-01 19:06:59 +0000 (Sun, 01 Mar 2009) | 2 lines
+
+* Removed stray debugging info
+
+------------------------------------------------------------------------
+r26 | nkukard | 2009-03-01 11:52:01 +0000 (Sun, 01 Mar 2009) | 2 lines
+
+* Added utility library with a template replacer function
+
+------------------------------------------------------------------------
+r25 | nkukard | 2009-03-01 11:51:17 +0000 (Sun, 01 Mar 2009) | 2 lines
+
+* More work on the accounting test module
+
+------------------------------------------------------------------------
+r24 | nkukard | 2009-03-01 11:50:32 +0000 (Sun, 01 Mar 2009) | 2 lines
+
+* Add rawattr() which returns the raw value of an attribute
+
+------------------------------------------------------------------------
+r23 | nkukard | 2009-03-01 10:29:12 +0000 (Sun, 01 Mar 2009) | 2 lines
+
+* Add raw value aswell to our attributes
+
+------------------------------------------------------------------------
+r22 | nkukard | 2009-03-01 10:04:50 +0000 (Sun, 01 Mar 2009) | 2 lines
+
+* Use same block of code to find a user for certain packet types
+
+------------------------------------------------------------------------
+r21 | nkukard | 2009-03-01 09:12:57 +0000 (Sun, 01 Mar 2009) | 2 lines
+
+* Use warnings
+
+------------------------------------------------------------------------
+r20 | nkukard | 2009-03-01 09:09:50 +0000 (Sun, 01 Mar 2009) | 2 lines
+
+* ACK we got the packet in our accounting test module
+
+------------------------------------------------------------------------
+r19 | nkukard | 2009-03-01 09:00:25 +0000 (Sun, 01 Mar 2009) | 2 lines
+
+* Make sure we reply to the NAS that we got the accounting packet
+
+------------------------------------------------------------------------
+r18 | nkukard | 2009-03-01 08:49:25 +0000 (Sun, 01 Mar 2009) | 2 lines
+
+* Added accounting plugin support
+
+------------------------------------------------------------------------
+r17 | nkukard | 2009-03-01 08:46:21 +0000 (Sun, 01 Mar 2009) | 2 lines
+
+* Added config for accounting
+
+------------------------------------------------------------------------
+r16 | randerson | 2009-02-27 08:31:45 +0000 (Fri, 27 Feb 2009) | 2 lines
+
+Added NAS-Port-Type attribute for testing
+
+------------------------------------------------------------------------
+r15 | nkukard | 2009-02-27 08:22:51 +0000 (Fri, 27 Feb 2009) | 3 lines
+
+* Fixed typo in database tsql file
+* Added template queries to the smradiusd.conf file
+
+------------------------------------------------------------------------
+r14 | nkukard | 2009-02-27 07:55:39 +0000 (Fri, 27 Feb 2009) | 2 lines
+
+* Added mod_userdb_sql ability to enable SQL support in smradiusd
+
+------------------------------------------------------------------------
+r13 | nkukard | 2009-02-27 07:31:05 +0000 (Fri, 27 Feb 2009) | 2 lines
+
+* Added SQL userdb framework
+
+------------------------------------------------------------------------
+r12 | nkukard | 2009-02-27 07:26:44 +0000 (Fri, 27 Feb 2009) | 2 lines
+
+* Fixed up database schema
+
+------------------------------------------------------------------------
+r11 | randerson | 2009-02-26 15:10:12 +0000 (Thu, 26 Feb 2009) | 3 lines
+
+* Fixed up mod_auth_pap a bit
+* Added mod_userdb_test for testing of radius server
+
+------------------------------------------------------------------------
+r10 | randerson | 2009-02-26 15:08:56 +0000 (Thu, 26 Feb 2009) | 3 lines
+
+* Updated config file handling
+* Various other API changes, fixes & updates
+
+------------------------------------------------------------------------
+r9 | randerson | 2009-02-26 15:05:47 +0000 (Thu, 26 Feb 2009) | 3 lines
+
+* Removed authentication plugins config section
+* Added authentication mechanisms & users config section
+
+------------------------------------------------------------------------
+r8 | nkukard | 2009-02-26 14:29:40 +0000 (Thu, 26 Feb 2009) | 2 lines
+
+* Added preliminary database schema
+
+------------------------------------------------------------------------
+r7 | nkukard | 2009-02-26 06:26:16 +0000 (Thu, 26 Feb 2009) | 2 lines
+
+* Small fixup
+
+------------------------------------------------------------------------
+r6 | nkukard | 2009-02-26 06:19:44 +0000 (Thu, 26 Feb 2009) | 2 lines
+
+* Initial framework
+
+------------------------------------------------------------------------
+r5 | nkukard | 2008-11-16 07:56:16 +0000 (Sun, 16 Nov 2008) | 3 lines
+
+* Added caching engine
+* Added database engine
+
+------------------------------------------------------------------------
+r4 | nkukard | 2008-11-16 07:26:31 +0000 (Sun, 16 Nov 2008) | 2 lines
+
+* Pulled in files that were no checked in from sitemanager
+
+------------------------------------------------------------------------
+r2 | nkukard | 2008-11-15 17:32:19 +0000 (Sat, 15 Nov 2008) | 2 lines
+
+* Added LICENSE, TODO, AUTHORS, INSTALL
+
+------------------------------------------------------------------------
+r1 | nkukard | 2008-11-15 17:23:44 +0000 (Sat, 15 Nov 2008) | 2 lines
+
+* Initial import
+
+------------------------------------------------------------------------
