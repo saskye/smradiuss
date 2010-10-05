@@ -672,6 +672,8 @@ sub cleanup
 								Balance => $trafficRemaining
 						});
 					}
+
+					$trafficOverUsage = 0;
 				}
 			}
 
@@ -801,6 +803,8 @@ sub cleanup
 								Balance => $uptimeRemaining
 						});
 					}
+
+					$uptimeOverUsage = 0;
 				}
 			}
 
