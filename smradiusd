@@ -22,9 +22,8 @@ use warnings;
 
 # Set library directory
 use lib qw(
-	../ ./
 	smradius
-	awitpt/db
+	awitpt
 );
 
 package radiusd;

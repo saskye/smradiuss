@@ -1,0 +1,6 @@
+[submodule "awitpt"]
+	path = awitpt
+	url = git://git.devlabs.linuxassist.net/awit-perl-toolkit
+[submodule "webgui/awitef"]
+	path = webgui/awitef
+	url = git://git.devlabs.linuxassist.net/awit-extjs-framework
