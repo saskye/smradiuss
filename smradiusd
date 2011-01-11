@@ -348,7 +348,7 @@ sub post_configure_hook {
 
 	$self->log(LOG_INFO,"[SMRADIUS] Initializing system modules.");
 	# Init caching engine
-#	awitpt::cache::Init($self);
+	awitpt::cache::Init($self);
 	$self->log(LOG_INFO,"[SMRADIUS] System modules initialized.");
 
 }
@@ -447,8 +447,11 @@ sub process_request {
 		return;
 	}
 
-	# Profiling...
+	# Very first timer ...
 	my $timer0 = [gettimeofday];
+
+	# Grab NOW()
+	my $now = time();
 
 	# Parse packet
 	my $pkt = new Radius::Packet($self->{'radius'}->{'dictionary'},$udp_packet);
@@ -479,7 +482,7 @@ sub process_request {
 			$timeout = 120;
 		}
 		# Get time left
-		my $timepassed = time() - $self->{'client'}->{'dbh_status'};
+		my $timepassed = $now - $self->{'client'}->{'dbh_status'};
 		# Then check...
 		if ($timepassed >= $timeout) {
 			$self->log(LOG_WARN,"[SMRADIUS] Client BYPASS timeout exceeded, reconnecting...");
@@ -512,7 +515,7 @@ sub process_request {
 	if (defined($pkt->rawattr('Event-Timestamp')) && $self->{'smradius'}->{'use_packet_timestamp'}) {
 		$user->{'_Internal'}->{'Timestamp-Unix'} = $pkt->rawattr('Event-Timestamp');
 	} else {
-		$user->{'_Internal'}->{'Timestamp-Unix'} = time();
+		$user->{'_Internal'}->{'Timestamp-Unix'} = $now;
 	}
 
 	# VERY IMPORTANT!!!!!!
@@ -525,6 +528,25 @@ sub process_request {
 
 	# Set username
 	$user->{'Username'} = $pkt->attr('User-Name');
+
+	# First thing we do is to make sure the NAS behaves if we using abuse prevention
+	if ($self->{'smradius'}->{'use_abuse_prevention'} && defined($user->{'Username'})) {
+		my ($res,$val) = cacheGetKeyPair('FloodCheck',$server->{'peeraddr'}."/".$user->{'Username'}."/".$pkt->code);
+		if (defined($val)) {
+			my $timePeriod = $now - $val;
+			if ($pkt->code eq "Access-Request" && $timePeriod < $self-{'smradius'}->{'access_request_abuse_threshold'}) {
+				$self->log(LOG_WARN,"[SMRADIUS] ABUSE: Server trying too fast. server = ".$server->{'peeraddr'}.", user = ".$user->{'Username'}.
+						", code = ".$pkt->code.", timeout = ".($now - $val));
+				return;
+			} elsif ($pkt->code eq "Accounting-Request" && $timePeriod < $self->{'smradius'}->{'accounting_request_abuse_threshold'}) {
+				$self->log(LOG_WARN,"[SMRADIUS] ABUSE: Server trying too fast. server = ".$server->{'peeraddr'}.", user = ".$user->{'Username'}.
+						", code = ".$pkt->code.", timeout = ".($now - $val));
+				return;
+			}
+		}
+		# We give the benefit of the doubt and let a query take 60s. We update to right stamp at end of this function
+		cacheStoreKeyPair('FloodCheck',$server->{'peeraddr'}."/".$user->{'Username'}."/".$pkt->code,$now + 60);
+	}
 
 	#
 	# GRAB & PROCESS CONFIG
@@ -560,6 +582,9 @@ sub process_request {
 			}
 		}
 	}
+
+	# Get the user timer
+	my $timer1 = [gettimeofday];
 
 	# FIXME - need secret
 	# FIXME - need acl list
@@ -612,6 +637,9 @@ sub process_request {
 			}
 		}
 	}
+
+	# Process the packet timer
+	my $timer2 = [gettimeofday];
 
 
 	# Is this an accounting request
@@ -1025,9 +1053,16 @@ CHECK_RESULT:
 	}
 
 	# END
-	my $timer1 = [gettimeofday];
-	my $timediff = tv_interval($timer0,$timer1);
-	$self->log(LOG_NOTICE,"[SMRADIUS] Result: $logReason (${timediff}s) => $logLine");
+	my $timer9 = [gettimeofday];
+	my $timediff1 = tv_interval($timer0,$timer1);
+	my $timediff2 = tv_interval($timer1,$timer2);
+	my $timediff = tv_interval($timer0,$timer9);
+	$self->log(LOG_NOTICE,"[SMRADIUS] Result: $logReason (%.3fs + %.3fs = %.3fs) => $logLine",$timediff1,$timediff2,$timediff);
+
+	# If we using abuse prevention record the time we ending off
+	if ($self->{'smradius'}->{'use_abuse_prevention'} && defined($user->{'Username'})) {
+		cacheStoreKeyPair('FloodCheck',$server->{'peeraddr'}."/".$user->{'Username'}."/".$pkt->code,time());
+	}
 
 	return;
 }
@@ -1041,7 +1076,7 @@ sub server_exit
 
 	$self->log(LOG_DEBUG,"Destroying system modules.");
 	# Destroy cache
-#	cbp::cache::Destroy($self);
+	awitpt::cache::Destroy($self);
 	$self->log(LOG_DEBUG,"System modules destroyed.");
 
 	# Parent exit

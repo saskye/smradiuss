@@ -63,17 +63,17 @@ sub Init
 	$server->{'smradius'}{'database'} = $db;
 
 	# Setup event timezone config
-	if (defined($config->{'server'}{'event_timezone'})) {
-		$server->{'smradius'}{'event_timezone'} = $config->{'server'}{'event_timezone'};
+	if (defined($config->{'system'}{'event_timezone'})) {
+		$server->{'smradius'}{'event_timezone'} = $config->{'system'}{'event_timezone'};
 	} else {
 		$server->{'smradius'}{'event_timezone'} = "GMT";
 	}
 		
 	# Should we use the packet timestamp?
-	if (defined($config->{'server'}{'use_packet_timestamp'})) {
-		if ($config->{'server'}{'use_packet_timestamp'} =~ /^\s*(yes|true|1)\s*$/i) {
+	if (defined($config->{'radius'}{'use_packet_timestamp'})) {
+		if ($config->{'radius'}{'use_packet_timestamp'} =~ /^\s*(yes|true|1)\s*$/i) {
 			$server->{'smradius'}{'use_packet_timestamp'} = 1;
-		} elsif ($config->{'server'}{'use_packet_timestamp'} =~ /^\s*(no|false|0)\s*$/i) {
+		} elsif ($config->{'radius'}{'use_packet_timestamp'} =~ /^\s*(no|false|0)\s*$/i) {
 			$server->{'smradius'}{'use_packet_timestamp'} = 0;
 		} else {
 			$server->log(LOG_NOTICE,"smradius/config.pm: Value for 'use_packet_timestamp' is invalid");
@@ -82,8 +82,43 @@ sub Init
 		$server->{'smradius'}{'use_packet_timestamp'} = 0;
 	}
 		
+	# Should we use abuse prevention?
+	if (defined($config->{'radius'}{'use_abuse_prevention'})) {
+		if ($config->{'radius'}{'use_abuse_prevention'} =~ /^\s*(yes|true|1)\s*$/i) {
+			$server->{'smradius'}{'use_abuse_prevention'} = 1;
+		} elsif ($config->{'radius'}{'use_abuse_prevention'} =~ /^\s*(no|false|0)\s*$/i) {
+			$server->{'smradius'}{'use_abuse_prevention'} = 0;
+		} else {
+			$server->log(LOG_NOTICE,"smradius/config.pm: Value for 'use_abuse_prevention' is invalid");
+		}
+	} else {
+		$server->{'smradius'}{'use_abuse_prevention'} = 0;
+	}
+	if (defined($config->{'radius'}{'access_request_abuse_threshold'})) {
+		if ($config->{'radius'}{'access_request_abuse_threshold'} =~ /^[1-9][0-9]*$/i) {
+			$server->{'smradius'}{'access_request_abuse_threshold'} = $config->{'radius'}{'access_request_abuse_threshold'};
+		} else {
+			$server->log(LOG_NOTICE,"smradius/config.pm: Value for 'access_request_abuse_threshold' is invalid");
+		}
+	} else {
+		$server->{'smradius'}{'access_request_abuse_threshold'} = 10;
+	}
+	if (defined($config->{'radius'}{'accounting_request_abuse_threshold'})) {
+		if ($config->{'radius'}{'accounting_request_abuse_threshold'} =~ /^[1-9][0-9]*$/i) {
+			$server->{'smradius'}{'accounting_request_abuse_threshold'} = $config->{'radius'}{'accounting_request_abuse_threshold'};
+		} else {
+			$server->log(LOG_NOTICE,"smradius/config.pm: Value for 'accounting_request_abuse_threshold' is invalid");
+		}
+	} else {
+		$server->{'smradius'}{'accounting_request_abuse_threshold'} = 5;
+	}
+		
 	$server->log(LOG_NOTICE,"smradius/config.pm: Using ". ( $server->{'smradius'}{'use_packet_timestamp'} ? 'packet' : 'server' ) ." timestamp");
 	$server->log(LOG_NOTICE,"smradius/config.pm: Using timezone '".$server->{'smradius'}{'event_timezone'}."'");
+	$server->log(LOG_NOTICE,"smradius/config.pm: Abuse prevention ".( $server->{'smradius'}{'use_abuse_prevention'} ? 
+			'active (access-threshold = '.$server->{'smradius'}{'access_request_abuse_threshold'}.
+			', accounting-threshold = '.$server->{'smradius'}{'accounting_request_abuse_threshold'}.')'
+			: 'inactive'));
 }
 
 

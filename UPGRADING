@@ -1,3 +1,9 @@
+
+2011-01-11:
+	Move configuration file item "use_packet_timestamp=" to "[radius]" section
+
+---
+
 r574:
 	# Database
 
