@@ -2,6 +2,13 @@
 2011-01-11:
 	Move configuration file item "use_packet_timestamp=" to "[radius]" section
 
+	mkdir /var/log/smradius
+	mkdir /var/run/smradius
+
+	If you are running smradius as an unpriv user, then ...
+	chown smradius.smradius /var/log/smradius /var/run/smradius
+
+
 ---
 
 r574:

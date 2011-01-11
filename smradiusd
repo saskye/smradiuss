@@ -68,12 +68,13 @@ sub configure {
 	# Set defaults
 	my $cfg;
 	$cfg->{'config_file'} = "/etc/smradiusd.conf";
+	$cfg->{'cache_file'} = '/var/run/smradius/cache';
 
 	$server->{'timeout'} = 120;
 	$server->{'background'} = "yes";
-	$server->{'pid_file'} = "/var/run/smradiusd.pid";
+	$server->{'pid_file'} = "/var/run/smradius/smradiusd.pid";
 	$server->{'log_level'} = 2;
-	$server->{'log_file'} = "/var/log/smradiusd.log";
+	$server->{'log_file'} = "/var/log/smradius/smradiusd.log";
 
 	$server->{'host'} = "*";
 	$server->{'port'} = [ 1812, 1813 ];
@@ -293,6 +294,12 @@ sub configure {
 		}
 	}
 
+	# Check if the user specified a cache_file in the config
+	if (defined($config{'server'}{'cache_file'})) {
+		$cfg->{'cache_file'} = $config{'server'}{'cache_file'};
+	}
+
+
 	# Save our config and stuff
 	$self->{'config'} = $cfg;
 	$self->{'cmdline'} = $cmdline;
@@ -348,7 +355,12 @@ sub post_configure_hook {
 
 	$self->log(LOG_INFO,"[SMRADIUS] Initializing system modules.");
 	# Init caching engine
-	awitpt::cache::Init($self);
+	awitpt::cache::Init($self,{
+		'cache_file' => $self->{'config'}{'cache_file'},
+		'cache_file_user' => $self->{'server'}->{'user'},
+		'cache_file_group' => $self->{'server'}->{'group'}
+	});
+
 	$self->log(LOG_INFO,"[SMRADIUS] System modules initialized.");
 
 }
