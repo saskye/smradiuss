@@ -1,6 +1,6 @@
 <?php
 # Footer of page
-# Copyright (C) 2007-2009, AllWorldIT
+# Copyright (C) 2007-2011, AllWorldIT
 # 
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -18,7 +18,7 @@
 
 
 ?>
-	<div class="copyright">SMRadius - Copyright &copy; 2007-2009, <a href="http://www.allworldit.com" ?>AllWorldIT</a></div>
+	<div class="copyright">SMRadius - Copyright &copy; 2007-2011, <a href="http://www.allworldit.com" ?>AllWorldIT</a></div>
 	<br />
 
 	</body>

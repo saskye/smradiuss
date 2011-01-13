@@ -1,5 +1,5 @@
 # PAP
-# Copyright (C) 2007-2010, AllWorldIT
+# Copyright (C) 2007-2011, AllWorldIT
 #
 # References:
 #	RFC1334 - PPP Authentication Protocols

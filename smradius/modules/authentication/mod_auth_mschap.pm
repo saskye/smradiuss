@@ -1,5 +1,5 @@
 # Microsoft CHAP version 1 and 2 support
-# Copyright (C) 2007-2010, AllWorldIT
+# Copyright (C) 2007-2011, AllWorldIT
 #
 # References: 
 #	RFC1994 - PPP Challenge Handshake Authentication Protocol (CHAP)
