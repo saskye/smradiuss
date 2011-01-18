@@ -241,7 +241,7 @@ sub get
 		return -1;
 	}
 
-	# Loop with group attributes
+	# Loop with user attributes
 	while (my $row = $sth->fetchrow_hashref()) {
 		addAttribute($server,\%attributes,\%vattributes,hashifyLCtoMC($row,qw(Name Operator Value)));
 	}

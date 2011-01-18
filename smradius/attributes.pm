@@ -80,7 +80,7 @@ sub addAttribute
 	$attribute->{'Name'} =~ s/\s*(\S+)\s*/$1/;
 	$attribute->{'Operator'} =~ s/\s*(\S+)\s*/$1/;
 
-	# Grab attribue name, operator and value
+	# Grab attribute name, operator and value
 	my $name = $attribute->{'Name'};
 	my $operator = $attribute->{'Operator'};
 	my $value = $attribute->{'Value'};
