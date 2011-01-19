@@ -24,7 +24,6 @@ use warnings;
 use smradius::constants;
 use smradius::logging;
 use smradius::util;
-use Date::Parse;
 
 # Exporter stuff
 require Exporter;
@@ -93,8 +92,10 @@ sub post_auth_hook
 		if (defined($user->{'Attributes'}->{$UPTIME_LIMIT_KEY}->{':='})) {
 
 			# Check for valid attribute value
-			if ($user->{'Attributes'}->{$UPTIME_LIMIT_KEY}->{':='}->{'Value'} =~ /^[0-9]+$/) {
-				$uptimeLimit = $user->{'Attributes'}->{$UPTIME_LIMIT_KEY};
+			if (defined($user->{'Attributes'}->{$UPTIME_LIMIT_KEY}->{':='}->{'Value'}) &&
+					$user->{'Attributes'}->{$UPTIME_LIMIT_KEY}->{':='}->{'Value'} =~ /^\d+$/) {
+
+				$uptimeLimit = $user->{'Attributes'}->{$UPTIME_LIMIT_KEY}->{':='}->{'Value'};
 			} else {
 				$server->log(LOG_NOTICE,"[MOD_FEATURE_CAPPING] '".$user->{'Attributes'}->{$UPTIME_LIMIT_KEY}->{':='}->{'Value'}.
 						"' is NOT a numeric value");
@@ -115,8 +116,10 @@ sub post_auth_hook
 		if (defined($user->{'Attributes'}->{$TRAFFIC_LIMIT_KEY}->{':='})) {
 
 			# Check for valid attribute value
-			if ($user->{'Attributes'}->{$TRAFFIC_LIMIT_KEY}->{':='}->{'Value'} =~ /^[0-9]+$/) {
-				$trafficLimit = $user->{'Attributes'}->{$TRAFFIC_LIMIT_KEY};
+			if (defined($user->{'Attributes'}->{$TRAFFIC_LIMIT_KEY}->{':='}->{'Value'}) &&
+					$user->{'Attributes'}->{$TRAFFIC_LIMIT_KEY}->{':='}->{'Value'} =~ /^\d+$/) {
+
+				$trafficLimit = $user->{'Attributes'}->{$TRAFFIC_LIMIT_KEY}->{':='}->{'Value'};
 			} else {
 				$server->log(LOG_NOTICE,"[MOD_FEATURE_CAPPING] '".$user->{'Attributes'}->{$TRAFFIC_LIMIT_KEY}->{':='}->{'Value'}.
 						"' is NOT a numeric value");
@@ -165,7 +168,7 @@ sub post_auth_hook
 		# Check if there is a value
 		if (defined($user->{'ConfigAttributes'}->{$TIME_TOPUPS_KEY}->[0])) {
 			# Check if the value is of a valid type
-			if ($user->{'ConfigAttributes'}->{$TIME_TOPUPS_KEY}->[0] =~ /^[0-9]+$/) {
+			if ($user->{'ConfigAttributes'}->{$TIME_TOPUPS_KEY}->[0] =~ /^\d+$/) {
 				$uptimeTopup = $user->{'ConfigAttributes'}->{$TIME_TOPUPS_KEY}->[0];
 			} else {
 				$server->log(LOG_NOTICE,"[MOD_FEATURE_CAPPING] '".$user->{'ConfigAttributes'}->{$TIME_TOPUPS_KEY}->[0].
@@ -183,7 +186,7 @@ sub post_auth_hook
 		# Check for value
 		if (defined($user->{'ConfigAttributes'}->{$TRAFFIC_TOPUPS_KEY}->[0])) {
 			# Is it a number?
-			if ($user->{'ConfigAttributes'}->{$TRAFFIC_TOPUPS_KEY}->[0] =~ /^[0-9]+$/) {
+			if ($user->{'ConfigAttributes'}->{$TRAFFIC_TOPUPS_KEY}->[0] =~ /^\d+$/) {
 				$trafficTopup = $user->{'ConfigAttributes'}->{$TRAFFIC_TOPUPS_KEY}->[0];
 			} else {
 				$server->log(LOG_NOTICE,"[MOD_FEATURE_CAPPING] '".$user->{'ConfigAttributes'}->{$TRAFFIC_TOPUPS_KEY}->[0].
@@ -202,28 +205,28 @@ sub post_auth_hook
 	# Uptime..
 	my $alteredUptimeLimit = 0;
 	if ($uptimeTopup > 0) {
-		if (defined($uptimeLimit->{':='}->{'Value'})) {
-			$alteredUptimeLimit = $uptimeLimit->{':='}->{'Value'} + $uptimeTopup;
+		if (defined($uptimeLimit)) {
+			$alteredUptimeLimit = $uptimeLimit + $uptimeTopup;
 		} else {
 			$alteredUptimeLimit = $uptimeTopup;
 		}
 	} else {
-		if (defined($uptimeLimit->{':='}->{'Value'})) {
-			$alteredUptimeLimit = $uptimeLimit->{':='}->{'Value'};
+		if (defined($uptimeLimit)) {
+			$alteredUptimeLimit = $uptimeLimit;
 		}
 	}
 
 	# Traffic..
 	my $alteredTrafficLimit = 0;
 	if ($trafficTopup > 0) {
-		if (defined($trafficLimit->{':='}->{'Value'})) {
-			$alteredTrafficLimit = $trafficLimit->{':='}->{'Value'} + $trafficTopup;
+		if (defined($trafficLimit)) {
+			$alteredTrafficLimit = $trafficLimit + $trafficTopup;
 		} else {
 			$alteredTrafficLimit = $trafficTopup;
 		}
 	} else {
-		if (defined($trafficLimit->{':='}->{'Value'})) {
-			$alteredTrafficLimit = $trafficLimit->{':='}->{'Value'};
+		if (defined($trafficLimit)) {
+			$alteredTrafficLimit = $trafficLimit;
 		}
 	}
 
@@ -234,13 +237,13 @@ sub post_auth_hook
 
 
 	# Uptime..
-	if (!(defined($uptimeLimit->{':='}->{'Value'}) && $uptimeLimit->{':='}->{'Value'} == 0)) {
-		if (!defined($uptimeLimit->{':='}->{'Value'})) {
+	if (!(defined($uptimeLimit) && $uptimeLimit == 0)) {
+		if (!defined($uptimeLimit)) {
 			$server->log(LOG_DEBUG,"[MOD_FEATURE_CAPPING] Uptime => Usage total: ".$accountingUsage->{'TotalSessionTime'}.
 					"Min (Cap: Prepaid, Topups: ".$uptimeTopup."Min)");
 		} else {
 			$server->log(LOG_DEBUG,"[MOD_FEATURE_CAPPING] Uptime => Usage total: ".$accountingUsage->{'TotalSessionTime'}.
-					"Min (Cap: ".$uptimeLimit->{':='}->{'Value'}."Min, Topups: ".$uptimeTopup."Min)");
+					"Min (Cap: ".$uptimeLimit."Min, Topups: ".$uptimeTopup."Min)");
 		}
 	} else {
 		$server->log(LOG_DEBUG,"[MOD_FEATURE_CAPPING] Uptime => Usage total: ".$accountingUsage->{'TotalSessionTime'}.
@@ -248,13 +251,13 @@ sub post_auth_hook
 	}
 
 	# Traffic..
-	if (!(defined($trafficLimit->{':='}->{'Value'}) && $trafficLimit->{':='}->{'Value'} == 0)) {
-		if (!defined($trafficLimit->{':='}->{'Value'})) {
+	if (!(defined($trafficLimit) && $trafficLimit == 0)) {
+		if (!defined($trafficLimit)) {
 			$server->log(LOG_DEBUG,"[MOD_FEATURE_CAPPING] Bandwidth => Usage total: ".$accountingUsage->{'TotalDataUsage'}.
 					"Mb (Cap: Prepaid, Topups: ".$trafficTopup."Mb)");
 		} else {
 			$server->log(LOG_DEBUG,"[MOD_FEATURE_CAPPING] Bandwidth => Usage total: ".$accountingUsage->{'TotalDataUsage'}.
-					"Mb (Cap: ".$trafficLimit->{':='}->{'Value'}."Mb, Topups: ".$trafficTopup."Mb)");
+					"Mb (Cap: ".$trafficLimit."Mb, Topups: ".$trafficTopup."Mb)");
 		}
 	} else {
 		$server->log(LOG_DEBUG,"[MOD_FEATURE_CAPPING] Bandwidth => Usage total: ".$accountingUsage->{'TotalDataUsage'}.
@@ -268,7 +271,7 @@ sub post_auth_hook
 
 
 	# Uptime..
-	if (!(defined($uptimeLimit->{':='}->{'Value'}) && $uptimeLimit->{':='}->{'Value'} == 0)) {
+	if (!(defined($uptimeLimit) && $uptimeLimit == 0)) {
 
 		# Capped
 		if ($accountingUsage->{'TotalSessionTime'} >= $alteredUptimeLimit) {
@@ -279,7 +282,7 @@ sub post_auth_hook
 	}
 
 	# Traffic
-	if (!(defined($trafficLimit->{':='}->{'Value'}) && $trafficLimit->{':='}->{'Value'} == 0)) {
+	if (!(defined($trafficLimit) && $trafficLimit == 0)) {
 
 		# Capped
 		if ($accountingUsage->{'TotalDataUsage'} >= $alteredTrafficLimit) {
@@ -326,8 +329,10 @@ sub post_acct_hook
 		if (defined($user->{'Attributes'}->{$UPTIME_LIMIT_KEY}->{':='})) {
 
 			# Check for valid attribute value
-			if ($user->{'Attributes'}->{$UPTIME_LIMIT_KEY}->{':='}->{'Value'} =~ /^[0-9]+$/) {
-				$uptimeLimit = $user->{'Attributes'}->{$UPTIME_LIMIT_KEY};
+			if (defined($user->{'Attributes'}->{$UPTIME_LIMIT_KEY}->{':='}->{'Value'}) &&
+					$user->{'Attributes'}->{$UPTIME_LIMIT_KEY}->{':='}->{'Value'} =~ /^\d+$/) {
+
+				$uptimeLimit = $user->{'Attributes'}->{$UPTIME_LIMIT_KEY}->{':='}->{'Value'};
 			} else {
 				$server->log(LOG_NOTICE,"[MOD_FEATURE_CAPPING] '".$user->{'Attributes'}->{$UPTIME_LIMIT_KEY}->{':='}->{'Value'}.
 						"' is NOT a numeric value");
@@ -348,8 +353,10 @@ sub post_acct_hook
 		if (defined($user->{'Attributes'}->{$TRAFFIC_LIMIT_KEY}->{':='})) {
 
 			# Check for valid attribute value
-			if ($user->{'Attributes'}->{$TRAFFIC_LIMIT_KEY}->{':='}->{'Value'} =~ /^[0-9]+$/) {
-				$trafficLimit = $user->{'Attributes'}->{$TRAFFIC_LIMIT_KEY};
+			if (defined($user->{'Attributes'}->{$TRAFFIC_LIMIT_KEY}->{':='}->{'Value'}) &&
+					$user->{'Attributes'}->{$TRAFFIC_LIMIT_KEY}->{':='}->{'Value'} =~ /^\d+$/) {
+
+				$trafficLimit = $user->{'Attributes'}->{$TRAFFIC_LIMIT_KEY}->{':='}->{'Value'};
 			} else {
 				$server->log(LOG_NOTICE,"[MOD_FEATURE_CAPPING] '".$user->{'Attributes'}->{$TRAFFIC_LIMIT_KEY}->{':='}->{'Value'}.
 						"' is NOT a numeric value");
@@ -398,7 +405,7 @@ sub post_acct_hook
 		# Check if there is a value
 		if (defined($user->{'ConfigAttributes'}->{$TIME_TOPUPS_KEY}->[0])) {
 			# Check if the value is of a valid type
-			if ($user->{'ConfigAttributes'}->{$TIME_TOPUPS_KEY}->[0] =~ /^[0-9]+$/) {
+			if ($user->{'ConfigAttributes'}->{$TIME_TOPUPS_KEY}->[0] =~ /^\d+$/) {
 				$uptimeTopup = $user->{'ConfigAttributes'}->{$TIME_TOPUPS_KEY}->[0];
 			} else {
 				$server->log(LOG_NOTICE,"[MOD_FEATURE_CAPPING] '".$user->{'ConfigAttributes'}->{$TIME_TOPUPS_KEY}->[0].
@@ -416,7 +423,7 @@ sub post_acct_hook
 		# Check for value
 		if (defined($user->{'ConfigAttributes'}->{$TRAFFIC_TOPUPS_KEY}->[0])) {
 			# Is it a number?
-			if ($user->{'ConfigAttributes'}->{$TRAFFIC_TOPUPS_KEY}->[0] =~ /^[0-9]+$/) {
+			if ($user->{'ConfigAttributes'}->{$TRAFFIC_TOPUPS_KEY}->[0] =~ /^\d+$/) {
 				$trafficTopup = $user->{'ConfigAttributes'}->{$TRAFFIC_TOPUPS_KEY}->[0];
 			} else {
 				$server->log(LOG_NOTICE,"[MOD_FEATURE_CAPPING] '".$user->{'ConfigAttributes'}->{$TRAFFIC_TOPUPS_KEY}->[0].
@@ -435,28 +442,28 @@ sub post_acct_hook
 	# Uptime..
 	my $alteredUptimeLimit = 0;
 	if ($uptimeTopup > 0) {
-		if (defined($uptimeLimit->{':='}->{'Value'})) {
-			$alteredUptimeLimit = $uptimeLimit->{':='}->{'Value'} + $uptimeTopup;
+		if (defined($uptimeLimit)) {
+			$alteredUptimeLimit = $uptimeLimit + $uptimeTopup;
 		} else {
 			$alteredUptimeLimit = $uptimeTopup;
 		}
 	} else {
-		if (defined($uptimeLimit->{':='}->{'Value'})) {
-			$alteredUptimeLimit = $uptimeLimit->{':='}->{'Value'};
+		if (defined($uptimeLimit)) {
+			$alteredUptimeLimit = $uptimeLimit;
 		}
 	}
 
 	# Traffic..
 	my $alteredTrafficLimit = 0;
 	if ($trafficTopup > 0) {
-		if (defined($trafficLimit->{':='}->{'Value'})) {
-			$alteredTrafficLimit = $trafficLimit->{':='}->{'Value'} + $trafficTopup;
+		if (defined($trafficLimit)) {
+			$alteredTrafficLimit = $trafficLimit + $trafficTopup;
 		} else {
 			$alteredTrafficLimit = $trafficTopup;
 		}
 	} else {
-		if (defined($trafficLimit->{':='}->{'Value'})) {
-			$alteredTrafficLimit = $trafficLimit->{':='}->{'Value'};
+		if (defined($trafficLimit)) {
+			$alteredTrafficLimit = $trafficLimit;
 		}
 	}
 
@@ -467,13 +474,13 @@ sub post_acct_hook
 
 
 	# Uptime..
-	if (!(defined($uptimeLimit->{':='}->{'Value'}) && $uptimeLimit->{':='}->{'Value'} == 0)) {
-		if (!defined($uptimeLimit->{':='}->{'Value'})) {
+	if (!(defined($uptimeLimit) && $uptimeLimit == 0)) {
+		if (!defined($uptimeLimit)) {
 			$server->log(LOG_DEBUG,"[MOD_FEATURE_CAPPING] Uptime => Usage total: ".$accountingUsage->{'TotalSessionTime'}.
 					"Min (Cap: Prepaid, Topups: ".$uptimeTopup."Min)");
 		} else {
 			$server->log(LOG_DEBUG,"[MOD_FEATURE_CAPPING] Uptime => Usage total: ".$accountingUsage->{'TotalSessionTime'}.
-					"Min (Cap: ".$uptimeLimit->{':='}->{'Value'}."Min, Topups: ".$uptimeTopup."Min)");
+					"Min (Cap: ".$uptimeLimit."Min, Topups: ".$uptimeTopup."Min)");
 		}
 	} else {
 		$server->log(LOG_DEBUG,"[MOD_FEATURE_CAPPING] Uptime => Usage total: ".$accountingUsage->{'TotalSessionTime'}.
@@ -481,13 +488,13 @@ sub post_acct_hook
 	}
 
 	# Traffic..
-	if (!(defined($trafficLimit->{':='}->{'Value'}) && $trafficLimit->{':='}->{'Value'} == 0)) {
-		if (!defined($trafficLimit->{':='}->{'Value'})) {
+	if (!(defined($trafficLimit) && $trafficLimit == 0)) {
+		if (!defined($trafficLimit)) {
 			$server->log(LOG_DEBUG,"[MOD_FEATURE_CAPPING] Bandwidth => Usage total: ".$accountingUsage->{'TotalDataUsage'}.
 					"Mb (Cap: Prepaid, Topups: ".$trafficTopup."Mb)");
 		} else {
 			$server->log(LOG_DEBUG,"[MOD_FEATURE_CAPPING] Bandwidth => Usage total: ".$accountingUsage->{'TotalDataUsage'}.
-					"Mb (Cap: ".$trafficLimit->{':='}->{'Value'}."Mb, Topups: ".$trafficTopup."Mb)");
+					"Mb (Cap: ".$trafficLimit."Mb, Topups: ".$trafficTopup."Mb)");
 		}
 	} else {
 		$server->log(LOG_DEBUG,"[MOD_FEATURE_CAPPING] Bandwidth => Usage total: ".$accountingUsage->{'TotalDataUsage'}.
@@ -501,7 +508,7 @@ sub post_acct_hook
 
 
 	# Uptime..
-	if (!(defined($uptimeLimit->{':='}->{'Value'}) && $uptimeLimit->{':='}->{'Value'} == 0)) {
+	if (!(defined($uptimeLimit) && $uptimeLimit == 0)) {
 
 		# Capped
 		if ($accountingUsage->{'TotalSessionTime'} >= $alteredUptimeLimit) {
@@ -512,7 +519,7 @@ sub post_acct_hook
 	}
 
 	# Traffic
-	if (!(defined($trafficLimit->{':='}->{'Value'}) && $trafficLimit->{':='}->{'Value'} == 0)) {
+	if (!(defined($trafficLimit) && $trafficLimit == 0)) {
 
 		# Capped
 		if ($accountingUsage->{'TotalDataUsage'} >= $alteredTrafficLimit) {
