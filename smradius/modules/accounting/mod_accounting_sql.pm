@@ -399,8 +399,8 @@ sub getUsage
 
 	# Rounding up
 	my %res;
-	$res{'TotalDataUsage'} = $totalData->bdiv('1024')->bdiv('1024')->bceil()->bstr();
-	$res{'TotalSessionTime'} = $totalTime->bdiv('60')->bceil()->bstr();
+	$res{'TotalDataUsage'} = $totalData->bdiv(1024)->bdiv(1024)->bceil()->bstr();
+	$res{'TotalSessionTime'} = $totalTime->bdiv(60)->bceil()->bstr();
 
 	# If we using caching and got here, it means that we must cache the result
 	if (defined($config->{'accounting_usage_cache_time'})) {
@@ -800,9 +800,9 @@ sub cleanup
 
 		# Rounding up
 		my $res;
-		$res->{'TotalDataInput'} = $totalDataInput->bdiv('1024')->bdiv('1024')->bceil()->bstr();
-		$res->{'TotalDataOutput'} = $totalDataOutput->bdiv('1024')->bdiv('1024')->bceil()->bstr();
-		$res->{'TotalSessionTime'} = $totalTime->bdiv('60')->bceil()->bstr();
+		$res->{'TotalDataInput'} = $totalDataInput->bdiv(1024)->bdiv(1024)->bceil()->bstr();
+		$res->{'TotalDataOutput'} = $totalDataOutput->bdiv(1024)->bdiv(1024)->bceil()->bstr();
+		$res->{'TotalSessionTime'} = $totalTime->bdiv(60)->bceil()->bstr();
 
 		@dbDoParams = ('
 			INSERT INTO
