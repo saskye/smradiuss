@@ -304,7 +304,7 @@ sub init
 			} elsif ($scfg->{'mod_accounting_sql'}{'accounting_usage_cache_time'} =~ /^\s*(no|false|0)\s*$/i) {
 				$config->{'mod_accounting_sql'}{'accounting_usage_cache_time'} = undef;
 			} elsif ($scfg->{'mod_accounting_sql'}{'accounting_usage_cache_time'} =~ /^[0-9]+$/) {
-				$scfg->{'mod_accounting_sql'}{'accounting_usage_cache_time'} = $scfg->{'mod_accounting_sql'}{'accounting_usage_cache_time'};
+				$config->{'mod_accounting_sql'}{'accounting_usage_cache_time'} = $scfg->{'mod_accounting_sql'}{'accounting_usage_cache_time'};
 			} else {
 				$server->log(LOG_NOTICE,"[MOD_ACCOUNTING_SQL] Value for 'accounting_usage_cache_time' is invalid");
 			}
@@ -312,9 +312,9 @@ sub init
 	}
 
 	# Log this for info sake
-	if ($config->{'mod_accounting_sql'}->{'accounting_usage_cache_time'}) {
+	if (defined($config->{'accounting_usage_cache_time'})) {
 		$server->log(LOG_NOTICE,"[MOD_ACCOUNTING_SQL] getUsage caching ENABLED, cache time is %ds.",
-				$config->{'mod_accounting_sql'}->{'accounting_usage_cache_time'});
+				$config->{'accounting_usage_cache_time'});
 	} else {
 		$server->log(LOG_NOTICE,"[MOD_ACCOUNTING_SQL] getUsage caching DISABLED");
 	}
@@ -339,8 +339,8 @@ sub getUsage
 
 	# If we using caching, check how old the result is
 	if (defined($config->{'accounting_usage_cache_time'})) {
-		my ($res,$val) = cacheGetKeyPair('mod_accounting_sql(getUsage)',$user->{'Username'}."/".$template->{'query'}->{'PeriodKey'});
-		if (defined($val) && $val->{'CachedUntil'} < $now) {
+		my ($res,$val) = cacheGetComplexKeyPair('mod_accounting_sql(getUsage)',$user->{'Username'}."/".$template->{'query'}->{'PeriodKey'});
+		if (defined($val) && $val->{'CachedUntil'} < $user->{'_Internal'}->{'Timestamp-Unix'}) {
 			return $val;
 		}
 	}
@@ -404,10 +404,10 @@ sub getUsage
 
 	# If we using caching and got here, it means that we must cache the result
 	if (defined($config->{'accounting_usage_cache_time'})) {
-		$res{'CachedUntil'} = $now + $config->{'accounting_usage_cache_time'};
+		$res{'CachedUntil'} = $user->{'_Internal'}->{'Timestamp-Unix'} + $config->{'accounting_usage_cache_time'};
 		
 		# Cache the result
-		cacheStoreKeyPair('mod_accounting_sql(getUsage)',$user->{'Username'}."/".$template->{'query'}->{'PeriodKey'},\%res);
+		cacheStoreComplexKeyPair('mod_accounting_sql(getUsage)',$user->{'Username'}."/".$template->{'query'}->{'PeriodKey'},\%res);
 	}
 
 	return \%res;
