@@ -22,6 +22,7 @@ use warnings;
 
 # Modules we need
 use smradius::constants;
+use awitpt::cache;
 use awitpt::db::dblayer;
 use smradius::logging;
 use smradius::util;
@@ -228,6 +229,9 @@ sub init
 			ID = %{query.DuplicateID}
 	';
 
+	$config->{'accounting_usage_cache_time'} = 300;
+
+
 	# Setup SQL queries
 	if (defined($scfg->{'mod_accounting_sql'})) {
 		# Pull in queries
@@ -294,6 +298,25 @@ sub init
 				$config->{'accounting_delete_duplicates_query'} = $scfg->{'mod_accounting_sql'}->{'accounting_delete_duplicates_query'};
 			}
 		}
+		if (defined($scfg->{'mod_accounting_sql'}->{'accounting_usage_cache_time'})) {
+			if ($scfg->{'mod_accounting_sql'}{'accounting_usage_cache_time'} =~ /^\s*(yes|true|1)\s*$/i) {
+				# Default?
+			} elsif ($scfg->{'mod_accounting_sql'}{'accounting_usage_cache_time'} =~ /^\s*(no|false|0)\s*$/i) {
+				$config->{'mod_accounting_sql'}{'accounting_usage_cache_time'} = undef;
+			} elsif ($scfg->{'mod_accounting_sql'}{'accounting_usage_cache_time'} =~ /^[0-9]+$/) {
+				$scfg->{'mod_accounting_sql'}{'accounting_usage_cache_time'} = $scfg->{'mod_accounting_sql'}{'accounting_usage_cache_time'};
+			} else {
+				$server->log(LOG_NOTICE,"[MOD_ACCOUNTING_SQL] Value for 'accounting_usage_cache_time' is invalid");
+			}
+		}
+	}
+
+	# Log this for info sake
+	if ($config->{'mod_accounting_sql'}->{'accounting_usage_cache_time'}) {
+		$server->log(LOG_NOTICE,"[MOD_ACCOUNTING_SQL] getUsage caching ENABLED, cache time is %ds.",
+				$config->{'mod_accounting_sql'}->{'accounting_usage_cache_time'});
+	} else {
+		$server->log(LOG_NOTICE,"[MOD_ACCOUNTING_SQL] getUsage caching DISABLED");
 	}
 }
 
@@ -313,6 +336,14 @@ sub getUsage
 	# Current PeriodKey
 	my $now = DateTime->now->set_time_zone($server->{'smradius'}->{'event_timezone'});
 	$template->{'query'}->{'PeriodKey'} = $now->strftime("%Y-%m");
+
+	# If we using caching, check how old the result is
+	if (defined($config->{'accounting_usage_cache_time'})) {
+		my ($res,$val) = cacheGetKeyPair('mod_accounting_sql(getUsage)',$user->{'Username'}."/".$template->{'query'}->{'PeriodKey'});
+		if (defined($val) && $val->{'CachedUntil'} < $now) {
+			return $val;
+		}
+	}
 
 	# Replace template entries
 	my (@dbDoParams) = templateReplace($config->{'accounting_usage_query'},$template);
@@ -370,6 +401,14 @@ sub getUsage
 	my %res;
 	$res{'TotalDataUsage'} = $totalData->bdiv('1024')->bdiv('1024')->bceil()->bstr();
 	$res{'TotalSessionTime'} = $totalTime->bdiv('60')->bceil()->bstr();
+
+	# If we using caching and got here, it means that we must cache the result
+	if (defined($config->{'accounting_usage_cache_time'})) {
+		$res{'CachedUntil'} = $now + $config->{'accounting_usage_cache_time'};
+		
+		# Cache the result
+		cacheStoreKeyPair('mod_accounting_sql(getUsage)',$user->{'Username'}."/".$template->{'query'}->{'PeriodKey'},\%res);
+	}
 
 	return \%res;
 }
