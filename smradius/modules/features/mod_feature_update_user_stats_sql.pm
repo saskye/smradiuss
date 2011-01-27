@@ -25,7 +25,6 @@ use smradius::constants;
 use awitpt::db::dblayer;
 use smradius::logging;
 use smradius::util;
-use smradius::modules::accounting::mod_accounting_sql;
 
 # Exporter stuff
 require Exporter;
