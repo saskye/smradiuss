@@ -1068,8 +1068,15 @@ CHECK_RESULT:
 	my $timer9 = [gettimeofday];
 	my $timediff1 = tv_interval($timer0,$timer1);
 	my $timediff2 = tv_interval($timer1,$timer2);
+	my $timediff3 = tv_interval($timer2,$timer9);
 	my $timediff = tv_interval($timer0,$timer9);
-	$self->log(LOG_NOTICE,"[SMRADIUS] Result: $logReason (%.3fs + %.3fs = %.3fs) => $logLine",$timediff1,$timediff2,$timediff);
+
+	# How should we output this ...
+	if ($server->{'log_level'} > LOG_NOTICE) {
+		$self->log(LOG_NOTICE,"[SMRADIUS] Result: $logReason (%.3fs + %.3fs + %.3fs = %.3fs) => $logLine",$timediff1,$timediff2,$timediff3,$timediff);
+	} else {
+		$self->log(LOG_NOTICE,"[SMRADIUS] Result: $logReason");
+	}
 
 	# If we using abuse prevention record the time we ending off
 	if ($self->{'smradius'}->{'use_abuse_prevention'} && defined($user->{'Username'})) {
