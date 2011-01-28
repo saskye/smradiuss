@@ -400,7 +400,7 @@ sub child_init_hook
 
 	$self->SUPER::child_init_hook();
 
-	$self->log(LOG_DEBUG,"[SMRADIUS] Starting up caching engine");
+	$self->log(LOG_INFO,"[SMRADIUS] Starting up caching engine");
 	awitpt::cache::connect($self);
 
 	# Do we need database support?
@@ -436,7 +436,7 @@ sub child_finish_hook {
 
 	$self->SUPER::child_finish_hook();
 
-	$self->log(LOG_DEBUG,"[SMRADIUS] Shutting down caching engine ($$)");
+	$self->log(LOG_INFO,"[SMRADIUS] Shutting down caching engine ($$)");
 	awitpt::cache::disconnect($self);
 }
 
@@ -547,11 +547,11 @@ sub process_request {
 		if (defined($val)) {
 			my $timePeriod = $now - $val;
 			if ($pkt->code eq "Access-Request" && $timePeriod < $self->{'smradius'}->{'access_request_abuse_threshold'}) {
-				$self->log(LOG_WARN,"[SMRADIUS] ABUSE: Server trying too fast. server = ".$server->{'peeraddr'}.", user = ".$user->{'Username'}.
+				$self->log(LOG_NOTICE,"[SMRADIUS] ABUSE: Server trying too fast. server = ".$server->{'peeraddr'}.", user = ".$user->{'Username'}.
 						", code = ".$pkt->code.", timeout = ".($now - $val));
 				return;
 			} elsif ($pkt->code eq "Accounting-Request" && $timePeriod < $self->{'smradius'}->{'accounting_request_abuse_threshold'}) {
-				$self->log(LOG_WARN,"[SMRADIUS] ABUSE: Server trying too fast. server = ".$server->{'peeraddr'}.", user = ".$user->{'Username'}.
+				$self->log(LOG_NOTICE,"[SMRADIUS] ABUSE: Server trying too fast. server = ".$server->{'peeraddr'}.", user = ".$user->{'Username'}.
 						", code = ".$pkt->code.", timeout = ".($now - $val));
 				return;
 			}
@@ -569,7 +569,7 @@ sub process_request {
 		if ($module->{'Config_get'}) {
 
 			# Get result from config module
-			$self->log(LOG_INFO,"[SMRADIUS] CONFIG: Trying plugin '".$module->{'Name'}."' for incoming connection");
+			$self->log(LOG_DEBUG,"[SMRADIUS] CONFIG: Trying plugin '".$module->{'Name'}."' for incoming connection");
 			my $res = $module->{'Config_get'}($self,$user,$pkt);
 
 			# Check result
@@ -583,12 +583,12 @@ sub process_request {
 
 			# Check if we got a positive result back
 			} elsif ($res == MOD_RES_ACK) {
-				$self->log(LOG_INFO,"[SMRADIUS] CONFIG: Configuration retrieved from '".$module->{'Name'}."'");
+				$self->log(LOG_DEBUG,"[SMRADIUS] CONFIG: Configuration retrieved from '".$module->{'Name'}."'");
 				$logReason = "Config Retrieved";
 
 			# Check if we got a negative result back
 			} elsif ($res == MOD_RES_NACK) {
-				$self->log(LOG_INFO,"[SMRADIUS] CONFIG: Configuration rejection when using '".$module->{'Name'}."'");
+				$self->log(LOG_DEBUG,"[SMRADIUS] CONFIG: Configuration rejection when using '".$module->{'Name'}."'");
 				$logReason = "Config Rejected";
 				goto CHECK_RESULT;
 			}
@@ -619,7 +619,7 @@ sub process_request {
 		foreach my $module (@{$self->{'module_list'}}) {
 			# Try find user
 			if ($module->{'User_find'}) {
-				$self->log(LOG_INFO,"[SMRADIUS] FIND: Trying plugin '".$module->{'Name'}."' for username '".
+				$self->log(LOG_DEBUG,"[SMRADIUS] FIND: Trying plugin '".$module->{'Name'}."' for username '".
 						$user->{'Username'}."'");
 				my ($res,$userdb_data) = $module->{'User_find'}($self,$user,$pkt);
 
@@ -634,14 +634,14 @@ sub process_request {
 
 				# Check if we got a positive result back
 				} elsif ($res == MOD_RES_ACK) {
-					$self->log(LOG_INFO,"[SMRADIUS] FIND: Username found with '".$module->{'Name'}."'");
+					$self->log(LOG_DEBUG,"[SMRADIUS] FIND: Username found with '".$module->{'Name'}."'");
 					$userdb = $module;
 					$user->{'_UserDB_Data'} = $userdb_data;
 					last;
 
 				# Or a negative result
 				} elsif ($res == MOD_RES_NACK) {
-					$self->log(LOG_INFO,"[SMRADIUS] FIND: Username not found with '".$module->{'Name'}."'");
+					$self->log(LOG_DEBUG,"[SMRADIUS] FIND: Username not found with '".$module->{'Name'}."'");
 					$logReason = "User Not Found";
 					last;
 
@@ -679,7 +679,7 @@ sub process_request {
 		foreach my $module (@{$self->{'module_list'}}) {
 			# Try find user
 			if ($module->{'Accounting_log'}) {
-				$self->log(LOG_INFO,"[SMRADIUS] ACCT: Trying plugin '".$module->{'Name'}."'");
+				$self->log(LOG_DEBUG,"[SMRADIUS] ACCT: Trying plugin '".$module->{'Name'}."'");
 				my $res = $module->{'Accounting_log'}($self,$user,$pkt);
 
 				# Check result
@@ -693,12 +693,12 @@ sub process_request {
 
 				# Check if we got a positive result back
 				} elsif ($res == MOD_RES_ACK) {
-					$self->log(LOG_INFO,"[SMRADIUS] ACCT: Accounting logged using '".$module->{'Name'}."'");
+					$self->log(LOG_DEBUG,"[SMRADIUS] ACCT: Accounting logged using '".$module->{'Name'}."'");
 					$logReason = "Accounting Logged";
 
 				# Check if we got a negative result back
 				} elsif ($res == MOD_RES_NACK) {
-					$self->log(LOG_INFO,"[SMRADIUS] ACCT: Accounting NOT LOGGED using '".$module->{'Name'}."'");
+					$self->log(LOG_DEBUG,"[SMRADIUS] ACCT: Accounting NOT LOGGED using '".$module->{'Name'}."'");
 					$logReason = "Accounting NOT Logged";
 				}
 			}
@@ -718,7 +718,7 @@ sub process_request {
 		foreach my $module (@{$self->{'module_list'}}) {
 			# Try authenticate
 			if ($module->{'Feature_Post-Accounting_hook'}) {
-				$self->log(LOG_INFO,"[SMRADIUS] POST-ACCT: Trying plugin '".$module->{'Name'}."' for '".
+				$self->log(LOG_DEBUG,"[SMRADIUS] POST-ACCT: Trying plugin '".$module->{'Name'}."' for '".
 						$user->{'Username'}."'");
 				my $res = $module->{'Feature_Post-Accounting_hook'}($self,$user,$pkt);
 
@@ -733,12 +733,12 @@ sub process_request {
 
 				# Check if we got a positive result back
 				} elsif ($res == MOD_RES_ACK) {
-					$self->log(LOG_INFO,"[SMRADIUS] POST-ACCT: Passed post accounting hook by '".$module->{'Name'}."'");
+					$self->log(LOG_DEBUG,"[SMRADIUS] POST-ACCT: Passed post accounting hook by '".$module->{'Name'}."'");
 					$logReason = "Post Accounting Success";
 
 				# Or a negative result
 				} elsif ($res == MOD_RES_NACK) {
-					$self->log(LOG_INFO,"[SMRADIUS] POST-ACCT: Failed post accounting hook by '".$module->{'Name'}."'");
+					$self->log(LOG_DEBUG,"[SMRADIUS] POST-ACCT: Failed post accounting hook by '".$module->{'Name'}."'");
 					$logReason = "Failed Post Accounting";
 					$PODUser = 1;
 				}
@@ -857,7 +857,7 @@ sub process_request {
 
 		# If no user is found, bork out ...
 		if (!defined($userdb)) {
-			$self->log(LOG_INFO,"[SMRADIUS] FIND: No plugin found for username '".$user->{'Username'}."'");
+			$self->log(LOG_DEBUG,"[SMRADIUS] FIND: No plugin found for username '".$user->{'Username'}."'");
 			goto CHECK_RESULT;
 		}
 
@@ -879,7 +879,7 @@ sub process_request {
 			$user->{'Attributes'} = $res->{'Attributes'};
 			$user->{'VAttributes'} = $res->{'VAttributes'};
 		} else {
-			$self->log(LOG_INFO,"[SMRADIUS] GET: No 'User_get' function available for module '".$userdb->{'Name'}."'");
+			$self->log(LOG_ERR,"[SMRADIUS] GET: No 'User_get' function available for module '".$userdb->{'Name'}."'");
 
 			goto CHECK_RESULT;
 		}
@@ -892,7 +892,7 @@ sub process_request {
 		foreach my $module (@{$self->{'module_list'}}) {
 			# Try authenticate
 			if ($module->{'Authentication_try'}) {
-				$self->log(LOG_INFO,"[SMRADIUS] AUTH: Trying plugin '".$module->{'Name'}."' for '".$user->{'Username'}."'");
+				$self->log(LOG_DEBUG,"[SMRADIUS] AUTH: Trying plugin '".$module->{'Name'}."' for '".$user->{'Username'}."'");
 				my $res = $module->{'Authentication_try'}($self,$user,$pkt);
 
 				# Check result
@@ -905,7 +905,7 @@ sub process_request {
 
 				# Check if we got a positive result back
 				} elsif ($res == MOD_RES_ACK) {
-					$self->log(LOG_INFO,"[SMRADIUS] AUTH: Authenticated by '".$module->{'Name'}."'");
+					$self->log(LOG_DEBUG,"[SMRADIUS] AUTH: Authenticated by '".$module->{'Name'}."'");
 					$logReason = "User Authenticated";
 					$mechanism = $module;
 					$authenticated = 1;
@@ -913,7 +913,7 @@ sub process_request {
 
 				# Or a negative result
 				} elsif ($res == MOD_RES_NACK) {
-					$self->log(LOG_INFO,"[SMRADIUS] AUTH: Failed authentication by '".$module->{'Name'}."'");
+					$self->log(LOG_DEBUG,"[SMRADIUS] AUTH: Failed authentication by '".$module->{'Name'}."'");
 					$logReason = "User NOT Authenticated";
 					$mechanism = $module;
 					last;
@@ -927,7 +927,7 @@ sub process_request {
 			foreach my $module (@{$self->{'module_list'}}) {
 				# Try authenticate
 				if ($module->{'Feature_Post-Authentication_hook'}) {
-					$self->log(LOG_INFO,"[SMRADIUS] POST-AUTH: Trying plugin '".$module->{'Name'}.
+					$self->log(LOG_DEBUG,"[SMRADIUS] POST-AUTH: Trying plugin '".$module->{'Name'}.
 							"' for '".$user->{'Username'}."'");
 
 					my $res = $module->{'Feature_Post-Authentication_hook'}($self,$user,$pkt);
@@ -942,12 +942,12 @@ sub process_request {
 
 					# Check if we got a positive result back
 					} elsif ($res == MOD_RES_ACK) {
-						$self->log(LOG_INFO,"[SMRADIUS] POST-AUTH: Passed authenticated by '".$module->{'Name'}."'");
+						$self->log(LOG_DEBUG,"[SMRADIUS] POST-AUTH: Passed authenticated by '".$module->{'Name'}."'");
 						$logReason = "Post Authentication Success"; 
 
 					# Or a negative result
 					} elsif ($res == MOD_RES_NACK) {
-						$self->log(LOG_INFO,"[SMRADIUS] POST-AUTH: Failed authentication by '".$module->{'Name'}."'");
+						$self->log(LOG_DEBUG,"[SMRADIUS] POST-AUTH: Failed authentication by '".$module->{'Name'}."'");
 						$logReason = "Post Authentication Failure"; 
 						$authenticated = 0;
 						# Do we want to run the other modules ??
@@ -1075,7 +1075,7 @@ CHECK_RESULT:
 	if ($server->{'log_level'} > LOG_NOTICE) {
 		$self->log(LOG_NOTICE,"[SMRADIUS] Result: $logReason (%.3fs + %.3fs + %.3fs = %.3fs) => $logLine",$timediff1,$timediff2,$timediff3,$timediff);
 	} else {
-		$self->log(LOG_NOTICE,"[SMRADIUS] Result: $logReason");
+		$self->log(LOG_NOTICE,"[SMRADIUS] Result: $logReason => $logLine");
 	}
 
 	# If we using abuse prevention record the time we ending off
