@@ -1141,7 +1141,7 @@ sub log
 
 # Display help
 sub displayHelp {
-	print(STDERR "SMRadius v".VERSION." - Copyright (c) 2007-2009, AllWorldIT\n");
+	print(STDERR "SMRadius v".VERSION." - Copyright (c) 2007-2011, AllWorldIT\n");
 
 	print(STDERR<<EOF);
 
