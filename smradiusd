@@ -546,7 +546,7 @@ sub process_request {
 		my ($res,$val) = cacheGetKeyPair('FloodCheck',$server->{'peeraddr'}."/".$user->{'Username'}."/".$pkt->code);
 		if (defined($val)) {
 			my $timePeriod = $now - $val;
-			if ($pkt->code eq "Access-Request" && $timePeriod < $self-{'smradius'}->{'access_request_abuse_threshold'}) {
+			if ($pkt->code eq "Access-Request" && $timePeriod < $self->{'smradius'}->{'access_request_abuse_threshold'}) {
 				$self->log(LOG_WARN,"[SMRADIUS] ABUSE: Server trying too fast. server = ".$server->{'peeraddr'}.", user = ".$user->{'Username'}.
 						", code = ".$pkt->code.", timeout = ".($now - $val));
 				return;
