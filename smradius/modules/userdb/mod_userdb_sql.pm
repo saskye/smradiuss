@@ -22,6 +22,7 @@ use warnings;
 
 # Modules we need
 use smradius::constants;
+use awitpt::cache;
 use smradius::logging;
 use awitpt::db::dblayer;
 use smradius::util;
@@ -46,6 +47,10 @@ our $pluginInfo = {
 	# User database
 	User_find => \&find,
 	User_get => \&get,
+
+	# Users data
+	Users_data_set => \&data_set,
+	Users_data_get => \&data_get
 };
 
 # Module config
@@ -92,10 +97,62 @@ sub init
 		FROM
 			@TP@user_attributes
 		WHERE
-			UserID = %{userdb.ID}
+			UserID = %{userdb.id}
 			AND Disabled = 0
 	';
 	
+	$config->{'users_data_set_query'} = '
+		INSERT INTO
+			@TP@users_data (UserID, LastUpdated, Name, Value)
+		VALUES
+			(
+				%{userdb.id},
+				%{query.LastUpdated},
+				%{query.Name},
+				%{query.Value}
+			)
+	';
+	
+	$config->{'users_data_update_query'} = '
+		UPDATE
+			@TP@users_data
+		SET
+			LastUpdated = %{query.LastUpdated},
+			Value = %{query.Value}
+		WHERE
+			UserID = %{userdb.id}
+			AND Name = %{query.Name}
+	';
+	
+	$config->{'users_data_get_query'} = '
+		SELECT
+			LastUpdated, Name, Value
+		FROM
+			@TP@users_data
+		WHERE
+			UserID = %{userdb.id}
+			AND Name > %{query.Name}
+	';
+	
+	$config->{'users_data_delete_query'} = '
+		DELETE FROM
+			@TP@users_data
+		WHERE
+			UserID = %{userdb.id}
+			AND Name = %{query.Name}
+	';
+
+	$config->{'users_data_cleanup_query'} = '
+		DELETE FROM
+			@TP@users_data
+		WHERE UserID NOT IN
+			(
+				SELECT ID FROM users
+			)
+	';
+
+	# Default cache time for user data
+	$config->{'userdb_data_cache_time'} = 300;
 
 	# Setup SQL queries
 	if (defined($scfg->{'mod_userdb_sql'})) {
@@ -130,6 +187,76 @@ sub init
 						$scfg->{'mod_userdb_sql'}->{'userdb_get_user_attributes_query'};
 			}
 		}
+
+		if (defined($scfg->{'mod_userdb_sql'}->{'users_data_set_query'}) &&
+				$scfg->{'mod_userdb_sql'}->{'users_data_set_query'} ne "") {
+			if (ref($scfg->{'mod_userdb_sql'}->{'users_data_set_query'}) eq "ARRAY") {
+				$config->{'users_data_set_query'} = join(' ',
+						@{$scfg->{'mod_userdb_sql'}->{'users_data_set_query'}});
+			} else {
+					$config->{'users_data_set_query'} = $scfg->{'mod_userdb_sql'}->{'users_data_set_query'};
+			}
+		}
+
+		if (defined($scfg->{'mod_userdb_sql'}->{'users_data_update_query'}) &&
+				$scfg->{'mod_userdb_sql'}->{'users_data_update_query'} ne "") {
+			if (ref($scfg->{'mod_userdb_sql'}->{'users_data_update_query'}) eq "ARRAY") {
+				$config->{'users_data_update_query'} = join(' ',
+						@{$scfg->{'mod_userdb_sql'}->{'users_data_update_query'}});
+			} else {
+					$config->{'users_data_update_query'} = $scfg->{'mod_userdb_sql'}->{'users_data_update_query'};
+			}
+		}
+
+		if (defined($scfg->{'mod_userdb_sql'}->{'users_data_get_query'}) &&
+				$scfg->{'mod_userdb_sql'}->{'users_data_get_query'} ne "") {
+			if (ref($scfg->{'mod_userdb_sql'}->{'users_data_get_query'}) eq "ARRAY") {
+				$config->{'users_data_get_query'} = join(' ',
+						@{$scfg->{'mod_userdb_sql'}->{'users_data_get_query'}});
+			} else {
+					$config->{'users_data_get_query'} = $scfg->{'mod_userdb_sql'}->{'users_data_get_query'};
+			}
+		}
+
+		if (defined($scfg->{'mod_userdb_sql'}->{'users_data_delete_query'}) &&
+				$scfg->{'mod_userdb_sql'}->{'users_data_delete_query'} ne "") {
+			if (ref($scfg->{'mod_userdb_sql'}->{'users_data_delete_query'}) eq "ARRAY") {
+				$config->{'users_data_delete_query'} = join(' ',
+						@{$scfg->{'mod_userdb_sql'}->{'users_data_delete_query'}});
+			} else {
+					$config->{'users_data_delete_query'} = $scfg->{'mod_userdb_sql'}->{'users_data_delete_query'};
+			}
+		}
+
+		if (defined($scfg->{'mod_userdb_sql'}->{'users_data_cleanup_query'}) &&
+				$scfg->{'mod_userdb_sql'}->{'users_data_cleanup_query'} ne "") {
+			if (ref($scfg->{'mod_userdb_sql'}->{'users_data_cleanup_query'}) eq "ARRAY") {
+				$config->{'users_data_cleanup_query'} = join(' ',
+						@{$scfg->{'mod_userdb_sql'}->{'users_data_cleanup_query'}});
+			} else {
+					$config->{'users_data_cleanup_query'} = $scfg->{'mod_userdb_sql'}->{'users_data_cleanup_query'};
+			}
+		}
+
+		if (defined($scfg->{'mod_userdb_sql'}->{'userdb_data_cache_time'})) {
+			if ($scfg->{'mod_userdb_sql'}{'userdb_data_cache_time'} =~ /^\s*(yes|true|1)\s*$/i) {
+				# Default?
+			} elsif ($scfg->{'mod_userdb_sql'}{'userdb_data_cache_time'} =~ /^\s*(no|false|0)\s*$/i) {
+				$config->{'mod_userdb_sql'}{'userdb_data_cache_time'} = undef;
+			} elsif ($scfg->{'mod_userdb_sql'}{'userdb_data_cache_time'} =~ /^[0-9]+$/) {
+				$config->{'mod_userdb_sql'}{'userdb_data_cache_time'} = $scfg->{'mod_userdb_sql'}{'userdb_data_cache_time'};
+			} else {
+				$server->log(LOG_NOTICE,"[MOD_USERDB_SQL] Value for 'userdb_data_cache_time' is invalid");
+			}
+		}
+	}
+
+	# Log this for info sake
+	if (defined($config->{'userdb_data_cache_time'})) {
+		$server->log(LOG_NOTICE,"[MOD_USERDB_SQL] Users data caching ENABLED, cache time is %ds.",
+				$config->{'userdb_data_cache_time'});
+	} else {
+		$server->log(LOG_NOTICE,"[MOD_USERDB_SQL] Users caching DISABLED");
 	}
 }
 
@@ -137,10 +264,11 @@ sub init
 # Try find a user
 #
 # @param server Server object
-# @param user User
+# @param user SMRadius user hash
+# @li Username Username of the user we want
 # @param packet Radius packet
 #
-# @return Result
+# @return UserDB hash of db query
 sub find
 {
 	my ($server,$user,$packet) = @_;
@@ -191,10 +319,12 @@ sub find
 # Try to get a user
 #
 # @param server Server object
-# @param user User
+# @param user UserDB hash we got from find()
 # @param packet Radius packet
 #
-# @return Result
+# @return User attributes hash
+# @li Attributes Radius attribute hash
+# @li VAttributes Radius vendor attribute hash
 sub get
 {
 	my ($server,$user,$packet) = @_;
@@ -220,7 +350,7 @@ sub get
 	my $sth = DBSelect(@dbDoParams);
 	if (!$sth) {
 		$server->log(LOG_ERR,"Failed to get group attributes: ".awitpt::db::dblayer::Error());
-		return -1;
+		return RES_ERROR;
 	}
 
 	# Loop with group attributes
@@ -238,7 +368,7 @@ sub get
 	$sth = DBSelect(@dbDoParams);
 	if (!$sth) {
 		$server->log(LOG_ERR,"Failed to get user attributes: ".awitpt::db::dblayer::Error());
-		return -1;
+		return RES_ERROR;
 	}
 
 	# Loop with user attributes
@@ -253,6 +383,134 @@ sub get
 	$ret->{'VAttributes'} = \%vattributes;
 
 	return $ret;
+}
+
+
+## @data_set
+# Set user data
+#
+# @param server Server object
+# @param user UserDB hash we got from find()
+# @param name Variable name
+# @param value Variable value
+#
+# @return RES_OK on success, RES_ERROR on error
+sub data_set
+{
+	my ($server, $user, $name, $value) = @_;
+
+
+	# Build template
+	my $template;
+	# Last updated time would be now
+	$template->{'query'}->{'LastUpdated'} = $user->{'_Internal'}->{'Timestamp-Unix'};
+	$template->{'query'}->{'Name'} = $name;
+	$template->{'query'}->{'Value'} = $value;
+
+	# Add in userdb data
+	foreach my $item (keys %{$user->{'_UserDB_Data'}}) {
+		$template->{'userdb'}->{$item} =  $user->{'_UserDB_Data'}->{$item};
+	}
+
+	# Replace template entries
+	my @dbDoParams = templateReplace($config->{'users_data_update_query'},$template);
+
+	# Query database
+	my $sth = DBDo(@dbDoParams);
+	if (!$sth) {
+		$server->log(LOG_ERR,"Failed to update users data: ".awitpt::db::dblayer::Error());
+		return RES_ERROR;
+	}
+
+	# If we updated *something* ...
+	if ($sth eq "0E0") {
+		@dbDoParams = templateReplace($config->{'users_data_set_query'},$template);
+
+		# Insert
+		$sth = DBDo(@dbDoParams);
+		if (!$sth) {
+			$server->log(LOG_ERR,"Failed to set users data: ".awitpt::db::dblayer::Error());
+			return RES_ERROR;
+		}
+	}
+
+	# If we using caching, cache the result of this set
+	if (defined($config->{'userdb_data_cache_time'})) {
+		# Build hash to store
+		my %data;
+		$data{'CachedUntil'} = $user->{'_Internal'}->{'Timestamp-Unix'} + $config->{'accounting_usage_cache_time'};
+		$data{'LastUpdated'} = $user->{'_Internal'}->{'Timestamp-Unix'};
+		$data{'Name'} = $name;
+		$data{'Value'} = $value;
+		
+		# Cache the result
+		cacheStoreComplexKeyPair('mod_userdb_sql(data_get)',$user->{'UserID'}."/".$template->{'query'}->{'Name'},\%data);
+	}
+
+	return RES_OK;
+}
+
+
+## @data_get
+# Get user data
+#
+# @param server Server object
+# @param user UserDB hash we got from find()
+# @param name Variable name
+#
+# @return Users data hash
+# @li LastUpdated Time of last update
+# @li Name Variable Name
+# @li Value Variable Value
+sub data_get
+{
+	my ($server, $user, $name) = @_;
+
+
+	# Build template
+	my $template;
+	$template->{'query'}->{'Name'} = $name;
+
+	# Add in userdb data
+	foreach my $item (keys %{$user->{'_UserDB_Data'}}) {
+		$template->{'userdb'}->{$item} =  $user->{'_UserDB_Data'}->{$item};
+	}
+
+	# If we using caching, check how old the result is
+	if (defined($config->{'userdb_data_cache_time'})) {
+		my ($res,$val) = cacheGetComplexKeyPair('mod_userdb_sql(data_get)',$user->{'UserID'}."/".$template->{'query'}->{'Name'});
+		if (defined($val) && $val->{'CachedUntil'} > $user->{'_Internal'}->{'Timestamp-Unix'}) {
+			return $val;
+		}
+	}
+
+	# Replace template entries
+	my @dbDoParams = templateReplace($config->{'user_data_get_query'},$template);
+
+	# Query database
+	my $sth = DBSelect(@dbDoParams);
+	if (!$sth) {
+		$server->log(LOG_ERR,"Failed to get users data: ".awitpt::db::dblayer::Error());
+		return RES_ERROR;
+	}
+
+	# Fetch user data
+	my $row = $sth->fetchrow_hashref();
+
+	my %data;
+	$data{'LastUpdated'} = $row->{'LastUpdated'};
+	$data{'Name'} = $row->{'Name'};
+	$data{'Value'} = $row->{'Value'};
+
+	# If we using caching and got here, it means that we must cache the result
+	if (defined($config->{'userdb_data_cache_time'})) {
+		$data{'CachedUntil'} = $user->{'_Internal'}->{'Timestamp-Unix'} + $config->{'userdb_data_cache_time'};
+		
+		# Cache the result
+		cacheStoreComplexKeyPair('mod_userdb_sql(data_get)',$user->{'UserID'}."/".$template->{'query'}->{'Name'},\%data);
+	}
+
+	return \%data;
 }
 
 

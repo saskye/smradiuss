@@ -1,4 +1,22 @@
 
+2011-03-22:
+	Add users_data table for various functions
+
+	CREATE TABLE @PREFIX@users_data (
+		ID 		@SERIAL_TYPE@,
+
+		UserID 		@INT_UNSIGNED@,
+
+		LastUpdated 	DATETIME,
+
+		Name 		VARCHAR(255),
+
+		Value 		VARCHAR(255),
+
+		UNIQUE 		(UserID,Name)
+	);
+
+
 2011-01-11:
 	Move configuration file item "use_packet_timestamp=" to "[radius]" section
 
