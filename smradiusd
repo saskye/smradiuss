@@ -605,9 +605,6 @@ sub process_request {
 	# START PROCESSING
 	#
 
-	# UserDB module if we using/need it
-	my $userdb;
-
 	# Common stuff for multiple codes....
 	if ($pkt->code eq "Accounting-Request" || $pkt->code eq "Access-Request") {
 
@@ -635,7 +632,7 @@ sub process_request {
 				# Check if we got a positive result back
 				} elsif ($res == MOD_RES_ACK) {
 					$self->log(LOG_DEBUG,"[SMRADIUS] FIND: Username found with '".$module->{'Name'}."'");
-					$userdb = $module;
+					$user->{'_UserDB'} = $module;
 					$user->{'_UserDB_Data'} = $userdb_data;
 					last;
 
@@ -664,8 +661,8 @@ sub process_request {
 		#
 
 		# Get user data
-		if (defined($userdb) && defined($userdb->{'User_get'})) {
-			my $res = $userdb->{'User_get'}($self,$user,$pkt);
+		if (defined($user->{'_UserDB'}) && defined($user->{'_UserDB'}->{'User_get'})) {
+			my $res = $user->{'_UserDB'}->{'User_get'}($self,$user,$pkt);
 
 			# Check result
 			if (defined($res) && ref($res) eq "HASH") {
@@ -856,7 +853,7 @@ sub process_request {
 
 
 		# If no user is found, bork out ...
-		if (!defined($userdb)) {
+		if (!defined($user->{'_UserDB'})) {
 			$self->log(LOG_DEBUG,"[SMRADIUS] FIND: No plugin found for username '".$user->{'Username'}."'");
 			goto CHECK_RESULT;
 		}
@@ -866,12 +863,12 @@ sub process_request {
 		#
 
 		# Get user data
-		if ($userdb->{'User_get'}) {
-			my $res = $userdb->{'User_get'}($self,$user,$pkt);
+		if ($user->{'_UserDB'}->{'User_get'}) {
+			my $res = $user->{'_UserDB'}->{'User_get'}($self,$user,$pkt);
 
 			# Check result
 			if (!defined($res) || ref($res) ne "HASH") {
-				$self->log(LOG_WARN,"[SMRADIUS] GET: No data returned from '".$userdb->{'Name'}.
+				$self->log(LOG_WARN,"[SMRADIUS] GET: No data returned from '".$user->{'_UserDB'}->{'Name'}.
 						"' for username '".$user->{'Username'}."'");
 				goto CHECK_RESULT;
 			}
@@ -879,7 +876,7 @@ sub process_request {
 			$user->{'Attributes'} = $res->{'Attributes'};
 			$user->{'VAttributes'} = $res->{'VAttributes'};
 		} else {
-			$self->log(LOG_ERR,"[SMRADIUS] GET: No 'User_get' function available for module '".$userdb->{'Name'}."'");
+			$self->log(LOG_ERR,"[SMRADIUS] GET: No 'User_get' function available for module '".$user->{'_UserDB'}->{'Name'}."'");
 
 			goto CHECK_RESULT;
 		}
