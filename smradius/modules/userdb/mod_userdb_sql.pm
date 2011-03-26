@@ -391,13 +391,14 @@ sub get
 #
 # @param server Server object
 # @param user UserDB hash we got from find()
+# @param module Module that is variable pertains to
 # @param name Variable name
 # @param value Variable value
 #
 # @return RES_OK on success, RES_ERROR on error
 sub data_set
 {
-	my ($server, $user, $name, $value) = @_;
+	my ($server, $user, $module, $name, $value) = @_;
 
 
 	# Build template
@@ -440,11 +441,15 @@ sub data_set
 		my %data;
 		$data{'CachedUntil'} = $user->{'_Internal'}->{'Timestamp-Unix'} + $config->{'accounting_usage_cache_time'};
 		$data{'LastUpdated'} = $user->{'_Internal'}->{'Timestamp-Unix'};
+		$data{'Module'} = $module;
 		$data{'Name'} = $name;
 		$data{'Value'} = $value;
 		
 		# Cache the result
-		cacheStoreComplexKeyPair('mod_userdb_sql(data_get)',$user->{'UserID'}."/".$template->{'query'}->{'Name'},\%data);
+		cacheStoreComplexKeyPair('mod_userdb_sql(data_get)',
+				sprintf('%s/%s/%s',$module,$user->{'_UserDB_Data'}->{'id'},$name),
+				\%data
+		);
 	}
 
 	return RES_OK;
@@ -456,6 +461,7 @@ sub data_set
 #
 # @param server Server object
 # @param user UserDB hash we got from find()
+# @param module Module that is variable pertains to
 # @param name Variable name
 #
 # @return Users data hash
@@ -464,7 +470,7 @@ sub data_set
 # @li Value Variable Value
 sub data_get
 {
-	my ($server, $user, $name) = @_;
+	my ($server, $user, $module, $name) = @_;
 
 
 	# Build template
@@ -473,19 +479,22 @@ sub data_get
 
 	# Add in userdb data
 	foreach my $item (keys %{$user->{'_UserDB_Data'}}) {
-		$template->{'userdb'}->{$item} =  $user->{'_UserDB_Data'}->{$item};
+		$template->{'userdb'}->{$item} = $user->{'_UserDB_Data'}->{$item};
 	}
 
 	# If we using caching, check how old the result is
 	if (defined($config->{'userdb_data_cache_time'})) {
-		my ($res,$val) = cacheGetComplexKeyPair('mod_userdb_sql(data_get)',$user->{'UserID'}."/".$template->{'query'}->{'Name'});
+		my ($res,$val) = cacheGetComplexKeyPair('mod_userdb_sql(data_get)',
+				sprintf('%s/%s/%s',$module,$user->{'_UserDB_Data'}->{'id'},$name)
+		);
+
 		if (defined($val) && $val->{'CachedUntil'} > $user->{'_Internal'}->{'Timestamp-Unix'}) {
 			return $val;
 		}
 	}
 
 	# Replace template entries
-	my @dbDoParams = templateReplace($config->{'user_data_get_query'},$template);
+	my @dbDoParams = templateReplace($config->{'users_data_get_query'},$template);
 
 	# Query database
 	my $sth = DBSelect(@dbDoParams);
@@ -499,6 +508,7 @@ sub data_get
 
 	my %data;
 	$data{'LastUpdated'} = $row->{'LastUpdated'};
+	$data{'Module'} = $module;
 	$data{'Name'} = $row->{'Name'};
 	$data{'Value'} = $row->{'Value'};
 
@@ -507,7 +517,10 @@ sub data_get
 		$data{'CachedUntil'} = $user->{'_Internal'}->{'Timestamp-Unix'} + $config->{'userdb_data_cache_time'};
 		
 		# Cache the result
-		cacheStoreComplexKeyPair('mod_userdb_sql(data_get)',$user->{'UserID'}."/".$template->{'query'}->{'Name'},\%data);
+		cacheStoreComplexKeyPair('mod_userdb_sql(data_get)',
+				sprintf('%s/%s/%s',$module,$user->{'_UserDB_Data'}->{'id'},$name),
+				\%data
+		);
 	}
 
 	return \%data;
