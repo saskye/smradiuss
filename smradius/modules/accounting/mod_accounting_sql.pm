@@ -582,6 +582,16 @@ sub acct_log
 					awitpt::db::dblayer::Error());
 			return MOD_RES_NACK;
 		}
+		# Update first login?
+		if (defined($user->{'_UserDB'}->{'Users_data_get'}) && defined($user->{'_UserDB'}->{'Users_data_set'})) {
+			# Try get his first login
+			my $firstLogin = $user->{'_UserDB'}->{'Users_data_get'}($server,$user,'global','FirstLogin');
+			# If we don't get it, set it
+			if (!defined($firstLogin)) {
+				$user->{'_UserDB'}->{'Users_data_set'}($server,$user,'global','FirstLogin',$user->{'_Internal'}->{'Timestamp-Unix'});
+			}
+		}
+	
 	}
 
 
