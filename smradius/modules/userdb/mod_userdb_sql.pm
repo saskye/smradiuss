@@ -131,7 +131,7 @@ sub init
 			@TP@users_data
 		WHERE
 			UserID = %{userdb.id}
-			AND Name > %{query.Name}
+			AND Name = %{query.Name}
 	';
 	
 	$config->{'users_data_delete_query'} = '
@@ -268,7 +268,7 @@ sub init
 # @li Username Username of the user we want
 # @param packet Radius packet
 #
-# @return UserDB hash of db query
+# @return _UserDB_Data Hash of db query, this is stored in the $user->{'_UserDB_Data'} hash item
 sub find
 {
 	my ($server,$user,$packet) = @_;
@@ -319,7 +319,7 @@ sub find
 # Try to get a user
 #
 # @param server Server object
-# @param user UserDB hash we got from find()
+# @param user Server $user hash
 # @param packet Radius packet
 #
 # @return User attributes hash
@@ -336,7 +336,7 @@ sub get
 	}
 	# Add in userdb data
 	foreach my $item (keys %{$user->{'_UserDB_Data'}}) {
-		$template->{'userdb'}->{$item} =  $user->{'_UserDB_Data'}->{$item};
+		$template->{'userdb'}->{$item} = $user->{'_UserDB_Data'}->{$item};
 	}
 
 	# Attributes to return
@@ -390,7 +390,7 @@ sub get
 # Set user data
 #
 # @param server Server object
-# @param user UserDB hash we got from find()
+# @param user Server $user hash
 # @param module Module that is variable pertains to
 # @param name Variable name
 # @param value Variable value
@@ -405,12 +405,12 @@ sub data_set
 	my $template;
 	# Last updated time would be now
 	$template->{'query'}->{'LastUpdated'} = $user->{'_Internal'}->{'Timestamp-Unix'};
-	$template->{'query'}->{'Name'} = $name;
+	$template->{'query'}->{'Name'} = sprintf('%s/%s',$module,$name);
 	$template->{'query'}->{'Value'} = $value;
 
 	# Add in userdb data
 	foreach my $item (keys %{$user->{'_UserDB_Data'}}) {
-		$template->{'userdb'}->{$item} =  $user->{'_UserDB_Data'}->{$item};
+		$template->{'userdb'}->{$item} = $user->{'_UserDB_Data'}->{$item};
 	}
 
 	# Replace template entries
@@ -439,14 +439,14 @@ sub data_set
 	if (defined($config->{'userdb_data_cache_time'})) {
 		# Build hash to store
 		my %data;
-		$data{'CachedUntil'} = $user->{'_Internal'}->{'Timestamp-Unix'} + $config->{'accounting_usage_cache_time'};
+		$data{'CachedUntil'} = $user->{'_Internal'}->{'Timestamp-Unix'} + $config->{'userdb_data_cache_time'};
 		$data{'LastUpdated'} = $user->{'_Internal'}->{'Timestamp-Unix'};
 		$data{'Module'} = $module;
 		$data{'Name'} = $name;
 		$data{'Value'} = $value;
 		
 		# Cache the result
-		cacheStoreComplexKeyPair('mod_userdb_sql(data_get)',
+		cacheStoreComplexKeyPair('mod_userdb_sql(users_data)',
 				sprintf('%s/%s/%s',$module,$user->{'_UserDB_Data'}->{'id'},$name),
 				\%data
 		);
@@ -475,7 +475,7 @@ sub data_get
 
 	# Build template
 	my $template;
-	$template->{'query'}->{'Name'} = $name;
+	$template->{'query'}->{'Name'} = sprintf('%s/%s',$module,$name);
 
 	# Add in userdb data
 	foreach my $item (keys %{$user->{'_UserDB_Data'}}) {
@@ -506,18 +506,22 @@ sub data_get
 	# Fetch user data
 	my $row = $sth->fetchrow_hashref();
 
+	# If there is no result, just return undef
+	return if (!defined($row));
+
+	# If there is data, go through the long process of continuing ...
 	my %data;
-	$data{'LastUpdated'} = $row->{'LastUpdated'};
+	$data{'LastUpdated'} = $row->{'lastupdated'};
 	$data{'Module'} = $module;
-	$data{'Name'} = $row->{'Name'};
-	$data{'Value'} = $row->{'Value'};
+	$data{'Name'} = $row->{'name'};
+	$data{'Value'} = $row->{'value'};
 
 	# If we using caching and got here, it means that we must cache the result
 	if (defined($config->{'userdb_data_cache_time'})) {
 		$data{'CachedUntil'} = $user->{'_Internal'}->{'Timestamp-Unix'} + $config->{'userdb_data_cache_time'};
 		
 		# Cache the result
-		cacheStoreComplexKeyPair('mod_userdb_sql(data_get)',
+		cacheStoreComplexKeyPair('mod_userdb_sql(users_data)',
 				sprintf('%s/%s/%s',$module,$user->{'_UserDB_Data'}->{'id'},$name),
 				\%data
 		);
