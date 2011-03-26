@@ -314,6 +314,8 @@ sub post_configure_hook {
 	my $config = $self->{'config'};
 
 
+	$self->log(LOG_NOTICE,"[SMRADIUS] SMRadius - v".VERSION);
+
 	# Init config
 	$self->log(LOG_INFO,"[SMRADIUS] Initializing configuration...");
 	smradius::config::Init($self);
