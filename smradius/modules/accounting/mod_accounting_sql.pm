@@ -474,11 +474,9 @@ sub acct_log
 		my $totalSessionTime = Math::BigInt->new($template->{'request'}->{'Acct-Session-Time'});
 
 		# Loop through previous records and subtract them from our session totals
-		while (my $sessionPart = $sth->fetchrow_hashref()) {
-			$sessionPart = hashifyLCtoMC(
-				$sessionPart,
+		while (my $sessionPart = hashifyLCtoMC($sth->fetchrow_hashref(),
 				qw(InputOctets InputPackets OutputOctets OutputPackets InputGigawords OutputGigawords SessionTime PeriodKey)
-			);
+		)) {
 
 			# Convert this session usage to bytes
 			my $sessionInputBytes = Math::BigInt->new();
@@ -634,11 +632,7 @@ sub fixDuplicates
 
 	# Pull in duplicates
 	my @IDList;
-	while (my $duplicates = $sth->fetchrow_hashref()) {
-		$duplicates = hashifyLCtoMC(
-			$duplicates,
-			qw(ID)
-		);
+	while (my $duplicates = hashifyLCtoMC($sth->fetchrow_hashref(), qw(ID))) {
 		push(@IDList,$duplicates->{'ID'});
 	}
 	DBFreeRes($sth);

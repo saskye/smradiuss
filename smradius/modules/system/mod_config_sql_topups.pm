@@ -172,9 +172,7 @@ sub getTopups
 
 	# Fetch all summaries
 	my (@trafficSummary,@uptimeSummary);
-	while (my $row = $sth->fetchrow_hashref()) {
-		$row = hashifyLCtoMC($row, qw(Balance Type ID));
-
+	while (my $row = hashifyLCtoMC($sth->fetchrow_hashref(), qw(Balance Type ID))) {
 		if ($row->{'Type'} == 1) {
 			# Add to traffic summary list
 			push(@trafficSummary, { Value => $row->{'Balance'}, ID => $row->{'ID'} });
@@ -195,9 +193,7 @@ sub getTopups
 
 	# Fetch all new topups 
 	my (@trafficTopups,@uptimeTopups);
-	while (my $row = $sth->fetchrow_hashref()) {
-		$row = hashifyLCtoMC($row, qw(ID Type Value));
-
+	while (my $row = hashifyLCtoMC($sth->fetchrow_hashref(), qw(ID Type Value))) {
 		if ($row->{'Type'} == 1) {
 			# Add topup to traffic array
 			push(@trafficTopups, { Value => $row->{'Value'}, ID => $row->{'ID'} });
@@ -289,8 +285,7 @@ sub cleanup
 
 	# Create hash of usernames
 	my %users;
-	while (my $user = $sth->fetchrow_hashref()) {
-		$user = hashifyLCtoMC($user, qw(ID Username));
+	while (my $user = hashifyLCtoMC($sth->fetchrow_hashref(), qw(ID Username))) {
 		$users{$user->{'ID'}} = $user->{'Username'};
 	}
 
@@ -414,11 +409,7 @@ sub cleanup
 
 		# Store limits in capRecord hash
 		my %capRecord;
-		while (my $row = $sth->fetchrow_hashref()) {
-			$row = hashifyLCtoMC(
-				$row,
-				qw(Name Operator Value)
-			);
+		while (my $row = hashifyLCtoMC($sth->fetchrow_hashref(), qw(Name Operator Value))) {
 
 			if (defined($row->{'Name'})) {
 				if ($row->{'Name'} eq 'SMRadius-Capping-Traffic-Limit') {
@@ -470,11 +461,7 @@ sub cleanup
 		}
 
 		# Store limits in capRecord hash
-		while (my $row = $sth->fetchrow_hashref()) {
-			$row = hashifyLCtoMC(
-				$row,
-				qw(Name Operator Value)
-			);
+		while (my $row = hashifyLCtoMC($sth->fetchrow_hashref(), qw(Name Operator Value))) {
 
 			if (defined($row->{'Name'})) {
 				if ($row->{'Name'} eq 'SMRadius-Capping-Traffic-Limit') {
@@ -539,11 +526,7 @@ sub cleanup
 		# Add previous valid topups to lists
 		my @trafficSummary = ();
 		my @uptimeSummary = ();
-		while (my $row = $sth->fetchrow_hashref()) {
-			$row = hashifyLCtoMC(
-				$row,
-				qw(TopupID Balance Value ValidTo Type)
-			);
+		while (my $row = hashifyLCtoMC($sth->fetchrow_hashref(), qw(TopupID Balance Value ValidTo Type))) {
 
 			if (defined($row->{'ValidTo'})) {
 				# Convert string to unix time
@@ -595,11 +578,7 @@ sub cleanup
 
 		# Loop with the topups and push them into arrays
 		my (@trafficTopups,@uptimeTopups);
-		while (my $row = $sth->fetchrow_hashref()) {
-			$row = hashifyLCtoMC(
-				$row,
-				qw(ID Value Type ValidTo)
-			);
+		while (my $row = hashifyLCtoMC($sth->fetchrow_hashref(), qw(ID Value Type ValidTo))) {
 
 			# Convert string to unix time
 			my $unix_validTo = str2time($row->{'ValidTo'});
@@ -840,7 +819,7 @@ sub cleanup
 			# Check if this record exists
 			my $sth = DBSelect('
 				SELECT
-					COUNT(*) as rowCount
+					COUNT(*) as RowCount
 				FROM
 					@TP@topups_summary
 				WHERE
@@ -855,14 +834,10 @@ sub cleanup
 				goto FAIL_ROLLBACK;
 			}
 
-			my $recordCheck = $sth->fetchrow_hashref();
-			$recordCheck = hashifyLCtoMC(
-				$recordCheck,
-				qw(rowCount)
-			);
+			my $recordCheck = hashifyLCtoMC($sth->fetchrow_hashref(), qw(RowCount));
 
 			# Update topup summary
-			if (defined($recordCheck->{'rowCount'}) && $recordCheck->{'rowCount'} > 0) {
+			if (defined($recordCheck->{'RowCount'}) && $recordCheck->{'RowCount'} > 0) {
 				$sth = DBDo('
 					UPDATE
 						@TP@topups_summary

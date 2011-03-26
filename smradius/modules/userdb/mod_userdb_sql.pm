@@ -86,7 +86,7 @@ sub init
 		FROM
 			@TP@group_attributes, @TP@users_to_groups
 		WHERE
-			@TP@users_to_groups.UserID = %{userdb.id}
+			@TP@users_to_groups.UserID = %{userdb.ID}
 			AND @TP@group_attributes.GroupID = @TP@users_to_groups.GroupID
 			AND @TP@group_attributes.Disabled = 0
 	';
@@ -97,7 +97,7 @@ sub init
 		FROM
 			@TP@user_attributes
 		WHERE
-			UserID = %{userdb.id}
+			UserID = %{userdb.ID}
 			AND Disabled = 0
 	';
 	
@@ -106,7 +106,7 @@ sub init
 			@TP@users_data (UserID, LastUpdated, Name, Value)
 		VALUES
 			(
-				%{userdb.id},
+				%{userdb.ID},
 				%{query.LastUpdated},
 				%{query.Name},
 				%{query.Value}
@@ -120,7 +120,7 @@ sub init
 			LastUpdated = %{query.LastUpdated},
 			Value = %{query.Value}
 		WHERE
-			UserID = %{userdb.id}
+			UserID = %{userdb.ID}
 			AND Name = %{query.Name}
 	';
 	
@@ -130,7 +130,7 @@ sub init
 		FROM
 			@TP@users_data
 		WHERE
-			UserID = %{userdb.id}
+			UserID = %{userdb.ID}
 			AND Name = %{query.Name}
 	';
 	
@@ -138,7 +138,7 @@ sub init
 		DELETE FROM
 			@TP@users_data
 		WHERE
-			UserID = %{userdb.id}
+			UserID = %{userdb.ID}
 			AND Name = %{query.Name}
 	';
 
@@ -300,10 +300,10 @@ sub find
 	}
 
 	# Grab record data
-	my $row = $sth->fetchrow_hashref();
+	my $row = hashifyLCtoMC($sth->fetchrow_hashref(), qw(ID Disabled));
 
 	# Dont use disabled user
-	my $res = isBoolean($row->{'disabled'});
+	my $res = isBoolean($row->{'Disabled'});
 	if ($res) {
 		$server->log(LOG_DEBUG,"[MOD_USERDB_SQL] User '".$user->{'Username'}."' is disabled");
 		return MOD_RES_SKIP;
@@ -447,7 +447,7 @@ sub data_set
 		
 		# Cache the result
 		cacheStoreComplexKeyPair('mod_userdb_sql(users_data)',
-				sprintf('%s/%s/%s',$module,$user->{'_UserDB_Data'}->{'id'},$name),
+				sprintf('%s/%s/%s',$module,$user->{'_UserDB_Data'}->{'ID'},$name),
 				\%data
 		);
 	}
@@ -485,7 +485,7 @@ sub data_get
 	# If we using caching, check how old the result is
 	if (defined($config->{'userdb_data_cache_time'})) {
 		my ($res,$val) = cacheGetComplexKeyPair('mod_userdb_sql(data_get)',
-				sprintf('%s/%s/%s',$module,$user->{'_UserDB_Data'}->{'id'},$name)
+				sprintf('%s/%s/%s',$module,$user->{'_UserDB_Data'}->{'ID'},$name)
 		);
 
 		if (defined($val) && $val->{'CachedUntil'} > $user->{'_Internal'}->{'Timestamp-Unix'}) {
@@ -504,17 +504,17 @@ sub data_get
 	}
 
 	# Fetch user data
-	my $row = $sth->fetchrow_hashref();
+	my $row = hashifyLCtoMC($sth->fetchrow_hashref(), qw(LastUpdated Name Value));
 
 	# If there is no result, just return undef
 	return if (!defined($row));
 
 	# If there is data, go through the long process of continuing ...
 	my %data;
-	$data{'LastUpdated'} = $row->{'lastupdated'};
+	$data{'LastUpdated'} = $row->{'LastUpdated'};
 	$data{'Module'} = $module;
-	$data{'Name'} = $row->{'name'};
-	$data{'Value'} = $row->{'value'};
+	$data{'Name'} = $row->{'Name'};
+	$data{'Value'} = $row->{'Value'};
 
 	# If we using caching and got here, it means that we must cache the result
 	if (defined($config->{'userdb_data_cache_time'})) {
@@ -522,7 +522,7 @@ sub data_get
 		
 		# Cache the result
 		cacheStoreComplexKeyPair('mod_userdb_sql(users_data)',
-				sprintf('%s/%s/%s',$module,$user->{'_UserDB_Data'}->{'id'},$name),
+				sprintf('%s/%s/%s',$module,$user->{'_UserDB_Data'}->{'ID'},$name),
 				\%data
 		);
 	}
