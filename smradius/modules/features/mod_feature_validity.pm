@@ -44,12 +44,14 @@ our $pluginInfo = {
 	
 	# Authentication hook
 	'Feature_Post-Authentication_hook' => \&checkValidity,
+	'Feature_Post-Accounting_hook' => \&checkValidity
 };
 
 
 # Some constants
 my $VALID_FROM_KEY = 'SMRadius-Validity-ValidFrom';
 my $VALID_TO_KEY = 'SMRadius-Validity-ValidTo';
+my $VALID_WINDOW_KEY = 'SMRadius-Validity-ValidWindow';
 
 
 ## @internal
@@ -150,6 +152,57 @@ sub checkValidity
 			$server->log(LOG_DEBUG,"[MOD_FEATURE_VALIDITY] Current date outside valid end date: '".$pretty_dt."', rejecting");
 			# Date not within valid period, must be disconnected
 
+			return MOD_RES_NACK;
+		}
+	}
+
+	# Get validity window 
+	my $validWindow;
+	if (defined($user->{'Attributes'}->{$VALID_WINDOW_KEY})) {
+		$server->log(LOG_DEBUG,"[MOD_FEATURE_VALIDITY] '".$VALID_WINDOW_KEY."' is defined");
+		# Operator: :=
+		if (defined($user->{'Attributes'}->{$VALID_WINDOW_KEY}->{':='})) {
+			# Is it a number?
+			if ($user->{'Attributes'}->{$VALID_WINDOW_KEY}->{':='}->{'Value'} =~ /^\d+$/) {
+				$validWindow = $user->{'Attributes'}->{$VALID_WINDOW_KEY}->{':='}->{'Value'};
+			} else {
+				$server->log(LOG_NOTICE,"[MOD_FEATURE_VALIDITY] '".$user->{'Attributes'}->{$VALID_WINDOW_KEY}->{':='}->{'Value'}.
+						"' is NOT an integer");
+			}
+		} else {
+			$server->log(LOG_NOTICE,"[MOD_FEATURE_VALIDITY] No valid operators for attribute '$VALID_WINDOW_KEY'");
+		}
+	}
+
+	# Loop with plugins to find anything supporting getting user data
+	my $user_data;
+	foreach my $module (@{$server->{'module_list'}}) {
+		# Do we have the correct plugin?
+		if ($module->{'Users_data_get'}) {
+			$server->log(LOG_INFO,"[MOD_FEATURE_VALIDITY] Found plugin: '".$module->{'Name'}."'");
+			# Fetch users data
+			my $res = $module->{'Users_data_get'}($server,$user,'global','FirstLogin');
+			if (!defined($res)) {
+				$server->log(LOG_ERR,"[MOD_FEATURE_VALIDITY] No user data found for user '".$packet->attr('User-Name')."'");
+				return MOD_RES_SKIP;
+			}
+
+			$user_data = $res;
+		}
+	}
+
+	# Check if this user should be disconnected
+	if (defined($validWindow) && defined($user_data)) {
+		my $validUntil = $validWindow + $user_data->{'Value'};
+		if (!defined($validUntil)) {
+				$server->log(LOG_DEBUG,"[MOD_FEATURE_VALIDITY] Failed to calculate end of valid window using "
+						.niceUndef($validWindow)." and ".niceUndef($user_data->{'Value'}));
+
+		# If current time after start of valid pariod
+		} elsif ($now > $validUntil) {
+			my $pretty_dt = DateTime->from_epoch( epoch => $validUntil )->strftime('%Y-%m-%d %H:%M:%S');
+			$server->log(LOG_DEBUG,"[MOD_FEATURE_VALIDITY] Current date outside valid window end date: '".$pretty_dt."', rejecting");
+			# Date not within valid window, must be disconnected
 			return MOD_RES_NACK;
 		}
 	}
