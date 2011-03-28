@@ -50,7 +50,10 @@ our $pluginInfo = {
 
 	# Users data
 	Users_data_set => \&data_set,
-	Users_data_get => \&data_get
+	Users_data_get => \&data_get,
+
+	# Cleanup run by smadmin
+	Cleanup => \&cleanup
 };
 
 # Module config
@@ -142,15 +145,6 @@ sub init
 			AND Name = %{query.Name}
 	';
 
-	$config->{'users_data_cleanup_query'} = '
-		DELETE FROM
-			@TP@users_data
-		WHERE UserID NOT IN
-			(
-				SELECT ID FROM users
-			)
-	';
-
 	# Default cache time for user data
 	$config->{'userdb_data_cache_time'} = 300;
 
@@ -225,16 +219,6 @@ sub init
 						@{$scfg->{'mod_userdb_sql'}->{'users_data_delete_query'}});
 			} else {
 					$config->{'users_data_delete_query'} = $scfg->{'mod_userdb_sql'}->{'users_data_delete_query'};
-			}
-		}
-
-		if (defined($scfg->{'mod_userdb_sql'}->{'users_data_cleanup_query'}) &&
-				$scfg->{'mod_userdb_sql'}->{'users_data_cleanup_query'} ne "") {
-			if (ref($scfg->{'mod_userdb_sql'}->{'users_data_cleanup_query'}) eq "ARRAY") {
-				$config->{'users_data_cleanup_query'} = join(' ',
-						@{$scfg->{'mod_userdb_sql'}->{'users_data_cleanup_query'}});
-			} else {
-					$config->{'users_data_cleanup_query'} = $scfg->{'mod_userdb_sql'}->{'users_data_cleanup_query'};
 			}
 		}
 
@@ -528,6 +512,37 @@ sub data_get
 	}
 
 	return \%data;
+}
+
+
+# Clean up of old user variables
+sub cleanup
+{
+	my $server = shift;
+
+	# Begin operation
+	DBBegin();
+
+	# Perform query
+	my $sth = DBDo('
+		DELETE FROM
+			@TP@users_data
+		WHERE UserID NOT IN
+			(
+				SELECT ID FROM users
+			)
+	');
+
+	# Error and rollback
+	if (!$sth) {
+		$server->log(LOG_NOTICE,"[MOD_USERDB_SQL] Cleanup => Database has been rolled back, no records deleted");
+		DBRollback();
+		return;
+	}
+
+	# Commit
+	DBCommit();
+	$server->log(LOG_NOTICE,"[MOD_USERDB_SQL] Cleanup => Old user variables have been deleted");
 }
 
 
