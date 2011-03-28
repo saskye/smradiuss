@@ -194,7 +194,7 @@ sub checkValidity
 				}
 	
 			} else {
-				$server->log(LOG_NOTICE,"[MOD_FEATURE_VALIDITY] No users_data 'global/FirstLogin' found for user '".$packet->attr('User-Name')."'");
+				$server->log(LOG_DEBUG,"[MOD_FEATURE_VALIDITY] No users_data 'global/FirstLogin' found for user '".$packet->attr('User-Name')."'");
 			} # if (defined(my $res = $module->{'Users_data_get'}($server,$user,'global','FirstLogin'))) {
 		} else {
 			$server->log(LOG_WARN,"[MOD_FEATURE_VALIDITY] UserDB module '".$user->{'_UserDB'}->{'Name'}.
