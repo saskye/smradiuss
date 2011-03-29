@@ -388,7 +388,7 @@ sub data_set
 	# Build template
 	my $template;
 	# Last updated time would be now
-	$template->{'query'}->{'LastUpdated'} = $user->{'_Internal'}->{'Timestamp-Unix'};
+	$template->{'query'}->{'LastUpdated'} = $user->{'_Internal'}->{'Timestamp'};
 	$template->{'query'}->{'Name'} = sprintf('%s/%s',$module,$name);
 	$template->{'query'}->{'Value'} = $value;
 
@@ -424,7 +424,7 @@ sub data_set
 		# Build hash to store
 		my %data;
 		$data{'CachedUntil'} = $user->{'_Internal'}->{'Timestamp-Unix'} + $config->{'userdb_data_cache_time'};
-		$data{'LastUpdated'} = $user->{'_Internal'}->{'Timestamp-Unix'};
+		$data{'LastUpdated'} = $user->{'_Internal'}->{'Timestamp'};
 		$data{'Module'} = $module;
 		$data{'Name'} = $name;
 		$data{'Value'} = $value;
