@@ -19,7 +19,7 @@
 
 
 
-$VERSION = "0.4.0b1";
+$VERSION = "0.0.3a";
 
 # vim: ts=4
 ?>
