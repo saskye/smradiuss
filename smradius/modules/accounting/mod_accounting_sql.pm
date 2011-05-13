@@ -302,9 +302,9 @@ sub init
 			if ($scfg->{'mod_accounting_sql'}{'accounting_usage_cache_time'} =~ /^\s*(yes|true|1)\s*$/i) {
 				# Default?
 			} elsif ($scfg->{'mod_accounting_sql'}{'accounting_usage_cache_time'} =~ /^\s*(no|false|0)\s*$/i) {
-				$config->{'mod_accounting_sql'}{'accounting_usage_cache_time'} = undef;
+				$config->{'accounting_usage_cache_time'} = undef;
 			} elsif ($scfg->{'mod_accounting_sql'}{'accounting_usage_cache_time'} =~ /^[0-9]+$/) {
-				$config->{'mod_accounting_sql'}{'accounting_usage_cache_time'} = $scfg->{'mod_accounting_sql'}{'accounting_usage_cache_time'};
+				$config->{'accounting_usage_cache_time'} = $scfg->{'mod_accounting_sql'}{'accounting_usage_cache_time'};
 			} else {
 				$server->log(LOG_NOTICE,"[MOD_ACCOUNTING_SQL] Value for 'accounting_usage_cache_time' is invalid");
 			}

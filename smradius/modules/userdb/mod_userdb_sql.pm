@@ -226,9 +226,9 @@ sub init
 			if ($scfg->{'mod_userdb_sql'}{'userdb_data_cache_time'} =~ /^\s*(yes|true|1)\s*$/i) {
 				# Default?
 			} elsif ($scfg->{'mod_userdb_sql'}{'userdb_data_cache_time'} =~ /^\s*(no|false|0)\s*$/i) {
-				$config->{'mod_userdb_sql'}{'userdb_data_cache_time'} = undef;
+				$config->{'userdb_data_cache_time'} = undef;
 			} elsif ($scfg->{'mod_userdb_sql'}{'userdb_data_cache_time'} =~ /^[0-9]+$/) {
-				$config->{'mod_userdb_sql'}{'userdb_data_cache_time'} = $scfg->{'mod_userdb_sql'}{'userdb_data_cache_time'};
+				$config->{'userdb_data_cache_time'} = $scfg->{'mod_userdb_sql'}{'userdb_data_cache_time'};
 			} else {
 				$server->log(LOG_NOTICE,"[MOD_USERDB_SQL] Value for 'userdb_data_cache_time' is invalid");
 			}
