@@ -150,7 +150,7 @@ sub getTopups
 
 
 	# Check to see if we have a username
-	my $username = $packet->attr('User-Name');
+	my $username = $user->{'Username'};
 
 	# Skip this module if we don't have a username
 	if (!defined($username)) {

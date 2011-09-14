@@ -76,7 +76,7 @@ sub init
 			TotalUptime = %{query.TotalUptime},
 			NASIdentifier = %{request.NAS-Identifier}
 		WHERE
-			Username = %{request.User-Name}
+			Username = %{user.Username}
 	';
 
 	# Setup SQL queries
@@ -127,7 +127,7 @@ sub updateUserStats
 			# Fetch users session uptime & bandwidth used
 			my $res = $module->{'Accounting_getUsage'}($server,$user,$packet);
 			if (!defined($res)) {
-				$server->log(LOG_ERR,"[MOD_FEATURE_UPDATE_USER_STATS_SQL] No usage data found for user '".$packet->attr('User-Name')."'");
+				$server->log(LOG_ERR,"[MOD_FEATURE_UPDATE_USER_STATS_SQL] No usage data found for user '".$user->{'Username'}."'");
 				return MOD_RES_SKIP;
 			}
 

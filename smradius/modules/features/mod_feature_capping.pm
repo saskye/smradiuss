@@ -169,7 +169,7 @@ sub post_auth_hook
 			# Fetch users session uptime & bandwidth used
 			my $res = $module->{'Accounting_getUsage'}($server,$user,$packet);
 			if (!defined($res)) {
-				$server->log(LOG_ERR,"[MOD_FEATURE_CAPPING] No usage data found for user '".$packet->attr('User-Name')."'");
+				$server->log(LOG_ERR,"[MOD_FEATURE_CAPPING] No usage data found for user '".$user->{'Username'}."'");
 				return MOD_RES_SKIP;
 			}
 
@@ -448,7 +448,7 @@ sub post_acct_hook
 			# Fetch users session uptime & bandwidth used
 			my $res = $module->{'Accounting_getUsage'}($server,$user,$packet);
 			if (!defined($res)) {
-				$server->log(LOG_ERR,"[MOD_FEATURE_CAPPING] No usage data found for user '".$packet->attr('User-Name')."'");
+				$server->log(LOG_ERR,"[MOD_FEATURE_CAPPING] No usage data found for user '".$user->{'Username'}."'");
 				return MOD_RES_SKIP;
 			}
 

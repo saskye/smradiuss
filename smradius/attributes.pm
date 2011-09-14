@@ -52,7 +52,8 @@ my @attributeReplyIgnoreList = (
 	'SMRadius-Capping-Uptime-Limit',
 	'SMRadius-Validity-ValidFrom',
 	'SMRadius-Validity-ValidTo',
-	'SMRadius-Validity-ValidWindow'
+	'SMRadius-Validity-ValidWindow',
+	'SMRadius-Username-Transform'
 );
 my @attributeVReplyIgnoreList = (
 );

@@ -597,6 +597,30 @@ sub process_request {
 		}
 	}
 
+	# If we have a config attribute to transform username, use it
+	if (defined($user->{'ConfigAttributes'}->{'SMRadius-Username-Transform'})) {
+
+		$self->log(LOG_DEBUG,"[SMRADIUS] Attribute 'SMRadius-Username-Transform' exists, transforming username.");
+
+		# Get clients(NAS) username transform pattern
+		my $transform = shift(@{$user->{'ConfigAttributes'}->{'SMRadius-Username-Transform'}});
+		if ($transform =~ /^(@\S+)=(@\S+)$/i) {
+
+			# Set old and new, prevents warnings
+			my ($old,$new) = ($1,$2);
+
+			# Use client username transform on temp username
+			my $tempUsername = $user->{'Username'};
+			$tempUsername =~ s/$old/$new/;
+
+			# Override username
+			$user->{'Username'} = $tempUsername;
+		} else {
+			$self->log(LOG_DEBUG,"[SMRADIUS] No string replacement possible on pattern '".
+					$transform."', using username '".$user->{'Username'}."'");
+		}
+	}
+
 	# Get the user timer
 	my $timer1 = [gettimeofday];
 

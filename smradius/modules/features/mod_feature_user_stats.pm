@@ -80,7 +80,7 @@ sub updateUserStats
 			# Fetch users session uptime & bandwidth used
 			my $res = $module->{'Accounting_getUsage'}($server,$user,$packet);
 			if (!defined($res)) {
-				$server->log(LOG_ERR,"[MOD_USERS_DATA] No usage data found for user '".$packet->attr('User-Name')."'");
+				$server->log(LOG_ERR,"[MOD_USERS_DATA] No usage data found for user '".$user->{'Username'}."'");
 				return MOD_RES_SKIP;
 			}
 
@@ -100,7 +100,7 @@ sub updateUserStats
 		);
 		if (!defined($res)) {
 			$server->log(LOG_ERR,"[MOD_USERS_DATA] Failed to store current month traffic usage for user '"
-					.$packet->attr('User-Name')."'");
+					.$user->{'Username'}."'");
 			return MOD_RES_SKIP;
 		}
 
@@ -111,7 +111,7 @@ sub updateUserStats
 		);
 		if (!defined($res)) {
 			$server->log(LOG_ERR,"[MOD_USERS_DATA] Failed to store current month uptime usage for user '"
-					.$packet->attr('User-Name')."'");
+					.$user->{'Username'}."'");
 			return MOD_RES_SKIP;
 		}
 
@@ -122,7 +122,7 @@ sub updateUserStats
 					$NASIdentifier
 			);
 			if (!defined($res)) {
-				$server->log(LOG_ERR,"[MOD_USERS_DATA] Failed to store NAS-Identifier for user '".$packet->attr('User-Name')."'");
+				$server->log(LOG_ERR,"[MOD_USERS_DATA] Failed to store NAS-Identifier for user '".$user->{'Username'}."'");
 				return MOD_RES_SKIP;
 			}
 		}
@@ -134,7 +134,7 @@ sub updateUserStats
 					$framedIPAddress
 			);
 			if (!defined($res)) {
-				$server->log(LOG_ERR,"[MOD_USERS_DATA] Failed to store Framed-IP-Address for user '".$packet->attr('User-Name')."'");
+				$server->log(LOG_ERR,"[MOD_USERS_DATA] Failed to store Framed-IP-Address for user '".$user->{'Username'}."'");
 				return MOD_RES_SKIP;
 			}
 		}

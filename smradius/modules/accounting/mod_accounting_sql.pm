@@ -110,7 +110,7 @@ sub init
 		)
 		VALUES
 		(
-			%{request.User-Name},
+			%{user.Username},
 			%{request.Service-Type},
 			%{request.Framed-Protocol},
 			%{request.NAS-Port},
@@ -150,7 +150,7 @@ sub init
 		FROM
 			@TP@accounting
 		WHERE
-			Username = %{request.User-Name}
+			Username = %{user.Username}
 			AND AcctSessionID = %{request.Acct-Session-Id}
 			AND NASIPAddress = %{request.NAS-IP-Address}
 			AND NASPortID = %{request.NAS-Port-Id}
@@ -173,7 +173,7 @@ sub init
 			AcctOutputPackets = %{query.OutputPackets},
 			AcctStatusType = %{request.Acct-Status-Type}
 		WHERE
-			Username = %{request.User-Name}
+			Username = %{user.Username}
 			AND AcctSessionID = %{request.Acct-Session-Id}
 			AND NASIPAddress = %{request.NAS-IP-Address}
 			AND NASPortID = %{request.NAS-Port-Id}
@@ -187,7 +187,7 @@ sub init
 			AcctStatusType = %{request.Acct-Status-Type},
 			AcctTerminateCause = %{request.Acct-Terminate-Cause}
 		WHERE
-			Username = %{request.User-Name}
+			Username = %{user.Username}
 			AND AcctSessionID = %{request.Acct-Session-Id}
 			AND NASIPAddress = %{request.NAS-IP-Address}
 			AND NASPortID = %{request.NAS-Port-Id}
@@ -203,7 +203,7 @@ sub init
 		FROM
 			@TP@accounting
 		WHERE
-			Username = %{request.User-Name}
+			Username = %{user.Username}
 			AND PeriodKey = %{query.PeriodKey}
 	';
 
@@ -213,7 +213,7 @@ sub init
 		FROM
 			@TP@accounting
 		WHERE
-			Username = %{request.User-Name}
+			Username = %{user.Username}
 			AND AcctSessionID = %{request.Acct-Session-Id}
 			AND NASIPAddress = %{request.NAS-IP-Address}
 			AND NASPortID = %{request.NAS-Port-Id}

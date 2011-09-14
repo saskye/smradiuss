@@ -81,7 +81,7 @@ sub init
 		FROM
 			@TP@users
 		WHERE
-			Username = %{request.User-Name}
+			Username = %{user.Username}
 	';
 
 	$config->{'userdb_get_group_attributes_query'} = '
