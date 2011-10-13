@@ -295,7 +295,7 @@ sub cleanup
 	# The datetime now
 	my $now = DateTime->now->set_time_zone($server->{'smradius'}->{'event_timezone'});
 
-	# This month..
+	# Use truncate to set all values after 'month' to their default values
 	my $thisMonth = $now->clone()->truncate( to => "month" );
 
 	# Last month..
