@@ -296,7 +296,7 @@ sub cleanup
 	my $now = DateTime->now->set_time_zone($server->{'smradius'}->{'event_timezone'});
 
 	# This month..
-	my $thisMonth = DateTime->new( year => $now->year, month => $now->month, day => 1 );
+	my $thisMonth = $now->clone()->truncate( to => "month" );
 
 	# Last month..
 	my $lastMonth = $thisMonth->clone()->subtract( months => 1 );
