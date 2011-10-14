@@ -330,7 +330,7 @@ sub post_auth_hook
 			if (defined($config->{'enable_mikrotik'})) {
 				# Get remaining traffic
 				my $remainingTraffic = $alteredTrafficLimit - $accountingUsage->{'TotalDataUsage'};
-				my $remainingTrafficLimit = ( $remainingTraffic % 4096 ) * 1024;# * 1024;
+				my $remainingTrafficLimit = ( $remainingTraffic % 4096 ) * 1024 * 1024;
 				my $remainingTrafficGigawords = floor($remainingTraffic / 4096);
 	
 				# Setup reply attributes for Mikrotik HotSpots
