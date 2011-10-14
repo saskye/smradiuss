@@ -1032,10 +1032,24 @@ sub process_request {
 				}
 			}
 	
-			# Add onto logline
+			# Add attributes onto logline
 			$logLine .= ". REPLY => ";
 			foreach my $attr ($resp->attributes) {
 				$logLine .= " $attr: '".$resp->rawattr($attr)."',";
+			}
+			chop($logLine);
+			# Add vattributes onto logline
+			$logLine .= ". VREPLY => ";
+			# Loop with vendors
+			foreach my $vendor ($resp->vendors()) {
+				# Loop with attributes
+				foreach my $attr ($resp->vsattributes($vendor)) {
+					# Grab the value
+					my @attrRawVal = ( $resp->vsattr($vendor,$attr) );
+					my $attrVal = $attrRawVal[0][0];
+
+					$logLine .= " $vendor/$attr: '$attrVal',";
+				}
 			}
 			chop($logLine);
 
