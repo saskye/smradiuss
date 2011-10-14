@@ -1,44 +1,49 @@
-# MikroTik vendor specific dictionary
-# Copyright (C) 2003-2009 MikroTikls, SIA
+# Mikrotik Radius Dictionary
+# Copyright (C) 2009-2011, AllWorldIT
 #
-# You may freely redistribute and use this software or any part of it in source
-# and/or binary forms, with or without modification for any purposes without
-# limitations, provided that you respect the following statement:
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
 #
-# This software is provided 'AS IS' without a warranty of any kind, expressed or
-# implied, including, but not limited to, the implied warranty of
-# merchantability and fitness for a particular purpose. In no event shall
-# MikroTikls SIA be liable for direct or indirect, incidental, consequential or
-# other damages that may result from the use of this software, including, but
-# not limited to, loss of data, time and (or) profits.
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
 #
-# $Id: dictionary.mikrotik,v 1.6 2007/06/15 08:25:04 aland Exp $
-#
-# MikroTik Attributes                                                
+# You should have received a copy of the GNU General Public License along
+# with this program; if not, write to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-VENDOR          Mikrotik                        14988
+# MikroTik Attributes
 
-ATTRIBUTE       Mikrotik-Recv-Limit                     1       integer      Mikrotik
-ATTRIBUTE       Mikrotik-Xmit-Limit                     2       integer      Mikrotik
+VENDOR          Mikrotik        14988
 
-# this attribute is unused
-ATTRIBUTE       Mikrotik-Group                          3       string       Mikrotik
+ATTRIBUTE       Mikrotik-Recv-Limit          1    integer             Mikrotik
+ATTRIBUTE       Mikrotik-Xmit-Limit          2    integer             Mikrotik
+ATTRIBUTE       Mikrotik-Group               3    string              Mikrotik
+ATTRIBUTE       Mikrotik-Wireless-Forward    4    integer             Mikrotik
+ATTRIBUTE       Mikrotik-Wireless-Skip-Dot1x 5    integer             Mikrotik
+ATTRIBUTE       Mikrotik-Wireless-Enc-Algo   6    integer             Mikrotik
+ATTRIBUTE       Mikrotik-Wireless-Enc-Key    7    string              Mikrotik
+ATTRIBUTE       Mikrotik-Rate-Limit          8    string              Mikrotik
+ATTRIBUTE       Mikrotik-Realm               9    string              Mikrotik
+ATTRIBUTE       Mikrotik-Host-IP             10   ipaddr              Mikrotik
+ATTRIBUTE       Mikrotik-Mark-Id             11   string              Mikrotik
+ATTRIBUTE       Mikrotik-Advertise-URL       12   string              Mikrotik
+ATTRIBUTE       Mikrotik-Advertise-Interval  13   integer             Mikrotik
+ATTRIBUTE       Mikrotik-Recv-Limit-Gigawords 14  integer             Mikrotik
+ATTRIBUTE       Mikrotik-Xmit-Limit-Gigawords 15  integer             Mikrotik
+ATTRIBUTE       Mikrotik-Wireless-PSK         16  string              Mikrotik
+ATTRIBUTE       Mikrotik-Total-Limit          17  integer             Mikrotik
+ATTRIBUTE       Mikrotik-Total-Limit-Gigawords 18 integer             Mikrotik
+ATTRIBUTE       Mikrotik-Address-List          19 string              Mikrotik
+#ATTRIBUTE       Mikrotik-Wireless-MPKey        20                     Mikrotik
+ATTRIBUTE       Mikrotik-Wireless-Comment      21 string              Mikrotik
 
-ATTRIBUTE       Mikrotik-Wireless-Forward               4       integer      Mikrotik
-ATTRIBUTE       Mikrotik-Wireless-Skip-Dot1x            5       integer      Mikrotik
-ATTRIBUTE       Mikrotik-Wireless-Enc-Algo              6       integer      Mikrotik
-ATTRIBUTE       Mikrotik-Wireless-Enc-Key               7       string       Mikrotik
-ATTRIBUTE       Mikrotik-Rate-Limit                     8       string       Mikrotik
-ATTRIBUTE       Mikrotik-Realm                          9       string       Mikrotik
-ATTRIBUTE       Mikrotik-Host-IP                        10      ipaddr       Mikrotik
-ATTRIBUTE       Mikrotik-Mark-Id                        11      string       Mikrotik
-ATTRIBUTE       Mikrotik-Advertise-URL                  12      string       Mikrotik
-ATTRIBUTE       Mikrotik-Advertise-Interval             13      integer      Mikrotik
-ATTRIBUTE       Mikrotik-Recv-Limit-Gigawords           14      integer      Mikrotik
-ATTRIBUTE       Mikrotik-Xmit-Limit-Gigawords           15      integer      Mikrotik
 # MikroTik Values
-
-VALUE   Mikrotik-Wireless-Enc-Algo      No-encryption           0
-VALUE   Mikrotik-Wireless-Enc-Algo      40-bit-WEP              1
-VALUE   Mikrotik-Wireless-Enc-Algo      104-bit-WEP             2
-
+VALUE           Wireless-Enc-Algo            No-encryption                  0
+VALUE           Wireless-Enc-Algo            40-bit-WEP                     1
+VALUE           Wireless-Enc-Algo            104-bit-WEP                    2
+VALUE           Wireless-Enc-Algo            AES-CCM                        3 
+VALUE           Wireless-Enc-Algo            TKIP                           4
