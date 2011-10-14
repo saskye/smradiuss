@@ -21,9 +21,13 @@ use strict;
 use warnings;
 
 # Modules we need
+use smradius::attributes;
 use smradius::constants;
 use smradius::logging;
 use smradius::util;
+
+use POSIX qw(floor);
+
 
 # Exporter stuff
 require Exporter;
@@ -55,11 +59,30 @@ my $UPTIME_LIMIT_KEY = 'SMRadius-Capping-Uptime-Limit';
 my $TRAFFIC_TOPUPS_KEY = 'SMRadius-Capping-Traffic-Topup';
 my $TIME_TOPUPS_KEY = 'SMRadius-Capping-Uptime-Topup';
 
+my $config;
+
 ## @internal
 # Initialize module
 sub init
 {
 	my $server = shift;
+	my $scfg = $server->{'inifile'};
+
+
+	# Setup SQL queries
+	if (defined($scfg->{'mod_feature_capping'})) {
+		# Pull in config
+		if ($scfg->{'mod_feature_capping'}{'enable_mikrotik'} =~ /^\s*(yes|true|1)\s*$/i) {
+			$server->log(LOG_NOTICE,"[MOD_FEATURE_CAPPING] Mikrotik-specific vendor return attributes ENABLED");
+			$config->{'enable_mikrotik'} = $scfg->{'mod_feature_capping'}{'enable_mikrotik'};
+		# Default?
+		} elsif ($scfg->{'mod_feature_capping'}{'enable_mikrotik'} =~ /^\s*(no|false|0)\s*$/i) {
+			$config->{'enable_mikrotik'} = undef;
+		} else {
+			$server->log(LOG_NOTICE,"[MOD_FEATURE_CAPPING] Value for 'enable_mikrotik' is invalid");
+		}
+	}
+
 }
 
 
@@ -278,6 +301,18 @@ sub post_auth_hook
 			$server->log(LOG_DEBUG,"[MOD_FEATURE_CAPPING] Usage of ".$accountingUsage->{'TotalSessionTime'}.
 					"Min exceeds allowed limit of ".$alteredUptimeLimit."Min. Capped.");
 			return MOD_RES_NACK;
+		# Setup limits
+		} else {
+			# Check if we returning Mikrotik vattributes
+			if (defined($config->{'enable_mikrotik'})) {
+				# Setup reply attributes for Mikrotik HotSpots
+				my %attribute = (
+					'Name' => 'Session-Timeout',
+					'Operator' => '=',
+					'Value' => $alteredUptimeLimit - $accountingUsage->{'TotalSessionTime'}
+				);
+				setReplyAttribute($server,$user->{'ReplyAttributes'},\%attribute);
+			}
 		}
 	}
 
@@ -289,6 +324,36 @@ sub post_auth_hook
 			$server->log(LOG_DEBUG,"[MOD_FEATURE_CAPPING] Usage of ".$accountingUsage->{'TotalDataUsage'}.
 					"Mb exceeds allowed limit of ".$alteredTrafficLimit."Mb. Capped.");
 			return MOD_RES_NACK;
+		# Setup limits
+		} else {
+			# Check if we returning Mikrotik vattributes
+			if (defined($config->{'enable_mikrotik'})) {
+				# Get remaining traffic
+				my $remainingTraffic = $alteredTrafficLimit - $accountingUsage->{'TotalDataUsage'};
+				my $remainingTrafficLimit = ( $remainingTraffic % 4096 ) * 1024;# * 1024;
+				my $remainingTrafficGigawords = floor($remainingTraffic / 4096);
+	
+				# Setup reply attributes for Mikrotik HotSpots
+				for my $attrName ('Recv','Xmit','Total') {
+					my %attribute = (
+						'Vendor' => 14988,
+						'Name' => "Mikrotik-$attrName-Limit",
+						'Operator' => '=',
+						# Gigawords leftovers
+						'Value' => $remainingTrafficLimit
+					);
+					setReplyVAttribute($server,$user->{'ReplyVAttributes'},\%attribute);
+	
+					%attribute = (
+						'Vendor' => 14988,
+						'Name' => "Mikrotik-$attrName-Limit-Gigawords",
+						'Operator' => '=',
+						# Gigawords
+						'Value' => $remainingTrafficGigawords
+					);
+					setReplyVAttribute($server,$user->{'ReplyVAttributes'},\%attribute);
+				}
+			}
 		}
 	}
 
