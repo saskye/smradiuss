@@ -53,6 +53,7 @@ our $pluginInfo = {
 	Users_data_get => \&data_get,
 
 	# Cleanup run by smadmin
+	CleanupOrder => 95,
 	Cleanup => \&cleanup
 };
 
@@ -518,8 +519,9 @@ sub data_get
 # Clean up of old user variables
 sub cleanup
 {
-	my $server = shift;
+	my ($server,$runForDate) = @_;
 
+	$server->log(LOG_NOTICE,"[MOD_USERDB_SQL] Cleanup => Removing old user data");
 	# Begin operation
 	DBBegin();
 
@@ -535,14 +537,14 @@ sub cleanup
 
 	# Error and rollback
 	if (!$sth) {
-		$server->log(LOG_NOTICE,"[MOD_USERDB_SQL] Cleanup => Database has been rolled back, no records deleted");
+		$server->log(LOG_NOTICE,"[MOD_USERDB_SQL] Cleanup => Database has been rolled back, no data deleted");
 		DBRollback();
 		return;
 	}
 
 	# Commit
 	DBCommit();
-	$server->log(LOG_NOTICE,"[MOD_USERDB_SQL] Cleanup => Old user variables have been deleted");
+	$server->log(LOG_NOTICE,"[MOD_USERDB_SQL] Cleanup => Old user data have been deleted");
 }
 
 
