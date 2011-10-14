@@ -27,7 +27,7 @@ use awitpt::db::dblayer;
 use smradius::util;
 use smradius::attributes;
 
-use POSIX qw(ceil);
+use POSIX qw(ceil strftime);
 use DateTime;
 use Date::Parse;
 use Math::BigInt;
@@ -52,6 +52,7 @@ our $pluginInfo = {
 	Init => \&init,
 
 	# Cleanup run by smadmin
+	CleanupOrder => 80,
 	Cleanup => \&cleanup,
 
 	# User database
@@ -271,32 +272,15 @@ sub getTopups
 # Topup summary function
 sub cleanup
 {
-	my ($server) = @_;
-
-	# TODO - be more dynamic, we may not be using SQL users
-	# Get all usernames
-	my $sth = DBSelect('SELECT ID, Username FROM @TP@users');
-
-	if (!$sth) {
-		$server->log(LOG_ERR,"[MOD_CONFIG_SQL_TOPUPS] Cleanup => Failed to select from users: ".
-				awitpt::db::dblayer::Error());
-		return;
-	}
-
-	# Create hash of usernames
-	my %users;
-	while (my $user = hashifyLCtoMC($sth->fetchrow_hashref(), qw(ID Username))) {
-		$users{$user->{'ID'}} = $user->{'Username'};
-	}
-
-	# Finished for now
-	DBFreeRes($sth);
+	my ($server,$runForDate) = @_;
 
 	# The datetime now
-	my $now = DateTime->now->set_time_zone($server->{'smradius'}->{'event_timezone'});
+	my $now = DateTime->from_epoch(epoch => $runForDate)->set_time_zone($server->{'smradius'}->{'event_timezone'});
 
 	# Use truncate to set all values after 'month' to their default values
 	my $thisMonth = $now->clone()->truncate( to => "month" );
+	# Format this month period key
+	my $curPeriodKey = $thisMonth->strftime("%Y-%m");
 
 	# Last month..
 	my $lastMonth = $thisMonth->clone()->subtract( months => 1 );
@@ -309,8 +293,83 @@ sub cleanup
 	# Get a timestamp for this user
 	my $depletedTimestamp = $now->strftime('%Y-%m-%d %H:%M:%S');
 
+
+
+	$server->log(LOG_NOTICE,"[MOD_CONFIG_SQL_TOPUPS] Cleanup => Generating list of users");
+
+	# TODO - be more dynamic, we may not be using SQL users
+	# Get all usernames
+	my $sth = DBSelect('SELECT ID, Username FROM @TP@users');
+
+	if (!$sth) {
+		$server->log(LOG_ERR,"[MOD_CONFIG_SQL_TOPUPS] Cleanup => Failed to select users: ".
+				awitpt::db::dblayer::Error());
+		return;
+	}
+
+	# Create hash of usernames
+	my %users;
+	while (my $user = hashifyLCtoMC($sth->fetchrow_hashref(), qw(ID Username))) {
+		$users{$user->{'ID'}} = $user->{'Username'};
+	}
+
+	# Finished for now
+	DBFreeRes($sth);
+	
 	# Start of multiple queries
 	DBBegin();
+
+	$server->log(LOG_NOTICE,"[MOD_CONFIG_SQL_TOPUPS] Cleanup => Removing all old topup summaries");
+	# Remove topup summaries
+	$sth = DBDo('
+		DELETE FROM
+			@TP@topups_summary
+		WHERE
+			STR_TO_DATE(PeriodKey,"%Y-%m") >= ?',
+		$curPeriodKey
+	);
+	if (!$sth) {
+		$server->log(LOG_ERR,"[MOD_CONFIG_SQL_TOPUPS] Cleanup => Failed to delete topup summaries: ".
+				awitpt::db::dblayer::Error());
+		DBRollback();
+		return;
+	}
+
+	# Undeplete topups
+	$sth = DBDo('
+		UPDATE
+			@TP@topups
+		SET
+			Depleted = 0,
+			SMAdminDepletedOn = NULL
+		WHERE
+			SMAdminDepletedOn >= ?', $thisMonth->ymd()
+	);
+	if (!$sth) {
+		$server->log(LOG_ERR,"[MOD_CONFIG_SQL_TOPUPS] Cleanup => Failed to undeplete topups: ".
+				awitpt::db::dblayer::Error());
+		DBRollback();
+		return;
+	}
+
+	$server->log(LOG_NOTICE,"[MOD_CONFIG_SQL_TOPUPS] Cleanup => Retrieving accounting summaries");
+
+	# Undeplete topup summaries
+	$sth = DBDo('
+		UPDATE
+			@TP@topups_summary
+		SET
+			Depleted = 0,
+			SMAdminDepletedOn = NULL
+		WHERE
+			SMAdminDepletedOn >= ?', $thisMonth->ymd()
+	);
+	if (!$sth) {
+		$server->log(LOG_ERR,"[MOD_CONFIG_SQL_TOPUPS] Cleanup => Failed to retrieve accounting summaries: ".
+				awitpt::db::dblayer::Error());
+		DBRollback();
+		return;
+	}
 
 	# Loop through users
 	foreach my $userID (keys %users) {
@@ -321,22 +380,19 @@ sub cleanup
 		# Get traffic and uptime usage for last month
 		my $sth = DBSelect('
 			SELECT
-				AcctSessionTime,
-				AcctInputOctets,
-				AcctInputGigawords,
-				AcctOutputOctets,
-				AcctOutputGigawords
+				TotalInput,
+				TotalOutput,
+				TotalSessionTime
 			FROM
-				@TP@accounting
+				@TP@accounting_summary
 			WHERE
 				PeriodKey = ?
 				AND Username = ?
 			',
 			$prevPeriodKey,$username
 		);
-
 		if (!$sth) {
-			$server->log(LOG_ERR,"[MOD_CONFIG_SQL_TOPUPS] Cleanup => Failed to select accounting records: ".
+			$server->log(LOG_ERR,"[MOD_CONFIG_SQL_TOPUPS] Cleanup => Failed to select accounting summary record: ".
 					awitpt::db::dblayer::Error());
 			goto FAIL_ROLLBACK;
 		}
@@ -344,48 +400,32 @@ sub cleanup
 		# Our usage hash
 		my %usageTotals;
 		$usageTotals{'TotalSessionTime'} = Math::BigInt->new();
-		$usageTotals{'TotalDataInput'} = Math::BigInt->new();
-		$usageTotals{'TotalDataOutput'} = Math::BigInt->new();
+		$usageTotals{'TotalDataUsage'} = Math::BigInt->new();
 
 		# Pull in usage and add up
-		while (my $row = hashifyLCtoMC($sth->fetchrow_hashref(),
-				qw(AcctSessionTime AcctInputOctets AcctInputGigawords AcctOutputOctets AcctOutputGigawords)
+		if (my $row = hashifyLCtoMC($sth->fetchrow_hashref(),
+				qw(TotalSessionTime TotalInput TotalOutput)
 		)) {
 
 			# Look for session time
-			if (defined($row->{'AcctSessionTime'}) && $row->{'AcctSessionTime'} > 0) {
-				$usageTotals{'TotalSessionTime'}->badd($row->{'AcctSessionTime'});
+			if (defined($row->{'TotalSessionTime'}) && $row->{'TotalSessionTime'} > 0) {
+				$usageTotals{'TotalSessionTime'}->badd($row->{'TotalSessionTime'});
 			}
 			# Add input usage if we have any
-			if (defined($row->{'AcctInputOctets'}) && $row->{'AcctInputOctets'} > 0) {
-				$usageTotals{'TotalDataInput'}->badd($row->{'AcctInputOctets'});
-			}
-			if (defined($row->{'AcctInputGigawords'}) && $row->{'AcctInputGigawords'} > 0) {
-				my $inputGigawords = Math::BigInt->new($row->{'AcctInputGigawords'});
-				$inputGigawords->bmul(UINT_MAX);
-				$usageTotals{'TotalDataInput'}->badd($inputGigawords);
+			if (defined($row->{'TotalInput'}) && $row->{'TotalInput'} > 0) {
+				$usageTotals{'TotalDataUsage'}->badd($row->{'TotalInput'});
 			}
 			# Add output usage if we have any
-			if (defined($row->{'AcctOutputOctets'}) && $row->{'AcctOutputOctets'} > 0) {
-				$usageTotals{'TotalDataOutput'}->badd($row->{'AcctOutputOctets'});
-			}
-			if (defined($row->{'AcctOutputGigawords'}) && $row->{'AcctOutputGigawords'} > 0) {
-				my $outputGigawords = Math::BigInt->new($row->{'AcctOutputGigawords'});
-				$outputGigawords->bmul(UINT_MAX);
-				$usageTotals{'TotalDataOutput'}->badd($outputGigawords);
+			if (defined($row->{'TotalOutput'}) && $row->{'TotalOutput'} > 0) {
+				$usageTotals{'TotalDataUsage'}->badd($row->{'TotalOutput'});
 			}
 		}
 		DBFreeRes($sth);
 
-		# Convert to bigfloat for accuracy
-		my $totalData = Math::BigFloat->new();
-		$totalData->badd($usageTotals{'TotalDataOutput'})->badd($usageTotals{'TotalDataInput'});
-		my $totalTime = Math::BigFloat->new();
-		$totalTime->badd($usageTotals{'TotalSessionTime'});
-
-		# Rounding up
-		$usageTotals{'TotalDataUsage'} = $totalData->bdiv('1024')->bdiv('1024')->bceil()->bstr();
-		$usageTotals{'TotalSessionTime'} = $totalTime->bdiv('60')->bceil()->bstr();
+		# Log the summary	
+		$server->log(LOG_NOTICE,"[MOD_CONFIG_SQL_TOPUPS] Cleanup => Username '%s', PeriodKey '%s', TotalSessionTime '%s', ".
+				" TotalDataUsage '%s'",$username,$prevPeriodKey,$usageTotals{'TotalSessionTime'}->bstr(),
+				$usageTotals{'TotalDataUsage'}->bstr(),	$usageTotals{'TotalDataUsage'}->bstr());
 
 		# Get user traffic and uptime limits from group attributes
 		# FIXME - Support for realm config
@@ -417,7 +457,8 @@ sub cleanup
 						if (defined($row->{'Value'}) && $row->{'Value'} =~ /^[\d]+$/) {
 							$capRecord{'TrafficLimit'} = $row->{'Value'};
 						} else {
-							$server->log(LOG_ERR,"[MOD_CONFIG_SQL_TOPUPS] Cleanup => SMRadius-Capping-Traffic-Limit value invalid for user '".$username."'");
+							$server->log(LOG_ERR,"[MOD_CONFIG_SQL_TOPUPS] Cleanup => SMRadius-Capping-Traffic-Limit ".
+									"value invalid for user '".$username."'");
 						}
 					} else {
 						$server->log(LOG_ERR,"[MOD_CONFIG_SQL_TOPUPS] Cleanup => Incorrect '".$row->{'Name'}."' operator '"
@@ -429,7 +470,8 @@ sub cleanup
 						if (defined($row->{'Value'}) && $row->{'Value'} =~ /^[\d]+$/) {
 							$capRecord{'UptimeLimit'} = $row->{'Value'};
 						} else {
-							$server->log(LOG_ERR,"[MOD_CONFIG_SQL_TOPUPS] Cleanup => SMRadius-Capping-Uptime-Limit value invalid for user '".$username."'");
+							$server->log(LOG_ERR,"[MOD_CONFIG_SQL_TOPUPS] Cleanup => SMRadius-Capping-Uptime-Limit value ".
+							"invalid for user '".$username."'");
 						}
 					} else {
 						$server->log(LOG_ERR,"[MOD_CONFIG_SQL_TOPUPS] Cleanup => Incorrect '".$row->{'Name'}."' operator '"
@@ -469,7 +511,8 @@ sub cleanup
 						if (defined($row->{'Value'}) && $row->{'Value'} =~ /^[\d]+$/) {
 							$capRecord{'TrafficLimit'} = $row->{'Value'};
 						} else {
-							$server->log(LOG_ERR,"[MOD_CONFIG_SQL_TOPUPS] Cleanup => SMRadius-Capping-Traffic-Limit value invalid for user '".$username."'");
+							$server->log(LOG_ERR,"[MOD_CONFIG_SQL_TOPUPS] Cleanup => SMRadius-Capping-Traffic-Limit value ".
+									"invalid for user '".$username."'");
 						}
 					} else {
 						$server->log(LOG_ERR,"[MOD_CONFIG_SQL_TOPUPS] Cleanup => Incorrect '".$row->{'Name'}."' operator '"
@@ -481,7 +524,8 @@ sub cleanup
 						if (defined($row->{'Value'}) && $row->{'Value'} =~ /^[\d]+$/) {
 							$capRecord{'UptimeLimit'} = $row->{'Value'};
 						} else {
-							$server->log(LOG_ERR,"[MOD_CONFIG_SQL_TOPUPS] Cleanup => SMRadius-Capping-Uptime-Limit value invalid for user '".$username."'");
+							$server->log(LOG_ERR,"[MOD_CONFIG_SQL_TOPUPS] Cleanup => SMRadius-Capping-Uptime-Limit value ".
+									"invalid for user '".$username."'");
 						}
 					} else {
 						$server->log(LOG_ERR,"[MOD_CONFIG_SQL_TOPUPS] Cleanup => Incorrect '".$row->{'Name'}."' operator '"
@@ -494,6 +538,11 @@ sub cleanup
 		# Finished for now
 		DBFreeRes($sth);
 
+		$server->log(LOG_NOTICE,"[MOD_CONFIG_SQL_TOPUPS] Cleanup =>     CAP: ".
+				"SMRadius-Capping-Traffic-Limit '%s', SMRadius-Capping-Uptime-Limit '%s'",
+				$capRecord{'TrafficLimit'} ? $capRecord{'TrafficLimit'} : "-",
+				$capRecord{'UptimeLimit'} ? $capRecord{'TrafficLimit'} : "-"
+		);
 
 		# Get users topups that are still valid from topups_summary, must not be depleted
 		$sth = DBSelect('
@@ -531,6 +580,7 @@ sub cleanup
 			if (defined($row->{'ValidTo'})) {
 				# Convert string to unix time
 				my $unix_validTo = str2time($row->{'ValidTo'});
+				# Process traffic topup
 				if ($row->{'Type'} == 1) {
 					push(@trafficSummary, { 
 							TopupID => $row->{'TopupID'},
@@ -538,6 +588,15 @@ sub cleanup
 							ValidTo => $unix_validTo,
 							Type => $row->{'Type'}
 					});
+
+					$server->log(LOG_NOTICE,"[MOD_CONFIG_SQL_TOPUPS] Cleanup =>     TRAFFIC SUMMARY TOPUP: ".
+							"ID '%s', Balance '%s', ValidTo '%s'",
+							$row->{'TopupID'},
+							$row->{'Balance'},
+							DateTime->from_epoch(epoch => $unix_validTo)->strftime("%F")
+					);
+
+				# Process uptime topup
 				} elsif ($row->{'Type'} == 2) {
 					push(@uptimeSummary, { 
 							TopupID => $row->{'TopupID'},
@@ -545,6 +604,13 @@ sub cleanup
 							ValidTo => $unix_validTo,
 							Type => $row->{'Type'}
 					});
+
+					$server->log(LOG_NOTICE,"[MOD_CONFIG_SQL_TOPUPS] Cleanup =>     UPTIME SUMMARY TOPUP: ".
+							"ID '%s', Balance '%s', ValidTo '%s'",
+							$$row->{'TopupID'},
+							$row->{'Balance'},
+							DateTime->from_epoch(epoch => $unix_validTo)->strftime("%F")
+					);
 				}
 			}
 		}
@@ -590,6 +656,13 @@ sub cleanup
 					ValidTo => $unix_validTo
 				});
 
+				$server->log(LOG_NOTICE,"[MOD_CONFIG_SQL_TOPUPS] Cleanup =>     TRAFFIC TOPUP: ".
+						"ID '%s', Balance '%s', ValidTo '%s'",
+						$row->{'ID'},
+						$row->{'Value'},
+						DateTime->from_epoch(epoch => $unix_validTo)->strftime("%F")
+				);
+
 			# Or a uptime topup...
 			} elsif ($row->{'Type'} == 2) {
 				push(@uptimeTopups, {
@@ -597,6 +670,13 @@ sub cleanup
 					Value => $row->{'Value'},
 					ValidTo => $unix_validTo
 				});
+
+				$server->log(LOG_NOTICE,"[MOD_CONFIG_SQL_TOPUPS] Cleanup =>     UPTIME TOPUP: ".
+						"ID '%s', Balance '%s', ValidTo '%s'",
+						$row->{'ID'},
+						$row->{'Value'},
+						DateTime->from_epoch(epoch => $unix_validTo)->strftime("%F")
+				);
 			}
 		}
 
@@ -610,9 +690,6 @@ sub cleanup
 		# Summaries to be edited/repeated
 		my @summaryTopups = ();
 
-		# Format this month period key
-		my $periodKey = $thisMonth->strftime("%Y-%m");
-
 		# Calculate excess usage if necessary
 		my $trafficOverUsage = 0;
 		if (defined($capRecord{'TrafficLimit'}) && $capRecord{'TrafficLimit'} > 0) {
@@ -623,17 +700,28 @@ sub cleanup
 
 		# User has started using topup bandwidth..
 		if ($trafficOverUsage > 0) {
+			$server->log(LOG_NOTICE,"[MOD_CONFIG_SQL_TOPUPS] Cleanup =>     TRAFFIC OVERAGE: $trafficOverUsage");
+
+			# Sort topups first expiring first
+			my @sortedTrafficSummary = sort { $a->{'ValidTo'} cmp $b->{'ValidTo'} } @trafficSummary;
 
 			# Loop with previous topups, setting them depleted or repeating as necessary
-			foreach my $summaryItem (@trafficSummary) {
+			foreach my $summaryItem (@sortedTrafficSummary) {
 
 				# Summary has not been used, if valid add to list to be repeated
 				if ($trafficOverUsage <= 0 && $summaryItem->{'ValidTo'} >= $unix_nextMonth) {
 					push(@summaryTopups, {
 							ID => $summaryItem->{'TopupID'},
-							PeriodKey => $periodKey,
+							PeriodKey => $curPeriodKey,
 							Balance => $summaryItem->{'Balance'}
 					});
+
+					$server->log(LOG_NOTICE,"[MOD_CONFIG_SQL_TOPUPS] Cleanup =>     TRAFFIC SUMMARY UNUSED: ".
+							"TOPUPID '%s', Balance '%s'",
+							$summaryItem->{'TopupID'},
+							$summaryItem->{'Balance'},
+					);
+
 				# Topup summary depleted
 				} elsif ($summaryItem->{'Balance'} <= $trafficOverUsage) {
 					push(@depletedSummary, $summaryItem->{'TopupID'});
@@ -641,37 +729,70 @@ sub cleanup
 
 					# Excess traffic remaining
 					$trafficOverUsage -= $summaryItem->{'Balance'};
+
+					$server->log(LOG_NOTICE,"[MOD_CONFIG_SQL_TOPUPS] Cleanup =>     TRAFFIC SUMMARY DEPLETED: ".
+							"TOPUPID '%s', Balance '%s', Overage Left '%s'",
+							$summaryItem->{'TopupID'},
+							$summaryItem->{'Balance'},
+							$trafficOverUsage
+					);
+
 				# Topup summary still alive
 				} else {
 					my $trafficRemaining = $summaryItem->{'Balance'} - $trafficOverUsage;
 					if ($summaryItem->{'ValidTo'} >= $unix_nextMonth) {
 						push(@summaryTopups, {
 								ID => $summaryItem->{'TopupID'},
-								PeriodKey => $periodKey,
+								PeriodKey => $curPeriodKey,
 								Balance => $trafficRemaining
 						});
 					}
 
 					$trafficOverUsage = 0;
+
+					$server->log(LOG_NOTICE,"[MOD_CONFIG_SQL_TOPUPS] Cleanup =>     TRAFFIC SUMMARY USAGE: ".
+							"TOPUPID '%s', Balance '%s', Overage Left '%s'",
+							$summaryItem->{'TopupID'},
+							$trafficRemaining,
+							$trafficOverUsage
+					);
 				}
 			}
 
+			# Sort topups first expiring first
+			my @sortedTrafficTopups = sort { $a->{'ValidTo'} cmp $b->{'ValidTo'} } @trafficTopups;
+
 			# Loop with topups, setting them depleted or adding summary as necessary
-			foreach my $topup (@trafficTopups) {
+			foreach my $topup (@sortedTrafficTopups) {
 
 				# Topup has not been used, if valid add to summary
 				if ($trafficOverUsage <= 0 && $topup->{'ValidTo'} >= $unix_nextMonth) {
 					push(@summaryTopups, {
 							ID => $topup->{'ID'},
-							PeriodKey => $periodKey,
+							PeriodKey => $curPeriodKey,
 							Balance => $topup->{'Value'}
 					});
+
+					$server->log(LOG_NOTICE,"[MOD_CONFIG_SQL_TOPUPS] Cleanup =>     TRAFFIC TOPUP UNUSED: ".
+							"TOPUPID '%s', Balance '%s'",
+							$topup->{'ID'},
+							$topup->{'Value'}
+					);
+
 				# Topup depleted
 				} elsif ($topup->{'Value'} <= $trafficOverUsage) {
 					push(@depletedTopups, $topup->{'ID'});
 
 					# Excess traffic remaining
 					$trafficOverUsage -= $topup->{'Value'};
+
+					$server->log(LOG_NOTICE,"[MOD_CONFIG_SQL_TOPUPS] Cleanup =>     TRAFFIC TOPUP DEPLETED: ".
+							"TOPUPID '%s', Balance '%s', Overage Left '%s'",
+							$topup->{'ID'},
+							$topup->{'Value'},
+							$trafficOverUsage
+					);
+
 				# Topup still alive
 				} else {
 					# Check if this summary exists in the list
@@ -680,12 +801,19 @@ sub cleanup
 					if ($topup->{'ValidTo'} >= $unix_nextMonth) {
 						push(@summaryTopups, {
 								ID => $topup->{'ID'},
-								PeriodKey => $periodKey,
+								PeriodKey => $curPeriodKey,
 								Balance => $trafficRemaining
 						});
 					}
 
 					$trafficOverUsage = 0;
+
+					$server->log(LOG_NOTICE,"[MOD_CONFIG_SQL_TOPUPS] Cleanup =>     TRAFFIC TOPUP USAGE: ".
+							"TOPUPID '%s', Balance '%s', Overage Left '%s'",
+							$topup->{'ID'},
+							$trafficRemaining,
+							$trafficOverUsage
+					);
 				}
 			}
 
@@ -697,9 +825,15 @@ sub cleanup
 				if ($summaryItem->{'ValidTo'} >= $unix_nextMonth) {
 					push(@summaryTopups, {
 							ID => $summaryItem->{'TopupID'},
-							PeriodKey => $periodKey,
+							PeriodKey => $curPeriodKey,
 							Balance => $summaryItem->{'Balance'}
 					});
+
+					$server->log(LOG_NOTICE,"[MOD_CONFIG_SQL_TOPUPS] Cleanup =>     TRAFFIC SUMMARY CARRY: ".
+							"TOPUPID '%s', Balance '%s'",
+							$summaryItem->{'TopupID'},
+							$summaryItem->{'Balance'}
+					);
 				}
 			}
 			# Check for topups
@@ -708,9 +842,15 @@ sub cleanup
 				if ($topup->{'ValidTo'} >= $unix_nextMonth) {
 					push(@summaryTopups, {
 							ID => $topup->{'ID'},
-							PeriodKey => $periodKey,
+							PeriodKey => $curPeriodKey,
 							Balance => $topup->{'Value'}
 					});
+
+					$server->log(LOG_NOTICE,"[MOD_CONFIG_SQL_TOPUPS] Cleanup =>     TRAFFIC TOPUP CARRY: ".
+							"TOPUPID '%s', Balance '%s'",
+							$topup->{'ID'},
+							$topup->{'Value'}
+					);
 				}
 			}
 		}
@@ -726,16 +866,27 @@ sub cleanup
 
 		# User has started using topup uptime..
 		if ($uptimeOverUsage > 0) {
+			$server->log(LOG_NOTICE,"[MOD_CONFIG_SQL_TOPUPS] Cleanup =>     UPTIME OVERAGE: $uptimeOverUsage");
+			
+			# Sort topups first expiring first
+			my @sortedUptimeSummary = sort { $a->{'ValidTo'} cmp $b->{'ValidTo'} } @uptimeSummary;
 
 			# Loop with previous topups, setting them depleted or repeating as necessary
-			foreach my $summaryItem (@uptimeSummary) {
+			foreach my $summaryItem (@sortedUptimeSummary) {
 				# Summary has not been used, if valid add to list to be repeated
 				if ($uptimeOverUsage <= 0 && $summaryItem->{'ValidTo'} >= $unix_nextMonth) {
 					push(@summaryTopups, {
 							ID => $summaryItem->{'TopupID'},
-							PeriodKey => $periodKey,
+							PeriodKey => $curPeriodKey,
 							Balance => $summaryItem->{'Balance'}
 					});
+
+					$server->log(LOG_NOTICE,"[MOD_CONFIG_SQL_TOPUPS] Cleanup =>     UPTIME SUMMARY UNUSED: ".
+							"TOPUPID '%s', Balance '%s'",
+							$summaryItem->{'TopupID'},
+							$summaryItem->{'Balance'},
+					);
+
 				# Topup summary depleted
 				} elsif ($summaryItem->{'Balance'} <= $uptimeOverUsage) {
 					push(@depletedSummary, $summaryItem->{'TopupID'});
@@ -743,47 +894,87 @@ sub cleanup
 
 					# Excess uptime remaining
 					$uptimeOverUsage -= $summaryItem->{'Balance'};
+
+					$server->log(LOG_NOTICE,"[MOD_CONFIG_SQL_TOPUPS] Cleanup =>     UPTIME SUMMARY DEPLETED: ".
+							"TOPUPID '%s', Balance '%s', Overage Left '%s'",
+							$summaryItem->{'TopupID'},
+							$summaryItem->{'Balance'},
+							$uptimeOverUsage
+					);
+
 				# Topup summary still alive
 				} else {
 					my $uptimeRemaining = $summaryItem->{'Balance'} - $uptimeOverUsage;
 					if ($summaryItem->{'ValidTo'} >= $unix_nextMonth) {
 						push(@summaryTopups, {
 								ID => $summaryItem->{'TopupID'},
-								PeriodKey => $periodKey,
+								PeriodKey => $curPeriodKey,
 								Balance => $uptimeRemaining
 						});
 					}
 
 					$uptimeOverUsage = 0;
+
+					$server->log(LOG_NOTICE,"[MOD_CONFIG_SQL_TOPUPS] Cleanup =>     UPTIME SUMMARY USAGE: ".
+							"TOPUPID '%s', Balance '%s', Overage Left '%s'",
+							$summaryItem->{'TopupID'},
+							$uptimeRemaining,
+							$uptimeOverUsage
+					);
 				}
 			}
 
+			# Sort topups first expiring first
+			my @sortedUptimeTopups = sort { $a->{'ValidTo'} cmp $b->{'ValidTo'} } @uptimeTopups;
+
 			# Loop with topups, setting them depleted or adding summary as necessary
-			foreach my $topup (@uptimeTopups) {
+			foreach my $topup (@sortedUptimeTopups) {
 				# Topup has not been used, if valid add to summary
 				if ($uptimeOverUsage <= 0 && $topup->{'ValidTo'} >= $unix_nextMonth) {
 					push(@summaryTopups, {
 							ID => $topup->{'ID'},
-							PeriodKey => $periodKey,
+							PeriodKey => $curPeriodKey,
 							Balance => $topup->{'Value'}
 					});
+
+					$server->log(LOG_NOTICE,"[MOD_CONFIG_SQL_TOPUPS] Cleanup =>     UPTIME TOPUP UNUSED: ".
+							"TOPUPID '%s', Balance '%s'",
+							$topup->{'ID'},
+							$topup->{'Value'}
+					);
+
 				# Topup depleted
 				} elsif ($topup->{'Value'} <= $uptimeOverUsage) {
 					push(@depletedTopups, $topup->{'ID'});
 					# Excess uptime remaining
 					$uptimeOverUsage -= $topup->{'Value'};
+
+					$server->log(LOG_NOTICE,"[MOD_CONFIG_SQL_TOPUPS] Cleanup =>     UPTIME TOPUP DEPLETED: ".
+							"TOPUPID '%s', Balance '%s', Overage Left '%s'",
+							$topup->{'ID'},
+							$topup->{'Value'},
+							$uptimeOverUsage
+					);
+
 				# Topup still alive
 				} else {
 					my $uptimeRemaining = $topup->{'Value'} - $uptimeOverUsage;
 					if ($topup->{'ValidTo'} >= $unix_nextMonth) {
 						push(@summaryTopups, {
 								ID => $topup->{'ID'},
-								PeriodKey => $periodKey,
+								PeriodKey => $curPeriodKey,
 								Balance => $uptimeRemaining
 						});
 					}
 
 					$uptimeOverUsage = 0;
+
+					$server->log(LOG_NOTICE,"[MOD_CONFIG_SQL_TOPUPS] Cleanup =>     UPTIME TOPUP USAGE: ".
+							"TOPUPID '%s', Balance '%s', Overage Left '%s'",
+							$topup->{'ID'},
+							$uptimeRemaining,
+							$uptimeOverUsage
+					);
 				}
 			}
 
@@ -795,9 +986,15 @@ sub cleanup
 				if ($summaryItem->{'ValidTo'} >= $unix_nextMonth) {
 					push(@summaryTopups, {
 							ID => $summaryItem->{'TopupID'},
-							PeriodKey => $periodKey,
+							PeriodKey => $curPeriodKey,
 							Balance => $summaryItem->{'Balance'}
 					});
+
+					$server->log(LOG_NOTICE,"[MOD_CONFIG_SQL_TOPUPS] Cleanup =>     UPTIME SUMMARY CARRY: ".
+							"TOPUPID '%s', Balance '%s'",
+							$summaryItem->{'TopupID'},
+							$summaryItem->{'Balance'}
+					);
 				}
 			}
 			# Check for topups
@@ -806,71 +1003,42 @@ sub cleanup
 				if ($topup->{'ValidTo'} >= $unix_nextMonth) {
 					push(@summaryTopups, {
 							ID => $topup->{'ID'},
-							PeriodKey => $periodKey,
+							PeriodKey => $curPeriodKey,
 							Balance => $topup->{'Value'}
 					});
+
+					$server->log(LOG_NOTICE,"[MOD_CONFIG_SQL_TOPUPS] Cleanup =>     UPTIME TOPUP CARRY: ".
+							"TOPUPID '%s', Balance '%s'",
+							$topup->{'ID'},
+							$topup->{'Value'}
+					);
 				}
 			}
 		}
 
 		# Loop through summary topups
 		foreach my $summaryTopup (@summaryTopups) {
-
-			# Check if this record exists
-			my $sth = DBSelect('
-				SELECT
-					COUNT(*) as RowCount
-				FROM
-					@TP@topups_summary
-				WHERE
-					TopupID = ?
-					AND PeriodKey = ?',
-				$summaryTopup->{'ID'}, $periodKey
+			# Create topup summaries
+			$sth = DBDo('
+				INSERT INTO
+					@TP@topups_summary (TopupID,PeriodKey,Balance)
+				VALUES
+					(?,?,?)
+				',
+				$summaryTopup->{'ID'},$curPeriodKey,$summaryTopup->{'Balance'}
 			);
 
 			if (!$sth) {
-				$server->log(LOG_ERR,"[MOD_CONFIG_SQL_TOPUPS] Cleanup => Failed to check for existing record: ".
+				$server->log(LOG_ERR,"[MOD_CONFIG_SQL_TOPUPS] Cleanup => Failed to create topup summary: ".
 						awitpt::db::dblayer::Error());
 				goto FAIL_ROLLBACK;
 			}
 
-			my $recordCheck = hashifyLCtoMC($sth->fetchrow_hashref(), qw(RowCount));
-
-			# Update topup summary
-			if (defined($recordCheck->{'RowCount'}) && $recordCheck->{'RowCount'} > 0) {
-				$sth = DBDo('
-					UPDATE
-						@TP@topups_summary
-					SET
-						Balance = ?
-					WHERE
-						TopupID = ?
-						AND PeriodKey = ?',
-					$summaryTopup->{'Balance'},$summaryTopup->{'ID'},$periodKey
-				);
-
-				if (!$sth) {
-					$server->log(LOG_ERR,"[MOD_CONFIG_SQL_TOPUPS] Cleanup => Failed to delete previous record: ".
-							awitpt::db::dblayer::Error());
-					goto FAIL_ROLLBACK;
-				}
-			# Insert topup summary
-			} else {
-				$sth = DBDo('
-					INSERT INTO
-						@TP@topups_summary (TopupID,PeriodKey,Balance)
-					VALUES
-						(?,?,?)
-					',
-					$summaryTopup->{'ID'},$periodKey,$summaryTopup->{'Balance'}
-				);
-
-				if (!$sth) {
-					$server->log(LOG_ERR,"[MOD_CONFIG_SQL_TOPUPS] Cleanup => Failed to update topups_summary: ".
-							awitpt::db::dblayer::Error());
-					goto FAIL_ROLLBACK;
-				}
-			}
+			$server->log(LOG_NOTICE,"[MOD_CONFIG_SQL_TOPUPS] Cleanup =>     CREATE TOPUP SUMMARY: ".
+					"TOPUPID '%s', Balance '%s'",
+					$summaryTopup->{'ID'},
+					$summaryTopup->{'Balance'}
+			);
 		}
 
 		# Loop through topups that are depleted
@@ -888,10 +1056,15 @@ sub cleanup
 				$depletedTimestamp,$topupID
 			);
 			if (!$sth) {
-				$server->log(LOG_ERR,"[MOD_CONFIG_SQL_TOPUPS] Cleanup => Failed to update topups: ".
+				$server->log(LOG_ERR,"[MOD_CONFIG_SQL_TOPUPS] Cleanup => Failed to deplete topup: ".
 						awitpt::db::dblayer::Error());
 				goto FAIL_ROLLBACK;
 			}
+
+			$server->log(LOG_NOTICE,"[MOD_CONFIG_SQL_TOPUPS] Cleanup =>     DEPLETED TOPUP: ".
+					"TOPUPID '%s'",
+					$topupID
+			);
 		}
 
 		# Loop through topup summary items that are depleted
@@ -913,11 +1086,16 @@ sub cleanup
 						awitpt::db::dblayer::Error());
 				goto FAIL_ROLLBACK;
 			}
+
+			$server->log(LOG_NOTICE,"[MOD_CONFIG_SQL_TOPUPS] Cleanup =>     DEPLETED TOPUP SUMMARY: ".
+					"TOPUPID '%s'",
+					$topupID
+			);
 		}
 	}
 
 	# Finished
-	$server->log(LOG_NOTICE,"[MOD_CONFIG_SQL_TOPUPS] Cleanup => Topup summaries have been updated");
+	$server->log(LOG_NOTICE,"[MOD_CONFIG_SQL_TOPUPS] Cleanup => Topups have been updated and summaries created");
 	DBCommit();
 	return;
 
