@@ -1,3 +1,10 @@
+2011-10-14:
+	ALTER TABLE accounting_summary ADD COLUMN PeriodKey2 VARCHAR(255) AFTER PeriodKey;
+	UPDATE accounting_summary set PeriodKey2 = DATE_FORMAT(PeriodKey,'%Y-%m');
+	ALTER TABLE accounting_summary DROP COLUMN PeriodKey;
+	ALTER TABLE accounting_summary CHANGE COLUMN PeriodKey2 PeriodKey VARCHAR(255);
+	
+
 
 2011-03-22:
 	Add users_data table for various functions

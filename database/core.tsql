@@ -256,7 +256,7 @@ CREATE TABLE @PREFIX@accounting_summary (
 
 	Username		VARCHAR(255),
 
-	PeriodKey		DATETIME,
+	PeriodKey		VARCHAR(255),
 
 	TotalSessionTime	@INT_UNSIGNED@,
 
