@@ -547,6 +547,12 @@ sub process_request {
 	# Set username
 	$user->{'Username'} = $pkt->attr('User-Name');
 
+	# Username should always be defined?
+	if (!defined($user->{'Username'})) {
+		$self->log(LOG_NOTICE,"[SMRADIUS] Packet with no username from ".$server->{'peeraddr'});
+		return;
+	}
+
 	# First thing we do is to make sure the NAS behaves if we using abuse prevention
 	if ($self->{'smradius'}->{'use_abuse_prevention'} && defined($user->{'Username'})) {
 		my ($res,$val) = cacheGetKeyPair('FloodCheck',$server->{'peeraddr'}."/".$user->{'Username'}."/".$pkt->code);
@@ -599,6 +605,31 @@ sub process_request {
 				goto CHECK_RESULT;
 			}
 		}
+	}
+
+	# If we have a config attribute to transform username, use it
+	if (defined($user->{'ConfigAttributes'}->{'SMRadius-Username-Transform'})) {
+
+		$self->log(LOG_DEBUG,"[SMRADIUS] Attribute 'SMRadius-Username-Transform' exists, transforming username.");
+
+# NK: Not ready for prime time yet
+#		# Get clients(NAS) username transform pattern
+#		my $transform = shift(@{$user->{'ConfigAttributes'}->{'SMRadius-Username-Transform'}});
+#		if ($transform =~ /^(@\S+)=(@\S+)$/i) {
+#
+#			# Set old and new, prevents warnings
+#			my ($old,$new) = ($1,$2);
+#
+#			# Use client username transform on temp username
+#			my $tempUsername = $user->{'Username'};
+#			$tempUsername =~ s/$old/$new/;
+#
+#			# Override username
+#			$user->{'Username'} = $tempUsername;
+#		} else {
+#			$self->log(LOG_DEBUG,"[SMRADIUS] No string replacement possible on pattern '".
+#					$transform."', using username '".$user->{'Username'}."'");
+#		}
 	}
 
 	# Get the user timer
