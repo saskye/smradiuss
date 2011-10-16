@@ -688,6 +688,7 @@ sub cleanup
 	$server->log(LOG_NOTICE,"[MOD_ACCOUNTING_SQL] Cleanup => Removing previous accounting summaries (if any)");
 
 	# Delete duplicate records
+	# NK: MYSQL SPECIFIC
 	my $sth = DBDo('
 		DELETE FROM
 			@TP@accounting_summary
