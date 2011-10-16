@@ -32,7 +32,7 @@ our (@ISA,@EXPORT,@EXPORT_OK);
 
 
 use constant {
-	VERSION		=> "0.0.3a",
+	VERSION		=> "0.0.4a",
 };
 
 
