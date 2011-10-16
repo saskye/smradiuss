@@ -340,7 +340,8 @@ sub getUsage
 
 	# If we using caching, check how old the result is
 	if (defined($config->{'accounting_usage_cache_time'})) {
-		my ($res,$val) = cacheGetComplexKeyPair('mod_accounting_sql(getUsage)',$user->{'Username'}."/".$template->{'query'}->{'PeriodKey'});
+		my ($res,$val) = cacheGetComplexKeyPair('mod_accounting_sql(getUsage)',$user->{'Username'}."/".
+				$template->{'query'}->{'PeriodKey'});
 		if (defined($val) && $val->{'CachedUntil'} > $user->{'_Internal'}->{'Timestamp-Unix'}) {
 			return $val;
 		}
