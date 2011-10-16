@@ -69,6 +69,15 @@ sub updateUserStats
 {
 	my ($server,$user,$packet) = @_;
 
+
+	# We cannot cap a user if we don't have a UserDB module can we? no userdb, no means to store info?
+	return MOD_RES_SKIP if (!defined($user->{'_UserDB'}->{'Name'}));
+
+	# Skip MAC authentication
+	return MOD_RES_SKIP if ($user->{'_UserDB'}->{'Name'} eq "SQL User Database (MAC authentication)");
+	
+	$server->log(LOG_DEBUG,"[MOD_FEATURE_UPDATE_USER_STATS] UPDATE USER STATS HOOK");
+
 	# Variables we are going to set
 	my $currentUsage;
 

@@ -101,8 +101,11 @@ sub post_auth_hook
 {
 	my ($server,$user,$packet) = @_;
 
-	$server->log(LOG_DEBUG,"[MOD_FEATURE_CAPPING] POST AUTH HOOK");
 
+	# Skip MAC authentication
+	return MOD_RES_SKIP if ($user->{'_UserDB'}->{'Name'} eq "SQL User Database (MAC authentication)");
+
+	$server->log(LOG_DEBUG,"[MOD_FEATURE_CAPPING] POST AUTH HOOK");
 
 	#
 	# Get limits from attributes
@@ -376,6 +379,12 @@ sub post_acct_hook
 {
 	my ($server,$user,$packet) = @_;
 
+
+	# We cannot cap a user if we don't have a UserDB module can we? no userdb, no cap?
+	return MOD_RES_SKIP if (!defined($user->{'_UserDB'}->{'Name'}));
+
+	# Skip MAC authentication
+	return MOD_RES_SKIP if ($user->{'_UserDB'}->{'Name'} eq "SQL User Database (MAC authentication)");
 
 	# Exceeding maximum, must be disconnected
 	return MOD_RES_SKIP if ($packet->attr('Acct-Status-Type') ne "Alive");

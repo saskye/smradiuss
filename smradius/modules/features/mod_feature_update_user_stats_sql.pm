@@ -107,6 +107,13 @@ sub updateUserStats
 {
 	my ($server,$user,$packet) = @_;
 
+
+	# Skip MAC authentication
+	return MOD_RES_SKIP if (defined($user->{'_UserDB'}->{'Name'}) && 
+			$user->{'_UserDB'}->{'Name'} eq "SQL User Database (MAC authentication)");
+	
+	$server->log(LOG_DEBUG,"[MOD_FEATURE_UPDATE_USER_STATS_SQL] UPDATE USER STATS HOOK");
+
 	# Build template
 	my $template;
 	foreach my $attr ($packet->attributes) {

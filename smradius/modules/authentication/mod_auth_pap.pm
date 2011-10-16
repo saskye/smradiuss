@@ -80,6 +80,8 @@ sub authenticate
 
 	# Check if this is PAP authentication
 	return MOD_RES_SKIP if (!defined($encPassword));
+	# Skip MAC authentication
+	return MOD_RES_SKIP if ($user->{'_UserDB'}->{'Name'} eq "SQL User Database (MAC authentication)");
 
 	$server->log(LOG_DEBUG,"[MOD_AUTH_PAP] This is a PAP authentication request");
 
