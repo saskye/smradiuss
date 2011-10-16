@@ -512,10 +512,14 @@ sub process_request {
 	awitpt::db::dblayer::setHandle($self->{'client'}->{'dbh'});
 
 	# Log line to use with logging
-	my $logLine = ""; my $logReason = "UNKNOWN";
+	my $logLine = "";
+	my @logLineArgs;
+	my $logReason = "UNKNOWN";
 	foreach my $attr ($pkt->attributes) {
-		$logLine .= " $attr: '".$pkt->rawattr($attr)."',";
+		$logLine .= " %s: '%s',";
+		push(@logLineArgs,$attr,$pkt->rawattr($attr));
 	}
+	# Chop off ,
 	chop($logLine);
 
 	# Main user hash with everything in
@@ -542,6 +546,12 @@ sub process_request {
 
 	# Set username
 	$user->{'Username'} = $pkt->attr('User-Name');
+
+	# Username should always be defined?
+	if (!defined($user->{'Username'})) {
+		$self->log(LOG_NOTICE,"[SMRADIUS] Packet with no username from ".$server->{'peeraddr'});
+		return;
+	}
 
 	# First thing we do is to make sure the NAS behaves if we using abuse prevention
 	if ($self->{'smradius'}->{'use_abuse_prevention'} && defined($user->{'Username'})) {
@@ -602,23 +612,24 @@ sub process_request {
 
 		$self->log(LOG_DEBUG,"[SMRADIUS] Attribute 'SMRadius-Username-Transform' exists, transforming username.");
 
-		# Get clients(NAS) username transform pattern
-		my $transform = shift(@{$user->{'ConfigAttributes'}->{'SMRadius-Username-Transform'}});
-		if ($transform =~ /^(@\S+)=(@\S+)$/i) {
-
-			# Set old and new, prevents warnings
-			my ($old,$new) = ($1,$2);
-
-			# Use client username transform on temp username
-			my $tempUsername = $user->{'Username'};
-			$tempUsername =~ s/$old/$new/;
-
-			# Override username
-			$user->{'Username'} = $tempUsername;
-		} else {
-			$self->log(LOG_DEBUG,"[SMRADIUS] No string replacement possible on pattern '".
-					$transform."', using username '".$user->{'Username'}."'");
-		}
+# NK: Not ready for prime time yet
+#		# Get clients(NAS) username transform pattern
+#		my $transform = shift(@{$user->{'ConfigAttributes'}->{'SMRadius-Username-Transform'}});
+#		if ($transform =~ /^(@\S+)=(@\S+)$/i) {
+#
+#			# Set old and new, prevents warnings
+#			my ($old,$new) = ($1,$2);
+#
+#			# Use client username transform on temp username
+#			my $tempUsername = $user->{'Username'};
+#			$tempUsername =~ s/$old/$new/;
+#
+#			# Override username
+#			$user->{'Username'} = $tempUsername;
+#		} else {
+#			$self->log(LOG_DEBUG,"[SMRADIUS] No string replacement possible on pattern '".
+#					$transform."', using username '".$user->{'Username'}."'");
+#		}
 	}
 
 	# Get the user timer
@@ -785,8 +796,10 @@ sub process_request {
 			# Add onto logline
 			$logLine .= ". REPLY => ";
 			foreach my $attr ($resp->attributes) {
-				$logLine .= " $attr: '".$resp->rawattr($attr)."',";
+				$logLine .= " %s: '%s',";
+				push(@logLineArgs,$attr,$resp->rawattr($attr));
 			}
+			# Chop off ,
 			chop($logLine);
 
 			# Grab packet
@@ -1059,9 +1072,12 @@ sub process_request {
 			# Add attributes onto logline
 			$logLine .= ". REPLY => ";
 			foreach my $attr ($resp->attributes) {
-				$logLine .= " $attr: '".$resp->rawattr($attr)."',";
+				$logLine .= " %s: '%s',";
+				push(@logLineArgs,$attr,$resp->rawattr($attr));
 			}
+			# Chop off ,
 			chop($logLine);
+
 			# Add vattributes onto logline
 			$logLine .= ". VREPLY => ";
 			# Loop with vendors
@@ -1071,10 +1087,18 @@ sub process_request {
 					# Grab the value
 					my @attrRawVal = ( $resp->vsattr($vendor,$attr) );
 					my $attrVal = $attrRawVal[0][0];
+					# Sanatize it a bit
+					if ($attrVal =~ /[:print:]/) {
+						$attrVal = "-nonprint-";
+					} else {
+						$attrVal = "'$attrVal'";
+					}
 
-					$logLine .= " $vendor/$attr: '$attrVal',";
+					$logLine .= " %s/%s: %s,";
+					push(@logLineArgs,$vendor,$attr,$attrVal);
 				}
 			}
+			# Chop off ,
 			chop($logLine);
 
 			$udp_packet = auth_resp($resp->pack, getAttributeValue($user->{'ConfigAttributes'},"SMRadius-Config-Secret"));
@@ -1110,9 +1134,10 @@ CHECK_RESULT:
 
 	# How should we output this ...
 	if ($server->{'log_level'} > LOG_NOTICE) {
-		$self->log(LOG_NOTICE,"[SMRADIUS] Result: $logReason (%.3fs + %.3fs + %.3fs = %.3fs) => $logLine",$timediff1,$timediff2,$timediff3,$timediff);
+		$self->log(LOG_NOTICE,"[SMRADIUS] Result: $logReason (%.3fs + %.3fs + %.3fs = %.3fs) => $logLine",
+				$timediff1,$timediff2,$timediff3,$timediff,@logLineArgs);
 	} else {
-		$self->log(LOG_NOTICE,"[SMRADIUS] Result: $logReason => $logLine");
+		$self->log(LOG_NOTICE,"[SMRADIUS] Result: $logReason => $logLine",@logLineArgs);
 	}
 
 	# If we using abuse prevention record the time we ending off

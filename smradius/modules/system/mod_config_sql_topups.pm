@@ -320,7 +320,9 @@ sub cleanup
 	DBBegin();
 
 	$server->log(LOG_NOTICE,"[MOD_CONFIG_SQL_TOPUPS] Cleanup => Removing all old topup summaries");
+
 	# Remove topup summaries
+	# NK: MYSQL SPECIFIC
 	$sth = DBDo('
 		DELETE FROM
 			@TP@topups_summary

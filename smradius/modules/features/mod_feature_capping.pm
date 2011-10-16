@@ -71,15 +71,18 @@ sub init
 
 	# Setup SQL queries
 	if (defined($scfg->{'mod_feature_capping'})) {
-		# Pull in config
-		if ($scfg->{'mod_feature_capping'}{'enable_mikrotik'} =~ /^\s*(yes|true|1)\s*$/i) {
-			$server->log(LOG_NOTICE,"[MOD_FEATURE_CAPPING] Mikrotik-specific vendor return attributes ENABLED");
-			$config->{'enable_mikrotik'} = $scfg->{'mod_feature_capping'}{'enable_mikrotik'};
-		# Default?
-		} elsif ($scfg->{'mod_feature_capping'}{'enable_mikrotik'} =~ /^\s*(no|false|0)\s*$/i) {
-			$config->{'enable_mikrotik'} = undef;
-		} else {
-			$server->log(LOG_NOTICE,"[MOD_FEATURE_CAPPING] Value for 'enable_mikrotik' is invalid");
+		# Check if option exists
+		if (defined($scfg->{'mod_feature_capping'}{'enable_mikrotik'})) {
+			# Pull in config
+			if ($scfg->{'mod_feature_capping'}{'enable_mikrotik'} =~ /^\s*(yes|true|1)\s*$/i) {
+				$server->log(LOG_NOTICE,"[MOD_FEATURE_CAPPING] Mikrotik-specific vendor return attributes ENABLED");
+				$config->{'enable_mikrotik'} = $scfg->{'mod_feature_capping'}{'enable_mikrotik'};
+			# Default?
+			} elsif ($scfg->{'mod_feature_capping'}{'enable_mikrotik'} =~ /^\s*(no|false|0)\s*$/i) {
+				$config->{'enable_mikrotik'} = undef;
+			} else {
+				$server->log(LOG_NOTICE,"[MOD_FEATURE_CAPPING] Value for 'enable_mikrotik' is invalid");
+			}
 		}
 	}
 
@@ -98,8 +101,11 @@ sub post_auth_hook
 {
 	my ($server,$user,$packet) = @_;
 
-	$server->log(LOG_DEBUG,"[MOD_FEATURE_CAPPING] POST AUTH HOOK");
 
+	# Skip MAC authentication
+	return MOD_RES_SKIP if ($user->{'_UserDB'}->{'Name'} eq "SQL User Database (MAC authentication)");
+
+	$server->log(LOG_DEBUG,"[MOD_FEATURE_CAPPING] POST AUTH HOOK");
 
 	#
 	# Get limits from attributes
@@ -373,6 +379,12 @@ sub post_acct_hook
 {
 	my ($server,$user,$packet) = @_;
 
+
+	# We cannot cap a user if we don't have a UserDB module can we? no userdb, no cap?
+	return MOD_RES_SKIP if (!defined($user->{'_UserDB'}->{'Name'}));
+
+	# Skip MAC authentication
+	return MOD_RES_SKIP if ($user->{'_UserDB'}->{'Name'} eq "SQL User Database (MAC authentication)");
 
 	# Exceeding maximum, must be disconnected
 	return MOD_RES_SKIP if ($packet->attr('Acct-Status-Type') ne "Alive");
