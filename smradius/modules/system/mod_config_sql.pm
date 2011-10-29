@@ -172,7 +172,7 @@ sub getConfig
 	# Set realm ID
 	my $row;
 	if ($sth->rows == 1) {
-		$row = hashifyLCtoMC($sth->fetchrow_hashref(),qw(ID));
+		$row = hashifyLCtoMC($sth->fetchrow_hashref(), qw(ID));
 		$realmID = $row->{'ID'};
 	}
 	DBFreeRes($sth);
@@ -186,7 +186,7 @@ sub getConfig
 		}
 		# Add any default realm attributes to config attributes
 		while (my $row = $sth->fetchrow_hashref()) {
-			processConfigAttribute($server,$user->{'ConfigAttributes'},hashifyLCtoMC($row,qw(Name Operator Value)));
+			processConfigAttribute($server,$user->{'ConfigAttributes'},hashifyLCtoMC($row, qw(Name Operator Value)));
 		}
 		DBFreeRes($sth);
 	}
@@ -202,7 +202,7 @@ sub getConfig
 		}
 		# Fetch realm ID
 		if ($sth->rows == 1) {
-			$row = hashifyLCtoMC($sth->fetchrow_hashref(),qw(ID));
+			$row = hashifyLCtoMC($sth->fetchrow_hashref(), qw(ID));
 			$realmID = $row->{'ID'};
 			DBFreeRes($sth);
 
@@ -214,7 +214,7 @@ sub getConfig
 			}
 			# Add any realm attributes to config attributes
 			while (my $row = $sth->fetchrow_hashref()) {
-				processConfigAttribute($server,$user->{'ConfigAttributes'},hashifyLCtoMC($row,qw(Name Operator Value)));
+				processConfigAttribute($server,$user->{'ConfigAttributes'},hashifyLCtoMC($row, qw(Name Operator Value)));
 			}
 			DBFreeRes($sth);
 		}
@@ -236,7 +236,7 @@ sub getConfig
 	# Check if we know this client
 	my @accessList;
 	while (my $row = $sth->fetchrow_hashref()) {
-		$res = hashifyLCtoMC($row,qw(AccessList ID));
+		$res = hashifyLCtoMC($row, qw(AccessList ID));
 		# Split off allowed sources, comma separated
 		@accessList = ();
 		@accessList = split(',',$res->{'AccessList'});
@@ -263,7 +263,7 @@ sub getConfig
 		}
 		# Add to config attributes
 		while (my $row = $sth->fetchrow_hashref()) {
-			processConfigAttribute($server,$user->{'ConfigAttributes'},hashifyLCtoMC($row,qw(Name Operator Value)));
+			processConfigAttribute($server,$user->{'ConfigAttributes'},hashifyLCtoMC($row, qw(Name Operator Value)));
 		}
 		DBFreeRes($sth);
 	}

@@ -63,8 +63,8 @@ sub Init
 	$server->{'smradius'}{'database'} = $db;
 
 	# Setup event timezone config
-	if (defined($config->{'system'}{'event_timezone'})) {
-		$server->{'smradius'}{'event_timezone'} = $config->{'system'}{'event_timezone'};
+	if (defined($config->{'server'}{'event_timezone'})) {
+		$server->{'smradius'}{'event_timezone'} = $config->{'server'}{'event_timezone'};
 	} else {
 		$server->{'smradius'}{'event_timezone'} = "GMT";
 	}

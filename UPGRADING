@@ -1,3 +1,28 @@
+2011-10-14:
+	ALTER TABLE accounting_summary ADD COLUMN PeriodKey2 VARCHAR(255) AFTER PeriodKey;
+	UPDATE accounting_summary set PeriodKey2 = DATE_FORMAT(PeriodKey,'%Y-%m');
+	ALTER TABLE accounting_summary DROP COLUMN PeriodKey;
+	ALTER TABLE accounting_summary CHANGE COLUMN PeriodKey2 PeriodKey VARCHAR(255);
+	
+
+
+2011-03-22:
+	Add users_data table for various functions
+
+	CREATE TABLE @PREFIX@users_data (
+		ID 		@SERIAL_TYPE@,
+
+		UserID 		@INT_UNSIGNED@,
+
+		LastUpdated 	DATETIME,
+
+		Name 		VARCHAR(255),
+
+		Value 		VARCHAR(255),
+
+		UNIQUE 		(UserID,Name)
+	);
+
 
 2011-01-11:
 	Move configuration file item "use_packet_timestamp=" to "[radius]" section

@@ -29,6 +29,7 @@ use lib qw(
 
 
 use Config::IniFiles;
+use DateTime;
 use Getopt::Long;
 
 use smradius::logging;
@@ -43,6 +44,7 @@ GetOptions(
 	\%opts,
 	"help",
 	"config:s",
+	"cleanup-date:s",
 	"cleanup",
 	"debug",
 );
@@ -89,15 +91,32 @@ my $server;
 
 # We must cleanup
 if ($opts{'cleanup'}) {
+
 	loadModules();
 
+	# Check if we must override our default of this month at 00:00
+	my $cleanupMonth = DateTime->now()->truncate(to => 'month');
+	# If so the ndo it
+	if (defined($opts{'cleanup-date'}) && $opts{'cleanup-date'} ne "") {
+		# Split up and setup
+		my ($year,$month,$day) = split(/-/,$opts{'cleanup-date'});
+		$cleanupMonth = DateTime->new(year => $year, month => (defined($month) ? $month : 1), day => (defined($day) ? $day : 1));
+	}
+	$server->log(LOG_INFO,"Running cleanup for '%s'",$cleanupMonth->ymd());
+
 	# Loop with modules
-	foreach my $module ( @{$server->{'modules_list'}} ) {
-		$server->log(LOG_INFO,"Module: " . $module->{'Name'});
+	my @sortedModules = sort {
+		(defined($a->{'CleanupOrder'}) ? $a->{'CleanupOrder'} : 50)  cmp (defined($b->{'CleanupOrder'}) ? $b->{'CleanupOrder'} : 50)
+	} @{$server->{'modules_list'}};
+
+	foreach my $module ( @sortedModules ) {
+		my $prio = defined($module->{'CleanupOrder'}) ? $module->{'CleanupOrder'} : 50;
+
+		$server->log(LOG_INFO,"Module: ".$module->{'Name'}." (prio: ".($module->{'CleanupOrder'} ? $prio : "default 50").")");
 		# If we have a cleanup module, run it
 		if (defined($module->{'Cleanup'})) {
 			$server->log(LOG_INFO,"  -> running cleanup...");
-			$module->{'Cleanup'}($server);
+			$module->{'Cleanup'}($server,$cleanupMonth->epoch());
 		}
 	}
 
@@ -164,27 +183,6 @@ sub loadModules
 	}
 
 	#
-	# Feature modules
-	#
-	if (ref($config{'features'}{'modules'}) eq "ARRAY") {
-		foreach my $module (@{$config{'features'}{'modules'}}) {
-			$module =~ s/\s+//g;
-			# Skip comments
-			next if ($module =~ /^#/);
-			$module = "features/$module";
-			push(@{$cfg->{'module_list'}},$module);
-		}
-	} else {
-		my @moduleList = split(/\s+/,$config{'features'}{'modules'});
-		foreach my $module (@moduleList) {
-			# Skip comments
-			next if ($module =~ /^#/);
-			$module = "features/$module";
-			push(@{$cfg->{'module_list'}},$module);
-		}
-	}
-
-	#
 	# Authentication modules
 	#
 	if (ref($config{'authentication'}{'mechanisms'}) eq "ARRAY") {
@@ -240,6 +238,27 @@ sub loadModules
 			# Skip comments
 			next if ($module =~ /^#/);
 			$module = "accounting/$module";
+			push(@{$cfg->{'module_list'}},$module);
+		}
+	}
+
+	#
+	# Feature modules
+	#
+	if (ref($config{'features'}{'modules'}) eq "ARRAY") {
+		foreach my $module (@{$config{'features'}{'modules'}}) {
+			$module =~ s/\s+//g;
+			# Skip comments
+			next if ($module =~ /^#/);
+			$module = "features/$module";
+			push(@{$cfg->{'module_list'}},$module);
+		}
+	} else {
+		my @moduleList = split(/\s+/,$config{'features'}{'modules'});
+		foreach my $module (@moduleList) {
+			# Skip comments
+			next if ($module =~ /^#/);
+			$module = "features/$module";
 			push(@{$cfg->{'module_list'}},$module);
 		}
 	}
@@ -335,12 +354,44 @@ sub init
 }
 
 
+# Same format as Net::Server
+sub log_time {
+	my ($sec,$min,$hour,$day,$mon,$year) = localtime;
+	return sprintf("%04d/%02d/%02d-%02d:%02d:%02d",
+			$year+1900, $mon+1, $day, $hour, $min, $sec);
+}
+
 sub log
 {
-	my ($self,$level,@msg) = @_;
+	my ($self,$level,$msg,@args) = @_;
 
+	# Check log level and set text
+	my $logtxt = "UNKNOWN";
+	if ($level == LOG_DEBUG) {
+		$logtxt = "DEBUG";
+	} elsif ($level == LOG_INFO) {
+		$logtxt = "INFO";
+	} elsif ($level == LOG_NOTICE) {
+		$logtxt = "NOTICE";
+	} elsif ($level == LOG_WARN) {
+		$logtxt = "WARNING";
+	} elsif ($level == LOG_ERR) {
+		$logtxt = "ERROR";
+	}
+
+	# Parse message nicely
+	if ($msg =~ /^(\[[^\]]+\]) (.*)/s) {
+		$msg = "$1 $logtxt: $2";
+	} else {
+		$msg = "[CORE] $logtxt: $msg";
+	}
+
+	# If we have args, this is more than likely a format string & args
+	if (@args > 0) {
+		$msg = sprintf($msg,@args);
+	}
 	# FIXME: we shouldn't ignore $level
-	print(@msg, "\n");
+	print(STDERR "[".log_time()." - $$] $msg\n");
 }
 
 

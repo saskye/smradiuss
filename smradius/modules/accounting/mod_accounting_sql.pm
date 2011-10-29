@@ -22,6 +22,7 @@ use warnings;
 
 # Modules we need
 use smradius::constants;
+use awitpt::cache;
 use awitpt::db::dblayer;
 use smradius::logging;
 use smradius::util;
@@ -49,6 +50,7 @@ our $pluginInfo = {
 	Init => \&init,
 
 	# Cleanup run by smadmin
+	CleanupOrder => 30,
 	Cleanup => \&cleanup,
 
 	# Accounting database
@@ -115,7 +117,7 @@ sub init
 			%{request.NAS-Port-Type},
 			%{request.Calling-Station-Id},
 			%{request.Called-Station-Id},
-			%{request.NAS-Port-Id=},
+			%{request.NAS-Port-Id},
 			%{request.Acct-Session-Id},
 			%{request.Framed-IP-Address},
 			%{request.Acct-Authentic},
@@ -151,7 +153,7 @@ sub init
 			Username = %{request.User-Name}
 			AND AcctSessionID = %{request.Acct-Session-Id}
 			AND NASIPAddress = %{request.NAS-IP-Address}
-			AND NASPortID = %{request.NAS-Port-Id=}
+			AND NASPortID = %{request.NAS-Port-Id}
 		GROUP BY
 			PeriodKey
 		ORDER BY
@@ -174,7 +176,7 @@ sub init
 			Username = %{request.User-Name}
 			AND AcctSessionID = %{request.Acct-Session-Id}
 			AND NASIPAddress = %{request.NAS-IP-Address}
-			AND NASPortID = %{request.NAS-Port-Id=}
+			AND NASPortID = %{request.NAS-Port-Id}
 			AND PeriodKey = %{query.PeriodKey}
 	';
 
@@ -188,7 +190,7 @@ sub init
 			Username = %{request.User-Name}
 			AND AcctSessionID = %{request.Acct-Session-Id}
 			AND NASIPAddress = %{request.NAS-IP-Address}
-			AND NASPortID = %{request.NAS-Port-Id=}
+			AND NASPortID = %{request.NAS-Port-Id}
 	';
 
 	$config->{'accounting_usage_query'} = '
@@ -214,7 +216,7 @@ sub init
 			Username = %{request.User-Name}
 			AND AcctSessionID = %{request.Acct-Session-Id}
 			AND NASIPAddress = %{request.NAS-IP-Address}
-			AND NASPortID = %{request.NAS-Port-Id=}
+			AND NASPortID = %{request.NAS-Port-Id}
 			AND PeriodKey = %{query.PeriodKey}
 		ORDER BY
 			ID
@@ -227,6 +229,9 @@ sub init
 		WHERE
 			ID = %{query.DuplicateID}
 	';
+
+	$config->{'accounting_usage_cache_time'} = 300;
+
 
 	# Setup SQL queries
 	if (defined($scfg->{'mod_accounting_sql'})) {
@@ -294,6 +299,25 @@ sub init
 				$config->{'accounting_delete_duplicates_query'} = $scfg->{'mod_accounting_sql'}->{'accounting_delete_duplicates_query'};
 			}
 		}
+		if (defined($scfg->{'mod_accounting_sql'}->{'accounting_usage_cache_time'})) {
+			if ($scfg->{'mod_accounting_sql'}{'accounting_usage_cache_time'} =~ /^\s*(yes|true|1)\s*$/i) {
+				# Default?
+			} elsif ($scfg->{'mod_accounting_sql'}{'accounting_usage_cache_time'} =~ /^\s*(no|false|0)\s*$/i) {
+				$config->{'accounting_usage_cache_time'} = undef;
+			} elsif ($scfg->{'mod_accounting_sql'}{'accounting_usage_cache_time'} =~ /^[0-9]+$/) {
+				$config->{'accounting_usage_cache_time'} = $scfg->{'mod_accounting_sql'}{'accounting_usage_cache_time'};
+			} else {
+				$server->log(LOG_NOTICE,"[MOD_ACCOUNTING_SQL] Value for 'accounting_usage_cache_time' is invalid");
+			}
+		}
+	}
+
+	# Log this for info sake
+	if (defined($config->{'accounting_usage_cache_time'})) {
+		$server->log(LOG_NOTICE,"[MOD_ACCOUNTING_SQL] getUsage caching ENABLED, cache time is %ds.",
+				$config->{'accounting_usage_cache_time'});
+	} else {
+		$server->log(LOG_NOTICE,"[MOD_ACCOUNTING_SQL] getUsage caching DISABLED");
 	}
 }
 
@@ -313,6 +337,14 @@ sub getUsage
 	# Current PeriodKey
 	my $now = DateTime->now->set_time_zone($server->{'smradius'}->{'event_timezone'});
 	$template->{'query'}->{'PeriodKey'} = $now->strftime("%Y-%m");
+
+	# If we using caching, check how old the result is
+	if (defined($config->{'accounting_usage_cache_time'})) {
+		my ($res,$val) = cacheGetComplexKeyPair('mod_accounting_sql(getUsage)',$user->{'Username'}."/".$template->{'query'}->{'PeriodKey'});
+		if (defined($val) && $val->{'CachedUntil'} > $user->{'_Internal'}->{'Timestamp-Unix'}) {
+			return $val;
+		}
+	}
 
 	# Replace template entries
 	my (@dbDoParams) = templateReplace($config->{'accounting_usage_query'},$template);
@@ -368,8 +400,16 @@ sub getUsage
 
 	# Rounding up
 	my %res;
-	$res{'TotalDataUsage'} = $totalData->bdiv('1024')->bdiv('1024')->bceil()->bstr();
-	$res{'TotalSessionTime'} = $totalTime->bdiv('60')->bceil()->bstr();
+	$res{'TotalDataUsage'} = $totalData->bdiv(1024)->bdiv(1024)->bceil()->bstr();
+	$res{'TotalSessionTime'} = $totalTime->bdiv(60)->bceil()->bstr();
+
+	# If we using caching and got here, it means that we must cache the result
+	if (defined($config->{'accounting_usage_cache_time'})) {
+		$res{'CachedUntil'} = $user->{'_Internal'}->{'Timestamp-Unix'} + $config->{'accounting_usage_cache_time'};
+		
+		# Cache the result
+		cacheStoreComplexKeyPair('mod_accounting_sql(getUsage)',$user->{'Username'}."/".$template->{'query'}->{'PeriodKey'},\%res);
+	}
 
 	return \%res;
 }
@@ -435,11 +475,9 @@ sub acct_log
 		my $totalSessionTime = Math::BigInt->new($template->{'request'}->{'Acct-Session-Time'});
 
 		# Loop through previous records and subtract them from our session totals
-		while (my $sessionPart = $sth->fetchrow_hashref()) {
-			$sessionPart = hashifyLCtoMC(
-				$sessionPart,
+		while (my $sessionPart = hashifyLCtoMC($sth->fetchrow_hashref(),
 				qw(InputOctets InputPackets OutputOctets OutputPackets InputGigawords OutputGigawords SessionTime PeriodKey)
-			);
+		)) {
 
 			# Convert this session usage to bytes
 			my $sessionInputBytes = Math::BigInt->new();
@@ -543,6 +581,16 @@ sub acct_log
 					awitpt::db::dblayer::Error());
 			return MOD_RES_NACK;
 		}
+		# Update first login?
+		if (defined($user->{'_UserDB'}->{'Users_data_get'}) && defined($user->{'_UserDB'}->{'Users_data_set'})) {
+			# Try get his first login
+			my $firstLogin = $user->{'_UserDB'}->{'Users_data_get'}($server,$user,'global','FirstLogin');
+			# If we don't get it, set it
+			if (!defined($firstLogin)) {
+				$user->{'_UserDB'}->{'Users_data_set'}($server,$user,'global','FirstLogin',$user->{'_Internal'}->{'Timestamp-Unix'});
+			}
+		}
+	
 	}
 
 
@@ -585,11 +633,7 @@ sub fixDuplicates
 
 	# Pull in duplicates
 	my @IDList;
-	while (my $duplicates = $sth->fetchrow_hashref()) {
-		$duplicates = hashifyLCtoMC(
-			$duplicates,
-			qw(ID)
-		);
+	while (my $duplicates = hashifyLCtoMC($sth->fetchrow_hashref(), qw(ID))) {
 		push(@IDList,$duplicates->{'ID'});
 	}
 	DBFreeRes($sth);
@@ -624,29 +668,44 @@ sub fixDuplicates
 # Add up totals function
 sub cleanup
 {
-	my ($server) = @_;
+	my ($server,$runForDate) = @_;
 
-	# The datetime now..
-	my $now = DateTime->now->set_time_zone($server->{'smradius'}->{'event_timezone'});
 
-	# If this is a new year
-	my ($prevYear,$prevMonth);
-	if ($now->month == 1) {
-		$prevYear = $now->year - 1;
-		$prevMonth = 12;
-	} else {
-		$prevYear = $now->year;
-		$prevMonth = $now->month - 1;
+	# The datetime now
+	my $now = DateTime->from_epoch(epoch => $runForDate)->set_time_zone($server->{'smradius'}->{'event_timezone'});
+
+	# Use truncate to set all values after 'month' to their default values
+	my $thisMonth = $now->clone()->truncate( to => "month" );
+
+	# Last month..
+	my $lastMonth = $thisMonth->clone()->subtract( months => 1 );
+	my $prevPeriodKey = $lastMonth->strftime("%Y-%m");
+	
+
+	# Begin transaction
+	DBBegin();
+
+	$server->log(LOG_NOTICE,"[MOD_ACCOUNTING_SQL] Cleanup => Removing previous accounting summaries (if any)");
+
+	# Delete duplicate records
+	my $sth = DBDo('
+		DELETE FROM
+			@TP@accounting_summary
+		WHERE
+			STR_TO_DATE(PeriodKey,"%Y-%m") >= ?',
+		$prevPeriodKey
+	);
+	if (!$sth) {
+		$server->log(LOG_ERR,"[MOD_ACCOUNTING_SQL] Cleanup => Failed to delete accounting summary record: ".
+				awitpt::db::dblayer::Error());
+		DBRollback();
+		return;
 	}
 
-	# New datetime
-	my $lastMonth = DateTime->new( year => $prevYear, month => $prevMonth, day => 1 );
-	my $periodKey = $lastMonth->strftime("%Y-%m");
-	# Sanitize
-	$lastMonth = $lastMonth->ymd();
+	$server->log(LOG_NOTICE,"[MOD_ACCOUNTING_SQL] Cleanup => Generating accounting summaries");
 
 	# Select totals for last month
-	my $sth = DBSelect('
+	$sth = DBSelect('
 		SELECT
 			Username,
 			AcctSessionTime,
@@ -659,9 +718,8 @@ sub cleanup
 		WHERE
 			PeriodKey = ?
 		',
-		$periodKey
+		$prevPeriodKey
 	);
-
 	if (!$sth) {
 		$server->log(LOG_ERR,"[MOD_ACCOUNTING_SQL] Cleanup => Failed to select accounting record: ".
 				awitpt::db::dblayer::Error());
@@ -733,23 +791,7 @@ sub cleanup
 		}
 	}
 
-	# Begin transaction
-	DBBegin();
-
-	# Delete duplicate records
-	my @dbDoParams;
-	@dbDoParams = ('
-		DELETE FROM
-			@TP@accounting_summary
-		WHERE
-			PeriodKey = ?',
-		$lastMonth
-	);
-
-	if ($sth) {
-		# Do query
-		$sth = DBDo(@dbDoParams);
-	}
+	$server->log(LOG_NOTICE,"[MOD_ACCOUNTING_SQL] Cleanup => Creating new accounting summaries");
 
 	# Loop through users and insert totals
 	foreach my $username (keys %usageTotals) {
@@ -761,11 +803,12 @@ sub cleanup
 
 		# Rounding up
 		my $res;
-		$res->{'TotalDataInput'} = $totalDataInput->bdiv('1024')->bdiv('1024')->bceil()->bstr();
-		$res->{'TotalDataOutput'} = $totalDataOutput->bdiv('1024')->bdiv('1024')->bceil()->bstr();
-		$res->{'TotalSessionTime'} = $totalTime->bdiv('60')->bceil()->bstr();
+		$res->{'TotalDataInput'} = $totalDataInput->bdiv(1024)->bdiv(1024)->bceil()->bstr();
+		$res->{'TotalDataOutput'} = $totalDataOutput->bdiv(1024)->bdiv(1024)->bceil()->bstr();
+		$res->{'TotalSessionTime'} = $totalTime->bdiv(60)->bceil()->bstr();
 
-		@dbDoParams = ('
+		# Do query
+		$sth = DBDo('
 			INSERT INTO
 				@TP@accounting_summary
 			(
@@ -779,29 +822,27 @@ sub cleanup
 				(?,?,?,?,?)
 			',
 			$username,
-			$lastMonth,
+			$prevPeriodKey,
 			$res->{'TotalSessionTime'},
 			$res->{'TotalDataInput'},
 			$res->{'TotalDataOutput'}
 		);
-
-		if ($sth) {
-			# Do query
-			$sth = DBDo(@dbDoParams);
+		if (!$sth) {
+			$server->log(LOG_ERR,"[MOD_ACCOUNTING_SQL] Cleanup => Failed to create accounting summary record: ".
+					awitpt::db::dblayer::Error());
+			DBRollback();
+			return;
 		}
-	}
 
-	# Rollback with error if failed
-	if (!$sth) {
-		DBRollback();
-		$server->log(LOG_ERR,"[MOD_ACCOUNTING_SQL] Cleanup => Failed to insert accounting summary record: ".
-				awitpt::db::dblayer::Error());
-		return;
+		# Lets log
+		$server->log(LOG_DEBUG,"[MOD_ACCOUNTING_SQL] Cleanup => INSERT: Username = '%s', PeriodKey = '%s', ".
+				"TotalSessionTime = '%s', TotalInput = '%s', TotalOutput = '%s'", $username, $prevPeriodKey,
+				$res->{'TotalSessionTime'}, $res->{'TotalDataInput'}, $res->{'TotalDataOutput'});
 	}
 
 	# Commit if succeeded
 	DBCommit();
-	$server->log(LOG_NOTICE,"[MOD_ACCOUNTING_SQL] Cleanup => Accounting summary updated");
+	$server->log(LOG_NOTICE,"[MOD_ACCOUNTING_SQL] Cleanup => Accounting summaries created");
 }
 
 
