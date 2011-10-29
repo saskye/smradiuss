@@ -714,7 +714,7 @@ sub process_request {
 		# Are we going to POD the user?
 		my $PODUser = 0;
 
-		# Loop with modules that have post-authentication hooks
+		# Loop with modules that have post-accounting hooks
 		foreach my $module (@{$self->{'module_list'}}) {
 			# Try authenticate
 			if ($module->{'Feature_Post-Accounting_hook'}) {
