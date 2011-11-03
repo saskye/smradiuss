@@ -1118,7 +1118,7 @@ sub process_request {
 					my @attrRawVal = ( $resp->vsattr($vendor,$attr) );
 					my $attrVal = $attrRawVal[0][0];
 					# Sanatize it a bit
-					if ($attrVal =~ /[:print::ctrl:]/) {
+					if ($attrVal =~ /[[:print:][:cntrl:]]/) {
 						$attrVal = "-nonprint-";
 					} else {
 						$attrVal = "'$attrVal'";
