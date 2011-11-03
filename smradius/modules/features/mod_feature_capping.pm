@@ -160,6 +160,22 @@ sub post_auth_hook
 		}
 	}
 
+	# Allow for capping overrides by client attribute
+	if (defined($user->{'ConfigAttributes'}->{'SMRadius-Config-Capping-Uptime-Multiplier'})) {
+		my $multiplier = pop(@{$user->{'ConfigAttributes'}->{'SMRadius-Config-Capping-Uptime-Multiplier'}});
+		my $newLimit = $uptimeLimit * $multiplier;
+		$server->log(LOG_INFO,"[MOD_FEATURE_CAPPING] Client cap uptime multiplier '$multiplier' changes limit ".
+				"from '$uptimeLimit' to '$newLimit'");
+		$uptimeLimit = $newLimit;
+	}
+	if (defined($user->{'ConfigAttributes'}->{'SMRadius-Config-Capping-Traffic-Multiplier'})) {
+		my $multiplier = pop(@{$user->{'ConfigAttributes'}->{'SMRadius-Config-Capping-Traffic-Multiplier'}});
+		my $newLimit = $trafficLimit * $multiplier;
+		$server->log(LOG_INFO,"[MOD_FEATURE_CAPPING] Client cap traffic multiplier '$multiplier' changes limit ".
+				"from '$trafficLimit' to '$newLimit'");
+		$trafficLimit = $newLimit;
+	}
+
 
 	#
 	# Get current traffic and uptime usage
@@ -443,6 +459,22 @@ sub post_acct_hook
 			$server->log(LOG_NOTICE,"[MOD_FEATURE_CAPPING] No valid operators for attribute '".
 					$user->{'Attributes'}->{$TRAFFIC_LIMIT_KEY}."'");
 		}
+	}
+
+	# Allow for capping overrides by client attribute
+	if (defined($user->{'ConfigAttributes'}->{'SMRadius-Config-Capping-Uptime-Multiplier'})) {
+		my $multiplier = pop(@{$user->{'ConfigAttributes'}->{'SMRadius-Config-Capping-Uptime-Multiplier'}});
+		my $newLimit = $uptimeLimit * $multiplier;
+		$server->log(LOG_INFO,"[MOD_FEATURE_CAPPING] Client cap uptime multiplier '$multiplier' changes limit ".
+				"from '$uptimeLimit' to '$newLimit'");
+		$uptimeLimit = $newLimit;
+	}
+	if (defined($user->{'ConfigAttributes'}->{'SMRadius-Config-Capping-Traffic-Multiplier'})) {
+		my $multiplier = pop(@{$user->{'ConfigAttributes'}->{'SMRadius-Config-Capping-Traffic-Multiplier'}});
+		my $newLimit = $trafficLimit * $multiplier;
+		$server->log(LOG_INFO,"[MOD_FEATURE_CAPPING] Client cap traffic multiplier '$multiplier' changes limit ".
+				"from '$trafficLimit' to '$newLimit'");
+		$trafficLimit = $newLimit;
 	}
 
 
