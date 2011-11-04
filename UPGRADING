@@ -1,3 +1,10 @@
+2011-11-04:
+/* accounting_stop_status_query */
+CREATE INDEX accounting_idx4 ON accounting (Username,AcctSessionID,NASIPAddress,NASPortID);
+/* accounting_update_query */
+CREATE INDEX accounting_idx5 ON accounting (Username,AcctSessionID,NASIPAddress,NASPortID,PeriodKey);
+
+
 2011-10-14:
 	ALTER TABLE accounting_summary ADD COLUMN PeriodKey2 VARCHAR(255) AFTER PeriodKey;
 	UPDATE accounting_summary set PeriodKey2 = DATE_FORMAT(PeriodKey,'%Y-%m');
