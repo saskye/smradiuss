@@ -1,3 +1,11 @@
+2011-11-08:
+/* change accounting index accounting_idx4 and accounting_idx5 */
+DROP INDEX accounting_idx4 ON accounting;
+DROP INDEX accounting_idx5 ON accounting;
+
+CREATE INDEX accounting_idx5 ON accounting (Username,AcctSessionID,NASIPAddress,NASPort,PeriodKey);
+CREATE INDEX accounting_idx4 ON accounting (Username,AcctSessionID,NASIPAddress,NASPort);
+
 2011-11-04:
 /* accounting_stop_status_query */
 CREATE INDEX accounting_idx4 ON accounting (Username,AcctSessionID,NASIPAddress,NASPortID);

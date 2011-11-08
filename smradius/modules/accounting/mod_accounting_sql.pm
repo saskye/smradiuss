@@ -153,7 +153,7 @@ sub init
 			Username = %{user.Username}
 			AND AcctSessionID = %{request.Acct-Session-Id}
 			AND NASIPAddress = %{request.NAS-IP-Address}
-			AND NASPortID = %{request.NAS-Port-Id}
+			AND NASPort = %{request.NAS-Port}
 		GROUP BY
 			PeriodKey
 		ORDER BY
@@ -176,7 +176,7 @@ sub init
 			Username = %{user.Username}
 			AND AcctSessionID = %{request.Acct-Session-Id}
 			AND NASIPAddress = %{request.NAS-IP-Address}
-			AND NASPortID = %{request.NAS-Port-Id}
+			AND NASPort = %{request.NAS-Port}
 			AND PeriodKey = %{query.PeriodKey}
 	';
 
@@ -190,7 +190,7 @@ sub init
 			Username = %{user.Username}
 			AND AcctSessionID = %{request.Acct-Session-Id}
 			AND NASIPAddress = %{request.NAS-IP-Address}
-			AND NASPortID = %{request.NAS-Port-Id}
+			AND NASPort = %{request.NAS-Port}
 	';
 
 	$config->{'accounting_usage_query'} = '
@@ -216,7 +216,7 @@ sub init
 			Username = %{user.Username}
 			AND AcctSessionID = %{request.Acct-Session-Id}
 			AND NASIPAddress = %{request.NAS-IP-Address}
-			AND NASPortID = %{request.NAS-Port-Id}
+			AND NASPort = %{request.NAS-Port}
 			AND PeriodKey = %{query.PeriodKey}
 		ORDER BY
 			ID
