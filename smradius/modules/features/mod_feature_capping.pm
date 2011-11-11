@@ -160,23 +160,6 @@ sub post_auth_hook
 		}
 	}
 
-	# Allow for capping overrides by client attribute
-	if (defined($user->{'ConfigAttributes'}->{'SMRadius-Config-Capping-Uptime-Multiplier'})) {
-		my $multiplier = pop(@{$user->{'ConfigAttributes'}->{'SMRadius-Config-Capping-Uptime-Multiplier'}});
-		my $newLimit = $uptimeLimit * $multiplier;
-		$server->log(LOG_INFO,"[MOD_FEATURE_CAPPING] Client cap uptime multiplier '$multiplier' changes limit ".
-				"from '$uptimeLimit' to '$newLimit'");
-		$uptimeLimit = $newLimit;
-	}
-	if (defined($user->{'ConfigAttributes'}->{'SMRadius-Config-Capping-Traffic-Multiplier'})) {
-		my $multiplier = pop(@{$user->{'ConfigAttributes'}->{'SMRadius-Config-Capping-Traffic-Multiplier'}});
-		my $newLimit = $trafficLimit * $multiplier;
-		$server->log(LOG_INFO,"[MOD_FEATURE_CAPPING] Client cap traffic multiplier '$multiplier' changes limit ".
-				"from '$trafficLimit' to '$newLimit'");
-		$trafficLimit = $newLimit;
-	}
-
-
 	#
 	# Get current traffic and uptime usage
 	#
@@ -307,6 +290,25 @@ sub post_auth_hook
 	} else {
 		$server->log(LOG_DEBUG,"[MOD_FEATURE_CAPPING] Bandwidth => Usage total: ".$accountingUsage->{'TotalDataUsage'}.
 				"Mb (Cap: Uncapped, Topups: ".$trafficTopup."Mb)");
+	}
+
+	#
+	# Allow for capping overrides by client attribute
+	#
+
+	if (defined($user->{'ConfigAttributes'}->{'SMRadius-Config-Capping-Uptime-Multiplier'})) {
+		my $multiplier = pop(@{$user->{'ConfigAttributes'}->{'SMRadius-Config-Capping-Uptime-Multiplier'}});
+		my $newLimit = $alteredUptimeLimit * $multiplier;
+		$server->log(LOG_INFO,"[MOD_FEATURE_CAPPING] Client cap uptime multiplier '$multiplier' changes limit ".
+				"from '$alteredUptimeLimit' to '$newLimit'");
+		$alteredUptimeLimit = $newLimit;
+	}
+	if (defined($user->{'ConfigAttributes'}->{'SMRadius-Config-Capping-Traffic-Multiplier'})) {
+		my $multiplier = pop(@{$user->{'ConfigAttributes'}->{'SMRadius-Config-Capping-Traffic-Multiplier'}});
+		my $newLimit = $alteredTrafficLimit * $multiplier;
+		$server->log(LOG_INFO,"[MOD_FEATURE_CAPPING] Client cap traffic multiplier '$multiplier' changes limit ".
+				"from '$alteredTrafficLimit' to '$newLimit'");
+		$alteredTrafficLimit = $newLimit;
 	}
 
 
@@ -461,23 +463,6 @@ sub post_acct_hook
 		}
 	}
 
-	# Allow for capping overrides by client attribute
-	if (defined($user->{'ConfigAttributes'}->{'SMRadius-Config-Capping-Uptime-Multiplier'})) {
-		my $multiplier = pop(@{$user->{'ConfigAttributes'}->{'SMRadius-Config-Capping-Uptime-Multiplier'}});
-		my $newLimit = $uptimeLimit * $multiplier;
-		$server->log(LOG_INFO,"[MOD_FEATURE_CAPPING] Client cap uptime multiplier '$multiplier' changes limit ".
-				"from '$uptimeLimit' to '$newLimit'");
-		$uptimeLimit = $newLimit;
-	}
-	if (defined($user->{'ConfigAttributes'}->{'SMRadius-Config-Capping-Traffic-Multiplier'})) {
-		my $multiplier = pop(@{$user->{'ConfigAttributes'}->{'SMRadius-Config-Capping-Traffic-Multiplier'}});
-		my $newLimit = $trafficLimit * $multiplier;
-		$server->log(LOG_INFO,"[MOD_FEATURE_CAPPING] Client cap traffic multiplier '$multiplier' changes limit ".
-				"from '$trafficLimit' to '$newLimit'");
-		$trafficLimit = $newLimit;
-	}
-
-
 	#
 	# Get current traffic and uptime usage
 	#
@@ -608,6 +593,23 @@ sub post_acct_hook
 	} else {
 		$server->log(LOG_DEBUG,"[MOD_FEATURE_CAPPING] Bandwidth => Usage total: ".$accountingUsage->{'TotalDataUsage'}.
 				"Mb (Cap: Uncapped, Topups: ".$trafficTopup."Mb)");
+	}
+
+
+	# Allow for capping overrides by client attribute
+	if (defined($user->{'ConfigAttributes'}->{'SMRadius-Config-Capping-Uptime-Multiplier'})) {
+		my $multiplier = pop(@{$user->{'ConfigAttributes'}->{'SMRadius-Config-Capping-Uptime-Multiplier'}});
+		my $newLimit = $alteredUptimeLimit * $multiplier;
+		$server->log(LOG_INFO,"[MOD_FEATURE_CAPPING] Client cap uptime multiplier '$multiplier' changes limit ".
+				"from '$alteredUptimeLimit' to '$newLimit'");
+		$alteredUptimeLimit = $newLimit;
+	}
+	if (defined($user->{'ConfigAttributes'}->{'SMRadius-Config-Capping-Traffic-Multiplier'})) {
+		my $multiplier = pop(@{$user->{'ConfigAttributes'}->{'SMRadius-Config-Capping-Traffic-Multiplier'}});
+		my $newLimit = $alteredTrafficLimit * $multiplier;
+		$server->log(LOG_INFO,"[MOD_FEATURE_CAPPING] Client cap traffic multiplier '$multiplier' changes limit ".
+				"from '$alteredTrafficLimit' to '$newLimit'");
+		$alteredTrafficLimit = $newLimit;
 	}
 
 
