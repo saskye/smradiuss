@@ -256,7 +256,7 @@ sub checkAuthAttribute
 
 		} elsif ($attribute->{'Operator'} eq '!=') {
 			# Check for correct value
-			if (defined($attrVal) && $attrVal ne $tattrVal) {
+			if (!defined($attrVal) || $attrVal ne $tattrVal) {
 				$matched = 1;
 			}
 
