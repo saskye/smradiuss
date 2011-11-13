@@ -1002,6 +1002,8 @@ sub process_request {
 		foreach my $attr ($pkt->attributes) {
 			$authAttributes->{$attr} = $pkt->rawattr($attr);
 		}
+		# Peer address
+		$authAttributes->{'SMRadius-Peer-Address'} = $server->{'peeraddr'};
 		# Loop with attributes we got from the user
 		foreach my $attrName (keys %{$user->{'Attributes'}}) {
 			# Loop with operators
