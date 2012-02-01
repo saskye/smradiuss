@@ -94,8 +94,8 @@ if ($opts{'cleanup'}) {
 
 	loadModules();
 
-	# Check if we must override our default of this month at 00:00
-	my $cleanupMonth = DateTime->now()->truncate(to => 'month');
+	# Pull where we are now and default to that, if we truncate the day we mess up the timezone calculations
+	my $cleanupMonth = DateTime->now()->set_time_zone($server->{'smradius'}->{'event_timezone'});
 	# If so the ndo it
 	if (defined($opts{'cleanup-date'}) && $opts{'cleanup-date'} ne "") {
 		# Split up and setup
