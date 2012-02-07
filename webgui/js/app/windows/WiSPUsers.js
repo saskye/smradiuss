@@ -171,11 +171,6 @@ function showWiSPUserWindow() {
 					dataIndex: 'Username'
 				},
 				{
-					header: "Disabled",
-					sortable: true,
-					dataIndex: 'Disabled'
-				},
-				{
 					header: "First Name",
 					sortable: true,
 					dataIndex: 'Firstname'
@@ -194,6 +189,11 @@ function showWiSPUserWindow() {
 					header: "Phone",
 					sortable: true,
 					dataIndex: 'Phone'
+				},
+				{
+					header: "Disabled",
+					sortable: true,
+					dataIndex: 'Disabled'
 				}
 			]),
 			autoExpandColumn: 'Username'
@@ -315,6 +315,7 @@ function showWiSPUserAddEditWindow(WiSPUserWindow,id) {
 					'0:ID,'+
 					'0:Username,'+
 					'0:Password,'+
+					'0:Disabled,'+
 					'0:Firstname,'+
 					'0:Lastname,'+
 					'0:Phone,'+
@@ -397,6 +398,7 @@ function showWiSPUserAddEditWindow(WiSPUserWindow,id) {
 				SOAPFunction: 'createWiSPUser',
 				SOAPParams:
 					'0:Username,'+
+					'0:Disabled,'+
 					'0:Password,'+
 					'0:Firstname,'+
 					'0:Lastname,'+
@@ -548,9 +550,9 @@ function showWiSPUserAddEditWindow(WiSPUserWindow,id) {
 					allowBlank: false,
 					mode: 'local',
 					store: [
-						[ '=', 'Add as reply if unique' ], 
+						[ '=', 'Add as reply if unique' ],
 						[ ':=', 'Set configuration value'  ],
-						[ '==', 'Match value in request' ], 
+						[ '==', 'Match value in request' ],
 						[ '+=', 'Add reply and set configuration' ],
 						[ '!=', 'Inverse match value in request' ],
 						[ '<', 'Match less-than value in request' ],
@@ -584,7 +586,7 @@ function showWiSPUserAddEditWindow(WiSPUserWindow,id) {
 				editor: new Ext.form.ComboBox({
 					allowBlank: false,
 					mode: 'local',
-					store: [ 
+					store: [
 						[ 'Seconds', 'Seconds' ],
 						[ 'Minutes', 'Minutes' ],
 						[ 'Hours', 'Hours' ],
@@ -736,10 +738,10 @@ function showWiSPUserAddEditWindow(WiSPUserWindow,id) {
 			iconCls: icon,
 
 			width: 700,
-			height: 342,
+			height: 362,
 
 			minWidth: 700,
-			minHeight: 342
+			minHeight: 362
 		},
 		// Form panel config
 		{
@@ -762,6 +764,12 @@ function showWiSPUserAddEditWindow(WiSPUserWindow,id) {
 					fieldLabel: 'Password',
 					name: 'Password',
 					allowBlank: true
+				},
+				{
+					fieldLabel: 'Disabled',
+					name: 'Disabled',
+					xtype: 'checkbox',
+					inputValue: '1'
 				},
 				{
 					xtype: 'tabpanel',

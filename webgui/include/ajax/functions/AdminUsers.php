@@ -162,7 +162,7 @@ function removeAdminUser($params) {
 function createAdminUser($params) {
 
 	# Perform query
-	$res = DBDo("INSERT INTO @TP@users (Username) VALUES (?)",array($params[0]['Username']));
+	$res = DBDo("INSERT INTO @TP@users (Username,Disabled) VALUES (?,?)",array($params[0]['Username'],$params[0]['Disabled']));
 
 	# Return result
 	if ($res !== TRUE) {
@@ -176,7 +176,7 @@ function createAdminUser($params) {
 function updateAdminUser($params) {
 
 	# Perform query
-	$res = DBDo("UPDATE @TP@users SET Username = ? WHERE ID = ?",array($params[0]['Username'],$params[0]['ID']));
+	$res = DBDo("UPDATE @TP@users SET Username = ?, Disabled = ? WHERE ID = ?",array($params[0]['Username'],$params[0]['Disabled'],$params[0]['ID']));
 
 	# Return result
 	if ($res !== TRUE) {

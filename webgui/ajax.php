@@ -931,6 +931,7 @@
 			$res->setID('ID');
 			$res->addField('ID','int');
 			$res->addField('Username','string');
+			$res->addField('Disabled','boolean');
 			$res->addField('Password','string');
 			$res->addField('Firstname','string');
 			$res->addField('Lastname','string');

@@ -274,7 +274,8 @@ function showAdminUserAddEditWindow(AdminUserWindow,id) {
 				SOAPFunction: 'updateAdminUser',
 				SOAPParams: 
 					'0:ID,'+
-					'0:Username'
+					'0:Username,'+
+					'0:Disabled'
 			},
 			onSuccess: function() {
 				var store = Ext.getCmp(AdminUserWindow.gridPanelID).getStore();
@@ -293,7 +294,8 @@ function showAdminUserAddEditWindow(AdminUserWindow,id) {
 			params: {
 				SOAPFunction: 'createAdminUser',
 				SOAPParams: 
-					'0:Username'
+					'0:Username,'+
+					'0:Disabled'
 			},
 			onSuccess: function() {
 				var store = Ext.getCmp(AdminUserWindow.gridPanelID).getStore();
@@ -314,10 +316,10 @@ function showAdminUserAddEditWindow(AdminUserWindow,id) {
 			iconCls: icon,
 
 			width: 310,
-			height: 113,
+			height: 133,
 
 			minWidth: 310,
-			minHeight: 113
+			minHeight: 133
 		},
 		// Form panel config
 		{
@@ -335,6 +337,12 @@ function showAdminUserAddEditWindow(AdminUserWindow,id) {
 					vtype: 'usernameRadius',
 					maskRe: usernameRadiusPartRe,
 					allowBlank: false
+				},
+				{
+					fieldLabel: 'Disabled',
+					name: 'Disabled',
+					xtype: 'checkbox',
+					inputValue: '1'
 				}
 			]
 		},

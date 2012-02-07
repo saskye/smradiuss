@@ -91,7 +91,8 @@ function getWiSPUser($params) {
 			@TP@wisp_userdata.Phone, 
 			@TP@wisp_userdata.Email, 
 			@TP@wisp_userdata.LocationID,
-			@TP@users.Username
+			@TP@users.Username,
+			@TP@users.Disabled
 		FROM 
 			@TP@wisp_userdata, @TP@users
 		WHERE 
@@ -113,6 +114,7 @@ function getWiSPUser($params) {
 	# Set userdata fields
 	$resultArray['ID'] = $row->userid;
 	$resultArray['Username'] = $row->username;
+	$resultArray['Disabled'] = $row->disabled;
 	if (isset($row->firstname)) {
 		$resultArray['Firstname'] = $row->firstname;
 	} else {
@@ -335,7 +337,7 @@ function createWiSPUser($params) {
 	# If we adding single user
 	if (empty($params[0]['Number']) && !empty($params[0]['Username'])) {
 		# Insert username
-		$res = DBDo("INSERT INTO @TP@users (Username) VALUES (?)",array($params[0]['Username']));
+		$res = DBDo("INSERT INTO @TP@users (Username,Disabled) VALUES (?,?)",array($params[0]['Username'],$params[0]['Disabled']));
 
 		# Continue with others if successful
 		if ($res !== FALSE) {
@@ -507,7 +509,7 @@ function createWiSPUser($params) {
 
 		# Insert users from array into database
 		foreach ($wispUser as $username => $password) {
-			$res = DBDo("INSERT INTO @TP@users (Username) VALUES (?)",array($username));
+			$res = DBDo("INSERT INTO @TP@users (Username,Disabled) VALUES (?,?)",array($username,$params[0]['Disabled']));
 			if ($res !== FALSE) {
 				$id = DBLastInsertID();
 				$res = DBDo("INSERT INTO @TP@user_attributes (UserID,Name,Operator,Value) VALUES (?,?,?,?)",
@@ -667,9 +669,8 @@ function updateWiSPUser($params) {
 	$res = TRUE;
 
 	# Perform query
-	if (!empty($params[0]['Username'])) {
-		$res = DBDo("UPDATE @TP@users SET Username = ? WHERE ID = ?",array($params[0]['Username'],$params[0]['ID']));
-	}
+	$res = DBDo("UPDATE @TP@users SET Username = ?, Disabled = ? WHERE ID = ?",array($params[0]['Username'],$params[0]['Disabled'],$params[0]['ID']));
+
 	# Change password
 	if ($res !== FALSE) {
 		$res = DBDo("UPDATE @TP@user_attributes SET Value = ? WHERE UserID = ? AND Name = ?",
