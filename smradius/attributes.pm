@@ -433,7 +433,6 @@ sub setReplyAttribute
 	} else {
 		# Ignore and b0rk out
 		$server->log(LOG_NOTICE,"[ATTRIBUTES] - Attribute '".$attribute->{'Name'}."' ignored, invalid operator?");
-		last;
 	}
 
 	return;
