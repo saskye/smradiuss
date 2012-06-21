@@ -298,17 +298,31 @@ sub post_auth_hook
 
 	if (defined($user->{'ConfigAttributes'}->{'SMRadius-Config-Capping-Uptime-Multiplier'})) {
 		my $multiplier = pop(@{$user->{'ConfigAttributes'}->{'SMRadius-Config-Capping-Uptime-Multiplier'}});
+
 		my $newLimit = $alteredUptimeLimit * $multiplier;
-		$server->log(LOG_INFO,"[MOD_FEATURE_CAPPING] Client cap uptime multiplier '$multiplier' changes limit ".
-				"from '$alteredUptimeLimit' to '$newLimit'");
+		my $newSessionTime = $accountingUsage->{'TotalSessionTime'} * $multiplier;
+
 		$alteredUptimeLimit = $newLimit;
+		$accountingUsage->{'TotalSessionTime'} = $newSessionTime;
+
+		$server->log(LOG_INFO,"[MOD_FEATURE_CAPPING] Client uptime multiplier '$multiplier' changes ".
+				"uptime limit ('$alteredUptimeLimit' => '$newLimit'), ".
+				"uptime usage ('".$accountingUsage->{'TotalSessionTime'}."' => '$newSessionTime')"
+		);
 	}
 	if (defined($user->{'ConfigAttributes'}->{'SMRadius-Config-Capping-Traffic-Multiplier'})) {
 		my $multiplier = pop(@{$user->{'ConfigAttributes'}->{'SMRadius-Config-Capping-Traffic-Multiplier'}});
+
 		my $newLimit = $alteredTrafficLimit * $multiplier;
-		$server->log(LOG_INFO,"[MOD_FEATURE_CAPPING] Client cap traffic multiplier '$multiplier' changes limit ".
-				"from '$alteredTrafficLimit' to '$newLimit'");
+		my $newDataUsage = $accountingUsage->{'TotalDataUsage'} * $multiplier;
+
 		$alteredTrafficLimit = $newLimit;
+		$accountingUsage->{'TotalDataUsage'} = $newDataUsage; 
+
+		$server->log(LOG_INFO,"[MOD_FEATURE_CAPPING] Client traffic multiplier '$multiplier' changes ".
+				"traffic limit ('$alteredTrafficLimit' => '$newLimit'), ".
+				"traffic usage ('".$accountingUsage->{'TotalDataUsage'}."' => '$newDataUsage')"
+		);
 	}
 
 
