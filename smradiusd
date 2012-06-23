@@ -20,6 +20,9 @@
 use strict;
 use warnings;
 
+use lib('/usr/local/lib/smradius-0.0','/usr/lib/smradius-0.0',
+        '/usr/lib64/smradius-0.0','awitpt');
+
 # Set library directory
 use lib qw(
 	smradius
