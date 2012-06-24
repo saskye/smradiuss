@@ -522,6 +522,8 @@ sub process_request {
 	# Main user hash with everything in
 	my $user;
 	$user->{'ConfigAttributes'} = {};
+	$user->{'Attributes'} = {};
+	$user->{'VAttributes'} = {};
 	$user->{'ReplyAttributes'} = {};
 	$user->{'ReplyVAttributes'} = {};
 
