@@ -3,8 +3,13 @@ smradiusd:
 
 * Strip off whitespaces around attributes
 
+* Create a raddbpath config option which is prepended to dict paths
+
 usage related queries:
 * Use Math module to perform calculations
 
 smadmin:
 * Ability to run smadmin before the end of current month and updating the records as necessary at a later stage
+
+
+
