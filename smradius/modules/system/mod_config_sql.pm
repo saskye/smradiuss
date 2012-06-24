@@ -186,7 +186,7 @@ sub getConfig
 		}
 		# Add any default realm attributes to config attributes
 		while (my $row = $sth->fetchrow_hashref()) {
-			processConfigAttribute($server,$user->{'ConfigAttributes'},hashifyLCtoMC($row, qw(Name Operator Value)));
+			processConfigAttribute($server,$user,hashifyLCtoMC($row, qw(Name Operator Value)));
 		}
 		DBFreeRes($sth);
 	}
@@ -214,7 +214,7 @@ sub getConfig
 			}
 			# Add any realm attributes to config attributes
 			while (my $row = $sth->fetchrow_hashref()) {
-				processConfigAttribute($server,$user->{'ConfigAttributes'},hashifyLCtoMC($row, qw(Name Operator Value)));
+				processConfigAttribute($server,$user,hashifyLCtoMC($row, qw(Name Operator Value)));
 			}
 			DBFreeRes($sth);
 		}
@@ -263,7 +263,7 @@ sub getConfig
 		}
 		# Add to config attributes
 		while (my $row = $sth->fetchrow_hashref()) {
-			processConfigAttribute($server,$user->{'ConfigAttributes'},hashifyLCtoMC($row, qw(Name Operator Value)));
+			processConfigAttribute($server,$user,hashifyLCtoMC($row, qw(Name Operator Value)));
 		}
 		DBFreeRes($sth);
 	}

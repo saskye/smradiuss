@@ -258,11 +258,11 @@ sub getTopups
 	}
 
 	# Process traffic topups
-	processConfigAttribute($server,$user->{'ConfigAttributes'},{ 'Name' => 'SMRadius-Capping-Traffic-Topup',
+	processConfigAttribute($server,$user,{ 'Name' => 'SMRadius-Capping-Traffic-Topup',
 			'Operator' => ':=', 'Value' => $totalTopupTraffic });
 
 	# Process uptime topups
-	processConfigAttribute($server,$user->{'ConfigAttributes'},{ 'Name' => 'SMRadius-Capping-Uptime-Topup',
+	processConfigAttribute($server,$user,{ 'Name' => 'SMRadius-Capping-Uptime-Topup',
 			'Operator' => ':=', 'Value' => $totalTopupUptime });
 
 	return MOD_RES_ACK;

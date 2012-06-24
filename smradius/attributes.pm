@@ -35,8 +35,13 @@ our (@ISA,@EXPORT);
 	processConfigAttribute
 
 	getAttributeValue
+
+	addAttributeConditionalVariable
+	processAttributeConditionals
 );
 
+
+use Math::Expression;
 
 use smradius::logging;
 use smradius::util;
@@ -53,13 +58,14 @@ my @attributeReplyIgnoreList = (
 	'SMRadius-Validity-ValidFrom',
 	'SMRadius-Validity-ValidTo',
 	'SMRadius-Validity-ValidWindow',
-	'SMRadius-Username-Transform'
+	'SMRadius-Username-Transform',
+	'SMRadius-Evaluate'
 );
 my @attributeVReplyIgnoreList = (
 );
 
 
-## @fn addAttribute($server,$nattributes,$vattributes,$attribute)
+## @fn addAttribute($server,$user,$attribute)
 # Function to add an attribute to $attributes
 #
 # @param server Server instance
@@ -68,7 +74,7 @@ my @attributeVReplyIgnoreList = (
 # @param attribute Attribute to add, eg. Those from a database
 sub addAttribute
 {
-	my ($server,$nattributes,$vattributes,$attribute) = @_;
+	my ($server,$user,$attribute) = @_;
 
 
 	# Check we have the name, operator AND value
@@ -87,7 +93,7 @@ sub addAttribute
 	my $operator = $attribute->{'Operator'};
 	my $value = $attribute->{'Value'};
 	# Default attribute to add is normal
-	my $attributes = $nattributes;
+	my $attributes = $user->{'Attributes'};
 
 	# Check where we must add this attribute, maybe to the vendor attributes?
 	if ($name =~ /^\[(\d+):(\S+)\]$/) {
@@ -97,7 +103,7 @@ sub addAttribute
 		# Reset attribute name
 		$attribute->{'Name'} = $name;
 		# Set the attributes to use to the vendor
-		$attributes = $vattributes;
+		$attributes = $user->{'VAttributes'};
 	}
 
 	# Check if this is an array
@@ -120,6 +126,9 @@ sub addAttribute
 	} else {
 		$attributes->{$name}->{$operator} = $attribute;
 	}
+
+	# Process the item incase its a config attribute
+	processConfigAttribute($server,$user,$attribute);
 }
 
 
@@ -132,7 +141,7 @@ sub addAttribute
 # @param attribute Attribute to check, eg. One of the ones from the database
 sub checkAuthAttribute
 {
-	my ($server,$packetAttributes,$attribute) = @_;
+	my ($server,$user,$packetAttributes,$attribute) = @_;
 
 
 	# Check ignore list
@@ -160,13 +169,16 @@ sub checkAuthAttribute
 
 	# Loop with all the test attribute values
 	foreach my $tattrVal (@attrValues) {
+		# Sanitize the operator
+		my ($operator) = ($attribute->{'Operator'} =~ /^(?:\|\|)?(.*)$/);
+
 		# Operator: ==
 		#
 		# Use: Attribute == Value
 		# As a check item, it matches if the named attribute is present in the request,
 		# AND has the given value.
 		#
-		if ($attribute->{'Operator'} eq '==' ) {
+		if ($operator eq '==' ) {
 			# Check for correct value
 			if (defined($attrVal) && $attrVal eq $tattrVal) {
 				$matched = 1;
@@ -180,7 +192,7 @@ sub checkAuthAttribute
 		#
 		# Not allowed as a reply item.
 
-		} elsif ($attribute->{'Operator'} eq '>') {
+		} elsif ($operator eq '>') {
 			if (defined($attrVal) && $attrVal =~ /^[0-9]+$/) {
 				# Check for correct value
 				if ($attrVal > $tattrVal) {
@@ -198,7 +210,7 @@ sub checkAuthAttribute
 		#
 		# Not allowed as a reply item.
 
-		} elsif ($attribute->{'Operator'} eq '<') {
+		} elsif ($operator eq '<') {
 			# Check for correct value
 			if (defined($attrVal) && $attrVal < $tattrVal) {
 				$matched = 1;
@@ -212,7 +224,7 @@ sub checkAuthAttribute
 		#
 		# Not allowed as a reply item.
 
-		} elsif ($attribute->{'Operator'} eq '<=') {
+		} elsif ($operator eq '<=') {
 			# Check for correct value
 			if (defined($attrVal) && $attrVal <= $tattrVal) {
 				$matched = 1;
@@ -226,7 +238,7 @@ sub checkAuthAttribute
 		#
 		# Not allowed as a reply item.
 
-		} elsif ($attribute->{'Operator'} eq '>=') {
+		} elsif ($operator eq '>=') {
 			# Check for correct value
 			if (defined($attrVal) && $attrVal >= $tattrVal) {
 				$matched = 1;
@@ -240,7 +252,7 @@ sub checkAuthAttribute
 		#
 		# Not allowed as a reply item.
 
-		} elsif ($attribute->{'Operator'} eq '=*') {
+		} elsif ($operator eq '=*') {
 			# Check for matching value
 			if (defined($attrVal)) {
 				$matched = 1;
@@ -254,7 +266,7 @@ sub checkAuthAttribute
 		#
 		# Not allowed as a reply item.
 
-		} elsif ($attribute->{'Operator'} eq '!=') {
+		} elsif ($operator eq '!=') {
 			# Check for correct value
 			if (!defined($attrVal) || $attrVal ne $tattrVal) {
 				$matched = 1;
@@ -268,7 +280,7 @@ sub checkAuthAttribute
 		#
 		# Not allowed as a reply item.
 
-		} elsif ($attribute->{'Operator'} eq '!*') {
+		} elsif ($operator eq '!*') {
 			# Skip if value not defined
 			if (!defined($attrVal)) {
 				$matched = 1;
@@ -282,7 +294,7 @@ sub checkAuthAttribute
 		#
 		# Not allowed as a reply item.
 
-		} elsif ($attribute->{'Operator'} eq '=~') {
+		} elsif ($operator eq '=~') {
 			# Check for correct value
 			if (defined($attrVal) && $attrVal =~ /$tattrVal/) {
 				$matched = 1;
@@ -297,7 +309,7 @@ sub checkAuthAttribute
 		#
 		# Not allowed as a reply item.
 
-		} elsif ($attribute->{'Operator'} eq '!~') {
+		} elsif ($operator eq '!~') {
 			# Check for correct value
 			if (defined($attrVal) && !($attrVal =~ /$tattrVal/)) {
 				$matched = 1;
@@ -312,9 +324,14 @@ sub checkAuthAttribute
 		# As a reply item, it has an itendtical meaning, but the
 		# attribute is added to the reply items.
 
-		} elsif ($attribute->{'Operator'} eq '+=') {
-			# FIXME - Add to config items
-			$matched = 1;
+		} elsif ($operator eq '+=') {
+
+			# Check if we're a conditional and process
+			if ($attribute->{'Name'} eq "SMRadius-Evaluate") {
+				$matched = processConditional($server,$user,$attribute,$tattrVal);
+			} else {
+				$matched = 1;
+			}
 
 		# FIXME
 		# Operator: :=
@@ -322,10 +339,16 @@ sub checkAuthAttribute
 		# Use: Attribute := Value
 		# Always matches as a check item, and replaces in the configuration items any attribute of the same name.
 
-		} elsif ($attribute->{'Operator'} eq ':=') {
+		} elsif ($operator eq ':=') {
 			# FIXME - Add or replace config items
 			# FIXME - Add attribute to request
-			$matched = 1;
+
+			# Check if we're a conditional and process
+			if ($attribute->{'Name'} eq "SMRadius-Evaluate") {
+				$matched = processConditional($server,$user,$attribute,$tattrVal);
+			} else {
+				$matched = 1;
+			}
 
 		# Attributes that are not defined
 		} else {
@@ -536,7 +559,7 @@ sub setReplyVAttribute
 
 
 
-## @fn processConfigAttribute($server,$packetAttributes,$attribute)
+## @fn processConfigAttribute($server,$user,$attribute)
 # Function to process a configuration attribute
 #
 # @param server Server instance
@@ -544,11 +567,13 @@ sub setReplyVAttribute
 # @param attribute Attribute to process, eg. One of the ones from the database
 sub processConfigAttribute
 {
-	my ($server,$configAttributes,$attribute) = @_;
+	my ($server,$user,$attribute) = @_;
 
+	# Make things easier?
+	my $configAttributes = $user->{'ConfigAttributes'};
 
-	# Matched & ok?
-	my $matched = 0;
+	# Did we get processed?
+	my $processed = 0;
 
 	# Figure out our attr values
 	my @attrValues;
@@ -557,9 +582,6 @@ sub processConfigAttribute
 	} else {
 		@attrValues = ( $attribute->{'Value'} );
 	}
-
-	$server->log(LOG_DEBUG,"[ATTRIBUTES] Processing CONFIG attribute: '".$attribute->{'Name'}."' ".
-			$attribute->{'Operator'}." '".join("','",@attrValues)."'");
 
 	# Operator: +=
 	#
@@ -571,8 +593,8 @@ sub processConfigAttribute
 	# attribute is added to the reply items.
 
 	if ($attribute->{'Operator'} eq '+=') {
-		$server->log(LOG_DEBUG,"[ATTRIBUTES] Operator '+=' triggered: Adding item to configuration items.");
 		push(@{$configAttributes->{$attribute->{'Name'}}},@attrValues);
+		$processed = 1;
 
 	# Operator: :=
 	#
@@ -583,14 +605,18 @@ sub processConfigAttribute
 	# As a reply item, it has an itendtical meaning, but for the reply items, instead of the request items.
 
 	} elsif ($attribute->{'Operator'} eq ':=') {
-		$server->log(LOG_DEBUG,"[ATTRIBUTES] Operator ':=' triggered: Adding or replacing item in configuration items.");
 		@{$configAttributes->{$attribute->{'Name'}}} = @attrValues;
+		$processed = 1;
 
-	# Operators that are not defined
-	} else {
-		# Ignore
-		$server->log(LOG_DEBUG,"[ATTRIBUTES] - Attribute '".$attribute->{'Name'}."' ignored");
 	}
+
+	# If we got procsessed output some debug
+	if ($processed) {
+		$server->log(LOG_DEBUG,"[ATTRIBUTES] Processed CONFIG attribute: '".$attribute->{'Name'}."' ".
+				$attribute->{'Operator'}." '".join("','",@attrValues)."'");
+	}
+
+	return $processed;
 }
 
 
@@ -613,6 +639,103 @@ sub getAttributeValue
 	}
 
 	return $value;
+}
+
+
+## @fn addAttributeConditionalVariable($user,$name,$value)
+# Function that adds a conditional variable
+#
+# @param user User hash
+# @param name Variable name
+# @param value Variable value
+sub addAttributeConditionalVariable
+{
+	my ($user,$name,$value) = @_;
+
+	print(STDERR "CONDITIONAL VARIABLE:  $name => $value\n");
+	$user->{'AttributeConditionalVariables'}->{$name} = [ $value ];
+}
+
+
+## @fn processConditional($server,$user,$attribute,$attrVal)
+# This function processes a attribute conditional
+#
+# @param server Server hash
+# @param user User hash
+# @param attribute Attribute hash to process
+# @param attrVal Current value we need to process
+sub processConditional
+{
+	my ($server,$user,$attribute,$attrVal) = @_;
+
+	# Split off expression
+	my ($condition,$onTrue,$onFalse) = ($attrVal =~ /^([^\?]*)(?:\?\s*((?:\S+)?[^:]*)(?:\s*\:\s*(.*))?)?$/);
+
+	# If there is no condition we cannot really continue?
+	if (!defined($condition)) {
+		$server->log(LOG_WARN,"[ATTRIBUTES] Conditional '$attrVal' cannot be parsed");
+		return 1;
+	}
+
+	$server->log(LOG_DEBUG,"[ATTRIBUTES] Conditional parsed ".$attribute->{'Name'}." => if ($condition) then {".
+			( $onTrue ? $onTrue : "-undef-")."} else {".( $onFalse ? $onFalse : "-undef-")."}");
+
+	# Create the environment
+	my @error;
+	my $mathEnv = new Math::Expression(
+			'PrintErrFunc' => sub { @error = @_ },
+			'VarHash' => $user->{'AttributeConditionalVariables'}
+	);
+
+	# Parse and create math tree
+	my $mathTree = $mathEnv->Parse($condition);
+	# Check for error
+	if (@error) {
+		my $errorStr = sprintf($error[0],$error[1]);
+		$server->log(LOG_WARN,"[ATTRIBUTES] Conditional '$condition' in '$attrVal' does not parse: $errorStr");
+		return 1;
+	}
+
+	# Evaluate tree
+	my $res = $mathEnv->Eval($mathTree);
+	if (!defined($res)) {
+		$server->log(LOG_WARN,"[ATTRIBUTES] Conditional '$condition' in '$attrVal' does not evaluate");
+		return 1;
+	}
+
+	# Check result
+	# If we have a onTrue or onFalse we will return "Matched = True"
+	# If we don't have an onTrue or onFalse we will return the result of the $condition
+	my $attribStr;
+	if ($res && defined($onTrue)) {
+		$attribStr = $onTrue;
+		$res = 1;
+	} elsif (!$res && defined($onFalse)) {
+		$attribStr = $onFalse;
+		$res = 1;
+	} elsif (defined($onTrue) || defined($onFalse)) {
+		$res = 1;
+	}
+
+	# Loop with attributes:
+	# We only get here if $res is set to 1 above, if its only a conditional with no onTrue & onFalse
+	# Then attribStr will be unef
+	if ($res && defined($attribStr)) {
+		foreach my $rawAttr (split(/;/,$attribStr)) {
+			# Split off attribute string:  name = value
+			my ($attrName,$attrVal) = ($rawAttr =~ /^\s*([^=]+)=\s*(.*)/);
+			# Build attribute
+			my $attribute = {
+				'Name' => $attrName,
+				'Operator' => ':=',
+				'Value' => $attrVal
+			};
+			# Add attribute
+			addAttribute($server,$user,$attribute);
+		}
+	}
+
+	return $res;
 }
 
 

@@ -701,10 +701,9 @@ sub process_request {
 			my $res = $user->{'_UserDB'}->{'User_get'}($self,$user,$pkt);
 
 			# Check result
-			if (defined($res) && ref($res) eq "HASH") {
-				# We're only after the attributes here
-				$user->{'Attributes'} = $res->{'Attributes'};
-				$user->{'VAttributes'} = $res->{'VAttributes'};
+			if ($res) {
+				$self->log(LOG_WARN,"[SMRADIUS] GET: Error returned from '".$user->{'_UserDB'}->{'Name'}.
+						"' for username '".$user->{'Username'}."'");
 			}
 		}
 
@@ -905,14 +904,11 @@ sub process_request {
 			my $res = $user->{'_UserDB'}->{'User_get'}($self,$user,$pkt);
 
 			# Check result
-			if (!defined($res) || ref($res) ne "HASH") {
-				$self->log(LOG_WARN,"[SMRADIUS] GET: No data returned from '".$user->{'_UserDB'}->{'Name'}.
+			if ($res) {
+				$self->log(LOG_WARN,"[SMRADIUS] GET: Error returned from '".$user->{'_UserDB'}->{'Name'}.
 						"' for username '".$user->{'Username'}."'");
 				goto CHECK_RESULT;
 			}
-			# Setup user dataw
-			$user->{'Attributes'} = $res->{'Attributes'};
-			$user->{'VAttributes'} = $res->{'VAttributes'};
 		} else {
 			$self->log(LOG_ERR,"[SMRADIUS] GET: No 'User_get' function available for module '".$user->{'_UserDB'}->{'Name'}."'");
 
@@ -1010,7 +1006,7 @@ sub process_request {
 				# Grab attribute
 				my $attr = $user->{'Attributes'}->{$attrName}->{$attrOp};
 				# Check attribute against authorization attributes
-				my $res = checkAuthAttribute($self,$authAttributes,$attr);
+				my $res = checkAuthAttribute($self,$user,$authAttributes,$attr);
 				if ($res == 0) {
 					$authorized = 0;
 					last;

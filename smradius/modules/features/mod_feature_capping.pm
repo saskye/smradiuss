@@ -292,6 +292,10 @@ sub post_auth_hook
 				"Mb (Cap: Uncapped, Topups: ".$trafficTopup."Mb)");
 	}
 
+	# Add attribute conditionals BEFORE override
+	addAttributeConditionalVariable($user,"SMRadius_Capping_TotalDataUsage",$accountingUsage->{'TotalDataUsage'});
+	addAttributeConditionalVariable($user,"SMRadius_Capping_TotalSessionTime",$accountingUsage->{'TotalSessionTime'});
+
 	#
 	# Allow for capping overrides by client attribute
 	#
