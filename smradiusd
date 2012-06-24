@@ -326,7 +326,7 @@ sub post_configure_hook {
 		if (!$dict->readfile($df)) {
 			$self->log(LOG_WARN,"[SMRADIUS] Failed to load dictionary '$df': $!");
 		}
-		$self->log(LOG_DEBUG,"[SMRADIUS] Loaded module '$df'.");
+		$self->log(LOG_DEBUG,"[SMRADIUS] Loaded dictionary '$df'.");
 	}
 	$self->log(LOG_INFO,"[SMRADIUS] Dictionaries initialized.");
 	# Store the dictionary
