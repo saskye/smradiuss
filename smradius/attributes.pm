@@ -717,6 +717,8 @@ sub processConditional
 		$res = 1;
 	}
 
+	$server->log(LOG_DEBUG,"[ATTRIBUTES] - Evaluated to '$res' returning '".(defined($attribStr) ? $attribStr : "-undef-")."'");
+
 	# Loop with attributes:
 	# We only get here if $res is set to 1 above, if its only a conditional with no onTrue & onFalse
 	# Then attribStr will be unef
