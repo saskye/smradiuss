@@ -269,9 +269,9 @@ function showAdminClientAttributeAddEditWindow(AdminClientAttributesWindow,clien
 					displayField: 'Operator',
 					valueField: 'Operator',
 					hiddenName: 'Operator',
-					forceSelection: true,
+					forceSelection: false,
 					triggerAction: 'all',
-					editable: false
+					editable: true
 				},
 				{
 					fieldLabel: "Value",
