@@ -24,6 +24,7 @@ use warnings;
 use smradius::constants;
 use smradius::logging;
 use awitpt::db::dblayer;
+use awitpt::netip;
 use smradius::util;
 use smradius::attributes;
 
@@ -233,6 +234,10 @@ sub getConfig
 		$server->log(LOG_ERR,"Failed to get config attributes: ".awitpt::db::dblayer::Error());
 		return MOD_RES_NACK;
 	}
+
+	# Grab peer address object
+	my $peerAddrObj =  new awitpt::netip($server->{'server'}{'peeraddr'});
+
 	# Check if we know this client
 	my @accessList;
 	while (my $row = $sth->fetchrow_hashref()) {
@@ -241,8 +246,10 @@ sub getConfig
 		@accessList = ();
 		@accessList = split(',',$res->{'AccessList'});
 		# Loop with what we get and check if we have match
-		foreach my $ip (@accessList) {
-			if ($server->{'server'}{'peeraddr'} eq $ip) {
+		foreach my $range (@accessList) {
+			my $rangeObj = new awitpt::netip($range);
+
+	 		if ($peerAddrObj->is_within($rangeObj)) {
 				$clientID = $res->{'ID'};
 				last;
 			}
