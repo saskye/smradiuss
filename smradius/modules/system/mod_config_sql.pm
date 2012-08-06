@@ -24,6 +24,7 @@ use warnings;
 use smradius::constants;
 use smradius::logging;
 use awitpt::db::dblayer;
+use awitpt::cache;
 use awitpt::netip;
 use smradius::util;
 use smradius::attributes;
@@ -47,6 +48,7 @@ our $pluginInfo = {
 	# User database
 	Config_get => \&getConfig,
 };
+
 
 # Module config
 my $config;
@@ -228,37 +230,62 @@ sub getConfig
 	}
 
 	# Get client name
-	my ($clientID,$res);
-	$sth = DBSelect($config->{'get_config_accesslist_query'},$realmID);
-	if (!$sth) {
-		$server->log(LOG_ERR,"Failed to get config attributes: ".awitpt::db::dblayer::Error());
-		return MOD_RES_NACK;
-	}
+	my $clientID;
 
-	# Grab peer address object
-	my $peerAddrObj =  new awitpt::netip($server->{'server'}{'peeraddr'});
-
-	# Check if we know this client
-	my @accessList;
-	while (my $row = $sth->fetchrow_hashref()) {
-		$res = hashifyLCtoMC($row, qw(AccessList ID));
-		# Split off allowed sources, comma separated
-		@accessList = ();
-		@accessList = split(',',$res->{'AccessList'});
-		# Loop with what we get and check if we have match
-		foreach my $range (@accessList) {
-			my $rangeObj = new awitpt::netip($range);
-
-	 		if ($peerAddrObj->is_within($rangeObj)) {
-				$clientID = $res->{'ID'};
-				last;
+	# Check Cache
+	my $doCheck = 0;
+	my ($cres,$val) = cacheGetComplexKeyPair('mod_config_sql',"access/".$server->{'server'}{'peeraddr'});
+	if (defined($val)) {
+		# Check if cache expired
+		if ($user->{'_Internal'}->{'Timestamp-Unix'} - $val->{'timestamp'} < 60) {
+			# Check if we were allowed access
+			if (defined($val->{'allowed'})) {
+				$clientID = $val->{'allowed'};
+			} else {
+				$server->log(LOG_ERR,"(CACHED) Peer Address '".$server->{'server'}{'peeraddr'}."' not found in access list");
 			}
+		} else {
+			$doCheck = 1;
 		}
 	}
-	DBFreeRes($sth);
-	if (!defined($clientID)) {
-		$server->log(LOG_ERR,"Peer Address '".$server->{'server'}{'peeraddr'}."' not found in access list");
-		return MOD_RES_NACK;
+	# Do check
+	if ($doCheck) {
+		$sth = DBSelect($config->{'get_config_accesslist_query'},$realmID);
+		if (!$sth) {
+			$server->log(LOG_ERR,"Failed to get config attributes: ".awitpt::db::dblayer::Error());
+			return MOD_RES_NACK;
+		}
+
+		# Grab peer address object
+		my $peerAddrObj =  new awitpt::netip($server->{'server'}{'peeraddr'});
+
+		# Check if we know this client
+		my @accessList;
+		while (my $row = $sth->fetchrow_hashref()) {
+			my $res = hashifyLCtoMC($row, qw(AccessList ID));
+			# Split off allowed sources, comma separated
+			@accessList = ();
+			@accessList = split(',',$res->{'AccessList'});
+			# Loop with what we get and check if we have match
+			foreach my $range (@accessList) {
+				my $rangeObj = new awitpt::netip($range);
+				# Check for match
+		 		if ($peerAddrObj->is_within($rangeObj)) {
+					$clientID = $res->{'ID'};
+					last;
+				}
+			}
+		}
+		DBFreeRes($sth);
+		if (!defined($clientID)) {
+			$server->log(LOG_ERR,"Peer Address '".$server->{'server'}{'peeraddr'}."' not found in access list");
+			return MOD_RES_NACK;
+		}
+		# Setup cached data
+		my %cacheData;
+		$cacheData{'allowed'} = $clientID;
+		$cacheData{'timestamp'} = $user->{'_Internal'}->{'Timestamp-Unix'};
+		cacheStoreComplexKeyPair('mod_config_sql',"access/".$server->{'server'}{'peeraddr'},\%cacheData);
 	}
 
 	# Get client attributes
