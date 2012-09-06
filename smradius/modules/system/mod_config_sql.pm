@@ -233,7 +233,7 @@ sub getConfig
 	my $clientID;
 
 	# Check Cache
-	my $doCheck = 0;
+	my $doCheck = 1;
 	my ($cres,$val) = cacheGetComplexKeyPair('mod_config_sql',"access/".$server->{'server'}{'peeraddr'});
 	if (defined($val)) {
 		# Check if cache expired
@@ -241,11 +241,10 @@ sub getConfig
 			# Check if we were allowed access
 			if (defined($val->{'allowed'})) {
 				$clientID = $val->{'allowed'};
+				$doCheck = 0;
 			} else {
 				$server->log(LOG_ERR,"(CACHED) Peer Address '".$server->{'server'}{'peeraddr'}."' not found in access list");
 			}
-		} else {
-			$doCheck = 1;
 		}
 	}
 	# Do check
