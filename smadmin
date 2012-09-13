@@ -46,6 +46,7 @@ GetOptions(
 	"config:s",
 	"cleanup-date:s",
 	"cleanup",
+	"reset-userdata",
 	"debug",
 );
 
@@ -92,6 +93,9 @@ my $server;
 # We must cleanup
 if ($opts{'cleanup'}) {
 
+	# Check if we need to reset user data
+	my $reset_userdata = defined($opts{'reset-userdata'}) ? 1 : 0;
+
 	loadModules();
 
 	# Pull where we are now and default to that, if we truncate the day we mess up the timezone calculations
@@ -116,7 +120,7 @@ if ($opts{'cleanup'}) {
 		# If we have a cleanup module, run it
 		if (defined($module->{'Cleanup'})) {
 			$server->log(LOG_INFO,"  -> running cleanup...");
-			$module->{'Cleanup'}($server,$cleanupMonth->epoch());
+			$module->{'Cleanup'}($server,$cleanupMonth->epoch(),$reset_userdata);
 		}
 	}
 

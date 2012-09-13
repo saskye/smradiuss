@@ -511,7 +511,7 @@ sub data_get
 # Clean up of old user variables
 sub cleanup
 {
-	my ($server,$runForDate) = @_;
+	my ($server,$runForDate,$resetUserData) = @_;
 
 	$server->log(LOG_NOTICE,"[MOD_USERDB_SQL] Cleanup => Removing old user data");
 	# Begin operation
@@ -534,9 +534,32 @@ sub cleanup
 		return;
 	}
 
+	if ($resetUserData) {
+		$server->log(LOG_NOTICE,"[MOD_USERDB_SQL] Cleanup => Resetting user data counters");
+
+		# Perform query
+		my $sth = DBDo('
+			UPDATE
+				@TP@users_data
+			SET
+				Value = 0
+			WHERE
+				Name = '.DBQuote('CurrentMonthTotalTraffic').'
+				OR Name = '.DBQuote('CurrentMonthTotalUptime').'
+		');
+
+		# Error and rollback
+		if (!$sth) {
+			$server->log(LOG_NOTICE,"[MOD_USERDB_SQL] Cleanup => Database has been rolled back, no data reset");
+			DBRollback();
+			return;
+		}
+		$server->log(LOG_NOTICE,"[MOD_USERDB_SQL] Cleanup => User data counters have been reset");
+	}
+
 	# Commit
 	DBCommit();
-	$server->log(LOG_NOTICE,"[MOD_USERDB_SQL] Cleanup => Old user data have been deleted");
+	$server->log(LOG_NOTICE,"[MOD_USERDB_SQL] Cleanup => Old user data cleaned up");
 }
 
 
