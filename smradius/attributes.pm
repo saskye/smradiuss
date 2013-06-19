@@ -60,7 +60,8 @@ my @attributeReplyIgnoreList = (
 	'SMRadius-Validity-ValidWindow',
 	'SMRadius-Username-Transform',
 	'SMRadius-Evaluate',
-	'SMRadius-Peer-Address'
+	'SMRadius-Peer-Address',
+	'SMRadius-Disable-WebUITopup'
 );
 my @attributeVReplyIgnoreList = (
 );
