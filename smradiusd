@@ -1062,7 +1062,33 @@ sub process_request {
 			}
 			# Loop with vendor reply attributes
 			$logLine .= ". RVFILTER => ";
-			my %replyVAttributes = %{ $user->{'ReplyVAttributes'} };
+			my %replyVAttributes = ();
+			# Process reply vattributes already added
+			foreach my $vendor (keys %{ $user->{'ReplyVAttributes'} }) {
+				# Loop with operators
+				foreach my $attrName (keys %{$user->{'ReplyVAttributes'}->{$vendor}}) {
+					# Add each value
+					foreach my $value (@{$user->{'ReplyVAttributes'}{$vendor}->{$attrName}}) {
+						# Check for filter matches
+						my $excluded = 0;
+						foreach my $item (@{$user->{'ConfigAttributes'}->{'SMRadius-Config-Filter-Reply-VAttribute'}}) {
+							my @attrList = split(/[;,]/,$item);
+							foreach my $aItem (@attrList) {
+								$excluded = 1 if (lc($attrName) eq lc($aItem));
+							}
+						}
+						# If we must be filtered, just exclude it then
+						if (!$excluded) {
+							# This attribute is not excluded, so its ok
+							$replyVAttributes{$vendor}->{$attrName} = $user->{'ReplyVAttributes'}->{$vendor}->{$attrName};
+						} else {
+							$logLine .= "%s ";
+							push(@logLineArgs,$attrName);
+						}
+					}
+				}
+			}
+			# Process VAttributes
 			foreach my $attrName (keys %{$user->{'VAttributes'}}) {
 				# Loop with operators
 				foreach my $attrOp (keys %{$user->{'VAttributes'}->{$attrName}}) {
