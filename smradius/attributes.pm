@@ -456,7 +456,7 @@ sub setReplyAttribute
 
 	# Attributes that are not defined
 	} else {
-		# Ignore and b0rk out
+		# Ignore invalid operator
 		$server->log(LOG_NOTICE,"[ATTRIBUTES] - Attribute '".$attribute->{'Name'}."' ignored, invalid operator?");
 	}
 
