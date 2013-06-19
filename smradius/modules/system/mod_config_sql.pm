@@ -167,6 +167,7 @@ sub getConfig
 	my $realmID;
 
 	# Get default realm ID
+	$server->log(LOG_DEBUG,"Processing DEFAULT realm attributes");
 	my $sth = DBSelect($config->{'get_config_realm_id_query'},$realmName);
 	if (!$sth) {
 		$server->log(LOG_ERR,"Failed to get default realm ID: ".awitpt::db::dblayer::Error());
@@ -197,6 +198,8 @@ sub getConfig
 	# Extract realm from username
 	if (defined($user->{'Username'}) && $user->{'Username'} =~ /^\S+@(\S+)$/) {
 		$realmName = $1;
+		
+		$server->log(LOG_DEBUG,"Processing realm attributes for '$realmName'");
 
 		$sth = DBSelect($config->{'get_config_realm_id_query'},$realmName);
 		if (!$sth) {
@@ -241,6 +244,7 @@ sub getConfig
 			# Check if we were allowed access
 			if (defined($val->{'allowed'})) {
 				$clientID = $val->{'allowed'};
+				$server->log(LOG_ERR,"(CACHED) Got client ID '$clientID' from cache, bypassing accesslist check");
 				$doCheck = 0;
 			} else {
 				$server->log(LOG_ERR,"(CACHED) Peer Address '".$server->{'server'}{'peeraddr'}."' not found in access list");
@@ -249,6 +253,8 @@ sub getConfig
 	}
 	# Do check
 	if ($doCheck) {
+		$server->log(LOG_DEBUG,"Processing access list for client ID '$clientID'");
+
 		$sth = DBSelect($config->{'get_config_accesslist_query'},$realmID);
 		if (!$sth) {
 			$server->log(LOG_ERR,"Failed to get config attributes: ".awitpt::db::dblayer::Error());
@@ -271,6 +277,7 @@ sub getConfig
 				# Check for match
 		 		if ($peerAddrObj->is_within($rangeObj)) {
 					$clientID = $res->{'ID'};
+					$server->log(LOG_ERR,"(SETCACHE) Got client ID '$clientID' from DB");
 					last;
 				}
 			}
@@ -288,6 +295,7 @@ sub getConfig
 	}
 
 	# Get client attributes
+	$server->log(LOG_DEBUG,"Processing client attributes for '$clientID'");
 	if (defined($clientID)) {
 		my $sth = DBSelect($config->{'get_config_client_attributes_query'},$clientID);
 		if (!$sth) {
