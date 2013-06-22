@@ -101,13 +101,13 @@ Acct-Delay-Time: %{accounting.Acct-Delay-Time}
 	}
 	$template->{'user'} = $user;
 
-	if ($packet->attr('Acct-Status-Type') eq "Start") {
+	if ($packet->rawattr('Acct-Status-Type') eq "1") {
 		$server->log(LOG_DEBUG,"Start Packet: ".$packet->dump());
 
-	} elsif ($packet->attr('Acct-Status-Type') eq "Alive") {
+	} elsif ($packet->rawattr('Acct-Status-Type') eq "3") {
 		$server->log(LOG_DEBUG,"Alive Packet: ".$packet->dump());
 
-	} elsif ($packet->attr('Acct-Status-Type') eq "Stop") {
+	} elsif ($packet->rawattr('Acct-Status-Type') eq "2") {
 		$server->log(LOG_DEBUG,"Stop Packet: ".$packet->dump());
 
 	}

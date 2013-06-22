@@ -451,7 +451,7 @@ sub acct_log
 	#
 	# If its a new period we're going to trigger START
 	my $newPeriod;
-	if ($packet->attr('Acct-Status-Type') eq "Stop" || $packet->attr('Acct-Status-Type') eq "Alive") {
+	if ($packet->rawattr('Acct-Status-Type') eq "2" || $packet->rawattr('Acct-Status-Type') eq "3") {
 		# Replace template entries
 		my @dbDoParams = templateReplace($config->{'accounting_update_get_records_query'},$template);
 
@@ -571,7 +571,7 @@ sub acct_log
 	# Possible aswell if we are missing a start packet for this session or for the period
 	#
 
-	if ($packet->attr('Acct-Status-Type') eq "Start" || $newPeriod) {
+	if ($packet->rawattr('Acct-Status-Type') eq "1" || $newPeriod) {
 		# Replace template entries
 		my @dbDoParams = templateReplace($config->{'accounting_start_query'},$template);
 
@@ -599,7 +599,7 @@ sub acct_log
 	# S T O P   P A C K E T   specifics
 	#
 
-	if ($packet->attr('Acct-Status-Type') eq "Stop") {
+	if ($packet->rawattr('Acct-Status-Type') eq "2") {
 
 		# Replace template entries
 		my @dbDoParams = templateReplace($config->{'accounting_stop_status_query'},$template);
