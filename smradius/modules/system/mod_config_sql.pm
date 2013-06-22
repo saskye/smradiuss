@@ -253,7 +253,7 @@ sub getConfig
 	}
 	# Do check
 	if ($doCheck) {
-		$server->log(LOG_DEBUG,"Processing access list for client ID '$clientID'");
+		$server->log(LOG_DEBUG,"Processing access list for realm '$realmName'");
 
 		$sth = DBSelect($config->{'get_config_accesslist_query'},$realmID);
 		if (!$sth) {
@@ -277,14 +277,14 @@ sub getConfig
 				# Check for match
 		 		if ($peerAddrObj->is_within($rangeObj)) {
 					$clientID = $res->{'ID'};
-					$server->log(LOG_ERR,"(SETCACHE) Got client ID '$clientID' from DB");
+					$server->log(LOG_INFO,"(SETCACHE) Got client ID '$clientID' from DB");
 					last;
 				}
 			}
 		}
 		DBFreeRes($sth);
 		if (!defined($clientID)) {
-			$server->log(LOG_ERR,"Peer Address '".$server->{'server'}{'peeraddr'}."' not found in access list");
+			$server->log(LOG_NOTICE,"Peer Address '".$server->{'server'}{'peeraddr'}."' not found in access list");
 			return MOD_RES_NACK;
 		}
 		# Setup cached data
