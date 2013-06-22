@@ -244,10 +244,10 @@ sub getConfig
 			# Check if we were allowed access
 			if (defined($val->{'allowed'})) {
 				$clientID = $val->{'allowed'};
-				$server->log(LOG_ERR,"(CACHED) Got client ID '$clientID' from cache, bypassing accesslist check");
+				$server->log(LOG_INFO,"(CACHED) Got client ID '$clientID' from cache, bypassing accesslist check");
 				$doCheck = 0;
 			} else {
-				$server->log(LOG_ERR,"(CACHED) Peer Address '".$server->{'server'}{'peeraddr'}."' not found in access list");
+				$server->log(LOG_INFO,"(CACHED) Peer Address '".$server->{'server'}{'peeraddr'}."' not found in access list");
 			}
 		}
 	}
