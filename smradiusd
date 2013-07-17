@@ -526,6 +526,7 @@ sub process_request {
 	$user->{'VAttributes'} = {};
 	$user->{'ReplyAttributes'} = {};
 	$user->{'ReplyVAttributes'} = {};
+	$user->{'AttributeConditionalVariables'} = {};
 
 	# Private data
 	# Where we going to get the timestamp to use from?, from the packet, if its there, or from ourselves
@@ -735,6 +736,7 @@ sub process_request {
 				}
 			}
 		}
+
 		# Tell the NAS we got its packet
 		my $resp = Radius::Packet->new($self->{'radius'}->{'dictionary'});
 		$resp->set_code('Accounting-Response');
@@ -774,6 +776,23 @@ sub process_request {
 					$logReason = "Failed Post Accounting";
 					$PODUser = 1;
 				}
+			}
+		}
+
+		# Build a list of our attributes in the packet
+		my $acctAttributes;
+		foreach my $attr ($pkt->attributes) {
+			$acctAttributes->{$attr} = $pkt->rawattr($attr);
+		}
+		# Loop with attributes we got from the user
+		foreach my $attrName (keys %{$user->{'Attributes'}}) {
+			# Loop with operators
+			foreach my $attrOp (keys %{$user->{'Attributes'}->{$attrName}}) {
+				# Grab attribute
+				my $attr = $user->{'Attributes'}->{$attrName}->{$attrOp};
+				# Check attribute against accounting attributes attributes
+				my $res = checkAcctAttribute($self,$user,$acctAttributes,$attr);
+				# We don't care if it fails
 			}
 		}
 
