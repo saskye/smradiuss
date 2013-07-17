@@ -30,6 +30,7 @@ our (@ISA,@EXPORT);
 @EXPORT = qw(
 	addAttribute
 	checkAuthAttribute
+	checkAcctAttribute
 	setReplyAttribute
 	setReplyVAttribute
 	processConfigAttribute
@@ -375,6 +376,103 @@ sub checkAuthAttribute
 
 
 
+## @fn checkAcctAttribute($server,$packetAttributes,$attribute)
+# Function to check an attribute in the accounting stage
+#
+# @param server Server instance
+# @param packetAttributes Hashref of attributes provided, eg. Those from the packet
+# @param attribute Attribute to check, eg. One of the ones from the database
+sub checkAcctAttribute
+{
+	my ($server,$user,$packetAttributes,$attribute) = @_;
+
+
+	# Check ignore list
+	foreach my $ignoredAttr (@attributeCheckIgnoreList) {
+		# 2 = IGNORE, so return IGNORE for all ignored items
+		return 2 if ($attribute->{'Name'} eq $ignoredAttr);
+	}
+
+	# Matched & ok?
+	my $matched = 0;
+
+	# Figure out our attr values
+	my @attrValues;
+	if (ref($attribute->{'Value'}) eq "ARRAY") {
+		@attrValues = @{$attribute->{'Value'}};
+	} else {
+		@attrValues = ( $attribute->{'Value'} );
+	}
+
+	# Get packet attribute value
+	my $attrVal = $packetAttributes->{$attribute->{'Name'}};
+
+	$server->log(LOG_DEBUG,"[ATTRIBUTES] Processing CHECK attribute value ".niceUndef($attrVal)." against: '".
+			$attribute->{'Name'}."' ".$attribute->{'Operator'}." '".join("','",@attrValues)."'");
+
+	# Loop with all the test attribute values
+	foreach my $tattrVal (@attrValues) {
+		# Sanitize the operator
+		my ($operator) = ($attribute->{'Operator'} =~ /^(?:\|\|)?(.*)$/);
+
+		# Operator: +=
+		#
+		# Use: Attribute += Value
+		# Always matches as a check item, and adds the current
+		# attribute with value to the list of configuration items.
+		#
+		# As a reply item, it has an itendtical meaning, but the
+		# attribute is added to the reply items.
+
+		if ($operator eq '+=') {
+
+			# Check if we're a conditional and process
+			if ($attribute->{'Name'} eq "SMRadius-Evaluate") {
+				$matched = processConditional($server,$user,$attribute,$tattrVal);
+			} else {
+				$matched = 1;
+			}
+
+		# FIXME
+		# Operator: :=
+		#
+		# Use: Attribute := Value
+		# Always matches as a check item, and replaces in the configuration items any attribute of the same name.
+
+		} elsif ($operator eq ':=') {
+			# FIXME - Add or replace config items
+			# FIXME - Add attribute to request
+
+			# Check if we're a conditional and process
+			if ($attribute->{'Name'} eq "SMRadius-Evaluate") {
+				$matched = processConditional($server,$user,$attribute,$tattrVal);
+			} else {
+				$matched = 1;
+			}
+
+		# Attributes that are not defined
+		} else {
+			# Ignore
+			$matched = 2;
+			last;
+		}
+	}
+
+	# Some debugging info
+	if ($matched == 1) {
+		$server->log(LOG_DEBUG,"[ATTRIBUTES] - Attribute '".$attribute->{'Name'}."' matched");
+	} elsif ($matched == 2) {
+		$server->log(LOG_DEBUG,"[ATTRIBUTES] - Attribute '".$attribute->{'Name'}."' ignored");
+	} else {
+		$server->log(LOG_DEBUG,"[ATTRIBUTES] - Attribute '".$attribute->{'Name'}."' not matched");
+	}
+
+	return $matched;
+}
+
+
+
+
 ## @fn setReplyAttribute($server,$attributes,$attribute)
 # Function which sees if we must reply with this attribute
 #
@@ -669,6 +767,7 @@ sub addAttributeConditionalVariable
 sub processConditional
 {
 	my ($server,$user,$attribute,$attrVal) = @_;
+
 
 	# Split off expression
 	my ($condition,$onTrue,$onFalse) = ($attrVal =~ /^([^\?]*)(?:\?\s*((?:\S+)?[^:]*)(?:\s*\:\s*(.*))?)?$/);
