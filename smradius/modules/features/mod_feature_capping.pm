@@ -614,7 +614,14 @@ sub post_acct_hook
 	}
 
 
+	# Add attribute conditionals BEFORE override
+	addAttributeConditionalVariable($user,"SMRadius_Capping_TotalDataUsage",$accountingUsage->{'TotalDataUsage'});
+	addAttributeConditionalVariable($user,"SMRadius_Capping_TotalSessionTime",$accountingUsage->{'TotalSessionTime'});
+
+	#
 	# Allow for capping overrides by client attribute
+	#
+
 	if (defined($user->{'ConfigAttributes'}->{'SMRadius-Config-Capping-Uptime-Multiplier'})) {
 		my $multiplier = pop(@{$user->{'ConfigAttributes'}->{'SMRadius-Config-Capping-Uptime-Multiplier'}});
 		my $newLimit = $alteredUptimeLimit * $multiplier;
