@@ -3,4 +3,4 @@
 	url = https://gitlab.devlabs.linuxassist.net/awit-frameworks/awit-perl-toolkit.git
 [submodule "webgui/awitef"]
 	path = webgui/awitef
-	url = htps://gitlab.devlabs.linuxassist.net/awit-frameworks/awit-extjs-framework.git
+	url = https://gitlab.devlabs.linuxassist.net/awit-frameworks/awit-extjs-framework.git
