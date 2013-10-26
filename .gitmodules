@@ -1,6 +1,6 @@
 [submodule "awitpt"]
 	path = awitpt
-	url = https://gitlab.devlabs.linuxassist.net/allworldit-framework/awit-perl-toolkit
+	url = https://gitlab.devlabs.linuxassist.net/allworldit-framework/awit-perl-toolkit.git
 [submodule "webgui/awitef"]
 	path = webgui/awitef
-	url = htps://gitlab.devlabs.linuxassist.net/allworldit-framework/awit-extjs-framework
+	url = htps://gitlab.devlabs.linuxassist.net/allworldit-framework/awit-extjs-framework.git
