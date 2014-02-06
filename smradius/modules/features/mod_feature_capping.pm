@@ -423,7 +423,7 @@ sub post_acct_hook
 	return MOD_RES_SKIP if ($user->{'_UserDB'}->{'Name'} eq "SQL User Database (MAC authentication)");
 
 	# Exceeding maximum, must be disconnected
-	return MOD_RES_SKIP if ($packet->rawattr('Acct-Status-Type') ne "3");
+	return MOD_RES_SKIP if ($packet->rawattr('Acct-Status-Type') ne "1" && $packet->rawattr('Acct-Status-Type') ne "3");
 
 	$server->log(LOG_DEBUG,"[MOD_FEATURE_CAPPING] POST ACCT HOOK");
 
