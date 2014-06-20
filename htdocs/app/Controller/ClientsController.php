@@ -5,7 +5,8 @@
 class ClientsController extends AppController
 {
 	/* index function 
-	 * 
+	 * Functon loads list of clients with pagination
+	 *
 	 */
 	public function index()
 	{
@@ -16,6 +17,7 @@ class ClientsController extends AppController
 	}
 	
 	/* add function 
+	 * Functon used to add clients.
 	 * 
 	 */
 	public function add(){
@@ -32,8 +34,11 @@ class ClientsController extends AppController
 	
 	/* edit function 
 	 * @param $id 
+	 * Function used to edit clients.
+	 *
 	 */
 	public function edit($id){
+		// Assigning client data to var.
 		$client = $this->Client->findById($id);
 		$this->set('client', $client);
 		if ($this->request->is('post')){
@@ -48,8 +53,10 @@ class ClientsController extends AppController
 		}
 	}
 	
-	/* delete function 
+	/* remoce function 
 	 * @param $id
+	 * Function used to delete clients.
+	 * 
 	 */
 	public function remove($id){
 		if($this->Client->delete($id)){

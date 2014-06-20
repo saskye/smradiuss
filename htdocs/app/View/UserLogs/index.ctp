@@ -3,22 +3,20 @@ body {
 	padding-top: 50px;
 }
 #main{
-//background-color:red;
-border:1px #DFE8F6 solid;
+	border:1px #DFE8F6 solid;
 }
 #search{
-background-color:#DFE8F6;
-width:400px;
-float:left;
-border:1px #C8D1D4 solid;
-height:180px;
+	background-color:#DFE8F6;
+	width:400px;
+	float:left;
+	border:1px #C8D1D4 solid;
+	height:180px;
 }
 #topuploags{
-//background-color:pink;
-overflow-y: scroll;
-height:180px;
-padding-left:5px;
-border:1px #DFE8F6 solid;
+	overflow-y: scroll;
+	height:180px;
+	padding-left:5px;
+	border:1px #DFE8F6 solid;
 }
 </style>
 <div style="padding: 15px 15px">
@@ -46,7 +44,6 @@ border:1px #DFE8F6 solid;
 									?>
 								</div>					
 							</div>
-							
 							<div class="row">
 								<div class="col-md-4 input-group" style="float:left;width:100px;margin-right:0px;margin-left: 18px;">
 									<?php
@@ -60,12 +57,10 @@ border:1px #DFE8F6 solid;
 										$dayData[$number] = $number;
 									}
 									}
-									
 									echo $this->Form->input('dayData', array('label' => false, 'class' => 'form-control', 'type' => 'select', "options" =>$dayData,'selected' => $month));
 									?>
 								</div>					
 							</div>
-							
 						</div>
 						<div class="form-group">
 							<button type="submit" class="btn btn-primary" style="margin-left:100px"><?php echo __('Search')?></button>							
@@ -73,23 +68,46 @@ border:1px #DFE8F6 solid;
 					<?php echo $this->Form->end(); ?>
 				</div>
 				<div id="topuploags">
-				<?php $userLog1 = array_values($userLog);
-				$totalvalue1 = '';
-				$totalvalue2 = ''; ?>
-					<?php foreach ($userLog as $userLog){
-						if($userLog['topups']['Type'] == '1') {
-							$totalvalue1[] = $userLog['topups']['Value'].",";
-						} else { $totalvalue1[] = ''; }
-						if($userLog['topups']['Type'] == '2'){
-							$totalvalue2[] = $userLog['topups']['Value'].",";
-						} else { $totalvalue2[] = ''; }
-					}
-					if($totalvalue1 != ''){
-						$tValue = array_sum($totalvalue1);
-					} else { $tValue = 0; }
-					if($totalvalue2 != ''){
-						$uValue = array_sum($totalvalue2);
-					} else { $uValue = 0; }
+					<?php 
+						$userLog1 = array_values($userLog);
+						$totalvalue1 = '';
+						$totalvalue2 = '';
+						
+						foreach ($userLog as $userLog)
+						{
+							if($userLog['topups']['Type'] == '1')
+							{
+								$totalvalue1[] = $userLog['topups']['Value'].",";
+							}
+							else
+							{
+								$totalvalue1[] = '';
+							}
+							if($userLog['topups']['Type'] == '2')
+							{
+								$totalvalue2[] = $userLog['topups']['Value'].",";
+							}
+							else
+							{
+								$totalvalue2[] = '';
+							}
+						}
+						if($totalvalue1 != '')
+						{
+							$tValue = array_sum($totalvalue1);
+						}
+						else
+						{
+							$tValue = 0;
+						}
+						if($totalvalue2 != '')
+						{
+							$uValue = array_sum($totalvalue2);
+						}
+						else
+						{
+							$uValue = 0;
+						}
 					?>
 					<div>Traffic:</div>
 					<div>Cap: Prepaid</div>
@@ -147,38 +165,38 @@ border:1px #DFE8F6 solid;
 								$outputMbyte = $AcctOutputOctets + $AcctOutputGigawords;
 							?>
 							<tr>
-								<td><? echo __($acc['UserLog']['EventTimestamp'])?></td>
-								<td><? echo __($acc['UserLog']['ServiceType'])?></td>
-								<td><? echo __($acc['UserLog']['FramedProtocol'])?></td>
-								<td><? echo __($acc['UserLog']['CallingStationID'])?></td>
-								<td><? echo __($inputMbyte)?></td>
-								<td><? echo __($outputMbyte)?></td>
-								<td><? echo __($acc['UserLog']['AcctSessionTime']/60)?></td>
-								<td><? echo __($acc['UserLog']['AcctTerminateCause'])?></td>
+								<td><? echo $acc['UserLog']['EventTimestamp'];?></td>
+								<td><? echo $acc['UserLog']['ServiceType'];?></td>
+								<td><? echo $acc['UserLog']['FramedProtocol'];?></td>
+								<td><? echo $acc['UserLog']['CallingStationID'];?></td>
+								<td><? echo $inputMbyte;?></td>
+								<td><? echo $outputMbyte;?></td>
+								<td><? echo ($acc['UserLog']['AcctSessionTime']/60)?></td>
+								<td><? echo $acc['UserLog']['AcctTerminateCause'];?></td>
 							</tr>
 							<? endforeach; ?>
 							<tr>
-					<td align="center" colspan="10" >
-						<?php
-							$total = $this->Paginator->counter(array(
-    							'format' => '%pages%'));
-							if($total >1)
-							{		
-								echo $this->Paginator->prev('<<', null, null, array('class' => 'disabled')); 
-						?>
-								<?php echo $this->Paginator->numbers(); ?>
-								<!-- Shows the next and previous links -->
-								<?php echo $this->Paginator->next('>>', null, null, array('class' => 'disabled')); ?>
-								<!-- prints X of Y, where X is current page and Y is number of pages -->
-						<?php
-							echo "<span style='margin-left:20px;'>Page : ".$this->Paginator->counter()."</span>";
-							}
-						?>
-					</td>
-				</tr>
+								<td align="center" colspan="10" >
+									<?php
+									$total = $this->Paginator->counter(array(
+	    								'format' => '%pages%'));
+									if($total >1)
+									{		
+										echo $this->Paginator->prev('<<', null, null, array('class' => 'disabled')); 
+									?>
+									<?php echo $this->Paginator->numbers(); ?>
+									<!-- Shows the next and previous links -->
+									<?php echo $this->Paginator->next('>>', null, null, array('class' => 'disabled')); ?>
+									<!-- prints X of Y, where X is current page and Y is number of pages -->
+									<?php
+										echo "<span style='margin-left:20px;'>Page : ".$this->Paginator->counter()."</span>";
+									}
+									?>
+								</td>
+							</tr>
 						</tbody>
 					</table>
 				</div>
-			</div>
+		</div>
 	</div>
 </div>

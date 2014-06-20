@@ -4,18 +4,19 @@ class UsersController extends AppController {
 	public $use = array('UserAttribute');
 
 	/* index function 
-	 * 
+	 * Showing users list with pagination.
+	 *
 	 */			
 	public function index(){
-		//
 		$this->User->recursive = -1;
 		$this->paginate = array('limit' => PAGINATION_LIMIT );
 		$users = $this->paginate();
 		$this->set('users', $users);
-		}	
+	}	
 	
 	/* add function 
-	 * 
+	 * Adding users data.
+	 *
 	 */	
 	 	
 	public function add(){
@@ -33,18 +34,23 @@ class UsersController extends AppController {
 	
 	/* edit function 
 	 * @param $id
+	 * Editing users data.
 	 */		
 	public function edit($id){
+		// Finding users data and assigning to var $user.
 		$user = $this->User->findById($id);
 		$this->set('user', $user);
+		// Checking button is clicked or not.
 		if ($this->request->is('post')){
 			$this->request->data['User']['Disabled'] = intval($this->request->data['User']['Disabled']);
 			$this->User->set($this->request->data);
+			// Validating submitted data.
 			if ($this->User->validates()) {
 				$this->User->id = $id;
-			   $this->User->save($this->request->data);
+				// Save to database.				
+				$this->User->save($this->request->data);
 				$this->Session->setFlash(__('User is edited succefully!', true), 'flash_success');
-				// Code to update text field with new data.		
+				// To load page with new data saved above.
 				$user = $this->User->findById($id);
 				$this->set('user', $user);
 			} else {
@@ -53,35 +59,21 @@ class UsersController extends AppController {
 		}
 	}
 	
-	
-	/* delete function 
+	/* remove function 
 	 * @param $id
+	 * Function used to delete users data.
+	 *
 	 */	
 	public function remove($id){
+		// Deleting & checking done or not.
 		if($this->User->delete($id)){
-			$this->User->deleteGroup($id);
+			// Deleting user reference data from other db tables.
+			$this->User->deleteUserRef($id);
+			// Redirecting users to index function.
 			$this->redirect('/users/index');
 			$this->Session->setFlash(__('User is removed succefully!', true), 'flash_success');
 		} else {
 			$this->Session->setFlash(__('User is not removed succefully!', true), 'flash_failure');
 		}
 	}
-	
-	/* attribute function 
-	 * @param $id
-	 */	
-	public function attribute($id){
-		if ($this->request->is('post')){			
-			$this->request->data['UserAttribute'] = $this->request->data['User'];
-			$this->UserAttribute->set($this->request->data);
-			if ($this->UserAttribute->validates()) {
-			    $this->UserAttribute->save($this->request->data);
-				$this->Session->setFlash(__('User attribute is saved succefully!', true), 'flash_success');
-			} else {
-			    $this->Session->setFlash(__('User attribute is not saved succefully!', true), 'flash_failure');
-			}
-		}
-	}
-	
-	
 }

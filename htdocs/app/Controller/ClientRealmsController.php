@@ -5,8 +5,15 @@
  */
  
 class ClientRealmsController extends AppController {
+	
+	/* index function 
+	 * @param $clientID
+	 * Functon loads client realms list with pagination
+	 *
+	 */
 	public function index($clientID){
-		if (isset($clientID)){			
+		if (isset($clientID)){
+			// Fetching records with  pagination.			
 			$this->paginate = array(
 			'limit' => PAGINATION_LIMIT,
 			'conditions' => array('ClientID' => $clientID)
@@ -16,10 +23,11 @@ class ClientRealmsController extends AppController {
 			
 			foreach($clientRealm as $clientRealms)
 			{
-				$groupData= $this->ClientRealm->getGroupById($clientRealms['ClientRealm']['RealmID']);
-				if(isset($groupData[0]['realms']['Name']))
+				// Get realms name via realms id.
+				$realmsData= $this->ClientRealm->getRealmsById($clientRealms['ClientRealm']['RealmID']);
+				if(isset($realmsData[0]['realms']['Name']))
 				{
-				$clientRealms['ClientRealm']['realmName'] = $groupData[0]['realms']['Name'];
+				$clientRealms['ClientRealm']['realmName'] = $realmsData[0]['realms']['Name'];
 				}
 				$clientRealmsData[] = $clientRealms;
 			}
@@ -32,17 +40,24 @@ class ClientRealmsController extends AppController {
 		}			
 	}	
 	
+	/* add function 
+	 * @param $clientID
+	 * Function used to add client realms.
+	 *
+	 */
 	public function add($clientID){
 		if (isset($clientID))
 		{
 			$this->set('clientID', $clientID);
-			$clientRealms = $this->ClientRealm->selectGroup();
+			// Fetch realms for select box controler.
+			$clientRealms = $this->ClientRealm->selectRealms();
+			// Adding realms name to final array.
 			foreach($clientRealms as $val)
 			{
 				$arr[$val['realms']['ID']] = $val['realms']['Name'];
 			}
-			
 			$this->set('arr', $arr);
+			// run only when submit button clicked.
 			if ($this->request->is('post'))
 			{
 				$this->ClientRealm->set($this->request->data);
@@ -50,7 +65,6 @@ class ClientRealmsController extends AppController {
 				{
 					$this->ClientRealm->InsertRec($clientID,$this->request->data);
 					$this->Session->setFlash(__('Client member is saved succefully!', true), 'flash_success');
-				
 				} 
 				else 
 				{
@@ -58,11 +72,16 @@ class ClientRealmsController extends AppController {
 				}
 			}
 		}
-	
 	}
 	
+	/* remove function 
+	 * @param $id , $clientID
+	 * Function used to delete client realms when clientID and id is matched.
+	 *
+	 */
 	public function remove($id, $clientID){
 		if (isset($id)){
+			// Deleting then redirected to index function.
 			if($this->ClientRealm->delete($id)){
 				$this->redirect('/client_realms/index/'.$clientID);
 				$this->Session->setFlash(__('Client realm is removed succefully!', true), 'flash_success');

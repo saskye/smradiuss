@@ -6,15 +6,13 @@ body {
 
 <div style="padding: 15px 15px">
 	<div class="row"><?php echo $this->element('left_panel');?>
-	
-	<div class="col-md-10"><legend><?php echo __('Edit Client Attribute')?></legend>
-		<?php echo $this->Form->create()?>
+		<div class="col-md-10"><legend><?php echo __('Edit Client Attribute')?></legend>
+			<?php echo $this->Form->create()?>
 			<div class="form-group">
 				<?php echo $this->Form->label('Name', 'Name', array('class'=>'col-md-2 control-label'));?>								
 				<div class="row">
 					<div class="col-md-4 input-group">
-						<?php echo $this->Form->input('Name', array('label' => false, 'class' => 'form-control', 
-										'placeholder' => 'Name', 'value' => $clientAttribute['ClientAttribute']['Name']));?>
+						<?php echo $this->Form->input('Name', array('label' => false, 'class' => 'form-control', 'placeholder' => 'Name', 'value' => $clientAttribute['ClientAttribute']['Name']));?>
 					</div>					
 				</div>
 			</div>
@@ -38,8 +36,9 @@ body {
 				<?php echo $this->Form->label('Disabled', 'Disabled', array('class'=>'col-md-2 control-label'));?>
 				<div class="row">
 					<div class="col-md-3">
-						<?php if($clientAttribute['ClientAttribute']['Disabled'] == 1) {
-								 $isCheck = true;
+						<?php 
+							if($clientAttribute['ClientAttribute']['Disabled'] == 1) {
+								$isCheck = true;
 							} else {
 								$isCheck = false;
 							}
@@ -54,15 +53,7 @@ body {
 				<button type="submit" class="btn btn-primary"><?php echo __('Save', true)?></button>
 				<?php echo $this->Html->link(__('Cancel', true), array('action' => 'index', $clientAttribute['ClientAttribute']['ClientID']), array('class' => 'btn btn-default'))?>							
 			</div>
-		<?php echo $this->Form->end(); ?>
-		
-	 	<!--<span class="glyphicon glyphicon-time" /> - Processing,
-		<span class="glyphicon glyphicon-edit" /> - Override, 
-		<span class="glyphicon glyphicon-import" /> - Being Added,
-		<span class="glyphicon glyphicon-trash" /> - Being Removed,
-		<span class="glyphicon glyphicon-random" /> - Conflicts-->
+			<?php echo $this->Form->end(); ?>
 		</div>
 	</div>
 </div>
-
-

@@ -6,16 +6,18 @@ class WispLocationMembersController extends AppController
 {
 	/* index function 
 	 * @param $LocationID
+	 * Used to show members location with pagination.
+	 *
 	 */	
 	public function index($LocationID)
 	{
-		//echo "<pre>";print_r($LocationID);exit;
 		$this->WispLocationMember->recursive = -1;
-		$this->paginate = array('limit' => PAGINATION_LIMIT,
-								'conditions' => array('LocationID' => $LocationID));
+		$this->paginate = array('limit' => PAGINATION_LIMIT,'conditions' => array('LocationID' => $LocationID));
+		// Assigning fetched data to variable.
 		$wispLocationMember = $this->paginate();
 		$memberData = array();
 		
+		// Generating final array.
 		foreach($wispLocationMember as $wMember)
 		{
 			$userNameData= $this->WispLocationMember->selectUsername($wMember['WispLocationMember']['UserID']);
@@ -32,12 +34,17 @@ class WispLocationMembersController extends AppController
 		$this->set('wispLocationMember', $wispLocationMember);
 		$this->set('LocationID', $LocationID);
 	}
-	/* delete function 
+	
+	/* remove function 
 	 * @param $id, $LocationID
+	 * used to delete members locations.
+	 *
 	 */		
 	public function remove($id, $LocationID)
 	{
+		// Deleting 
 		$deleteMember = $this->WispLocationMember->deleteMembers($id);
+		// Redirecting to index.
 		$this->redirect('/WispLocation_Members/index/'.$LocationID);
 		$this->Session->setFlash(__('Wisp locations member is removed succefully!', true), 'flash_success');
 	}
