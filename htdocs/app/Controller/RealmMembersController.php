@@ -7,19 +7,23 @@
 class RealmMembersController extends AppController {
 	/* index function 
 	 * @param $realmId
+	 * Function to show reamls members list with pagination 
+	 * 
 	 */
 	public function index($realmID){
-		if (isset($realmID)){			
+		if (isset($realmID)){	
+			// Getting list with pagination.		
 			$this->paginate = array(
                 'limit' => PAGINATION_LIMIT,
 				'conditions' => array('RealmID' => $realmID)
 			);
 			$realmMembers = $this->paginate();
 			$realmMembersData =array();
-
+			
+			// Generating final array.
 			foreach($realmMembers as $realmMember)
 			{
-				$clientData = $this->RealmMember->getGroupById($realmMember['RealmMember']['ClientID']);
+				$clientData = $this->RealmMember->getClientNameById($realmMember['RealmMember']['ClientID']);
 				if(isset($clientData[0]['clients']['Name']))
 				{
 					$realmMember['RealmMember']['clientName'] = $clientData[0]['clients']['Name'];
@@ -27,7 +31,7 @@ class RealmMembersController extends AppController {
 				$realmMembersData[] = $realmMember;
 			}
 			$realmMember = $realmMembersData;
-
+			// Send to view page.
 			$this->set('realmMember', $realmMember);
 			$this->set('realmID', $realmID);
 		} else {
@@ -35,8 +39,10 @@ class RealmMembersController extends AppController {
 		}			
 	}	
 
-	/* delete function 
+	/* remove function 
 	 * @param $id, $realmId
+	 * Function used to remove realms members.
+	 * 
 	 */
 	public function remove($id, $realmID){
 		if (isset($id)){

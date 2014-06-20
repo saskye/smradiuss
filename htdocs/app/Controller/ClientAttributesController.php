@@ -8,13 +8,15 @@ class ClientAttributesController extends AppController {
 
 	/* index function 
 	 * @param $clientID
+	 * Functon loads list of client attributes with pagination
+	 *
 	 */
 		public function index($clientID){
-			if (isset($clientID)){			
+			if (isset($clientID)){		
+				// Fetching records with pagination
 				$this->paginate = array(
 				'limit' => PAGINATION_LIMIT,
-				'conditions' => array('ClientAttribute.ClientID' => $clientID)
-				);
+				'conditions' => array('ClientAttribute.ClientID' => $clientID));
 				$clientAttributes = $this->paginate();
 				
 				$this->set('clientAttributes', $clientAttributes);
@@ -26,15 +28,18 @@ class ClientAttributesController extends AppController {
 	
 	/* add function 
 	 * @param $clientID
+	 * Function used to add client attributes.
+	 *
 	 */
-	 
 		public function add($clientID){
 			$this->set('clientID', $clientID);
 			if ($this->request->is('post')){
 				$this->request->data['ClientAttribute']['Disabled'] = intval($this->request->data['ClientAttribute']['Disabled']);
 				$this->request->data['ClientAttribute']['ClientID'] = intval($this->request->params['pass'][0]);
 				$this->ClientAttribute->set($this->request->data);
+				// Validating user inputs.
 				if ($this->ClientAttribute->validates()) {
+					//Saving data to table.
 					$this->ClientAttribute->save($this->request->data);
 					$this->Session->setFlash(__('Client attribute is saved succefully!', true), 'flash_success');
 				} else {
@@ -45,6 +50,8 @@ class ClientAttributesController extends AppController {
 	
 	/* edit function 
 	 * @param $id , $clientID
+	 * Function used to edit client attributes.
+	 *
 	 */
 		public function edit($id, $clientID){
 			$clientAttribute = $this->ClientAttribute->findById($id);
@@ -62,11 +69,14 @@ class ClientAttributesController extends AppController {
 			}
 		}
 	
-	/* delete function 
+	/* remove function 
 	 * @param $id , $clientID
+	 * Function used to delete client attributes when clientID and id is matched.
+	 *
 	 */
 		public function remove($id, $clientID){
 			if (isset($id)){
+				// Deleting then redirecting to index
 				if($this->ClientAttribute->delete($id)){
 					$this->redirect('/client_attributes/index/'.$clientID);
 					$this->Session->setFlash(__('Client attribute is removed succefully!', true), 'flash_success');

@@ -3,9 +3,8 @@
 		<div class="panel-group" id="accordion">
 			<div class="panel panel-primary">
 				<div class="panel-heading">
-					<p class="panel-title text-center"><a class="accordion-toggle"
-						data-toggle="collapse" data-parent="#accordion" href="#collapseUsers"><img
-						src="<?php echo BASE_URL;?>/resources/custom/images/silk/icons/user.png"></img> <? echo __('Users')?></a>
+					<p class="panel-title text-center">
+						<a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion" href="#collapseUsers"><img src="<?php echo BASE_URL;?>/resources/custom/images/silk/icons/user.png"></img><? echo __('Users')?></a>
 					</p>
 				</div>
 				<div id="collapseUsers" class="panel-collapse collapse in">
@@ -27,10 +26,9 @@
 		<div class="panel-group">
 			<div class="panel panel-primary">
 				<div class="panel-heading">
-				<p class="panel-title text-center"><a class="accordion-toggle"
-					data-toggle="collapse" data-parent="#accordion" href="#collapseGroups"><img
-					src="<?php echo BASE_URL;?>/resources/custom/images/silk/icons/map.png"></img> <?=__('Locations')?></a>
-				</p>
+					<p class="panel-title text-center">
+						<a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion" href="#collapseGroups"><img src="<?php echo BASE_URL;?>/resources/custom/images/silk/icons/map.png"></img> <?=__('Locations')?></a>
+					</p>
 				</div>
 				<div id="collapseGroups" class="panel-collapse collapse in">
 					<div class="panel-body">

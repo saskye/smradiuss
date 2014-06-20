@@ -5,13 +5,15 @@
  */
 class GroupMemberController extends AppController
 {
-	/* included table users
+	/* included users table 
 	 * 
 	 */
 	public $use = array('Users');
 	
 	/* index function 
 	 * @param $groupID
+	 * Functon loads list of group members with pagination
+	 *
 	 */
 	public function index($groupID)
 	{
@@ -26,6 +28,7 @@ class GroupMemberController extends AppController
 			$GroupMember = $this->paginate();
 			$UserNameData =array();
 			
+			// Preparing final array.
 			foreach($GroupMember as $groupMember)
 			{
 				$userName = $this->GroupMember->getUserNameById($groupMember['GroupMember']['UserID']);
@@ -42,8 +45,10 @@ class GroupMemberController extends AppController
 		}
 	}
 	
-	/* delete function 
+	/* remove function 
 	 * @param $id, $groupID
+	 * Function used to delete group member.
+
 	 */
 	public function remove($id, $groupID){
 		if (isset($id)){

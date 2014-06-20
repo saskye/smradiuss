@@ -7,6 +7,8 @@
 class RealmAttributesController extends AppController {
 	/* index function 
 	 * @param $realmId
+	 * Functon used for showing realms attribures with pagination
+	 * 
 	 */
 	public function index($realmId){
 		if (isset($realmId)){			
@@ -25,6 +27,8 @@ class RealmAttributesController extends AppController {
 	
 	/* edit function 
 	 * @param $realmId
+	 * Function used to add realms attributes
+	 *
 	 */
 	public function add($realmId){
 		$this->set('realmId', $realmId);
@@ -42,13 +46,17 @@ class RealmAttributesController extends AppController {
 	}
 	
 	/* edit function 
-	 * @param $id , $realmId
+	 * @param $id 
+	 * Function used to edit realms attributes.
+	 * 
 	 */
-	public function edit($id, $realmId){
+	public function edit($id){
 		$realmAttribute = $this->RealmAttribute->findById($id);
 		$this->set('realmAttribute', $realmAttribute);
+		// Checking submitted or not.
 		if ($this->request->is('post')){
 			$this->request->data['RealmAttribute']['Disabled'] = intval($this->request->data['RealmAttribute']['Disabled']);
+			// Setting submitted data.
 			$this->RealmAttribute->set($this->request->data);
 			if ($this->RealmAttribute->validates()) {
 				$this->RealmAttribute->id = $id;
@@ -60,12 +68,16 @@ class RealmAttributesController extends AppController {
 		}
 	}
 	
-	/* delete function 
+	/* remove function 
 	 * @param $id, $realmId
+	 * Function to delete realms attribute
+	 * 
 	 */
 	public function remove($id, $realmId){
 		if (isset($id)){
+			// Deleting & checking successful or not.
 			if($this->RealmAttribute->delete($id)){
+				// Redirecting to realms attribute index function.
 				$this->redirect('/realm_attributes/index/'.$realmId);
 				$this->Session->setFlash(__('Realm attribute is removed succefully!', true), 'flash_success');
 			} else {
