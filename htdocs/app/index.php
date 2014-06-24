@@ -17,3 +17,5 @@
  */
 
 require 'webroot' . DIRECTORY_SEPARATOR . 'index.php';
+
+// vim: ts=4

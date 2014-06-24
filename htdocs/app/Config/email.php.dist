@@ -37,6 +37,7 @@
  * The origin email. See CakeEmail::from() about the valid values
  *
  */
+
 class EmailConfig {
 
 	public $default = array(
@@ -92,3 +93,5 @@ class EmailConfig {
 	);
 
 }
+
+// vim: ts=4
