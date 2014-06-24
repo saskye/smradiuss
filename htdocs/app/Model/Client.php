@@ -8,6 +8,8 @@ class Client extends AppModel
 {
 	public $useTable = 'clients';
 
+
+
 	// Validating form controllers
 	public $validate = array(
 		'Name' => array(
@@ -23,6 +25,11 @@ class Client extends AppModel
 			)
 		)
 	);
+
+
+
 }
+
+
 
 // vim: ts=4

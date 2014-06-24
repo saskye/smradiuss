@@ -11,3 +11,7 @@ class Realm extends AppModel
 	//Validating form controller.
 	public $validate = array('Name' => array('required' => array('rule' => array('notEmpty'),'message' => 'Please enter value')));
 }
+
+
+
+// vim: ts=4

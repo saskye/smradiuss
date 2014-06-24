@@ -5,5 +5,8 @@
  */
 
 class AccountingSummary extends AppModel {
-
 }
+
+
+
+// vim: ts=4

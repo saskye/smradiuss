@@ -6,3 +6,7 @@
 
 class Group extends AppModel {
 }
+
+
+
+// vim: ts=4

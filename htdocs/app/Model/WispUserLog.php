@@ -11,15 +11,26 @@ class WispUserLog extends AppModel
 
 	public $useTable = 'accounting';
 
+
+
 	//Fetching records form table.
 	public function SelectRec($userId, $data)
 	{
 		return $userLog = $this->query("select * from topups where ValidFrom = '".$data."' and UserID = '".$userId."'");
 	}
 
+
+
 	//Fetching username.
 	public function SelectAcc($userId)
 	{
 		return $userLog = $this->query("select Username from users where ID = '".$userId."'");
 	}
+
+
+
 }
+
+
+
+// vim: ts=4

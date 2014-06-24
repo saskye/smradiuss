@@ -8,6 +8,8 @@ class ClientAttribute extends AppModel
 {
 	public $useTable = 'client_attributes';
 
+
+
 	// Validating form controllers.
 	public $validate = array(
 		'Name' => array(
@@ -22,6 +24,11 @@ class ClientAttribute extends AppModel
 			)
 		)
 	);
+
+
+
 }
+
+
 
 // vim: ts=4

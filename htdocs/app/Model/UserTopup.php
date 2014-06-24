@@ -11,6 +11,8 @@ class UserTopup extends AppModel
 
 	public $useTable = 'topups';
 
+
+
 	//Insert record in topups table.
 	public function insertRec($userId, $data)
 	{
@@ -18,9 +20,18 @@ class UserTopup extends AppModel
 		$res = $this->query("INSERT INTO topups (UserID,Timestamp,Type,Value,ValidFrom,ValidTo) VALUES (?,?,?,?,?,?)",array($userId,$timestamp,$data['UserTopup']['Type'],$data['UserTopup']['Value'],$data['UserTopup']['valid_from'], $data['UserTopup']['valid_to']));
 	}
 
+
+
 	//Update topups table.
 	public function editRec($id, $data)
 	{
 		$res = $this->query("UPDATE topups SET `Type` = '".$data['UserTopup']['Type']."',`Value` = '".$data['UserTopup']['Value']."',`ValidFrom` = '".$data['UserTopup']['valid_from']."',`ValidTo` = '".$data['UserTopup']['valid_to']."' where `ID` = ".$id);
 	}
+
+
+
 }
+
+
+
+// vim: ts=4
