@@ -3,11 +3,11 @@
  * Group Member Model
  *
  */
- 
+
 class GroupMember extends AppModel
 {
 	public $useTable = 'users_to_groups';
-	
+
 	// Fetch usernname via its id.
 	public function getUserNameById($userId)
 	{
