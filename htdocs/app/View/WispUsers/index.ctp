@@ -43,7 +43,7 @@ body {
 				<tr>
 					<td align="center" colspan="10" >
 						<?php $total = $this->Paginator->counter(array('format' => '%pages%'));
-						if($total >1) {		
+						if($total >1) {
 						echo $this->Paginator->prev('<<', null, null, array('class' => 'disabled')); ?>
 						<?php echo $this->Paginator->numbers(); ?>
 						<!-- Shows the next and previous links -->

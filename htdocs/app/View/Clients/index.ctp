@@ -11,19 +11,19 @@ body {
 				<thead>
 					<tr>
 						<th><a><?php echo __('ID');?></a></th>
-						<th><a><?php echo __('Name');?></a></th>				
+						<th><a><?php echo __('Name');?></a></th>
 						<th><a><?php echo __('AccessList');?></a></th>
 						<th><a><?php echo __('Actions');?></a></th>
 					</tr>
 				</thead>
-				<tbody>			
+				<tbody>
 					<?php foreach ($client as $client): ?>
 					<tr>
 						<td><? echo $client['Client']['ID'];?></td>
 						<td><? echo $client['Client']['Name'];?></td>
 						<td><? echo $client['Client']['AccessList'];?></td>
 						<td>
-							<?php echo $this->Html->link('<img src="'.BASE_URL.'/resources/custom/images/silk/icons/group_edit.png"></img>',array('action' => 'edit', $client['Client']['ID']), array('escape' => false, 'title' => 'Edit client'));?>												
+							<?php echo $this->Html->link('<img src="'.BASE_URL.'/resources/custom/images/silk/icons/group_edit.png"></img>',array('action' => 'edit', $client['Client']['ID']), array('escape' => false, 'title' => 'Edit client'));?>
 							<?php echo $this->Html->link('<img src="'.BASE_URL.'/resources/custom/images/silk/icons/table_delete.png"></img>',array('controller' => 'clients','action' => 'remove', $client['Client']['ID']), array('escape' => false, 'title' => 'Remove client'), 'Are you sure you want to remove this client?');?>
 							<?php echo $this->Html->link('<img src="'.BASE_URL.'/resources/custom/images/silk/icons/table.png"></img>',array('controller' => 'client_attributes', 'action' => 'index', $client['Client']['ID']), array('escape' => false, 'title' => 'Client Attributes'));?>
 							<?php echo $this->Html->link('<img src="'.BASE_URL.'/resources/custom/images/silk/icons/world.png"></img>',array('controller' => 'client_realms', 'action' => 'index', $client['Client']['ID']), array('escape' => false, 'title' => 'Client Realms'));?>
@@ -36,7 +36,7 @@ body {
 							$total = $this->Paginator->counter(array(
     							'format' => '%pages%'));
 							if($total >1)
-							{		
+							{
 								echo $this->Paginator->prev('<<', null, null, array('class' => 'disabled'));
 							?>
 							<?php echo $this->Paginator->numbers(); ?>

@@ -7,8 +7,8 @@ body {
 <div style="padding: 15px 15px">
 	<div class="row">
 		<?php echo $this->element('left_panel');?>
-	
-		<div class="col-md-10"><legend>Radius Control Panel</legend> 
+
+		<div class="col-md-10"><legend>Radius Control Panel</legend>
 			<span
 			class="glyphicon glyphicon-time" /> - Processing, <span
 			class="glyphicon glyphicon-edit" /> - Override, <span

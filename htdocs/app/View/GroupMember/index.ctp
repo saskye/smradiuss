@@ -22,7 +22,7 @@ body {
 							<td><? echo $GroupMember['GroupMember']['ID'];?></td>
 							<td><? echo $GroupMember['GroupMember']['UserName'];?></td>
 							<td><? echo ($GroupMember['GroupMember']['Disabled'] == 1) ? 'true' : 'false';?></td>
-							<td>												
+							<td>
 								<?php echo $this->Html->link('<img src="'.BASE_URL.'/resources/custom/images/silk/icons/table_delete.png"></img>',array('controller' => 'group_member','action' => 'remove', $GroupMember['GroupMember']['ID'], $groupID), array('escape' => false, 'title' => 'Remove Group'), 'Are you sure you want to remove this group member?');?>
 							</td>
 						</tr>
@@ -33,8 +33,8 @@ body {
 							$total = $this->Paginator->counter(array(
     							'format' => '%pages%'));
 							if($total >1)
-							{		
-							echo $this->Paginator->prev('<<', null, null, array('class' => 'disabled')); 
+							{
+							echo $this->Paginator->prev('<<', null, null, array('class' => 'disabled'));
 							?>
 							<?php echo $this->Paginator->numbers(); ?>
 							<!-- Shows the next and previous links -->

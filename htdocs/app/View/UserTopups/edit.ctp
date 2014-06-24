@@ -43,11 +43,11 @@ $('#datepickerTo').datepicker({
 		<div class="col-md-10"><legend><?php echo __('Edit User Topup')?></legend>
 			<?php echo $this->Form->create()?>
 				<div class="form-group">
-					<?php echo $this->Form->label('Type', 'Type', array('class'=>'col-md-2 control-label'));?>								
+					<?php echo $this->Form->label('Type', 'Type', array('class'=>'col-md-2 control-label'));?>
 					<div class="row">
 						<div class="col-md-4 input-group">
 							<?php echo $this->Form->input('Type', array('label' => false, 'class' => 'form-control', 'type' => 'select', 'options' => array('1'=>'Traffic', '2'=>'Uptime'),'value' => $topup['UserTopup']['Type']));?>
-						</div>					
+						</div>
 					</div>
 				</div>
 				<div class="form-group">
@@ -76,7 +76,7 @@ $('#datepickerTo').datepicker({
 				</div>
 				<div class="form-group">
 					<button type="submit" class="btn btn-primary"><?php echo __('Save')?></button>
-					<?php echo $this->Html->link('Cancel', array('action' => 'index', $userId), array('class' => 'btn btn-default'))?>							
+					<?php echo $this->Html->link('Cancel', array('action' => 'index', $userId), array('class' => 'btn btn-default'))?>
 				</div>
 			<?php echo $this->Form->end(); ?>
 		</div>

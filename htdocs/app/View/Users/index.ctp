@@ -12,7 +12,7 @@ body {
 					<tr>
 						<th><?php echo $this->Paginator->sort('ID', 'ID'); ?></th>
 						<th><?php echo $this->Paginator->sort('Username', 'Username'); ?></th>
-						<th><a><?php echo __('Disabled', true);?></a></th>					
+						<th><a><?php echo __('Disabled', true);?></a></th>
 						<th><a><?php echo __('Actions', true);?></a></th>
 					</tr>
 				</thead>
@@ -37,7 +37,7 @@ body {
 							<?php
 							$total = $this->Paginator->counter(array(
 							    'format' => '%pages%'));
-							if($total >1) {		
+							if($total >1) {
 								echo $this->Paginator->prev('<<', null, null, array('class' => 'disabled')); ?>
 							<?php echo $this->Paginator->numbers(); ?>
 							<!-- Shows the next and previous links -->

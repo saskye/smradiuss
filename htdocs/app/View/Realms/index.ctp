@@ -11,7 +11,7 @@ body {
 				<thead>
 					<tr>
 						<th><a><?php echo __('ID');?></a></th>
-						<th><a><?php echo __('Name');?></a></th>				
+						<th><a><?php echo __('Name');?></a></th>
 						<th><a><?php echo __('Disabled');?></a></th>
 						<th><a><?php echo __('Actions');?></a></th>
 					</tr>
@@ -23,7 +23,7 @@ body {
 							<td><? echo $realm['Realm']['Name'];?></td>
 							<td><? echo ($realm['Realm']['Disabled'] == 1) ? 'true' : 'false';?></td>
 							<td>
-								<?php echo $this->Html->link('<img src="'.BASE_URL.'/resources/custom/images/silk/icons/group_edit.png"></img>',array('action' => 'edit', $realm['Realm']['ID']), array('escape' => false, 'title' => 'Edit realm'));?>												
+								<?php echo $this->Html->link('<img src="'.BASE_URL.'/resources/custom/images/silk/icons/group_edit.png"></img>',array('action' => 'edit', $realm['Realm']['ID']), array('escape' => false, 'title' => 'Edit realm'));?>
 								<?php echo $this->Html->link('<img src="'.BASE_URL.'/resources/custom/images/silk/icons/table_delete.png"></img>',array('controller' => 'realms','action' => 'remove', $realm['Realm']['ID']), array('escape' => false, 'title' => 'Remove realm'), 'Are you sure you want to remove this realm?');?>
 								<?php echo $this->Html->link('<img src="'.BASE_URL.'/resources/custom/images/silk/icons/table.png"></img>',array('controller' => 'realm_attributes', 'action' => 'index', $realm['Realm']['ID']), array('escape' => false, 'title' => 'Realm Attributes'));?>
 								<?php echo $this->Html->link('<img src="'.BASE_URL.'/resources/custom/images/silk/icons/group.png"></img>',array('controller' => 'realm_members', 'action' => 'index', $realm['Realm']['ID']), array('escape' => false, 'title' => 'Realm Member'));?>
@@ -36,8 +36,8 @@ body {
 							$total = $this->Paginator->counter(array(
     							'format' => '%pages%'));
 							if($total >1)
-							{		
-								echo $this->Paginator->prev('<<', null, null, array('class' => 'disabled')); 
+							{
+								echo $this->Paginator->prev('<<', null, null, array('class' => 'disabled'));
 							?>
 							<?php echo $this->Paginator->numbers(); ?>
 							<!-- Shows the next and previous links -->

@@ -14,7 +14,7 @@ body {
 						<th><a><?php echo __('UserName', true);?></a></th>
 					</tr>
 				</thead>
-				<tbody>	
+				<tbody>
 					<?php foreach ($wispLocationMember as $wMember): ?>
 						<tr>
 							<td><? echo $wMember['WispLocationMember']['ID'];?></td>
@@ -23,15 +23,15 @@ body {
 								<?php echo $this->Html->link('<img src="'.BASE_URL.'/resources/custom/images/silk/icons/table_delete.png"></img>',array('controller' => 'WispLocation_Members','action' => 'remove', $wMember['WispLocationMember']['ID'], $LocationID), array('escape' => false, 'title' => 'Remove member'), 'Are you sure you want to remove this member?');?>
 							</td>
 						</tr>
-					<? endforeach; ?>	
+					<? endforeach; ?>
 					<tr>
 						<td align="center" colspan="10">
-							<?php 
+							<?php
 							$total = $this->Paginator->counter(array(
 								'format' => '%pages%'));
 							if($total >1) {
 								echo $this->Paginator->prev('<<', null, null, array('class' => 'disabled')); ?>
-							<?php 
+							<?php
 							echo $this->Paginator->numbers(); ?>
 							<!-- Shows the next and previous links -->
 							<?php echo $this->Paginator->next('>>', null, null, array('class' => 'disabled')); ?>

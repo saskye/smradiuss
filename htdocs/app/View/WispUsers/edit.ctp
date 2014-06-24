@@ -4,7 +4,7 @@ body {
 }
 #slides
 {
-	padding:30px 5px 5px 5px;border:1px #428BCA solid; border-top:2px #428BCA solid;margin-bottom:9px; 
+	padding:30px 5px 5px 5px;border:1px #428BCA solid; border-top:2px #428BCA solid;margin-bottom:9px;
 	-webkit-border-radius: 8px;
 	-webkit-border-top-left-radius: 0;
 	-moz-border-radius: 8px;
@@ -77,28 +77,28 @@ $(document).ready(function()
 {
 	//Set the initial state: highlight the first button...
 	$('#tabs').find('li:eq(0)').addClass('selected');
-	 
+
 	//and hide all slides except the first one
 	$('#slides').find('> div:eq(0)').nextAll().hide();
-	 
+
 	//actions that apply on click of any of the buttons
 	$('#tabs li').click( function(event) {
-	 
+
 	//turn off the link so it doesn't try to jump down the page
 	event.preventDefault();
-	 
+
 	//un-highlight the buttons
 	$('#tabs li').removeClass();
-	 
+
 	//hide all the slides
 	$('#slides > div').hide();
-	 
+
 	//highlight the current button
 	$(this).addClass('selected');
-	 
+
 	//get the index of the current button...
 	var index = $('#tabs li').index(this);
-	 
+
 	//and use that index to show the corresponding slide
 	$('#slides > div:eq('+index+')').show();
 });
@@ -132,7 +132,7 @@ $("#btn").click(function()
 		{
 			$("#selectValid").html("Already Added");
 			$("#selectValid").css("display", "block");
-			return false;   
+			return false;
 		}
 		$("#selectGroup table").append("<tr id='grp"+groupValue+"'><td>"+groupText+"<input type='hidden' name='groupId[]' value='"+groupValue+"'></td><td align='right'><input type = 'button' value = 'Remove' onclick='deleteGroupRow("+groupValue+");' class='btn btn-primary'/></td></tr>");
 		$('select option:contains("please select")').prop('selected',true);
@@ -202,14 +202,14 @@ $("#attributeBtn").click(function()
 			$("#attribGenerator").val(attrTemp+1);
 			$('select option:contains("please select")').prop('selected',true);
 			$("#valueId").val("");
-		}	
+		}
 	}
 });
 });
 function deleteGroupRow(valData)
 {
 	$('#grp'+valData).remove();
-}	
+}
 function deleteAttributeRow(valData)
 {
 	$('#attrib'+valData).remove();
@@ -224,7 +224,7 @@ function editAttributeRow(valData)
 	$("#operatorId").val($('#attributeoperator'+valData).val());
 	$("#valueId").val($('#attributeValues'+valData).val());
 	$("#modifierId").val($('#attributeModifier'+valData).val());
-}		
+}
 </script>
 
 <div style="padding: 15px 15px">
@@ -411,7 +411,7 @@ function editAttributeRow(valData)
 		</div>
 	</div>
 </div>
-<?php 
+<?php
 function reverceSwitchModifier($val,$attrValues)
 	{
 		$av = '';
@@ -434,7 +434,7 @@ function reverceSwitchModifier($val,$attrValues)
 				$av = $attrValues / 10080;
 				break;
 			case "Months":
-				$av = $attrValues / 44640; 
+				$av = $attrValues / 44640;
 				break;
 			case "MBytes":
 				$av = $attrValues;
@@ -447,6 +447,6 @@ function reverceSwitchModifier($val,$attrValues)
 				break;
 		}
 		return $av;
-		
+
 	}
 ?>

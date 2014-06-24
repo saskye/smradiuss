@@ -31,7 +31,7 @@ body {
 							<div class="row" style="float:left;">
 								<div class="col-md-4 input-group" style="float:left;width:100px;margin-right:0px;margin-left: 18px;">
 									<?php
-									// -- for year select box -- 
+									// -- for year select box --
 									$year = date("Y");
 									$start = $year-10;
 									$end = $year+10;
@@ -42,7 +42,7 @@ body {
   									}
 									echo $this->Form->input('yearData', array('label' => false, 'class' => 'form-control', 'type' => 'select', "options" =>$yearData,'selected' => $year));
 									?>
-								</div>					
+								</div>
 							</div>
 							<div class="row">
 								<div class="col-md-4 input-group" style="float:left;width:100px;margin-right:0px;margin-left: 18px;">
@@ -56,14 +56,14 @@ body {
 	  									} else {
 											$dayData[$number] = $number;
 										}
-									}						
+									}
 									echo $this->Form->input('dayData', array('label' => false, 'class' => 'form-control', 'type' => 'select', "options" =>$dayData,'selected' => $month));
 									?>
-								</div>					
+								</div>
 							</div>
 						</div>
 						<div class="form-group">
-							<button type="submit" class="btn btn-primary" style="margin-left:100px"><?php echo __('Search')?></button>							
+							<button type="submit" class="btn btn-primary" style="margin-left:100px"><?php echo __('Search')?></button>
 						</div>
 					<?php echo $this->Form->end(); ?>
 				</div>
@@ -72,7 +72,7 @@ body {
 						$userLog1 = array_values($userLog);
 						$totalvalue1 = '';
 						$totalvalue2 = '';
-					
+
 						foreach ($userLog as $userLog)
 						{
 							if($userLog['topups']['Type'] == '1')
@@ -122,14 +122,14 @@ body {
 					<div>Usage: 0/<?php echo $uValue; ?> MB</div>
 					<div>---</div>
 					<?php foreach ($userLog1 as $uLog){
-						if($uLog['topups']['Type'] == '1') { 
+						if($uLog['topups']['Type'] == '1') {
 					?>
 					<div>Valid Traffic Topups:</div>
 					<div>ID: <?php echo $uLog['topups']['ID']; ?></div>
 					<div>Usage: 0/<?php echo $uLog['topups']['Value']; ?></div>
 					<div>Valid Until: <?php echo $uLog['topups']['ValidTo']; ?></div>
 					<div>---</div>
-					<?php } } 
+					<?php } }
 						foreach ($userLog1 as $log){
 							if($log['topups']['Type'] == '2') {
 					?>
@@ -148,18 +148,18 @@ body {
 								<th><a><?php echo __('Service Type', true);?></a></th>
 								<th><a><?php echo __('Framed Protocol', true);?></a></th>
 								<th><a><?php echo __('Calling Station', true);?></a></th>
-								<th><a><?php echo __('Input Mbyte', true);?></a></th>					
+								<th><a><?php echo __('Input Mbyte', true);?></a></th>
 								<th><a><?php echo __('Output Mbyte', true);?></a></th>
 								<th><a><?php echo __('Session Uptime', true);?></a></th>
 								<th><a><?php echo __('Term. Reason', true);?></a></th>
 							</tr>
 						</thead>
 						<tbody>
-							<?php foreach ($userAcc as $acc): 
+							<?php foreach ($userAcc as $acc):
 								$AcctInputOctets = $acc['WispUserLog']['AcctInputOctets'] / 1024  /1024;
 								$AcctInputGigawords = $acc['WispUserLog']['AcctInputGigawords'] * 4096;
 								$inputMbyte = $AcctInputOctets + $AcctInputGigawords;
-								
+
 								$AcctOutputOctets = $acc['WispUserLog']['AcctOutputOctets'] / 1024  /1024;
 								$AcctOutputGigawords = $acc['WispUserLog']['AcctOutputGigawords'] * 4096;
 								$outputMbyte = $AcctOutputOctets + $AcctOutputGigawords;
@@ -181,8 +181,8 @@ body {
 									$total = $this->Paginator->counter(array(
 		    							'format' => '%pages%'));
 									if($total >1)
-									{		
-										echo $this->Paginator->prev('<<', null, null, array('class' => 'disabled')); 
+									{
+										echo $this->Paginator->prev('<<', null, null, array('class' => 'disabled'));
 									?>
 									<?php echo $this->Paginator->numbers(); ?>
 									<!-- Shows the next and previous links -->

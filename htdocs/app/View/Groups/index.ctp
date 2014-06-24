@@ -12,7 +12,7 @@ body {
 					<tr>
 						<th><a><?php echo __('ID');?></a></th>
 						<th><a><?php echo __('Name');?></a></th>
-						<th><a><?php echo __('Priority');?></a></th>					
+						<th><a><?php echo __('Priority');?></a></th>
 						<th><a><?php echo __('Disabled');?></a></th>
 						<th><a><?php echo __('Comment');?></a></th>
 						<th><a><?php echo __('Actions');?></a></th>
@@ -40,7 +40,7 @@ body {
 						$total = $this->Paginator->counter(array(
     						'format' => '%pages%'));
 						if($total >1)
-						{		
+						{
 							echo $this->Paginator->prev('<<', null, null, array('class' => 'disabled'));
 						?>
 						<?php echo $this->Paginator->numbers(); ?>

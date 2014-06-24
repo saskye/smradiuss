@@ -20,7 +20,7 @@ body {
 					<tr>
 						<td><? echo $clientRealms['ClientRealm']['ID'];?></td>
 						<td><? echo $clientRealms['ClientRealm']['realmName'];?></td>
-						<td>											
+						<td>
 							<?php echo $this->Html->link('<img src="'.BASE_URL.'/resources/custom/images/silk/icons/table_delete.png"></img>',array('controller' => 'client_realms','action' => 'remove', $clientRealms['ClientRealm']['ID'], $clientID), array('escape' => false, 'title' => 'Remove realm'), 'Are you sure you want to remove this realm?');?>
 						</td>
 					</tr>
@@ -31,8 +31,8 @@ body {
 							$total = $this->Paginator->counter(array(
     							'format' => '%pages%'));
 							if($total >1)
-							{		
-							echo $this->Paginator->prev('<<', null, null, array('class' => 'disabled')); 
+							{
+							echo $this->Paginator->prev('<<', null, null, array('class' => 'disabled'));
 							?>
 							<?php echo $this->Paginator->numbers(); ?>
 							<!-- Shows the next and previous links -->
@@ -46,8 +46,8 @@ body {
 					</tr>
 				</tbody>
 			</table>
-			<div class="form-group">			
-				<?php echo $this->Html->link(__('Add'), array('action' => 'add', $clientID), array('class' => 'btn btn-primary'))?>			
+			<div class="form-group">
+				<?php echo $this->Html->link(__('Add'), array('action' => 'add', $clientID), array('class' => 'btn btn-primary'))?>
 				<?php echo $this->Html->link(__('Cancel'), array('controller' => 'clients', 'action' => 'index'), array('class' => 'btn btn-default'))?>
 			</div>
 		</div>

@@ -38,7 +38,7 @@ body {
 		echo $this->Html->css(array('bootstrap.min','colorbox.css'));
 		echo $this->Html->script('jquery-1.11.1.min');
 		echo $this->Html->script(array('bootstrap.min', 'jquery.colorbox.js', 'jquery.colorbox-min.js'));
-			
+
 		echo $this->fetch('meta');
 		echo $this->fetch('css');
 		echo $this->fetch('script');
@@ -59,7 +59,7 @@ body {
 		<div id="footer">
 			<?php echo $this->element('footer');?>
 		</div>
-	</div>	
+	</div>
 </body>
 </html>
 

@@ -15,7 +15,7 @@
 									<li><a href="<?php echo BASE_URL;?>/users/index"><img
 										src="<?php echo BASE_URL;?>/resources/custom/images/silk/icons/user.png"></img><? echo __('List User')?></a></li>
 									<li><a href="<?php echo BASE_URL;?>/users/add"><img
-										src="<?php echo BASE_URL;?>/resources/custom/images/silk/icons/user_add.png"></img><? echo __('Add User')?></a></li>		
+										src="<?php echo BASE_URL;?>/resources/custom/images/silk/icons/user_add.png"></img><? echo __('Add User')?></a></li>
 								</ul>
 							</div>
 						</div>
@@ -23,7 +23,7 @@
 				</div>
 			</div>
 		</div>
-	
+
 		<div class="panel-group">
 			<div class="panel panel-primary">
 				<div class="panel-heading">
@@ -39,7 +39,7 @@
 									<li><a href="<?php echo BASE_URL;?>/groups/index"><img
 										src="<?php echo BASE_URL;?>/resources/custom/images/silk/icons/group.png"></img><?=__('List Groups')?></a></li>
 									<li><a href="<?php echo BASE_URL;?>/groups/add"><img
-										src="<?php echo BASE_URL;?>/resources/custom/images/silk/icons/group_add.png"></img><?=__('Add Groups')?></a></li>																		
+										src="<?php echo BASE_URL;?>/resources/custom/images/silk/icons/group_add.png"></img><?=__('Add Groups')?></a></li>
 								</ul>
 							</div>
 						</div>
@@ -47,7 +47,7 @@
 				</div>
 			</div>
 		</div>
-	
+
 		<div class="panel-group">
 			<div class="panel panel-primary">
 				<div class="panel-heading">
@@ -61,7 +61,7 @@
 							<div class="form-group">
 								<ul class="nav nav-pills nav-stacked">
 									<li><a href="<?php echo BASE_URL;?>/realms/index"><img src="<?php echo BASE_URL;?>/resources/custom/images/silk/icons/world.png"></img><?=__('List Realms')?></a></li>
-									<li><a href="<?php echo BASE_URL;?>/realms/add"><img src="<?php echo BASE_URL;?>/resources/custom/images/silk/icons/world_add.png"></img><?=__('Add Realms')?></a></li>																
+									<li><a href="<?php echo BASE_URL;?>/realms/add"><img src="<?php echo BASE_URL;?>/resources/custom/images/silk/icons/world_add.png"></img><?=__('Add Realms')?></a></li>
 								</ul>
 							</div>
 						</div>
@@ -69,7 +69,7 @@
 				</div>
 			</div>
 		</div>
-	
+
 		<div class="panel-group">
 			<div class="panel panel-primary">
 				<div class="panel-heading">
@@ -83,7 +83,7 @@
 							<div class="form-group">
 								<ul class="nav nav-pills nav-stacked">
 									<li><a href="<?php echo BASE_URL;?>/clients/index"><img src="<?php echo BASE_URL;?>/resources/custom/images/silk/icons/server_edit.png"></img><?=__('List Clients')?></a></li>
-									<li><a href="<?php echo BASE_URL;?>/clients/add"><img src="<?php echo BASE_URL;?>/resources/custom/images/silk/icons/server_add.png"></img><?=__('Add Clients')?></a></li>																
+									<li><a href="<?php echo BASE_URL;?>/clients/add"><img src="<?php echo BASE_URL;?>/resources/custom/images/silk/icons/server_add.png"></img><?=__('Add Clients')?></a></li>
 								</ul>
 							</div>
 						</div>

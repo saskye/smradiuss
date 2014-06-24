@@ -14,12 +14,12 @@ body {
 						<th><a><?php echo __('Name', true);?></a></th>
 						<th><a><?php echo __('Operator', true);?></a></th>
 						<th><a><?php echo __('Value', true);?></a></th>
-						<th><a><?php echo __('Disabled', true);?></a></th>					
+						<th><a><?php echo __('Disabled', true);?></a></th>
 						<th><a><?php echo __('Actions', true);?></a></th>
 					</tr>
 				</thead>
 				<tbody>
-					<?php 
+					<?php
 					$options=array('=', ':=', '==', '+=', '!=', '<', '>', '<=', '>=','=~', '!~', '=*', '!*', '||==');
 					foreach ($groupAttributes as $groupAttribute): ?>
 					<tr>
@@ -27,9 +27,9 @@ body {
 						<td><? echo $groupAttribute['GroupAttribute']['Name'];?></td>
 						<td><? echo $options[$groupAttribute['GroupAttribute']['Operator']];?></td>
 						<td><? echo $groupAttribute['GroupAttribute']['Value'];?></td>
-						<td><? echo ($groupAttribute['GroupAttribute']['Disabled'] == 1) ? 'true' : 'false';?></td>					
+						<td><? echo ($groupAttribute['GroupAttribute']['Disabled'] == 1) ? 'true' : 'false';?></td>
 						<td>
-							<?php echo $this->Html->link('<img src="'.BASE_URL.'/resources/custom/images/silk/icons/table_edit.png"></img>',array('controller' => 'group_attributes',  'action' => 'edit', $groupAttribute['GroupAttribute']['ID'], $groupId), array('escape' => false, 'title' => 'Edit attribute'));?>												
+							<?php echo $this->Html->link('<img src="'.BASE_URL.'/resources/custom/images/silk/icons/table_edit.png"></img>',array('controller' => 'group_attributes',  'action' => 'edit', $groupAttribute['GroupAttribute']['ID'], $groupId), array('escape' => false, 'title' => 'Edit attribute'));?>
 							<?php echo $this->Html->link('<img src="'.BASE_URL.'/resources/custom/images/silk/icons/table_delete.png"></img>',array('controller' => 'group_attributes','action' => 'remove', $groupAttribute['GroupAttribute']['ID'], $groupId), array('escape' => false, 'title' => 'Remove attribute'), 'Are you sure you want to remove this group?');?>
 						</td>
 					</tr>
@@ -40,7 +40,7 @@ body {
 							$total = $this->Paginator->counter(array(
     							'format' => '%pages%'));
 							if($total >1)
-							{		
+							{
 							echo $this->Paginator->prev('<<', null, null, array('class' => 'disabled'));
 							?>
 							<?php echo $this->Paginator->numbers(); ?>
@@ -54,8 +54,8 @@ body {
 					</tr>
 				</tbody>
 			</table>
-			<div class="form-group">			
-				<?php echo $this->Html->link(__('Add'), array('action' => 'add', $groupId), array('class' => 'btn btn-primary'))?>			
+			<div class="form-group">
+				<?php echo $this->Html->link(__('Add'), array('action' => 'add', $groupId), array('class' => 'btn btn-primary'))?>
 				<?php echo $this->Html->link(__('Cancel'), array('controller' => 'groups', 'action' => 'index', $groupId), array('class' => 'btn btn-default'))?>
 			</div>
 		</div>

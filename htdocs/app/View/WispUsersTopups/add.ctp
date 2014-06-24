@@ -42,11 +42,11 @@ $(function() {
 		<div class="col-md-10"><legend><?php echo __('Add Wisp User Topup')?></legend>
 			<?php echo $this->Form->create()?>
 			<div class="form-group">
-				<?php echo $this->Form->label('Type', 'Type', array('class'=>'col-md-2 control-label'));?>								
+				<?php echo $this->Form->label('Type', 'Type', array('class'=>'col-md-2 control-label'));?>
 				<div class="row">
 					<div class="col-md-4 input-group">
 						<?php echo $this->Form->input('Type', array('label' => false, 'class' => 'form-control', 'type' => 'select', 'empty' => true, 'options' => array('1'=>'Traffic', '2'=>'Uptime')));?>
-					</div>					
+					</div>
 				</div>
 			</div>
 			<div class="form-group">
@@ -75,7 +75,7 @@ $(function() {
 			</div>
 			<div class="form-group">
 				<button type="submit" class="btn btn-primary"><?php echo __('Add')?></button>
-				<?php echo $this->Html->link('Cancel', array('action' => 'index', $userId), array('class' => 'btn btn-default'))?>							
+				<?php echo $this->Html->link('Cancel', array('action' => 'index', $userId), array('class' => 'btn btn-default'))?>
 			</div>
 			<?php echo $this->Form->end(); ?>
 		</div>

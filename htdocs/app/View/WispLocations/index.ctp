@@ -14,13 +14,13 @@ body {
 						<th><a><?php echo __('Name', true);?></a></th>
 					</tr>
 				</thead>
-				<tbody>	
+				<tbody>
 					<?php foreach ($wispLocation as $wLocation): ?>
 						<tr>
 							<td><? echo $wLocation['WispLocation']['ID'];?></td>
 							<td><? echo $wLocation['WispLocation']['Name'];?></td>
 							<td>
-								<?php echo $this->Html->link('<img src="'.BASE_URL.'/resources/custom/images/silk/icons/table_edit.png"></img>',array('controller' => 'Wisp_Locations',  'action' => 'edit', $wLocation['WispLocation']['ID']), array('escape' => false, 'title' => 'Edit location'));?>												
+								<?php echo $this->Html->link('<img src="'.BASE_URL.'/resources/custom/images/silk/icons/table_edit.png"></img>',array('controller' => 'Wisp_Locations',  'action' => 'edit', $wLocation['WispLocation']['ID']), array('escape' => false, 'title' => 'Edit location'));?>
 								<?php echo $this->Html->link('<img src="'.BASE_URL.'/resources/custom/images/silk/icons/table_delete.png"></img>',array('controller' => 'Wisp_Locations','action' => 'remove', $wLocation['WispLocation']['ID']), array('escape' => false, 'title' => 'Remove location'), 'Are you sure you want to remove this locations?');?>
 								<?php echo $this->Html->link('<img src="'.BASE_URL.'/resources/custom/images/silk/icons/user.png"></img>',array('controller' => 'WispLocation_Members',  'action' => 'index', $wLocation['WispLocation']['ID']), array('escape' => false, 'title' => 'Location Member'));?>
 							</td>
@@ -28,12 +28,12 @@ body {
 					<? endforeach; ?>
 					<tr>
 						<td align="center" colspan="10">
-							<?php 
+							<?php
 							$total = $this->Paginator->counter(array(
 							    'format' => '%pages%'));
 							if($total >1) {
 								echo $this->Paginator->prev('<<', null, null, array('class' => 'disabled')); ?>
-							<?php 
+							<?php
 							echo $this->Paginator->numbers(); ?>
 							<!-- Shows the next and previous links -->
 							<?php echo $this->Paginator->next('>>', null, null, array('class' => 'disabled')); ?>

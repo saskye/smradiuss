@@ -14,12 +14,12 @@ padding-top: 50px;
 						<th><a><?php echo __('Name', true);?></a></th>
 						<th><a><?php echo __('Operator', true);?></a></th>
 						<th><a><?php echo __('Value', true);?></a></th>
-						<th><a><?php echo __('Disabled', true);?></a></th>					
+						<th><a><?php echo __('Disabled', true);?></a></th>
 						<th><a><?php echo __('Actions', true);?></a></th>
 					</tr>
 				</thead>
 				<tbody>
-					<?php 
+					<?php
 					$options=array('=', ':=', '==', '+=', '!=', '<', '>', '<=', '>=','=~', '!~', '=*', '!*', '||==');
 					foreach ($clientAttributes as $clientAttributes): ?>
 					<tr>
@@ -27,9 +27,9 @@ padding-top: 50px;
 						<td><? echo $clientAttributes['ClientAttribute']['Name'];?></td>
 						<td><? echo $options[$clientAttributes['ClientAttribute']['Operator']];?></td>
 						<td><? echo $clientAttributes['ClientAttribute']['Value'];?></td>
-						<td><? echo ($clientAttributes['ClientAttribute']['Disabled'] == 1) ? 'true' : 'false';?></td>					
+						<td><? echo ($clientAttributes['ClientAttribute']['Disabled'] == 1) ? 'true' : 'false';?></td>
 						<td>
-						<?php echo $this->Html->link('<img src="'.BASE_URL.'/resources/custom/images/silk/icons/table_edit.png"></img>',array('controller' => 'client_attributes',  'action' => 'edit', $clientAttributes['ClientAttribute']['ID'], $clientID), array('escape' => false, 'title' => 'Edit attribute'));?>												
+						<?php echo $this->Html->link('<img src="'.BASE_URL.'/resources/custom/images/silk/icons/table_edit.png"></img>',array('controller' => 'client_attributes',  'action' => 'edit', $clientAttributes['ClientAttribute']['ID'], $clientID), array('escape' => false, 'title' => 'Edit attribute'));?>
 						<?php echo $this->Html->link('<img src="'.BASE_URL.'/resources/custom/images/silk/icons/table_delete.png"></img>',array('controller' => 'client_attributes','action' => 'remove', $clientAttributes['ClientAttribute']['ID'], $clientID), array('escape' => false, 'title' => 'Remove attribute'), 'Are you sure you want to remove this attribute?');?>
 						</td>
 					</tr>
@@ -40,8 +40,8 @@ padding-top: 50px;
 							$total = $this->Paginator->counter(array(
 								'format' => '%pages%'));
 							if($total >1)
-							{		
-								echo $this->Paginator->prev('<<', null, null, array('class' => 'disabled')); 
+							{
+								echo $this->Paginator->prev('<<', null, null, array('class' => 'disabled'));
 						?>
 						<?php echo $this->Paginator->numbers(); ?>
 						<!-- Shows the next and previous links -->
@@ -55,8 +55,8 @@ padding-top: 50px;
 					</tr>
 				</tbody>
 			</table>
-			<div class="form-group">			
-				<?php echo $this->Html->link(__('Add'), array('action' => 'add', $clientID), array('class' => 'btn btn-primary'))?>			
+			<div class="form-group">
+				<?php echo $this->Html->link(__('Add'), array('action' => 'add', $clientID), array('class' => 'btn btn-primary'))?>
 				<?php echo $this->Html->link(__('Cancel'), array('controller' => 'clients', 'action' => 'index'), array('class' => 'btn btn-default'))?>
 			</div>
 		</div>

@@ -12,7 +12,7 @@ $(function() {
 	var date = new Date(), y = date.getFullYear(), m = date.getMonth();
 	var firstDay = new Date(y, m, 1);
 	var lastDay = new Date(y, m + 1, 1);
-	
+
 	$('#datepickerFrom').datepicker({
 		defaultDate:firstDay,
 		dateFormat:'yy-mm-dd',
@@ -43,7 +43,7 @@ $(function() {
 		<div class="col-md-10"><legend><?php echo __('Add User Topup')?></legend>
 			<?php echo $this->Form->create()?>
 				<div class="form-group">
-					<?php echo $this->Form->label('Type', 'Type', array('class'=>'col-md-2 control-label'));?>								
+					<?php echo $this->Form->label('Type', 'Type', array('class'=>'col-md-2 control-label'));?>
 					<div class="row">
 						<div class="col-md-4 input-group">
 							<?php echo $this->Form->input('Type', array('label' => false, 'class' => 'form-control', 'type' => 'select', 'options' => array('1'=>'Traffic', '2'=>'Uptime')));?>
@@ -73,10 +73,10 @@ $(function() {
 							<?php echo $this->Form->input('valid_to', array('label' => false, 'class' => 'form-control', 'id' => 'datepickerTo', 'readonly'=>'readonly','value' => date("Y-m-01", strtotime('+1 month'))));?>
 						</div>
 					</div>
-				</div>	
+				</div>
 				<div class="form-group">
 					<button type="submit" class="btn btn-primary"><?php echo __('Add')?></button>
-					<?php echo $this->Html->link('Cancel', array('action' => 'index', $userId), array('class' => 'btn btn-default'))?>							
+					<?php echo $this->Html->link('Cancel', array('action' => 'index', $userId), array('class' => 'btn btn-default'))?>
 				</div>
 			<?php echo $this->Form->end(); ?>
 		</div>

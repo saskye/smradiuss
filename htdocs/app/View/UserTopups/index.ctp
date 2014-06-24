@@ -27,7 +27,7 @@ body {
 							<td><? echo date("Y-m-d", strtotime($topup['UserTopup']['ValidFrom'])); ?></td>
 							<td><? echo date("Y-m-d", strtotime($topup['UserTopup']['ValidTo'])); ?></td>
 							<td>
-								<?php echo $this->Html->link('<img src="'.BASE_URL.'/resources/custom/images/silk/icons/table_edit.png"></img>',array('controller' => 'user_topups',  'action' => 'edit', $topup['UserTopup']['ID'], $userId), array('escape' => false, 'title' => 'Edit topup'));?>												
+								<?php echo $this->Html->link('<img src="'.BASE_URL.'/resources/custom/images/silk/icons/table_edit.png"></img>',array('controller' => 'user_topups',  'action' => 'edit', $topup['UserTopup']['ID'], $userId), array('escape' => false, 'title' => 'Edit topup'));?>
 								<?php echo $this->Html->link('<img src="'.BASE_URL.'/resources/custom/images/silk/icons/table_delete.png"></img>',array('controller' => 'user_topups','action' => 'remove', $topup['UserTopup']['ID'], $userId), array('escape' => false, 'title' => 'Remove topup'), 'Are you sure you want to remove this topup?');?>
 							</td>
 						</tr>
@@ -37,7 +37,7 @@ body {
 							<?php
 							$total = $this->Paginator->counter(array(
 							    'format' => '%pages%'));
-							if($total >1) {		
+							if($total >1) {
 								echo $this->Paginator->prev('<<', null, null, array('class' => 'disabled')); ?>
 							<?php echo $this->Paginator->numbers(); ?>
 							<!-- Shows the next and previous links -->
@@ -52,8 +52,8 @@ body {
 				</tbody>
 			</table>
 		</div>
-		<div class="form-group">			
-			<?php echo $this->Html->link(__('Add Topups'), array('action' => 'add', $userId), array('class' => 'btn btn-primary'))?>			
+		<div class="form-group">
+			<?php echo $this->Html->link(__('Add Topups'), array('action' => 'add', $userId), array('class' => 'btn btn-primary'))?>
 			<?php echo $this->Html->link(__('Cancel'), array('controller'=>'users','action' => 'index', $userId), array('class' => 'btn btn-default'))?>
 		</div>
 	</div>
