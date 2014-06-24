@@ -6,7 +6,7 @@
 class UserGroupsController extends AppController {
 
 	public $use = array('Users');
-	
+
 	/* index function 
 	 * @param $userId
 	 * Showing used group list with pagination.
@@ -40,7 +40,7 @@ class UserGroupsController extends AppController {
 			$this->set('userId', $userId);
 		}
 	}
-	
+
 	/* add function 
 	 * @param $userId
 	 * Function to add user groups.
@@ -57,7 +57,7 @@ class UserGroupsController extends AppController {
 			{
 				$arr[$val['groups']['ID']] = $val['groups']['Name'];
 			}
-			
+
 			$this->set('arr', $arr);
 			// Checking submission.
 			if ($this->request->is('post'))
@@ -70,7 +70,7 @@ class UserGroupsController extends AppController {
 			    	$this->UserGroup->InsertRec($userId,$this->request->data);
 					// Sending message to screen.
 					$this->Session->setFlash(__('User Group is saved succefully!', true), 'flash_success');
-					
+
 				} 
 				else 
 				{
@@ -80,10 +80,10 @@ class UserGroupsController extends AppController {
 		}
 		else
 		{
-			
+
 		}
 	}
-	
+
 	/* remove function 
 	 * @param $id, $userId
 	 * Used to delete user groups

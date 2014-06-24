@@ -3,7 +3,7 @@
  * Groups
  */
 class GroupsController extends AppController {
-	
+
 	/* index function 
 	 * Function used for Showing group list with pagination
 	 * 
@@ -14,7 +14,7 @@ class GroupsController extends AppController {
 		$groups = $this->paginate();
 		$this->set('groups', $groups);
 	}
-	
+
 	/* add function 
 	 * Function used to add groups.
 	 *
@@ -32,7 +32,7 @@ class GroupsController extends AppController {
 			}
 		}	
 	}
-	
+
 	/* edit function 
 	 * @param $id
 	 * Function used to edit groups.
@@ -49,7 +49,7 @@ class GroupsController extends AppController {
 				$this->Group->id = $id;
 				$this->Group->save($this->request->data);
 				$this->Session->setFlash(__('Group is edited succefully!', true), 'flash_success');
-				
+
 				// For reload page to reflect change in data
 				$group = $this->Group->findById($id);
 				$this->set('group', $group);
@@ -58,7 +58,7 @@ class GroupsController extends AppController {
 			}
 		}
 	}
-	
+
 	/* remove function 
 	 * @param $id
 	 * Function used to delete group.

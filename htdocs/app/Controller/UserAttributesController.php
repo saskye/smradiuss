@@ -4,7 +4,7 @@
  *
  */
 class UserAttributesController extends AppController {
-	
+
 	/* index function 
 	 * @param $userId
 	 * Function to show list of user attributes with pagination.
@@ -24,7 +24,7 @@ class UserAttributesController extends AppController {
 			$this->redirect('/users/index');
 		}			
 	}	
-	
+
 	/* add function 
 	 * @param $userId
 	 */		
@@ -44,7 +44,7 @@ class UserAttributesController extends AppController {
 				}
 		}	
 	}
-	
+
 	/* edit function 
 	 * @param $id, $userId
 	 * Function used to edit users attributes.

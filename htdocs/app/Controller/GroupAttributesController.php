@@ -17,14 +17,14 @@ class  GroupAttributesController extends AppController {
 			'conditions' => array('GroupAttribute.GroupID' => $groupId)
 			);
 			$groupAttributes = $this->paginate();
-			
+
 			$this->set('groupAttributes', $groupAttributes);
 			$this->set('groupId', $groupId);
 		} else {
 			$this->redirect('/users/index');
 		}			
 	}	
-	
+
 	/* add function 
 	 * @param $groupId
 	 * Function used to add group attributes.	 
@@ -46,7 +46,7 @@ class  GroupAttributesController extends AppController {
 			}
 		}	
 	}
-	
+
 	/* edit function 
 	 * @param $id, $groupId
 	 * Function used to edit group attributes.	 
@@ -69,7 +69,7 @@ class  GroupAttributesController extends AppController {
 			}
 		}
 	}
-	
+
 	/* remove function 
 	 * @param $id, $groupId
 	 * Function used to delete group attributes. 
@@ -88,5 +88,5 @@ class  GroupAttributesController extends AppController {
 		$this->redirect('/group_attributes/index'.$userId);
 		}
 	}
-	
+
 }

@@ -16,7 +16,7 @@ class WispLocationMembersController extends AppController
 		// Assigning fetched data to variable.
 		$wispLocationMember = $this->paginate();
 		$memberData = array();
-		
+
 		// Generating final array.
 		foreach($wispLocationMember as $wMember)
 		{
@@ -34,7 +34,7 @@ class WispLocationMembersController extends AppController
 		$this->set('wispLocationMember', $wispLocationMember);
 		$this->set('LocationID', $LocationID);
 	}
-	
+
 	/* remove function 
 	 * @param $id, $LocationID
 	 * used to delete members locations.

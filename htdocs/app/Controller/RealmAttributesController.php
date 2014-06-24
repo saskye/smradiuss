@@ -3,7 +3,7 @@
  * Realm Attributes
  *
  */
- 
+
 class RealmAttributesController extends AppController {
 	/* index function 
 	 * @param $realmId
@@ -17,14 +17,14 @@ class RealmAttributesController extends AppController {
 				'conditions' => array('RealmAttribute.RealmID' => $realmId)
 			);
 			$realmAttributes = $this->paginate();
-			
+
 			$this->set('realmAttributes', $realmAttributes);
 			$this->set('realmId', $realmId);
 		} else {
 			$this->redirect('/realm_attributes/index');
 		}			
 	}	
-	
+
 	/* edit function 
 	 * @param $realmId
 	 * Function used to add realms attributes
@@ -44,7 +44,7 @@ class RealmAttributesController extends AppController {
 			}
 		}	
 	}
-	
+
 	/* edit function 
 	 * @param $id 
 	 * Function used to edit realms attributes.
@@ -67,7 +67,7 @@ class RealmAttributesController extends AppController {
 			}
 		}
 	}
-	
+
 	/* remove function 
 	 * @param $id, $realmId
 	 * Function to delete realms attribute

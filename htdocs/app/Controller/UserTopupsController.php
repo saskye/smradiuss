@@ -24,7 +24,7 @@ class UserTopupsController extends AppController {
 			$this->set('userId', $userId);
 		}
 	}
-	
+
 	/* add function 
 	 * @param $userId
 	 * Used to add user topups
@@ -54,10 +54,10 @@ class UserTopupsController extends AppController {
 		}
 		else
 		{
-			
+
 		}
 	}
-	
+
 	/* edit function 
 	 * @param $id, $userId
 	 * Used to edit user topups
@@ -86,7 +86,7 @@ class UserTopupsController extends AppController {
 			}
 		}
 	}
-	
+
 	/* remove function 
 	 * @param $id, $userId
 	 * Used to delete user topups.

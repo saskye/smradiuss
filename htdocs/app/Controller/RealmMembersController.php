@@ -3,7 +3,7 @@
  * Realm Members
  *
  */
- 
+
 class RealmMembersController extends AppController {
 	/* index function 
 	 * @param $realmId
@@ -19,7 +19,7 @@ class RealmMembersController extends AppController {
 			);
 			$realmMembers = $this->paginate();
 			$realmMembersData =array();
-			
+
 			// Generating final array.
 			foreach($realmMembers as $realmMember)
 			{

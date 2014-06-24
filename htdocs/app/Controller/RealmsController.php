@@ -16,7 +16,7 @@ class RealmsController extends AppController
 		$realm = $this->paginate();
 		$this->set('realm', $realm);
 	}
-	
+
 	/* add function 
 	 * Used to add realms. 
 	 *
@@ -33,7 +33,7 @@ class RealmsController extends AppController
 			}
 		}	
 	}
-	
+
 	/* edit function 
 	 * @param $id
 	 * Function used to edit realms.
@@ -58,7 +58,7 @@ class RealmsController extends AppController
 			}
 		}
 	}
-	
+
 	/* remove function 
 	 * @param $id
 	 * Function usedto delete realms.

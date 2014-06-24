@@ -3,9 +3,9 @@
  * Client Realms
  * 
  */
- 
+
 class ClientRealmsController extends AppController {
-	
+
 	/* index function 
 	 * @param $clientID
 	 * Functon loads client realms list with pagination
@@ -20,7 +20,7 @@ class ClientRealmsController extends AppController {
 			);
 			$clientRealm = $this->paginate();
 			$clientRealmsData =array();
-			
+
 			foreach($clientRealm as $clientRealms)
 			{
 				// Get realms name via realms id.
@@ -32,14 +32,14 @@ class ClientRealmsController extends AppController {
 				$clientRealmsData[] = $clientRealms;
 			}
 			$clientRealms = $clientRealmsData;
-			
+
 			$this->set('clientRealms', $clientRealms);
 			$this->set('clientID', $clientID);
 		} else {
 			$this->redirect('/client_realms/index');
 		}			
 	}	
-	
+
 	/* add function 
 	 * @param $clientID
 	 * Function used to add client realms.
@@ -73,7 +73,7 @@ class ClientRealmsController extends AppController {
 			}
 		}
 	}
-	
+
 	/* remove function 
 	 * @param $id , $clientID
 	 * Function used to delete client realms when clientID and id is matched.

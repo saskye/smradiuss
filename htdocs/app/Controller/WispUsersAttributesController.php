@@ -26,14 +26,14 @@ class WispUsersAttributesController extends AppController
 				$this->redirect('/users/index');
 		}
 	}	
-	
+
 	//public function add($userId)
 	/*public function add()
 	{
 		//$this->set('userId', $userId);
 		if ($this->request->is('post'))
 		{
-			
+
 			$requestData = $this->request->data;
 			$value = $requestData['WispUsersAttribute']['Value'];
 			$modifier = $requestData['WispUsersAttribute']['Modifier'];
@@ -88,7 +88,7 @@ class WispUsersAttributesController extends AppController
 			}
 		}	
 	}*/
-	
+
 	/* edit function 
 	 * @param $id, $userId
 	 */	
@@ -161,7 +161,7 @@ class WispUsersAttributesController extends AppController
 			$this->redirect('/wispUsers_attributes/index/'.$userId);
 		}
 	}
-	
+
 	/* attribute function 
 	 * @param $Id
 	 */

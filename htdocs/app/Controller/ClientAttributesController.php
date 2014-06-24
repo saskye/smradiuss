@@ -3,7 +3,7 @@
  * Client Attributes
  * 
  */
- 
+
 class ClientAttributesController extends AppController {
 
 	/* index function 
@@ -18,14 +18,14 @@ class ClientAttributesController extends AppController {
 				'limit' => PAGINATION_LIMIT,
 				'conditions' => array('ClientAttribute.ClientID' => $clientID));
 				$clientAttributes = $this->paginate();
-				
+
 				$this->set('clientAttributes', $clientAttributes);
 				$this->set('clientID', $clientID);
 			} else {
 				$this->redirect('/client_attributes/index');
 			}			
 		}	
-	
+
 	/* add function 
 	 * @param $clientID
 	 * Function used to add client attributes.
@@ -47,7 +47,7 @@ class ClientAttributesController extends AppController {
 				}
 			}	
 		}
-	
+
 	/* edit function 
 	 * @param $id , $clientID
 	 * Function used to edit client attributes.
@@ -68,7 +68,7 @@ class ClientAttributesController extends AppController {
 				}
 			}
 		}
-	
+
 	/* remove function 
 	 * @param $id , $clientID
 	 * Function used to delete client attributes when clientID and id is matched.

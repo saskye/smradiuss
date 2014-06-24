@@ -19,7 +19,7 @@ class WispUserLogsController extends AppController
 			$userLog = $this->WispUserLog->SelectRec($userId,$current);
 			$this->set('userLog', $userLog);
 			$this->set('userId', $userId);
-			
+
 			// For searching topups month and year wise.
 			if ($this->request->is('post'))
 			{
@@ -32,11 +32,11 @@ class WispUserLogsController extends AppController
 			    $userLog = $this->WispUserLog->SelectRec($userId,$logDate);
 				$this->set('userLog', $userLog);
 			}
-			
+
 			// Fetch data form accounting table.
 			$username = $this->WispUserLog->SelectAcc($userId); 
 			$userName = $username[0]['users']['Username'];
-			
+
 			$this->paginate = array(
                 'limit' => PAGINATION_LIMIT,
 				'conditions' => array('Username' => $userName)

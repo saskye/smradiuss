@@ -1,6 +1,6 @@
 <?php
 class UsersController extends AppController {
-	
+
 	public $use = array('UserAttribute');
 
 	/* index function 
@@ -13,12 +13,12 @@ class UsersController extends AppController {
 		$users = $this->paginate();
 		$this->set('users', $users);
 	}	
-	
+
 	/* add function 
 	 * Adding users data.
 	 *
 	 */	
-	 	
+
 	public function add(){
 		if ($this->request->is('post')){
 			$this->request->data['User']['Disabled'] = intval($this->request->data['User']['Disabled']);
@@ -31,7 +31,7 @@ class UsersController extends AppController {
 			}
 		}	
 	}
-	
+
 	/* edit function 
 	 * @param $id
 	 * Editing users data.
@@ -58,7 +58,7 @@ class UsersController extends AppController {
 			}
 		}
 	}
-	
+
 	/* remove function 
 	 * @param $id
 	 * Function used to delete users data.

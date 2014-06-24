@@ -15,7 +15,7 @@ class ClientsController extends AppController
 		$client = $this->paginate();
 		$this->set('client', $client);
 	}
-	
+
 	/* add function 
 	 * Functon used to add clients.
 	 * 
@@ -31,7 +31,7 @@ class ClientsController extends AppController
 			}
 		}	
 	}
-	
+
 	/* edit function 
 	 * @param $id 
 	 * Function used to edit clients.
@@ -52,7 +52,7 @@ class ClientsController extends AppController
 			}
 		}
 	}
-	
+
 	/* remoce function 
 	 * @param $id
 	 * Function used to delete clients.

@@ -19,13 +19,13 @@ class WispUsersTopupsController extends AppController
                 'limit' => PAGINATION_LIMIT,
 				'conditions' => array('UserID' => $userId)
 			);
-			
+
 			$wtopups  = $this->paginate();
 			$this->set('wtopups', $wtopups);
 			$this->set('userId', $userId);
 		}
 	}
-	
+
 	/* add function 
 	 * @param $userId
 	 * Used to add user topups
@@ -55,7 +55,7 @@ class WispUsersTopupsController extends AppController
 		}
 		else
 		{
-			
+
 		}
 	}
 	/* edit function 

@@ -17,7 +17,7 @@ class WispLocationsController extends AppController
 		$wispLocation = $this->paginate();
 		$this->set('wispLocation', $wispLocation);
 	}
-	
+
 	/* add function 
 	 * Used to add locations.
 	 * 
@@ -38,7 +38,7 @@ class WispLocationsController extends AppController
 			}
 		}
 	}
-	
+
 	/* edit function 
 	 * @param $id
 	 * Used to edit locations
@@ -63,7 +63,7 @@ class WispLocationsController extends AppController
 			}
 		}
 	}
-	
+
 	/* remove function 
 	 * @param $id
 	 * used to delete locations.
