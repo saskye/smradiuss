@@ -5,14 +5,14 @@
  */
 
 class RealmMembersController extends AppController {
-	/* index function 
+	/* index function
 	 * @param $realmId
-	 * Function to show reamls members list with pagination 
-	 * 
+	 * Function to show reamls members list with pagination
+	 *
 	 */
 	public function index($realmID){
-		if (isset($realmID)){	
-			// Getting list with pagination.		
+		if (isset($realmID)){
+			// Getting list with pagination.
 			$this->paginate = array(
                 'limit' => PAGINATION_LIMIT,
 				'conditions' => array('RealmID' => $realmID)
@@ -36,13 +36,13 @@ class RealmMembersController extends AppController {
 			$this->set('realmID', $realmID);
 		} else {
 			$this->redirect('/realm_members/index');
-		}			
-	}	
+		}
+	}
 
-	/* remove function 
+	/* remove function
 	 * @param $id, $realmId
 	 * Function used to remove realms members.
-	 * 
+	 *
 	 */
 	public function remove($id, $realmID){
 		if (isset($id)){

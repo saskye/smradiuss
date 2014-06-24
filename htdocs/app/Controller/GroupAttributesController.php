@@ -4,14 +4,14 @@
  */
 class  GroupAttributesController extends AppController {
 
-	/* index function 
+	/* index function
 	 * @param  $groupId
 	 * Functon loads list of group attributes with pagination
 	 *
 	 */
 	public function index($groupId){
 		if (isset($groupId)){
-			// Fetching data with pagination.			
+			// Fetching data with pagination.
 			$this->paginate = array(
 			'limit' => PAGINATION_LIMIT,
 			'conditions' => array('GroupAttribute.GroupID' => $groupId)
@@ -22,12 +22,12 @@ class  GroupAttributesController extends AppController {
 			$this->set('groupId', $groupId);
 		} else {
 			$this->redirect('/users/index');
-		}			
-	}	
+		}
+	}
 
-	/* add function 
+	/* add function
 	 * @param $groupId
-	 * Function used to add group attributes.	 
+	 * Function used to add group attributes.
 	 *
 	 */
 	public function add($groupId){
@@ -44,12 +44,12 @@ class  GroupAttributesController extends AppController {
 			} else {
 				$this->Session->setFlash(__('Group attribute is not saved succefully!', true), 'flash_failure');
 			}
-		}	
+		}
 	}
 
-	/* edit function 
+	/* edit function
 	 * @param $id, $groupId
-	 * Function used to edit group attributes.	 
+	 * Function used to edit group attributes.
 	 *
 	 */
 	public function edit($id, $groupId){
@@ -70,10 +70,10 @@ class  GroupAttributesController extends AppController {
 		}
 	}
 
-	/* remove function 
+	/* remove function
 	 * @param $id, $groupId
-	 * Function used to delete group attributes. 
-	 *	 
+	 * Function used to delete group attributes.
+	 *
 	 */
 	public function remove($id, $groupId){
 		if (isset($id)){

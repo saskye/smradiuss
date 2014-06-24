@@ -5,11 +5,11 @@
  */
 class UserLogsController extends AppController
 {
-	/* index function 
+	/* index function
 	 * @param $userId
 	 * Used to show user logs list with pagination.
 	 *
-	 */	
+	 */
 	public function index($userId)
 	{
 		if (isset($userId))
@@ -35,7 +35,7 @@ class UserLogsController extends AppController
 			}
 
 			// Fetch data form accounting table.
-			$username = $this->UserLog->SelectAcc($userId); 
+			$username = $this->UserLog->SelectAcc($userId);
 			$userName = $username[0]['users']['Username'];
 
 			$this->paginate = array(

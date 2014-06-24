@@ -1,14 +1,14 @@
 <?php
 /*
  * wisp location
- */	
+ */
 class WispLocationsController extends AppController
 {
-	/* index function 
+	/* index function
 	 * @param $LocationID
 	 * Used to show all location with pagination.
 	 *
-	 */	
+	 */
 	public function index()
 	{
 		$this->WispLocation->recursive = -1;
@@ -18,15 +18,15 @@ class WispLocationsController extends AppController
 		$this->set('wispLocation', $wispLocation);
 	}
 
-	/* add function 
+	/* add function
 	 * Used to add locations.
-	 * 
-	 */	
+	 *
+	 */
 	public function add()
 	{
 		// Checking submission.
 		if ($this->request->is('post'))
-		{	
+		{
 			// Setting data to model.
 			$this->WispLocation->set($this->request->data);
 			// Validating submitted data.
@@ -39,11 +39,11 @@ class WispLocationsController extends AppController
 		}
 	}
 
-	/* edit function 
+	/* edit function
 	 * @param $id
 	 * Used to edit locations
 	 *
-	 */	
+	 */
 	public function edit($id){
 		// Finding location from id and assigning to variable.
 		$location = $this->WispLocation->findById($id);
@@ -64,11 +64,11 @@ class WispLocationsController extends AppController
 		}
 	}
 
-	/* remove function 
+	/* remove function
 	 * @param $id
 	 * used to delete locations.
 	 *
-	 */	
+	 */
 	public function remove($id){
 		// Deleting
 		if($this->WispLocation->delete($id)){

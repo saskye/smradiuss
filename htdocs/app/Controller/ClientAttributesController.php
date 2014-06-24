@@ -1,18 +1,18 @@
 <?php
 /**
  * Client Attributes
- * 
+ *
  */
 
 class ClientAttributesController extends AppController {
 
-	/* index function 
+	/* index function
 	 * @param $clientID
 	 * Functon loads list of client attributes with pagination
 	 *
 	 */
 		public function index($clientID){
-			if (isset($clientID)){		
+			if (isset($clientID)){
 				// Fetching records with pagination
 				$this->paginate = array(
 				'limit' => PAGINATION_LIMIT,
@@ -23,10 +23,10 @@ class ClientAttributesController extends AppController {
 				$this->set('clientID', $clientID);
 			} else {
 				$this->redirect('/client_attributes/index');
-			}			
-		}	
+			}
+		}
 
-	/* add function 
+	/* add function
 	 * @param $clientID
 	 * Function used to add client attributes.
 	 *
@@ -45,10 +45,10 @@ class ClientAttributesController extends AppController {
 				} else {
 					$this->Session->setFlash(__('Client attribute is not saved succefully!', true), 'flash_failure');
 				}
-			}	
+			}
 		}
 
-	/* edit function 
+	/* edit function
 	 * @param $id , $clientID
 	 * Function used to edit client attributes.
 	 *
@@ -69,7 +69,7 @@ class ClientAttributesController extends AppController {
 			}
 		}
 
-	/* remove function 
+	/* remove function
 	 * @param $id , $clientID
 	 * Function used to delete client attributes when clientID and id is matched.
 	 *

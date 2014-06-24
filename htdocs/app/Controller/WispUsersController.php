@@ -1,12 +1,12 @@
 <?php
-/* 
+/*
  * Wisp Users
  */
 
 class WispUsersController extends AppController
 {
-	/* index function 
-	 * Showing users list with pagination.  
+	/* index function
+	 * Showing users list with pagination.
 	 *
 	 */
 	public function index()
@@ -32,7 +32,7 @@ class WispUsersController extends AppController
 		$this->set('wispUser', $wispUser);
 	}
 
-	/* add function 
+	/* add function
 	 * Used to add users to database
 	 *
 	 */
@@ -60,7 +60,7 @@ class WispUsersController extends AppController
 		if ($this->request->is('post'))
 		{
 			$requestData = $this->WispUser->set($this->request->data);
-			// Checking wisp number field is set or not 
+			// Checking wisp number field is set or not
 			if(!$requestData['WispUser']['Number'])
 			{
 				// Validationg submitted data.
@@ -103,7 +103,7 @@ class WispUsersController extends AppController
 								else
 								{
 									$attrValue = $this->switchModifier($requestData['attributeModifier'][$i],$attrValues);
-								}  
+								}
 							}
 
 							$addattribute = $this->WispUser->addValue($requestData['WispUser']['UserId'], $requestData['attributeName'][$i], $requestData['attributeoperator'][$i], $attrValue,$requestData['attributeModifier'][$i]);
@@ -130,7 +130,7 @@ class WispUsersController extends AppController
 						list($user,$pass) = $this->randomUserName($prefix);
 						$requestData['WispUser']['Username'] = $user;
 						$requestData['WispUser']['Password'] = $pass;
-						// Saving username 	
+						// Saving username
 						$addUser = $this->WispUser->insertUsername($requestData['WispUser']['Username']);
 						foreach($addUser as $userId)
 						{
@@ -181,10 +181,10 @@ class WispUsersController extends AppController
 					$this->Session->setFlash(__('Wisp user is saved succefully!', true), 'flash_success');
 
 				} // end of else
-		}	
+		}
 	}
 
-	/* switch modifier function 
+	/* switch modifier function
 	 * @param $val, $attrValues
 	 */
 	private function switchModifier($val,$attrValues)
@@ -207,7 +207,7 @@ class WispUsersController extends AppController
 				$attrValue = $attrValues * 10080;
 				break;
 			case "Months":
-				$attrValue = $attrValues * 44640; 
+				$attrValue = $attrValues * 44640;
 				break;
 			case "MBytes":
 				$attrValue = $attrValues;
@@ -223,7 +223,7 @@ class WispUsersController extends AppController
 
 	}
 
-	/* randomUserName function 
+	/* randomUserName function
 	 * @param $prefix
 	 * Function user to generate random username and password
 	 */
@@ -266,18 +266,18 @@ class WispUsersController extends AppController
 		if($usernameReserved == 0)
 		{
 			return array($string,$stringPass);
-		}	
+		}
 		else
 		{
 			return array('','');
 		}
 	}
 
-	/* edit function 
+	/* edit function
 	 * @param $id
 	 * used to edit users data , group, attributes etc.
 	 *
-	 */	
+	 */
 	public function edit($id)
 	{
 		// Select all records form wisp_userdata table --
@@ -322,7 +322,7 @@ class WispUsersController extends AppController
 		if ($this->request->is('post'))
 		{
 			$requestData = $this->WispUser->set($this->request->data);
-			// Condition to check username on submission or not.	
+			// Condition to check username on submission or not.
 			if($requestData['hiddenUserName'] ==$requestData['WispUser']['Username'])
 			{
 				$editUser = $this->WispUser->updateUsername($user['WispUser']['UserID'],$requestData['WispUser']['Username']);
@@ -331,7 +331,7 @@ class WispUsersController extends AppController
 				$editValue = $this->WispUser->updateValue($user['WispUser']['UserID'],$requestData['WispUser']['Password']);
 				$this->WispUser->updateRec($requestData, $user['WispUser']['UserID']);
 
-				// Update group 
+				// Update group
 				$delGroup = $this->WispUser->deleteUserGroup($user['WispUser']['UserID']);
 
 				if(isset($requestData['groupId']))
@@ -343,7 +343,7 @@ class WispUsersController extends AppController
 				}
 				// end of group updation.
 
-				// Update attribute 
+				// Update attribute
 				$delAttribute = $this->WispUser->deleteUserAttibute($user['WispUser']['UserID']);
 				$count1 = '';
 				if(isset($requestData['attributeName']))
@@ -376,7 +376,7 @@ class WispUsersController extends AppController
 					// Update username
 					$editUser = $this->WispUser->updateUsername($user['WispUser']['UserID'],$requestData['WispUser']['Username']);
 
-					// Update password 
+					// Update password
 					$editValue = $this->WispUser->updateValue($user['WispUser']['UserID'],$requestData['WispUser']['Password']);
 					// Update other records
 					$this->WispUser->updateRec($requestData, $user['WispUser']['UserID']);
@@ -430,7 +430,7 @@ class WispUsersController extends AppController
 		// Fetch userName
 		$username = $this->WispUser->selectById($user['WispUser']['UserID']);
 		$user['WispUser']['Username'] = $username[0]['users']['Username'];
-		// Fetch password 
+		// Fetch password
 		$getvalue = $this->WispUser->getValue($user['WispUser']['UserID']);
 		$user['WispUser']['Password'] = $getvalue[0]['user_attributes']['Value'];
 		$this->set('user', $user);
@@ -454,11 +454,11 @@ class WispUsersController extends AppController
 		$userData[] = array();
 	}
 
-	/* delete function 
+	/* delete function
 	 * @param $id
 	 * used to delete record from all table referencing user.
 	 *
-	 */	
+	 */
 	public function remove($id)
 	{
 		// Fetching user data and assigning to var.

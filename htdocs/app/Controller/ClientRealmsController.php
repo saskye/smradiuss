@@ -1,19 +1,19 @@
 <?php
 /**
  * Client Realms
- * 
+ *
  */
 
 class ClientRealmsController extends AppController {
 
-	/* index function 
+	/* index function
 	 * @param $clientID
 	 * Functon loads client realms list with pagination
 	 *
 	 */
 	public function index($clientID){
 		if (isset($clientID)){
-			// Fetching records with  pagination.			
+			// Fetching records with  pagination.
 			$this->paginate = array(
 			'limit' => PAGINATION_LIMIT,
 			'conditions' => array('ClientID' => $clientID)
@@ -37,10 +37,10 @@ class ClientRealmsController extends AppController {
 			$this->set('clientID', $clientID);
 		} else {
 			$this->redirect('/client_realms/index');
-		}			
-	}	
+		}
+	}
 
-	/* add function 
+	/* add function
 	 * @param $clientID
 	 * Function used to add client realms.
 	 *
@@ -61,12 +61,12 @@ class ClientRealmsController extends AppController {
 			if ($this->request->is('post'))
 			{
 				$this->ClientRealm->set($this->request->data);
-				if ($this->ClientRealm->validates()) 
+				if ($this->ClientRealm->validates())
 				{
 					$this->ClientRealm->InsertRec($clientID,$this->request->data);
 					$this->Session->setFlash(__('Client member is saved succefully!', true), 'flash_success');
-				} 
-				else 
+				}
+				else
 				{
 					$this->Session->setFlash(__('Client memberis not saved succefully!', true), 'flash_failure');
 				}
@@ -74,7 +74,7 @@ class ClientRealmsController extends AppController {
 		}
 	}
 
-	/* remove function 
+	/* remove function
 	 * @param $id , $clientID
 	 * Function used to delete client realms when clientID and id is matched.
 	 *

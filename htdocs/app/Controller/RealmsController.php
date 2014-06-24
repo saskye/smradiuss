@@ -5,8 +5,8 @@
  */
 class RealmsController extends AppController
 {
-	/* index function 
-	 * Function used to show realms list with pagination. 
+	/* index function
+	 * Function used to show realms list with pagination.
 	 *
 	 */
 	public function index()
@@ -17,8 +17,8 @@ class RealmsController extends AppController
 		$this->set('realm', $realm);
 	}
 
-	/* add function 
-	 * Used to add realms. 
+	/* add function
+	 * Used to add realms.
 	 *
 	 */
 	public function add(){
@@ -31,10 +31,10 @@ class RealmsController extends AppController
 			} else {
 			    $this->Session->setFlash(__('Realm is not saved succefully!', true), 'flash_failure');
 			}
-		}	
+		}
 	}
 
-	/* edit function 
+	/* edit function
 	 * @param $id
 	 * Function used to edit realms.
 	 *
@@ -59,7 +59,7 @@ class RealmsController extends AppController
 		}
 	}
 
-	/* remove function 
+	/* remove function
 	 * @param $id
 	 * Function usedto delete realms.
 	 *

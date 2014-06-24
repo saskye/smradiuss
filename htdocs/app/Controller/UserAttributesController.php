@@ -5,11 +5,11 @@
  */
 class UserAttributesController extends AppController {
 
-	/* index function 
+	/* index function
 	 * @param $userId
 	 * Function to show list of user attributes with pagination.
 	 *
-	 */		
+	 */
 	public function index($userId){
 		if (isset($userId)){
 			$this->UserAttribute->recursive = 0;
@@ -22,19 +22,19 @@ class UserAttributesController extends AppController {
 			$this->set('userId', $userId);
 		} else {
 			$this->redirect('/users/index');
-		}			
-	}	
+		}
+	}
 
-	/* add function 
+	/* add function
 	 * @param $userId
-	 */		
+	 */
 	public function add($userId){
 		$this->set('userId', $userId);
 		if ($this->request->is('post')){
 				$this->request->data['UserAttribute']['Disabled'] = intval($this->request->data['UserAttribute']['Disabled']);
 				$this->request->data['UserAttribute']['UserID'] = intval($this->request->params['pass'][0]);
 				$this->UserAttribute->set($this->request->data);
-				// Validating	
+				// Validating
 				if ($this->UserAttribute->validates()) {
 					// Saving
 					$this->UserAttribute->save($this->request->data);
@@ -42,14 +42,14 @@ class UserAttributesController extends AppController {
 				} else {
 					$this->Session->setFlash(__('User attribute is not saved succefully!', true), 'flash_failure');
 				}
-		}	
+		}
 	}
 
-	/* edit function 
+	/* edit function
 	 * @param $id, $userId
 	 * Function used to edit users attributes.
 	 *
-	 */		
+	 */
 	public function edit($id, $userId){
 		$userAttribute = $this->UserAttribute->findById($id);
 		$this->set('userAttribute', $userAttribute);
@@ -65,11 +65,11 @@ class UserAttributesController extends AppController {
 			}
 		}
 	}
-	/* remove function 
+	/* remove function
 	 * @param $id, $userId
 	 * Function used to delete users attributes.
-	 * 
-	 */		
+	 *
+	 */
 	public function remove($id, $userId){
 		if (isset($id)){
 			// Deleting and checking.

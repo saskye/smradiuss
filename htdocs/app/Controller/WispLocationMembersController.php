@@ -1,14 +1,14 @@
 <?php
-/* 
+/*
  * wisp location member
- */	
+ */
 class WispLocationMembersController extends AppController
 {
-	/* index function 
+	/* index function
 	 * @param $LocationID
 	 * Used to show members location with pagination.
 	 *
-	 */	
+	 */
 	public function index($LocationID)
 	{
 		$this->WispLocationMember->recursive = -1;
@@ -35,14 +35,14 @@ class WispLocationMembersController extends AppController
 		$this->set('LocationID', $LocationID);
 	}
 
-	/* remove function 
+	/* remove function
 	 * @param $id, $LocationID
 	 * used to delete members locations.
 	 *
-	 */		
+	 */
 	public function remove($id, $LocationID)
 	{
-		// Deleting 
+		// Deleting
 		$deleteMember = $this->WispLocationMember->deleteMembers($id);
 		// Redirecting to index.
 		$this->redirect('/WispLocation_Members/index/'.$LocationID);

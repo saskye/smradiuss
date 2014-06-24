@@ -7,11 +7,11 @@ class UserGroupsController extends AppController {
 
 	public $use = array('Users');
 
-	/* index function 
+	/* index function
 	 * @param $userId
 	 * Showing used group list with pagination.
 	 *
-	 */	
+	 */
 	public function index($userId)
 	{
 		if (isset($userId))
@@ -21,7 +21,7 @@ class UserGroupsController extends AppController {
                 'limit' => PAGINATION_LIMIT,
 				'conditions' => array('UserID' => $userId)
 			);
-			// Contains data with pagination. 
+			// Contains data with pagination.
 			$UserGroups  = $this->paginate();
 			$UserGroupData =array();
 			// Adding group name to array.
@@ -41,10 +41,10 @@ class UserGroupsController extends AppController {
 		}
 	}
 
-	/* add function 
+	/* add function
 	 * @param $userId
 	 * Function to add user groups.
-	 */	
+	 */
 	public function add($userId)
 	{
 		if (isset($userId))
@@ -64,15 +64,15 @@ class UserGroupsController extends AppController {
 			{
 				$this->UserGroup->set($this->request->data);
 				// Validating submitted data.
-				if ($this->UserGroup->validates()) 
+				if ($this->UserGroup->validates())
 				{
 					// Saving user groups.
 			    	$this->UserGroup->InsertRec($userId,$this->request->data);
 					// Sending message to screen.
 					$this->Session->setFlash(__('User Group is saved succefully!', true), 'flash_success');
 
-				} 
-				else 
+				}
+				else
 				{
 			    	$this->Session->setFlash(__('User Group is not saved succefully!', true), 'flash_failure');
 				}
@@ -84,10 +84,10 @@ class UserGroupsController extends AppController {
 		}
 	}
 
-	/* remove function 
+	/* remove function
 	 * @param $id, $userId
 	 * Used to delete user groups
-	 */	
+	 */
 	public function remove($id, $userId){
 		if (isset($id)){
 			// Deleting

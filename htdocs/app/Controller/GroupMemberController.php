@@ -5,12 +5,12 @@
  */
 class GroupMemberController extends AppController
 {
-	/* included users table 
-	 * 
+	/* included users table
+	 *
 	 */
 	public $use = array('Users');
 
-	/* index function 
+	/* index function
 	 * @param $groupID
 	 * Functon loads list of group members with pagination
 	 *
@@ -45,7 +45,7 @@ class GroupMemberController extends AppController
 		}
 	}
 
-	/* remove function 
+	/* remove function
 	 * @param $id, $groupID
 	 * Function used to delete group member.
 

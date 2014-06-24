@@ -5,9 +5,9 @@
  */
 class WispUsersAttributesController extends AppController
 {
-	/* index function 
+	/* index function
 	 * @param $Id
-	 */	
+	 */
 	public function index($Id)
 	{
 		$uId = $this->WispUsersAttribute->selectUserId($Id);
@@ -25,7 +25,7 @@ class WispUsersAttributesController extends AppController
 			} else {
 				$this->redirect('/users/index');
 		}
-	}	
+	}
 
 	//public function add($userId)
 	/*public function add()
@@ -58,7 +58,7 @@ class WispUsersAttributesController extends AppController
 						$attrValue = $value * 10080;
 						break;
 					case "Months":
-						$attrValue = $value * 44640; 
+						$attrValue = $value * 44640;
 						break;
 					case "MBytes":
 						$attrValue = $value;
@@ -80,18 +80,18 @@ class WispUsersAttributesController extends AppController
 				$this->requestAction('/wispUsers/add', array('pass' => $requestData));
 				//$this->Session->write('booking_id', $this->request->data['Booking']['booking_id']);
 				//$a = $this->redirect(array('controller'=>'wispUsers','action'=>'add',$requestData));
-				//echo $a; exit; 
+				//echo $a; exit;
 			    //$this->WispUsersAttribute->save($requestData);
 				$this->Session->setFlash(__('Wisp user attribute is saved succefully!', true), 'flash_success');
 			} else {
 			    $this->Session->setFlash(__('Wisp user attribute is not saved!', true), 'flash_failure');
 			}
-		}	
+		}
 	}*/
 
-	/* edit function 
+	/* edit function
 	 * @param $id, $userId
-	 */	
+	 */
 	public function edit($id, $userId){
 		$wispUsersAttribute = $this->WispUsersAttribute->findById($id);
 		$this->set('wispUsersAttribute', $wispUsersAttribute);
@@ -122,7 +122,7 @@ class WispUsersAttributesController extends AppController
 						$attrValue = $value * 10080;
 						break;
 					case "Months":
-						$attrValue = $value * 44640; 
+						$attrValue = $value * 44640;
 						break;
 					case "MBytes":
 						$attrValue = $value;
@@ -146,7 +146,7 @@ class WispUsersAttributesController extends AppController
 			}
 		}
 	}
-	/* delete function 
+	/* delete function
 	 * @param $id, $userId
 	 */
 	public function remove($id, $userId){
@@ -162,11 +162,11 @@ class WispUsersAttributesController extends AppController
 		}
 	}
 
-	/* attribute function 
+	/* attribute function
 	 * @param $Id
 	 */
 	public function attribute($id){
-		if ($this->request->is('post')){			
+		if ($this->request->is('post')){
 			$this->request->data['UserAttribute'] = $this->request->data['User'];
 			$this->UserAttribute->set($this->request->data);
 			if ($this->UserAttribute->validates()) {

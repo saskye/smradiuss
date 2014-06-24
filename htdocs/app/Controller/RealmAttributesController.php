@@ -5,13 +5,13 @@
  */
 
 class RealmAttributesController extends AppController {
-	/* index function 
+	/* index function
 	 * @param $realmId
 	 * Functon used for showing realms attribures with pagination
-	 * 
+	 *
 	 */
 	public function index($realmId){
-		if (isset($realmId)){			
+		if (isset($realmId)){
 			$this->paginate = array(
                 'limit' => PAGINATION_LIMIT,
 				'conditions' => array('RealmAttribute.RealmID' => $realmId)
@@ -22,10 +22,10 @@ class RealmAttributesController extends AppController {
 			$this->set('realmId', $realmId);
 		} else {
 			$this->redirect('/realm_attributes/index');
-		}			
-	}	
+		}
+	}
 
-	/* edit function 
+	/* edit function
 	 * @param $realmId
 	 * Function used to add realms attributes
 	 *
@@ -42,13 +42,13 @@ class RealmAttributesController extends AppController {
 			} else {
 			    $this->Session->setFlash(__('Realm attribute is not saved succefully!', true), 'flash_failure');
 			}
-		}	
+		}
 	}
 
-	/* edit function 
-	 * @param $id 
+	/* edit function
+	 * @param $id
 	 * Function used to edit realms attributes.
-	 * 
+	 *
 	 */
 	public function edit($id){
 		$realmAttribute = $this->RealmAttribute->findById($id);
@@ -68,10 +68,10 @@ class RealmAttributesController extends AppController {
 		}
 	}
 
-	/* remove function 
+	/* remove function
 	 * @param $id, $realmId
 	 * Function to delete realms attribute
-	 * 
+	 *
 	 */
 	public function remove($id, $realmId){
 		if (isset($id)){

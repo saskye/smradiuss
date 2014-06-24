@@ -6,11 +6,11 @@
 class UserTopupsController extends AppController {
 
 	public $use = array('Users');
-	/* index function 
+	/* index function
 	 * @param $userId
 	 * Used to show user topups list with pagination.
 	 *
-	 */	
+	 */
 	public function index($userId)
 	{
 		if (isset($userId)){
@@ -25,11 +25,11 @@ class UserTopupsController extends AppController {
 		}
 	}
 
-	/* add function 
+	/* add function
 	 * @param $userId
 	 * Used to add user topups
 	 *
-	 */	
+	 */
 	public function add($userId)
 	{
 		if (isset($userId))
@@ -40,13 +40,13 @@ class UserTopupsController extends AppController {
 			{
 				$this->UserTopup->set($this->request->data);
 				// Validating input.
-				if ($this->UserTopup->validates()) 
+				if ($this->UserTopup->validates())
 				{
 					// Saving data.
 			    	$this->UserTopup->InsertRec($userId,$this->request->data);
 					$this->Session->setFlash(__('User topup is saved succefully!', true), 'flash_success');
-				} 
-				else 
+				}
+				else
 				{
 			    	$this->Session->setFlash(__('User topup is not saved succefully!', true), 'flash_failure');
 				}
@@ -58,11 +58,11 @@ class UserTopupsController extends AppController {
 		}
 	}
 
-	/* edit function 
+	/* edit function
 	 * @param $id, $userId
 	 * Used to edit user topups
 	 *
-	 */	
+	 */
 	public function edit($id, $userId){
 		// Loading topup data from user Id.
 		$topups = $this->UserTopup->findById($id);
@@ -87,11 +87,11 @@ class UserTopupsController extends AppController {
 		}
 	}
 
-	/* remove function 
+	/* remove function
 	 * @param $id, $userId
 	 * Used to delete user topups.
 	 *
-	 */	
+	 */
 	public function remove($id, $userId){
 		if (isset($id)){
 			// Deleting

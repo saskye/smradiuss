@@ -4,7 +4,7 @@
  */
 class ClientsController extends AppController
 {
-	/* index function 
+	/* index function
 	 * Functon loads list of clients with pagination
 	 *
 	 */
@@ -16,9 +16,9 @@ class ClientsController extends AppController
 		$this->set('client', $client);
 	}
 
-	/* add function 
+	/* add function
 	 * Functon used to add clients.
-	 * 
+	 *
 	 */
 	public function add(){
 		if ($this->request->is('post')){
@@ -29,11 +29,11 @@ class ClientsController extends AppController
 			} else {
 			    $this->Session->setFlash(__('Client is not saved succefully!', true), 'flash_failure');
 			}
-		}	
+		}
 	}
 
-	/* edit function 
-	 * @param $id 
+	/* edit function
+	 * @param $id
 	 * Function used to edit clients.
 	 *
 	 */
@@ -53,10 +53,10 @@ class ClientsController extends AppController
 		}
 	}
 
-	/* remoce function 
+	/* remoce function
 	 * @param $id
 	 * Function used to delete clients.
-	 * 
+	 *
 	 */
 	public function remove($id){
 		if($this->Client->delete($id)){

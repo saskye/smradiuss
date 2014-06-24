@@ -5,11 +5,11 @@
  */
 class WispUsersTopupsController extends AppController
 {
-	/* index function 
+	/* index function
 	 * @param $userId
 	 * Used to show user topups with pagination.
-	 * 
-	 */	
+	 *
+	 */
 	public function index($userId)
 	{
 		if (isset($userId))
@@ -26,11 +26,11 @@ class WispUsersTopupsController extends AppController
 		}
 	}
 
-	/* add function 
+	/* add function
 	 * @param $userId
 	 * Used to add user topups
 	 *
-	 */	
+	 */
 	public function add($userId)
 	{
 		if (isset($userId))
@@ -41,13 +41,13 @@ class WispUsersTopupsController extends AppController
 			{
 				$this->WispUsersTopup->set($this->request->data);
 				// Validating input.
-				if ($this->WispUsersTopup->validates()) 
+				if ($this->WispUsersTopup->validates())
 				{
 					// Saving data.
 			    	$this->WispUsersTopup->InsertRec($userId,$this->request->data);
 					$this->Session->setFlash(__('Wisp user topup is saved succefully!', true), 'flash_success');
-				} 
-				else 
+				}
+				else
 				{
 			    	$this->Session->setFlash(__('Wisp user topup is not saved!', true), 'flash_failure');
 				}
@@ -58,11 +58,11 @@ class WispUsersTopupsController extends AppController
 
 		}
 	}
-	/* edit function 
+	/* edit function
 	 * @param $id, $userId
 	 * Used to edit user topups
 	 *
-	 */	
+	 */
 	public function edit($id, $userId){
 		// Loading topup data from user Id.
 		$topups = $this->WispUsersTopup->findById($id);
@@ -70,7 +70,7 @@ class WispUsersTopupsController extends AppController
 		$this->set('userId', $userId);
 		// Checking submission.
 		if ($this->request->is('post')){
-			// Setting data to model.			
+			// Setting data to model.
 			$this->WispUsersTopup->set($this->request->data);
 			// Validating data.
 			if ($this->WispUsersTopup->validates()) {
@@ -86,11 +86,11 @@ class WispUsersTopupsController extends AppController
 			}
 		}
 	}
-	/* remove function 
+	/* remove function
 	 * @param $id, $userId
 	 * Used to delete user topups.
 	 *
-	 */	
+	 */
 	public function remove($id, $userId){
 		if (isset($id)){
 			// Deleting

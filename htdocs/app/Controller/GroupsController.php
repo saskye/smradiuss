@@ -4,9 +4,9 @@
  */
 class GroupsController extends AppController {
 
-	/* index function 
+	/* index function
 	 * Function used for Showing group list with pagination
-	 * 
+	 *
 	 */
 	public function index(){
 		$this->Group->recursive = -1;
@@ -15,7 +15,7 @@ class GroupsController extends AppController {
 		$this->set('groups', $groups);
 	}
 
-	/* add function 
+	/* add function
 	 * Function used to add groups.
 	 *
 	 */
@@ -30,18 +30,18 @@ class GroupsController extends AppController {
 			} else {
 			    $this->Session->setFlash(__('Group is not saved succefully!', true), 'flash_failure');
 			}
-		}	
+		}
 	}
 
-	/* edit function 
+	/* edit function
 	 * @param $id
 	 * Function used to edit groups.
-	 * 
+	 *
 	 */
 	public function edit($id){
 		$group = $this->Group->findById($id);
 		$this->set('group', $group);
-		// Checking submit button is clicked or not 
+		// Checking submit button is clicked or not
 		if ($this->request->is('post')){
 			$this->Group->set($this->request->data);
 			// Validating submitted data.
@@ -59,7 +59,7 @@ class GroupsController extends AppController {
 		}
 	}
 
-	/* remove function 
+	/* remove function
 	 * @param $id
 	 * Function used to delete group.
 	 *

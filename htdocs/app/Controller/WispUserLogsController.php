@@ -5,10 +5,10 @@
  */
 class WispUserLogsController extends AppController
 {
-	/* index function 
+	/* index function
 	 * @param $userId
-	 * Used to load user logs data list. 
-	 */	
+	 * Used to load user logs data list.
+	 */
 	public function index($userId)
 	{
 		if (isset($userId))
@@ -34,7 +34,7 @@ class WispUserLogsController extends AppController
 			}
 
 			// Fetch data form accounting table.
-			$username = $this->WispUserLog->SelectAcc($userId); 
+			$username = $this->WispUserLog->SelectAcc($userId);
 			$userName = $username[0]['users']['Username'];
 
 			$this->paginate = array(
