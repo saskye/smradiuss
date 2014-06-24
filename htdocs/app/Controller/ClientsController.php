@@ -67,3 +67,5 @@ class ClientsController extends AppController
 		}
 	}
 }
+
+// vim: ts=4

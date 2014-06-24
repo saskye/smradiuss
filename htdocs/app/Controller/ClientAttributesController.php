@@ -88,3 +88,5 @@ class ClientAttributesController extends AppController {
 			}
 		}
 }
+
+// vim: ts=4

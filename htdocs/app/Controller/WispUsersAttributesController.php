@@ -178,3 +178,5 @@ class WispUsersAttributesController extends AppController
 		}
 	}
 }
+
+// vim: ts=4

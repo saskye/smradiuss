@@ -57,3 +57,5 @@ class RealmMembersController extends AppController {
 		}
 	}
 }
+
+// vim: ts=4

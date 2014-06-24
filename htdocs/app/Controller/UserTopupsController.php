@@ -106,3 +106,5 @@ class UserTopupsController extends AppController {
 		}
 	}
 }
+
+// vim: ts=4

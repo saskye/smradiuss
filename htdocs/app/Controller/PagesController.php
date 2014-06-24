@@ -75,3 +75,5 @@ class PagesController extends AppController {
 		}
 	}
 }
+
+// vim: ts=4

@@ -63,3 +63,5 @@ class GroupMemberController extends AppController
 		}
 	}
 }
+
+// vim: ts=4

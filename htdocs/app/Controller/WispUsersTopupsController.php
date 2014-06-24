@@ -106,3 +106,5 @@ class WispUsersTopupsController extends AppController
 		}
 	}
 }
+
+// vim: ts=4

@@ -103,3 +103,5 @@ class UserGroupsController extends AppController {
 		}
 	}
 }
+
+// vim: ts=4

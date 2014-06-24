@@ -4,3 +4,5 @@ class LocationsController extends AppController {
 
 	}
 }
+
+// vim: ts=4

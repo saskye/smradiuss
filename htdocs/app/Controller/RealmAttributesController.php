@@ -88,3 +88,5 @@ class RealmAttributesController extends AppController {
 		}
 	}
 }
+
+// vim: ts=4

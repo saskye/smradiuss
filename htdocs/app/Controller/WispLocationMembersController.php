@@ -49,3 +49,5 @@ class WispLocationMembersController extends AppController
 		$this->Session->setFlash(__('Wisp locations member is removed succefully!', true), 'flash_success');
 	}
 }
+
+// vim: ts=4

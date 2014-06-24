@@ -77,3 +77,5 @@ class UsersController extends AppController {
 		}
 	}
 }
+
+// vim: ts=4

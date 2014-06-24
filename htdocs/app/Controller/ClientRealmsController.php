@@ -93,3 +93,5 @@ class ClientRealmsController extends AppController {
 		}
 	}
 }
+
+// vim: ts=4

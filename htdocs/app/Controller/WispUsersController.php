@@ -477,3 +477,5 @@ class WispUsersController extends AppController
 		}
 	}
 }
+
+// vim: ts=4

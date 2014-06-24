@@ -5,3 +5,5 @@ class RadiusController extends AppController {
 
 	}
 }
+
+// vim: ts=4

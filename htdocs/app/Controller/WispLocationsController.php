@@ -80,3 +80,5 @@ class WispLocationsController extends AppController
 		}
 	}
 }
+
+// vim: ts=4

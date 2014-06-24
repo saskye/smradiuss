@@ -46,3 +46,5 @@ class WispUserLogsController extends AppController
 		}
 	}
 }
+
+// vim: ts=4

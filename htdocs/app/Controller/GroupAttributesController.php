@@ -90,3 +90,5 @@ class  GroupAttributesController extends AppController {
 	}
 
 }
+
+// vim: ts=4

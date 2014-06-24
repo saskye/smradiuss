@@ -85,3 +85,5 @@ class UserAttributesController extends AppController {
 		}
 	}
 }
+
+// vim: ts=4

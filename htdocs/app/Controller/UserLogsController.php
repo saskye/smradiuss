@@ -47,3 +47,5 @@ class UserLogsController extends AppController
 		}
 	}
 }
+
+// vim: ts=4

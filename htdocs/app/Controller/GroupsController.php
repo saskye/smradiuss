@@ -75,3 +75,5 @@ class GroupsController extends AppController {
 		}
 	}
 }
+
+// vim: ts=4
