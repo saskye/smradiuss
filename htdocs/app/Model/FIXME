@@ -17,3 +17,14 @@ Check all lines for lengh
 Check ALL SQL is being escaped
 
 Many methods have $res = , but no error check
+
+All SQL queries must have keywords capitalized as per section 6.1.
+All SQL queries must be multiline formatted if they involve more than 1 column or 2 tables as per section 6.2.
+
+There needs to be a space between single line comments and their descriptions as per section 5.1.1.
+
+Class documentation must contain the @class identifier for class definitions
+Class documentation must contain @method method_name and a description as per section 5.3.
+Class documentation for member variables must contain @var member as per section 5.3.
+
+Control structures opening and other braces should be inline as per section

@@ -5,3 +5,19 @@ Why is LocationsController.php blank?
 Why is RadiusController.php blank?
 
 Why is there so much commented code in WispUsersAttributesController.php?
+
+The comments purposed for doxygen documentation all need to be prepended with /** and not just /* as per comment policy as per
+section 5.1.2
+
+Class documentation must contain the @class identifier for class definitions
+Class documentation must contain @method method_name and a description as per section 5.3.
+Class documentation for member variables must contain @var member as per section 5.3.
+
+The comments should be in the same column as per section 5.1.3. Alignment of comments
+
+Functions need opening braces on the next line as per section 4.1. Function definitions occur on one line with the opening and
+closing brace on their own lines...
+
+There need to be 3 empty lines between functions as per section 4.2. (this includes comments)
+
+There need to be 2 empty lines between [header variables] and function code as per section 4.3.
