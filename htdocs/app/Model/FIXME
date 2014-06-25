@@ -1,0 +1,19 @@
+ClientRealm.php
+ - SQL issues, not escaped, return on $res =
+
+GroupAttribute.php
+ - Line too long
+
+GroupMember.php
+ - SQL not escaped
+
+RealmAttribute.php
+ - Line too long
+
+ ... ...
+
+Check all lines for lengh
+
+Check ALL SQL is being escaped
+
+Many methods have $res = , but no error check
