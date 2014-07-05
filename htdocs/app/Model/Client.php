@@ -2,6 +2,9 @@
 /**
  * Client Model
  *
+ * @class Client
+ *
+ * @brief This class manage default table and validation.
  */
 
 class Client extends AppModel
