@@ -1,13 +1,17 @@
 <?php
 /**
  * Group Attribute
+ *
+ * @class GroupAttributesController
+ *
+ * @brief This class manage the group attributes.
  */
 class  GroupAttributesController extends AppController {
 
-	/* index function
+	/**
+	 * @method index
 	 * @param  $groupId
-	 * Functon loads list of group attributes with pagination
-	 *
+	 * This method is used to load list of group attributes with pagination.
 	 */
 	public function index($groupId){
 		if (isset($groupId)){
@@ -25,10 +29,10 @@ class  GroupAttributesController extends AppController {
 		}
 	}
 
-	/* add function
+	/**
+	 * @method add
 	 * @param $groupId
-	 * Function used to add group attributes.
-	 *
+	 * This method is used to add group attributes.
 	 */
 	public function add($groupId){
 		$this->set('groupId', $groupId);
@@ -47,10 +51,11 @@ class  GroupAttributesController extends AppController {
 		}
 	}
 
-	/* edit function
-	 * @param $id, $groupId
-	 * Function used to edit group attributes.
-	 *
+	/**
+	 * @method edit
+	 * @param $id
+	 * @param $groupId
+	 * This method is used to edit group attributes.
 	 */
 	public function edit($id, $groupId){
 		// Assigning group attribues values find by id to var.
@@ -70,10 +75,11 @@ class  GroupAttributesController extends AppController {
 		}
 	}
 
-	/* remove function
-	 * @param $id, $groupId
-	 * Function used to delete group attributes.
-	 *
+	/**
+	 * @method remove
+	 * @param $id
+	 * @param $groupId
+	 * This method is used to delete group attributes.
 	 */
 	public function remove($id, $groupId){
 		if (isset($id)){
