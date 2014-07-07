@@ -2,12 +2,16 @@
 /**
  * Wisp User Logs
  *
+ * @class WispUserLogsController
+ *
+ * @brief This class manage the wisp user's log.
  */
 class WispUserLogsController extends AppController
 {
-	/* index function
+	/**
+	 * @method index
 	 * @param $userId
-	 * Used to load user logs data list.
+	 * This method is used to load wisp user logs data list.
 	 */
 	public function index($userId)
 	{
