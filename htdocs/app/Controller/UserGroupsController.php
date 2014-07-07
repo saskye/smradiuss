@@ -2,15 +2,18 @@
 /**
  * User Groups
  *
+ * @class UserGroupsController
+ *
+ * @brief This class manage groups for user.
  */
 class UserGroupsController extends AppController {
 
 	public $use = array('Users');
 
-	/* index function
+	/**
+	 * @method index
 	 * @param $userId
-	 * Showing used group list with pagination.
-	 *
+	 * This method is used to show user groups list with pagination.
 	 */
 	public function index($userId)
 	{
@@ -41,9 +44,10 @@ class UserGroupsController extends AppController {
 		}
 	}
 
-	/* add function
+	/**
+	 * @method add
 	 * @param $userId
-	 * Function to add user groups.
+	 * This method is used to add user groups.
 	 */
 	public function add($userId)
 	{
@@ -84,9 +88,11 @@ class UserGroupsController extends AppController {
 		}
 	}
 
-	/* remove function
-	 * @param $id, $userId
-	 * Used to delete user groups
+	/**
+	 * @method remove
+	 * @param $id
+	 * @param $userId
+	 * This method is used to delete user groups.
 	 */
 	public function remove($id, $userId){
 		if (isset($id)){
