@@ -2,14 +2,17 @@
 /**
  * User topups
  *
+ * @class UserTopupsController
+ *
+ * @brief This class manage topups for user.
  */
 class UserTopupsController extends AppController {
 
 	public $use = array('Users');
-	/* index function
+	/**
+	 * @method index
 	 * @param $userId
-	 * Used to show user topups list with pagination.
-	 *
+	 * This method is used to show user topups list with pagination.
 	 */
 	public function index($userId)
 	{
@@ -25,10 +28,10 @@ class UserTopupsController extends AppController {
 		}
 	}
 
-	/* add function
+	/**
+	 * @method add
 	 * @param $userId
-	 * Used to add user topups
-	 *
+	 * This method is used to add user topups.
 	 */
 	public function add($userId)
 	{
@@ -58,10 +61,11 @@ class UserTopupsController extends AppController {
 		}
 	}
 
-	/* edit function
-	 * @param $id, $userId
-	 * Used to edit user topups
-	 *
+	/**
+	 * @method edit
+	 * @param $id
+	 * @param $userId
+	 * This method is used to edit user topups.
 	 */
 	public function edit($id, $userId){
 		// Loading topup data from user Id.
@@ -87,10 +91,11 @@ class UserTopupsController extends AppController {
 		}
 	}
 
-	/* remove function
-	 * @param $id, $userId
-	 * Used to delete user topups.
-	 *
+	/**
+	 * @method remove
+	 * @param $id
+	 * @param $userId
+	 * This method is used to delete user topups.
 	 */
 	public function remove($id, $userId){
 		if (isset($id)){
