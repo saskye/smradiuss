@@ -2,12 +2,15 @@
 /**
  * Realms
  *
+ * @class RealmsController
+ *
+ * @brief This class manage the realms.
  */
 class RealmsController extends AppController
 {
-	/* index function
-	 * Function used to show realms list with pagination.
-	 *
+	/**
+	 * @method index
+	 * This method is used to show realms list with pagination.
 	 */
 	public function index()
 	{
@@ -17,9 +20,9 @@ class RealmsController extends AppController
 		$this->set('realm', $realm);
 	}
 
-	/* add function
-	 * Used to add realms.
-	 *
+	/**
+	 * @method add
+	 * This method is used to add realms.
 	 */
 	public function add(){
 		if ($this->request->is('post')){
@@ -34,10 +37,10 @@ class RealmsController extends AppController
 		}
 	}
 
-	/* edit function
+	/**
+	 * @method edit
 	 * @param $id
-	 * Function used to edit realms.
-	 *
+	 * This method is used to edit realms.
 	 */
 	public function edit($id){
 		// Fetch record and set to variable.
@@ -59,10 +62,10 @@ class RealmsController extends AppController
 		}
 	}
 
-	/* remove function
+	/**
+	 * @method remove
 	 * @param $id
-	 * Function usedto delete realms.
-	 *
+	 * This method is used to delete realms.
 	 */
 	public function remove($id){
 		// Deleting & check done or not.
