@@ -1,14 +1,17 @@
 <?php
 /**
- * User Attribute
+ * User Attributes
  *
+ * @class UserAttributesController
+ *
+ * @brief This class manage the attributes for users.
  */
 class UserAttributesController extends AppController {
 
-	/* index function
+	/**
+	 * @method index
 	 * @param $userId
-	 * Function to show list of user attributes with pagination.
-	 *
+	 * This method is used to show list of user attributes with pagination.
 	 */
 	public function index($userId){
 		if (isset($userId)){
@@ -25,8 +28,10 @@ class UserAttributesController extends AppController {
 		}
 	}
 
-	/* add function
+	/**
+	 * @method add
 	 * @param $userId
+	 * This method is used to add users attributes.
 	 */
 	public function add($userId){
 		$this->set('userId', $userId);
@@ -45,10 +50,11 @@ class UserAttributesController extends AppController {
 		}
 	}
 
-	/* edit function
-	 * @param $id, $userId
-	 * Function used to edit users attributes.
-	 *
+	/**
+	 * @method edit
+	 * @param $id
+	 * @param $userId
+	 * This method is used to edit users attributes.
 	 */
 	public function edit($id, $userId){
 		$userAttribute = $this->UserAttribute->findById($id);
@@ -65,10 +71,11 @@ class UserAttributesController extends AppController {
 			}
 		}
 	}
-	/* remove function
-	 * @param $id, $userId
-	 * Function used to delete users attributes.
-	 *
+	/**
+	 * @method remove
+	 * @param $id
+	 * @param $userId
+	 * This method is used to delete users attributes.
 	 */
 	public function remove($id, $userId){
 		if (isset($id)){
