@@ -1,11 +1,18 @@
 <?php
+/**
+ * Users
+ *
+ * @class UsersController
+ *
+ * @brief This class manage users.
+ */
 class UsersController extends AppController {
 
 	public $use = array('UserAttribute');
 
-	/* index function
-	 * Showing users list with pagination.
-	 *
+	/**
+	 * @method index
+	 * This method is used to show users list with pagination.
 	 */
 	public function index(){
 		$this->User->recursive = -1;
@@ -14,9 +21,9 @@ class UsersController extends AppController {
 		$this->set('users', $users);
 	}
 
-	/* add function
-	 * Adding users data.
-	 *
+	/**
+	 * @method add
+	 * This method is used to add users.
 	 */
 
 	public function add(){
@@ -32,9 +39,10 @@ class UsersController extends AppController {
 		}
 	}
 
-	/* edit function
+	/**
+	 * @method edit
 	 * @param $id
-	 * Editing users data.
+	 * This method is used to edit users.
 	 */
 	public function edit($id){
 		// Finding users data and assigning to var $user.
@@ -59,10 +67,10 @@ class UsersController extends AppController {
 		}
 	}
 
-	/* remove function
+	/**
+	 * @method remove
 	 * @param $id
-	 * Function used to delete users data.
-	 *
+	 * This method is used to delete users.
 	 */
 	public function remove($id){
 		// Deleting & checking done or not.
