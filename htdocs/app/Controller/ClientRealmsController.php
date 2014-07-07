@@ -2,18 +2,21 @@
 /**
  * Client Realms
  *
+ * @class ClientRealmsController
+ *
+ * @brief This class manage the client realms.
  */
 
 class ClientRealmsController extends AppController {
 
-	/* index function
+	/**
+	 * @method index
 	 * @param $clientID
-	 * Functon loads client realms list with pagination
-	 *
+	 * This method is used to loads client realms list with pagination.
 	 */
 	public function index($clientID){
 		if (isset($clientID)){
-			// Fetching records with  pagination.
+			// Fetching records with pagination.
 			$this->paginate = array(
 			'limit' => PAGINATION_LIMIT,
 			'conditions' => array('ClientID' => $clientID)
@@ -40,10 +43,10 @@ class ClientRealmsController extends AppController {
 		}
 	}
 
-	/* add function
+	/**
+	 * @method add
 	 * @param $clientID
-	 * Function used to add client realms.
-	 *
+	 * This method is used to add client realms.
 	 */
 	public function add($clientID){
 		if (isset($clientID))
@@ -74,10 +77,11 @@ class ClientRealmsController extends AppController {
 		}
 	}
 
-	/* remove function
-	 * @param $id , $clientID
-	 * Function used to delete client realms when clientID and id is matched.
-	 *
+	/**
+	 * @method remove
+	 * @param $id
+	 * @param $clientID
+	 * This method is used to delete client realms.
 	 */
 	public function remove($id, $clientID){
 		if (isset($id)){
