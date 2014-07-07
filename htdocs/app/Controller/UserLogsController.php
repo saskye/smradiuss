@@ -2,13 +2,16 @@
 /**
  * User Logs
  *
+ * @class UserLogsController
+ *
+ * @brief This classs manage the user's logs.
  */
 class UserLogsController extends AppController
 {
-	/* index function
+	/**
+	 * @method index
 	 * @param $userId
-	 * Used to show user logs list with pagination.
-	 *
+	 * This method is used to show user logs list with pagination.
 	 */
 	public function index($userId)
 	{
