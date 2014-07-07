@@ -2,13 +2,16 @@
 /**
  * Realm Members
  *
+ * @class RealmMembersController
+ *
+ * @brief This class manage the realms for members.
  */
 
 class RealmMembersController extends AppController {
-	/* index function
+	/**
+	 * @method index
 	 * @param $realmId
-	 * Function to show reamls members list with pagination
-	 *
+	 * This method is used to show reamls members list with pagination.
 	 */
 	public function index($realmID){
 		if (isset($realmID)){
@@ -39,10 +42,11 @@ class RealmMembersController extends AppController {
 		}
 	}
 
-	/* remove function
-	 * @param $id, $realmId
-	 * Function used to remove realms members.
-	 *
+	/**
+	 * @method remove
+	 * @param $id
+	 * @param $realmId
+	 * This method is used to remove realms members.
 	 */
 	public function remove($id, $realmID){
 		if (isset($id)){
