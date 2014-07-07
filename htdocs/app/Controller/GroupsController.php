@@ -1,12 +1,16 @@
 <?php
 /**
  * Groups
+ *
+ * @class GroupsController
+ *
+ * @brief This class manage the groups.
  */
 class GroupsController extends AppController {
 
-	/* index function
-	 * Function used for Showing group list with pagination
-	 *
+	/**
+	 * @method index
+	 * This method is used for Showing group list with pagination.
 	 */
 	public function index(){
 		$this->Group->recursive = -1;
@@ -15,9 +19,9 @@ class GroupsController extends AppController {
 		$this->set('groups', $groups);
 	}
 
-	/* add function
-	 * Function used to add groups.
-	 *
+	/**
+	 * @method add
+	 * This method is used to add groups.
 	 */
 	public function add(){
 		if ($this->request->is('post')){
@@ -33,10 +37,10 @@ class GroupsController extends AppController {
 		}
 	}
 
-	/* edit function
+	/**
+	 * @method edit
 	 * @param $id
-	 * Function used to edit groups.
-	 *
+	 * This method is used to edit groups.
 	 */
 	public function edit($id){
 		$group = $this->Group->findById($id);
@@ -59,10 +63,10 @@ class GroupsController extends AppController {
 		}
 	}
 
-	/* remove function
+	/**
+	 * @method remove
 	 * @param $id
-	 * Function used to delete group.
-	 *
+	 * This method is used to delete group.
 	 */
 	public function remove($id){
 		// Deleting
