@@ -19,25 +19,30 @@
 
 
 /**
- * Groups Member
+ * Group Member
  *
+ * @class GroupMemberController
+ *
+ * @brief This class manage the groups for member.
  */
 class GroupMemberController extends AppController
 {
-	/* included users table
-	 *
+
+	/**
+	 * @var $use
+	 * This variable is used for including Users table.
 	 */
 	public $use = array('Users');
 
-	/* index function
+
+	/**
+	 * @method index
 	 * @param $groupID
-	 * Functon loads list of group members with pagination
-	 *
+	 * This method is used for fetching list of group members with pagination.
 	 */
 	public function index($groupID)
 	{
-		if (isset($groupID))
-		{
+		if (isset($groupID)) {
 			$this->GroupMember->recursive = 0;
 			$this->paginate = array(
 				'limit' => PAGINATION_LIMIT,
@@ -51,8 +56,7 @@ class GroupMemberController extends AppController
 			foreach($GroupMember as $groupMember)
 			{
 				$userName = $this->GroupMember->getUserNameById($groupMember['GroupMember']['UserID']);
-				if(isset($userName[0]['users']['Username']))
-				{
+				if(isset($userName[0]['users']['Username'])) {
 					$groupMember['GroupMember']['UserName'] = $userName[0]['users']['Username'];
 				}
 				$UserNameData[] = $groupMember;
@@ -64,14 +68,17 @@ class GroupMemberController extends AppController
 		}
 	}
 
-	/* remove function
-	 * @param $id, $groupID
-	 * Function used to delete group member.
 
+
+	/**
+	 * @method remove
+	 * @param $id
+	 * @param $groupID
+	 * This method is used to delete group member.
 	 */
 	public function remove($id, $groupID){
-		if (isset($id)){
-			if($this->GroupMember->delete($id)){
+		if (isset($id)) {
+			if($this->GroupMember->delete($id)) {
 				$this->redirect('/group_member/index/'.$groupID);
 				$this->Session->setFlash(__('Removed from this group succefully!', true), 'flash_success');
 			} else {
