@@ -19,14 +19,19 @@
 
 
 /*
- * wisp location member
+ * Wisp location member
+ *
+ * @class WispLocationMembersController
+ *
+ * @brief This class manages location for wisp members.
  */
 class WispLocationMembersController extends AppController
 {
-	/* index function
+
+	/**
+	 * @method index
 	 * @param $LocationID
-	 * Used to show members location with pagination.
-	 *
+	 * This method is used to show members location with pagination.
 	 */
 	public function index($LocationID)
 	{
@@ -42,8 +47,7 @@ class WispLocationMembersController extends AppController
 			$userNameData= $this->WispLocationMember->selectUsername($wMember['WispLocationMember']['UserID']);
 			foreach($userNameData as $uData)
 			{
-				if(isset($uData['users']['Username']))
-				{
+				if(isset($uData['users']['Username'])) {
 					$wMember['WispLocationMember']['userName'] = $userNameData[0]['users']['Username'];
 				}
 				$memberData[] = $wMember;
@@ -54,10 +58,13 @@ class WispLocationMembersController extends AppController
 		$this->set('LocationID', $LocationID);
 	}
 
-	/* remove function
-	 * @param $id, $LocationID
-	 * used to delete members locations.
-	 *
+
+
+	/**
+	 * @method remove
+	 * @param $id
+	 * @param $LocationID
+	 * This method is used to delete members locations.
 	 */
 	public function remove($id, $LocationID)
 	{
