@@ -20,12 +20,17 @@
 
 /**
  * Client
+ *
+ * @class ClientsController
+ *
+ * @brief This class manages clients.
  */
 class ClientsController extends AppController
 {
-	/* index function
-	 * Functon loads list of clients with pagination
-	 *
+
+	/**
+	 * @method index
+	 * This method is used for fetching list of clients with pagination.
 	 */
 	public function index()
 	{
@@ -35,12 +40,15 @@ class ClientsController extends AppController
 		$this->set('client', $client);
 	}
 
-	/* add function
-	 * Functon used to add clients.
-	 *
+
+
+	/**
+	 * @method add
+	 * This method is used to add clients.
 	 */
-	public function add(){
-		if ($this->request->is('post')){
+	public function add()
+	{
+		if ($this->request->is('post')) {
 			$this->Client->set($this->request->data);
 			if ($this->Client->validates()) {
 			    $this->Client->save($this->request->data);
@@ -51,16 +59,19 @@ class ClientsController extends AppController
 		}
 	}
 
-	/* edit function
+
+
+	/**
+	 * @method edit
 	 * @param $id
-	 * Function used to edit clients.
-	 *
+	 * This method is used to edit clients.
 	 */
-	public function edit($id){
+	public function edit($id)
+	{
 		// Assigning client data to var.
 		$client = $this->Client->findById($id);
 		$this->set('client', $client);
-		if ($this->request->is('post')){
+		if ($this->request->is('post')) {
 			$this->Client->set($this->request->data);
 			if ($this->Client->validates()) {
 				$this->Client->id = $id;
@@ -72,13 +83,16 @@ class ClientsController extends AppController
 		}
 	}
 
-	/* remoce function
+
+
+	/**
+	 * @method remove
 	 * @param $id
-	 * Function used to delete clients.
-	 *
+	 * This method is used to delete clients.
 	 */
-	public function remove($id){
-		if($this->Client->delete($id)){
+	public function remove($id)
+	{
+		if ($this->Client->delete($id)) {
 			$this->redirect('/clients/index');
 			$this->Session->setFlash(__('Client is removed succefully!', true), 'flash_success');
 		} else {
