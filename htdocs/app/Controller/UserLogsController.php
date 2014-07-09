@@ -23,10 +23,11 @@
  *
  * @class UserLogsController
  *
- * @brief This classs manage the user's logs.
+ * @brief This class manages the user's logs.
  */
 class UserLogsController extends AppController
 {
+
 	/**
 	 * @method index
 	 * @param $userId
@@ -34,8 +35,7 @@ class UserLogsController extends AppController
 	 */
 	public function index($userId)
 	{
-		if (isset($userId))
-		{
+		if (isset($userId)) {
 			// Creating current month & year date.
 			$current = date('Y-m').'-01';
 			// Fetched data form topups table.
@@ -44,8 +44,7 @@ class UserLogsController extends AppController
 			$this->set('userId', $userId);
 
 			// For searching topups month and year wise.
-			if ($this->request->is('post'))
-			{
+			if ($this->request->is('post')) {
 				// Reading submitted data to variable.
 				$data = $this->request->data;
 				// Setting data to model.
@@ -61,7 +60,7 @@ class UserLogsController extends AppController
 			$userName = $username[0]['users']['Username'];
 
 			$this->paginate = array(
-                'limit' => PAGINATION_LIMIT,
+				'limit' => PAGINATION_LIMIT,
 				'conditions' => array('Username' => $userName)
 			);
 			$userAcc  = $this->paginate();
