@@ -23,17 +23,19 @@
  *
  * @class RealmMembersController
  *
- * @brief This class manage the realms for members.
+ * @brief This class manages the realms for members.
  */
+class RealmMembersController extends AppController
+{
 
-class RealmMembersController extends AppController {
 	/**
 	 * @method index
-	 * @param $realmId
-	 * This method is used to show reamls members list with pagination.
+	 * @param $realmID
+	 * This method is used to show realms members list with pagination.
 	 */
-	public function index($realmID){
-		if (isset($realmID)){
+	public function index($realmID)
+	{
+		if (isset($realmID)) {
 			// Getting list with pagination.
 			$this->paginate = array(
                 'limit' => PAGINATION_LIMIT,
@@ -43,11 +45,10 @@ class RealmMembersController extends AppController {
 			$realmMembersData =array();
 
 			// Generating final array.
-			foreach($realmMembers as $realmMember)
-			{
+			foreach ($realmMembers as $realmMember) {
 				$clientData = $this->RealmMember->getClientNameById($realmMember['RealmMember']['ClientID']);
-				if(isset($clientData[0]['clients']['Name']))
-				{
+
+				if (isset($clientData[0]['clients']['Name'])) {
 					$realmMember['RealmMember']['clientName'] = $clientData[0]['clients']['Name'];
 				}
 				$realmMembersData[] = $realmMember;
@@ -61,15 +62,18 @@ class RealmMembersController extends AppController {
 		}
 	}
 
+
+
 	/**
 	 * @method remove
 	 * @param $id
-	 * @param $realmId
+	 * @param $realmID
 	 * This method is used to remove realms members.
 	 */
-	public function remove($id, $realmID){
-		if (isset($id)){
-			if($this->RealmMember->delete($id)){
+	public function remove($id, $realmID)
+	{
+		if (isset($id)) {
+			if ($this->RealmMember->delete($id)) {
 				$this->redirect('/realm_members/index/'.$realmID);
 				$this->Session->setFlash(__('Realm member is removed succefully!', true), 'flash_success');
 			} else {
