@@ -23,32 +23,42 @@
  *
  * @class UsersController
  *
- * @brief This class manage users.
+ * @brief This class manages users.
  */
-class UsersController extends AppController {
+class UsersController extends AppController
+{
 
+	/**
+	 * @var $use
+	 * This variable is used for including UserAttribute table.
+	 */
 	public $use = array('UserAttribute');
+
 
 	/**
 	 * @method index
 	 * This method is used to show users list with pagination.
 	 */
-	public function index(){
+	public function index()
+	{
 		$this->User->recursive = -1;
 		$this->paginate = array('limit' => PAGINATION_LIMIT );
 		$users = $this->paginate();
 		$this->set('users', $users);
 	}
 
+
+
 	/**
 	 * @method add
 	 * This method is used to add users.
 	 */
-
-	public function add(){
-		if ($this->request->is('post')){
+	public function add()
+	{
+		if ($this->request->is('post')) {
 			$this->request->data['User']['Disabled'] = intval($this->request->data['User']['Disabled']);
 			$this->User->set($this->request->data);
+
 			if ($this->User->validates()) {
 			    $this->User->save($this->request->data);
 				$this->Session->setFlash(__('User is saved succefully!', true), 'flash_success');
@@ -58,19 +68,24 @@ class UsersController extends AppController {
 		}
 	}
 
+
+
 	/**
 	 * @method edit
 	 * @param $id
 	 * This method is used to edit users.
 	 */
-	public function edit($id){
+	public function edit($id)
+	{
 		// Finding users data and assigning to var $user.
 		$user = $this->User->findById($id);
 		$this->set('user', $user);
+
 		// Checking button is clicked or not.
-		if ($this->request->is('post')){
+		if ($this->request->is('post')) {
 			$this->request->data['User']['Disabled'] = intval($this->request->data['User']['Disabled']);
 			$this->User->set($this->request->data);
+
 			// Validating submitted data.
 			if ($this->User->validates()) {
 				$this->User->id = $id;
@@ -86,14 +101,17 @@ class UsersController extends AppController {
 		}
 	}
 
+
+
 	/**
 	 * @method remove
 	 * @param $id
 	 * This method is used to delete users.
 	 */
-	public function remove($id){
+	public function remove($id)
+	{
 		// Deleting & checking done or not.
-		if($this->User->delete($id)){
+		if ($this->User->delete($id)) {
 			// Deleting user reference data from other db tables.
 			$this->User->deleteUserRef($id);
 			// Redirecting users to index function.
