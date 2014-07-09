@@ -18,15 +18,19 @@
 
 
 
-/*
- * wisp location
+/**
+ * Wisp locations
+ *
+ * @class WispLocationsController
+ *
+ * @brief This class manages locations.
  */
 class WispLocationsController extends AppController
 {
-	/* index function
-	 * @param $LocationID
-	 * Used to show all location with pagination.
-	 *
+
+	/**
+	 * @method index
+	 * This method is used to show all locations with pagination.
 	 */
 	public function index()
 	{
@@ -37,15 +41,16 @@ class WispLocationsController extends AppController
 		$this->set('wispLocation', $wispLocation);
 	}
 
-	/* add function
-	 * Used to add locations.
-	 *
+
+
+	/**
+	 * @method add
+	 * This method is used to add locations.
 	 */
 	public function add()
 	{
 		// Checking submission.
-		if ($this->request->is('post'))
-		{
+		if ($this->request->is('post')) {
 			// Setting data to model.
 			$this->WispLocation->set($this->request->data);
 			// Validating submitted data.
@@ -58,17 +63,20 @@ class WispLocationsController extends AppController
 		}
 	}
 
-	/* edit function
+
+
+	/**
+	 * @method edit
 	 * @param $id
-	 * Used to edit locations
-	 *
+	 * This method is used to edit locations.
 	 */
-	public function edit($id){
+	public function edit($id)
+	{
 		// Finding location from id and assigning to variable.
 		$location = $this->WispLocation->findById($id);
 		$this->set('location', $location);
 		// Checking submission.
-		if ($this->request->is('post')){
+		if ($this->request->is('post')) {
 			// Setting submitted data.
 			$this->WispLocation->set($this->request->data);
 			// Validating submitted data.
@@ -83,14 +91,17 @@ class WispLocationsController extends AppController
 		}
 	}
 
-	/* remove function
+
+
+	/**
+	 * @method remove
 	 * @param $id
-	 * used to delete locations.
-	 *
+	 * This method is used to delete locations.
 	 */
-	public function remove($id){
+	public function remove($id)
+	{
 		// Deleting
-		if($this->WispLocation->delete($id)){
+		if ($this->WispLocation->delete($id)) {
 			// Redirecting to index.
 			$this->redirect('/WispLocations/index');
 			$this->Session->setFlash(__('Wisp Locations is removed succefully!', true), 'flash_success');
