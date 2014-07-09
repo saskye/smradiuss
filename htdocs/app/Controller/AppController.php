@@ -36,8 +36,8 @@ App::uses('Controller', 'Controller');
  *		  will inherit them.
  * @package app.Controller
  */
-
-class AppController extends Controller {
+class AppController extends Controller
+{
 	public $components = array('DebugKit.Toolbar', 'Session','Cookie');
 }
 
