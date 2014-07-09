@@ -23,22 +23,24 @@
  *
  * @class UserAttributesController
  *
- * @brief This class manage the attributes for users.
+ * @brief This class manages the attributes for users.
  */
-class UserAttributesController extends AppController {
+class UserAttributesController extends AppController
+{
 
 	/**
 	 * @method index
 	 * @param $userId
 	 * This method is used to show list of user attributes with pagination.
 	 */
-	public function index($userId){
-		if (isset($userId)){
+	public function index($userId)
+	{
+		if (isset($userId)) {
 			$this->UserAttribute->recursive = 0;
 			$this->paginate = array(
-                'limit' => PAGINATION_LIMIT,
+				'limit' => PAGINATION_LIMIT,
 				'conditions' => array('UserAttribute.UserID' => $userId)
-				 );
+			);
 			$userAttributes  = $this->paginate();
 			$this->set('userAttributes', $userAttributes);
 			$this->set('userId', $userId);
@@ -47,27 +49,34 @@ class UserAttributesController extends AppController {
 		}
 	}
 
+
+
 	/**
 	 * @method add
 	 * @param $userId
 	 * This method is used to add users attributes.
 	 */
-	public function add($userId){
+	public function add($userId)
+	{
 		$this->set('userId', $userId);
-		if ($this->request->is('post')){
-				$this->request->data['UserAttribute']['Disabled'] = intval($this->request->data['UserAttribute']['Disabled']);
-				$this->request->data['UserAttribute']['UserID'] = intval($this->request->params['pass'][0]);
-				$this->UserAttribute->set($this->request->data);
-				// Validating
-				if ($this->UserAttribute->validates()) {
-					// Saving
-					$this->UserAttribute->save($this->request->data);
-					$this->Session->setFlash(__('User attribute is saved succefully!', true), 'flash_success');
-				} else {
-					$this->Session->setFlash(__('User attribute is not saved succefully!', true), 'flash_failure');
-				}
+
+		if ($this->request->is('post')) {
+			$this->request->data['UserAttribute']['Disabled'] = intval($this->request->data['UserAttribute']['Disabled']);
+			$this->request->data['UserAttribute']['UserID'] = intval($this->request->params['pass'][0]);
+			$this->UserAttribute->set($this->request->data);
+
+			// Validating
+			if ($this->UserAttribute->validates()) {
+				// Saving
+				$this->UserAttribute->save($this->request->data);
+				$this->Session->setFlash(__('User attribute is saved succefully!', true), 'flash_success');
+			} else {
+				$this->Session->setFlash(__('User attribute is not saved succefully!', true), 'flash_failure');
+			}
 		}
 	}
+
+
 
 	/**
 	 * @method edit
@@ -75,12 +84,15 @@ class UserAttributesController extends AppController {
 	 * @param $userId
 	 * This method is used to edit users attributes.
 	 */
-	public function edit($id, $userId){
+	public function edit($id, $userId)
+	{
 		$userAttribute = $this->UserAttribute->findById($id);
 		$this->set('userAttribute', $userAttribute);
-		if ($this->request->is('post')){
+
+		if ($this->request->is('post')) {
 			$this->request->data['UserAttribute']['Disabled'] = intval($this->request->data['UserAttribute']['Disabled']);
 			$this->UserAttribute->set($this->request->data);
+
 			if ($this->UserAttribute->validates()) {
 				$this->UserAttribute->id = $id;
 			    $this->UserAttribute->save($this->request->data);
@@ -90,16 +102,20 @@ class UserAttributesController extends AppController {
 			}
 		}
 	}
+
+
+
 	/**
 	 * @method remove
 	 * @param $id
 	 * @param $userId
 	 * This method is used to delete users attributes.
 	 */
-	public function remove($id, $userId){
-		if (isset($id)){
+	public function remove($id, $userId)
+	{
+		if (isset($id)) {
 			// Deleting and checking.
-			if($this->UserAttribute->delete($id)){
+			if ($this->UserAttribute->delete($id)) {
 				// Redirecting to index.
 				$this->redirect('/user_attributes/index/'.$userId);
 				$this->Session->setFlash(__('User is removed succefully!', true), 'flash_success');
