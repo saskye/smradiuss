@@ -19,14 +19,18 @@
 
 
 /**
- * Client Attribute Model
+ * @class ClientAttribute
  *
+ * @brief This class manages default table and validation.
  */
-
 class ClientAttribute extends AppModel
 {
-	public $useTable = 'client_attributes';
 
+	/**
+	 * @var $useTable
+	 * This variable is used for including table.
+	 */
+	public $useTable = 'client_attributes';
 
 
 	// Validating form controllers.
@@ -35,7 +39,7 @@ class ClientAttribute extends AppModel
 			'required' => array(
 				'rule' => array('notEmpty'),
 				'message' => 'Please enter value')
-			),
+		),
 		'Value' => array(
 			'required' => array(
 				'rule' => array('notEmpty'),
@@ -43,9 +47,6 @@ class ClientAttribute extends AppModel
 			)
 		)
 	);
-
-
-
 }
 
 
