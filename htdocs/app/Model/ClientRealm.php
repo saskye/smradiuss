@@ -19,17 +19,21 @@
 
 
 /**
- * Client Realm Model
+ * @class ClientRealm
  *
+ * @brief This class manages default table, validation and method.
  */
-
 class ClientRealm extends AppModel
 {
+
+	/**
+	 * @var $useTable
+	 * This variable is used for including table.
+	 */
 	public $useTable = 'clients_to_realms';
 
 
-
-	//Validating form controller.
+	// Validating form controller.
 	public $validate = array(
 		'Type' => array(
 			'required' => array(
@@ -41,31 +45,59 @@ class ClientRealm extends AppModel
 
 
 
-	// Fetch realms for select box controler.
+	/**
+	 * @method selectRealms
+	 * This method is used for fetch realms data.
+	 * @return $res
+	 */
 	public function selectRealms()
 	{
-		return $res = $this->query("SELECT ID, Name FROM realms");
+		try {
+			$res = $this->query("SELECT ID, Name FROM realms");
+		} catch (exception $ex) {
+			throw new exception('Error in query.');
+		}
+		return $res;
 	}
 
 
 
-	// Insert record in table.
+	/**
+	 * @method insertRec
+	 * @param $clientID
+	 * @param $data
+	 * This method is used for insert record in table.
+	 */
 	public function insertRec($clientID, $data)
 	{
-		$res = $this->query("
-			INSERT INTO clients_to_realms
-				(ClientID,RealmID)
-			VALUES
-				('".$clientID."','".$data['ClientRealm']['Type']."')
-		");
+		try {
+			$res = $this->query("
+				INSERT INTO clients_to_realms
+					(ClientID,RealmID)
+				VALUES
+					('".$clientID."','".$data['ClientRealm']['Type']."')
+			");
+		} catch (exception $ex) {
+			throw new exception('Error in query.');
+		}
 	}
 
 
 
-	// Get realms name via realms id.
+	/**
+	 * @method getRealmsById
+	 * @param $realmID
+	 * This method is used for get realms name.
+	 * @return $res
+	 */
 	public function getRealmsById($realmID)
 	{
-		return $res = $this->query("select Name from realms where ID = ".$realmID);
+		try {
+			$res = $this->query("SELECT Name FROM realms WHERE ID = ".$realmID);
+		} catch (exception $ex) {
+			throw new exception('Error in query.');
+		}
+		return $res;
 	}
 }
 
