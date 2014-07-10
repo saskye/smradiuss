@@ -19,11 +19,10 @@
 
 
 /**
- * Group Model
- *
+ * @class Group
  */
-
-class Group extends AppModel {
+class Group extends AppModel
+{
 }
 
 
