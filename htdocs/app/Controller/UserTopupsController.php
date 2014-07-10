@@ -23,11 +23,11 @@
  *
  * @class UserTopupsController
  *
- * @brief This class manage topups for user.
+ * @brief This class manages topups for user.
  */
-class UserTopupsController extends AppController {
+class UserTopupsController extends AppController
+{
 
-	public $use = array('Users');
 	/**
 	 * @method index
 	 * @param $userId
@@ -35,17 +35,19 @@ class UserTopupsController extends AppController {
 	 */
 	public function index($userId)
 	{
-		if (isset($userId)){
+		if (isset($userId)) {
 			$this->UserTopup->recursive = 0;
 			$this->paginate = array(
-                'limit' => PAGINATION_LIMIT,
+				'limit' => PAGINATION_LIMIT,
 				'conditions' => array('UserID' => $userId)
-				 );
+			);
 			$topups  = $this->paginate();
 			$this->set('topups', $topups);
 			$this->set('userId', $userId);
 		}
 	}
+
+
 
 	/**
 	 * @method add
@@ -54,31 +56,26 @@ class UserTopupsController extends AppController {
 	 */
 	public function add($userId)
 	{
-		if (isset($userId))
-		{
+		if (isset($userId)) {
 			$this->set('userId', $userId);
+
 			// Checking button submission.
-			if ($this->request->is('post'))
-			{
+			if ($this->request->is('post')) {
 				$this->UserTopup->set($this->request->data);
+
 				// Validating input.
-				if ($this->UserTopup->validates())
-				{
+				if ($this->UserTopup->validates()) {
 					// Saving data.
 			    	$this->UserTopup->InsertRec($userId,$this->request->data);
 					$this->Session->setFlash(__('User topup is saved succefully!', true), 'flash_success');
-				}
-				else
-				{
-			    	$this->Session->setFlash(__('User topup is not saved succefully!', true), 'flash_failure');
+				} else {
+					$this->Session->setFlash(__('User topup is not saved succefully!', true), 'flash_failure');
 				}
 			}
 		}
-		else
-		{
-
-		}
 	}
+
+
 
 	/**
 	 * @method edit
@@ -86,29 +83,33 @@ class UserTopupsController extends AppController {
 	 * @param $userId
 	 * This method is used to edit user topups.
 	 */
-	public function edit($id, $userId){
+	public function edit($id, $userId)
+	{
 		// Loading topup data from user Id.
 		$topups = $this->UserTopup->findById($id);
 		$this->set('topup', $topups);
 		$this->set('userId', $userId);
+
 		// Checking submission.
-		if ($this->request->is('post')){
+		if ($this->request->is('post')) {
 			// Setting data to model.
 			$this->UserTopup->set($this->request->data);
+
 			// Validating data.
 			if ($this->UserTopup->validates()) {
 				// Saving edited data.
 				$this->UserTopup->editRec($id, $this->request->data);
 				$this->Session->setFlash(__('User topup is saved succefully!', true), 'flash_success');
-
 				// For page reload to reflect new data.
 				$topups = $this->UserTopup->findById($id);
 				$this->set('topup', $topups);
 			} else {
-			    $this->Session->setFlash(__('User topup is not saved succefully!', true), 'flash_failure');
+				$this->Session->setFlash(__('User topup is not saved succefully!', true), 'flash_failure');
 			}
 		}
 	}
+
+
 
 	/**
 	 * @method remove
@@ -116,10 +117,11 @@ class UserTopupsController extends AppController {
 	 * @param $userId
 	 * This method is used to delete user topups.
 	 */
-	public function remove($id, $userId){
-		if (isset($id)){
+	public function remove($id, $userId)
+	{
+		if (isset($id)) {
 			// Deleting
-			if($this->UserTopup->delete($id)){
+			if ($this->UserTopup->delete($id)) {
 				$this->redirect('/user_topups/index/'.$userId);
 				$this->Session->setFlash(__('User topup is removed succefully!', true), 'flash_success');
 			} else {
