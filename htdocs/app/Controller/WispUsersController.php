@@ -18,15 +18,19 @@
 
 
 
-/*
+/**
  * Wisp Users
+ *
+ * @class WispUsersController
+ *
+ * @brief This class manages wisp users.
  */
-
 class WispUsersController extends AppController
 {
-	/* index function
-	 * Showing users list with pagination.
-	 *
+
+	/**
+	 * @method index
+	 * This method is used to showing wisp users list with pagination.
 	 */
 	public function index()
 	{
@@ -35,92 +39,76 @@ class WispUsersController extends AppController
 		// Assigning paginated data to var.
 		$wispUser = $this->paginate();
 		$wispUserData = array();
-
 		// Adding username and disabled to above array and generating final array.
-		foreach($wispUser as $wUsers)
-		{
+		foreach ($wispUser as $wUsers) {
 			$userData = $this->WispUser->selectById($wUsers['WispUser']['UserID']);
-
 			$wUsers['WispUser']['Username'] = $userData[0]['users']['Username'];
 			$wUsers['WispUser']['Disabled'] = $userData[0]['users']['Disabled'];
 			$wispUserData[] = $wUsers;
 		}
 
 		$wispUser = $wispUserData;
-		// setting data to use it on view page.
+		// Setting data to use it on view page.
 		$this->set('wispUser', $wispUser);
 	}
 
-	/* add function
-	 * Used to add users to database
-	 *
+
+
+	/**
+	 * @method add
+	 * This method is used to add wisp users.
 	 */
 	public function add()
 	{
 		// Fetching groups from table.
 		$groupItems = $this->WispUser->selectGroup();
 		$grouparr = $location = array();
-		foreach($groupItems as $val)
-		{
+		foreach ($groupItems as $val) {
 			$grouparr[$val['groups']['ID']] = $val['groups']['Name'];
 		}
-		$this->set('grouparr', $grouparr);
-		// Fetching locations from table
-		$locationData = $this->WispUser->selectLocation();
 
-		foreach($locationData as $loc)
-		{
+		$this->set('grouparr', $grouparr);
+		// Fetching locations from table.
+		$locationData = $this->WispUser->selectLocation();
+		foreach ($locationData as $loc) {
 			$location[$loc['wisp_locations']['ID']] = $loc['wisp_locations']['Name'];
 		}
-		$this->set('location', $location);
 
+		$this->set('location', $location);
 		$userData[] = array();
 		// Checking submission.
-		if ($this->request->is('post'))
-		{
+		if ($this->request->is('post')) {
 			$requestData = $this->WispUser->set($this->request->data);
-			// Checking wisp number field is set or not
-			if(!$requestData['WispUser']['Number'])
-			{
+			// Checking wisp number field is set or not.
+			if (!$requestData['WispUser']['Number']) {
 				// Validationg submitted data.
-				if($this->WispUser->validates())
-				{
+				if ($this->WispUser->validates()) {
 					$addUser = $this->WispUser->insertUsername($requestData['WispUser']['Username']);
-					foreach($addUser as $userId)
-					{
+					foreach ($addUser as $userId) {
 						$requestData['WispUser']['UserId'] = $userId[0]['id'];
 					}
 
 					// Password attribute is inserted to table.
 					$insertValue = $this->WispUser->addValue($requestData['WispUser']['UserId'],'User-Password', '2', $requestData['WispUser']['Password'],'');
-
-					// Inserting groups
-					if(isset($requestData['groupId']))
-					{
-						foreach($requestData['groupId'] as $groupID)
-						{
+					// Inserting groups.
+					if (isset($requestData['groupId'])) {
+						foreach ($requestData['groupId'] as $groupID) {
 							$addUserGroup = $this->WispUser->insertUserGroup($requestData['WispUser']['UserId'], $groupID);
 						}
 					}
-					//end of group insertion.
+					// End of group insertion.
 
 					// Inserting attributes.
 					$count1 = '';
-					if(isset($requestData['attributeName']))
-					{
+					if (isset($requestData['attributeName'])) {
 						$i = 0;
 						$count1 = count($requestData['attributeName']);
-						for($i=0;$i<$count1;$i++)
-						{
-							if(isset($requestData['attributeModifier']))
-							{
+						for ($i=0;$i<$count1;$i++) {
+							if (isset($requestData['attributeModifier'])) {
 								$attrValues = $requestData['attributeValues'][$i];
-								if($requestData['attributeModifier'][$i] == '')
-								{
+								if ($requestData['attributeModifier'][$i] == '') {
 									$attrValue = $attrValues;
-								}
-								else
-								{
+								} else {
 									$attrValue = $this->switchModifier($requestData['attributeModifier'][$i],$attrValues);
 								}
 							}
@@ -128,64 +116,51 @@ class WispUsersController extends AppController
 							$addattribute = $this->WispUser->addValue($requestData['WispUser']['UserId'], $requestData['attributeName'][$i], $requestData['attributeoperator'][$i], $attrValue,$requestData['attributeModifier'][$i]);
 						}
 					}
-					// end of attribute insertion
+					// End of attribute insertion.
 
-					// Inserting data in wisp_userdata table
+					// Inserting data in wisp_userdata table.
 					$this->WispUser->insertRec($requestData);
 					$this->Session->setFlash(__('Wisp user is saved succefully!', true), 'flash_success');
-					} else {
-			  			$this->Session->setFlash(__('Wisp user is not saved!', true), 'flash_failure');
-					}
+				} else {
+		  			$this->Session->setFlash(__('Wisp user is not saved!', true), 'flash_failure');
 				}
-				// This sectiopn work,if number fields is inserted from add many tab option.
-				else
-				{
-					$numberCount = $requestData['WispUser']['Number'];
-					$prefix = $requestData['WispUser']['Prefix'];
-					// loop to add $numberCount number of users to system.
-					for($abc=0;$abc<$numberCount;$abc++)
-					{
-						// generating random username and password
-						list($user,$pass) = $this->randomUserName($prefix);
-						$requestData['WispUser']['Username'] = $user;
-						$requestData['WispUser']['Password'] = $pass;
-						// Saving username
-						$addUser = $this->WispUser->insertUsername($requestData['WispUser']['Username']);
-						foreach($addUser as $userId)
-						{
-							$requestData['WispUser']['UserId'] = $userId[0]['id'];
+			} else {
+				// This section work, if number fields is inserted from add many tab option.
+				$numberCount = $requestData['WispUser']['Number'];
+				$prefix = $requestData['WispUser']['Prefix'];
+				// Loop to add $numberCount number of users to system.
+				for ($abc=0;$abc<$numberCount;$abc++) {
+					// Generating random username and password.
+					list($user,$pass) = $this->randomUserName($prefix);
+					$requestData['WispUser']['Username'] = $user;
+					$requestData['WispUser']['Password'] = $pass;
+					// Saving username.
+					$addUser = $this->WispUser->insertUsername($requestData['WispUser']['Username']);
+					foreach ($addUser as $userId) {
+						$requestData['WispUser']['UserId'] = $userId[0]['id'];
+					}
+					// Inserting groups.
+					if (isset($requestData['groupId'])) {
+						foreach ($requestData['groupId'] as $groupID) {
+							$addUserGroup = $this->WispUser->insertUserGroup($requestData['WispUser']['UserId'], $groupID);
 						}
-						//Inserting groups
-						if(isset($requestData['groupId']))
-						{
-							foreach($requestData['groupId'] as $groupID)
-							{
-								$addUserGroup = $this->WispUser->insertUserGroup($requestData['WispUser']['UserId'], $groupID);
-							}
-						}
-						// End of group insertion
+					}
+					// End of group insertion.
 
-						// Inserting password to user_attributes table.
-						$insertValue = $this->WispUser->addValue($requestData['WispUser']['UserId'],'User-Password', '2', $requestData['WispUser']['Password'],'');
-
-					// Inserting attributes
+					// Inserting password to user_attributes table.
+					$insertValue = $this->WispUser->addValue($requestData['WispUser']['UserId'],'User-Password', '2', $requestData['WispUser']['Password'],'');
+					// Inserting attributes.
 					$count1 = '';
-					if(isset($requestData['attributeName']))
-					{
+					if (isset($requestData['attributeName'])) {
 						$i = $abc;
 						$count1 = count($requestData['attributeName']);
-						for($i=0;$i<$count1;$i++)
-						{
-							if(isset($requestData['attributeModifier']))
-							{
+						for ($i=0;$i<$count1;$i++) {
+							if (isset($requestData['attributeModifier'])) {
 								$attrValues = $requestData['attributeValues'][$i];
-								if($requestData['attributeModifier'][$i] == '')
-								{
+								if ($requestData['attributeModifier'][$i] == '') {
 									$attrValue = $attrValues;
-								}
-								else
-								{
-									// calling switch modifier function and getting attribute value after processing.
+								} else {
+									// Calling switch modifier function and getting attribute value after processing.
 									$attrValue = $this->switchModifier($requestData['attributeModifier'][$i],$attrValues);
 								}
 							}
@@ -193,18 +168,22 @@ class WispUsersController extends AppController
 							$addattribute = $this->WispUser->addValue($requestData['WispUser']['UserId'], $requestData['attributeName'][$i], $requestData['attributeoperator'][$i], $attrValue,$requestData['attributeModifier'][$i]);
 						}
 					}
-					// Saving user data to db.
+					// Saving user data.
 					$this->WispUser->insertRec($requestData);
-
-					} // end of for loop
-					$this->Session->setFlash(__('Wisp user is saved succefully!', true), 'flash_success');
-
-				} // end of else
+				} // End of for loop.
+				$this->Session->setFlash(__('Wisp user is saved succefully!', true), 'flash_success');
+			} // End of else.
 		}
 	}
 
-	/* switch modifier function
-	 * @param $val, $attrValues
+
+
+	/**
+	 * @method switchModifier
+	 * @param $val
+	 * @param $attrValues
+	 * This method is used for calculate $attrValues according to $val value.
+	 * @return $attrValue
 	 */
 	private function switchModifier($val,$attrValues)
 	{
@@ -239,147 +218,122 @@ class WispUsersController extends AppController
 				break;
 		}
 		return $attrValue;
-
 	}
 
-	/* randomUserName function
+
+
+	/**
+	 * @method randomUserName
 	 * @param $prefix
-	 * Function user to generate random username and password
+	 * This method is used to generate random username and password.
 	 */
 	private function randomUserName($prefix)
 	{
 		$characters = 'abcdefghijklmnopqrstuvwxyz0123456789';
 		$usernameReserved = 1 ;
-
-		// Generate random username
+		// Generate random username.
 		$string = '';
-		for ($c = 0; $c < 7; $c++)
-		{
+		for ($c = 0; $c < 7; $c++) {
 			$string .= $characters[rand(0, strlen($characters) - 1)];
 		}
-		$thisUsername = $string;
 
-		// Add prefix to string
-		if ($prefix!='')
-		{
+		$thisUsername = $string;
+		// Add prefix to string.
+		if ($prefix!='') {
 			$thisUsername = $prefix.$string;
 		}
 
-		// Check if username used
+		// Check if username used.
 		$userName = $this->WispUser->getUserName($thisUsername);
-
-		if ($userName == 0)
-		{
+		if ($userName == 0) {
 			$usernameReserved = 0;
 			$string = $thisUsername;
-
-			// Generate random password
+			// Generate random password.
 			$stringPass = '';
-			for ($c = 0; $c < 7; $c++)
-			{
+			for ($c = 0; $c < 7; $c++) {
 				$stringPass .= $characters[rand(0, strlen($characters) - 1)];
 			}
+			// Add username and password onto array.
+		}
 
-			// Add username and password onto array
-		}
-		if($usernameReserved == 0)
-		{
+		if ($usernameReserved == 0) {
 			return array($string,$stringPass);
-		}
-		else
-		{
+		} else {
 			return array('','');
 		}
 	}
 
-	/* edit function
+
+
+	/**
+	 * @method edit
 	 * @param $id
-	 * used to edit users data , group, attributes etc.
-	 *
+	 * This method is used to edit wisp users data, group and attributes.
 	 */
 	public function edit($id)
 	{
-		// Select all records form wisp_userdata table --
+		// Select all records form wisp_userdata table.
 		$user = $this->WispUser->findById($id);
-		// Fetch username
+		// Fetch username.
 		$username = $this->WispUser->selectById($user['WispUser']['UserID']);
 		$user['WispUser']['Username'] = $username[0]['users']['Username'];
-		// Fetch Value as password.
+		// Fetch value as password.
 		$getvalue = $this->WispUser->getValue($user['WispUser']['UserID']);
 		$user['WispUser']['Password'] = $getvalue[0]['user_attributes']['Value'];
 		$this->set('user', $user);
-		// Fetch user groups
+		// Fetch user groups.
 		$userGroups = $this->WispUser->selectUserGroups($user['WispUser']['UserID']);
 		$this->set('userGroups', $userGroups);
-		// Fetcing user attribute
+		// Fetcing user attribute.
 		$userAttrib = $this->WispUser->selectUserAttributes($user['WispUser']['UserID']);
-
 		$this->set('userAttrib', $userAttrib);
-
-		// Fetching locations
+		// Fetching locations.
 		$location = $grouparr = array();
 		$locationData = $this->WispUser->selectLocation();
-
-		foreach($locationData as $loc)
-		{
+		foreach ($locationData as $loc) {
 			$location[$loc['wisp_locations']['ID']] = $loc['wisp_locations']['Name'];
 		}
-		$this->set('location', $location);
 
+		$this->set('location', $location);
 		// Fetching all groups to fill select control.
 		$groupItems = $this->WispUser->selectGroup();
-		foreach($groupItems as $val)
-		{
+		foreach ($groupItems as $val) {
 			$grouparr[$val['groups']['ID']] = $val['groups']['Name'];
 		}
+
 		$this->set('grouparr', $grouparr);
-
-		// Update records
+		// Update records.
 		$userData[] = array();
-
 		// Checking submission.
-		if ($this->request->is('post'))
-		{
+		if ($this->request->is('post')) {
 			$requestData = $this->WispUser->set($this->request->data);
 			// Condition to check username on submission or not.
-			if($requestData['hiddenUserName'] ==$requestData['WispUser']['Username'])
-			{
+			if ($requestData['hiddenUserName'] ==$requestData['WispUser']['Username']) {
 				$editUser = $this->WispUser->updateUsername($user['WispUser']['UserID'],$requestData['WispUser']['Username']);
-
-				// Update password
+				// Update password.
 				$editValue = $this->WispUser->updateValue($user['WispUser']['UserID'],$requestData['WispUser']['Password']);
 				$this->WispUser->updateRec($requestData, $user['WispUser']['UserID']);
-
-				// Update group
+				// Update group.
 				$delGroup = $this->WispUser->deleteUserGroup($user['WispUser']['UserID']);
-
-				if(isset($requestData['groupId']))
-				{
-					foreach($requestData['groupId'] as $groupID)
-					{
+				if (isset($requestData['groupId'])) {
+					foreach ($requestData['groupId'] as $groupID) {
 						$addUserGroup = $this->WispUser->insertUserGroup($user['WispUser']['UserID'], $groupID);
 					}
 				}
-				// end of group updation.
+				// End of group updation.
 
 				// Update attribute
 				$delAttribute = $this->WispUser->deleteUserAttibute($user['WispUser']['UserID']);
 				$count1 = '';
-				if(isset($requestData['attributeName']))
-				{
+				if (isset($requestData['attributeName'])) {
 					$i = 0;
 					$count1 = count($requestData['attributeName']);
-					for($i=0;$i<$count1;$i++)
-					{
-						if(isset($requestData['attributeModifier']))
-						{
+					for ($i=0;$i<$count1;$i++) {
+						if (isset($requestData['attributeModifier'])) {
 							$attrValues = $requestData['attributeValues'][$i];
-							if($requestData['attributeModifier'][$i] == '')
-							{
+							if ($requestData['attributeModifier'][$i] == '') {
 								$attrValue = $attrValues;
-							}
-							else
-							{
+							} else {
 								$attrValue = $this->switchModifier($requestData['attributeModifier'][$i],$attrValues);
 							}
 						}
@@ -387,56 +341,41 @@ class WispUsersController extends AppController
 					}
 				}
 				$this->Session->setFlash(__('Wisp user is updated succefully!', true), 'flash_success');
-			}
-			else
-			{
-				if($this->WispUser->validates($user['WispUser']['UserID']))
-				{
-					// Update username
+			} else {
+				if ($this->WispUser->validates($user['WispUser']['UserID'])) {
+					// Update username.
 					$editUser = $this->WispUser->updateUsername($user['WispUser']['UserID'],$requestData['WispUser']['Username']);
-
-					// Update password
+					// Update password.
 					$editValue = $this->WispUser->updateValue($user['WispUser']['UserID'],$requestData['WispUser']['Password']);
-					// Update other records
+					// Update other records.
 					$this->WispUser->updateRec($requestData, $user['WispUser']['UserID']);
-
-					// update groups
+					// Update groups.
 					$delGroup = $this->WispUser->deleteUserGroup($user['WispUser']['UserID']);
-
-					if(isset($requestData['groupId']))
-					{
-						foreach($requestData['groupId'] as $groupID)
-						{
+					if (isset($requestData['groupId'])) {
+						foreach ($requestData['groupId'] as $groupID) {
 							$addUserGroup = $this->WispUser->insertUserGroup($user['WispUser']['UserID'], $groupID);
 						}
 					}
-					// end of group updation
+					// End of group updation.
 
-					// Update attribute
+					// Update attribute.
 					$delAttribute = $this->WispUser->deleteUserAttibute($user['WispUser']['UserID']);
 					$count1 = '';
-					if(isset($requestData['attributeName']))
-					{
+					if (isset($requestData['attributeName'])) {
 						$i = 0;
 						$count1 = count($requestData['attributeName']);
-						for($i=0;$i<$count1;$i++)
-						{
-							if(isset($requestData['attributeModifier']))
-							{
+						for ($i=0;$i<$count1;$i++) {
+							if (isset($requestData['attributeModifier'])) {
 								$attrValues = $requestData['attributeValues'][$i];
-								if($requestData['attributeModifier'][$i] == '')
-								{
+								if ($requestData['attributeModifier'][$i] == '') {
 									$attrValue = $attrValues;
-								}
-								else
-								{
+								} else {
 									$attrValue = $this->switchModifier($requestData['attributeModifier'][$i],$attrValues);
 								}
 							}
 							$addattribute = $this->WispUser->addValue($user['WispUser']['UserID'], $requestData['attributeName'][$i], $requestData['attributeoperator'][$i], $attrValue,$requestData['attributeModifier'][$i]);
 						}
 					}
-
 					$this->Session->setFlash(__('Wisp user is updated succefully!', true), 'flash_success');
 				} else {
 					$this->Session->setFlash(__('Wisp user is not saved!', true), 'flash_failure');
@@ -444,51 +383,47 @@ class WispUsersController extends AppController
 			}
 		}
 
-		//Fetching records form wisp_userdata table
+		// Fetching records form wisp_userdata table.
 		$user = $this->WispUser->findById($id);
-		// Fetch userName
+		// Fetch userName.
 		$username = $this->WispUser->selectById($user['WispUser']['UserID']);
 		$user['WispUser']['Username'] = $username[0]['users']['Username'];
-		// Fetch password
+		// Fetch password.
 		$getvalue = $this->WispUser->getValue($user['WispUser']['UserID']);
 		$user['WispUser']['Password'] = $getvalue[0]['user_attributes']['Value'];
 		$this->set('user', $user);
-		// Fetch user groups data
+		// Fetch user groups data.
 		$userGroups = $this->WispUser->selectUserGroups($user['WispUser']['UserID']);
 		$this->set('userGroups', $userGroups);
 		// Fetcing user attribute data.
 		$userAttrib = $this->WispUser->selectUserAttributes($user['WispUser']['UserID']);
-
 		$this->set('userAttrib', $userAttrib);
-
 		// Fetching all location to fill select control.
 		$locationData = $this->WispUser->selectLocation();
-
-		foreach($locationData as $loc)
-		{
+		foreach ($locationData as $loc) {
 			$location[$loc['wisp_locations']['ID']] = $loc['wisp_locations']['Name'];
 		}
-		$this->set('location', $location);
 
+		$this->set('location', $location);
 		$userData[] = array();
 	}
 
-	/* delete function
+
+
+	/**
+	 * @method remove
 	 * @param $id
-	 * used to delete record from all table referencing user.
-	 *
+	 * This method is used to delete record from all table referencing wisp user.
 	 */
 	public function remove($id)
 	{
 		// Fetching user data and assigning to var.
 		$userId = $this->WispUser->fetchUserId($id);
-
 		// Deleting user attributes.
 		$UserAttributes = $this->WispUser->deleteUserAttributes($userId[0]['wisp_userdata']['UserID']);
 		// Deleting record from topup, users and group table.
 		$Users = $this->WispUser->deleteUsers($userId[0]['wisp_userdata']['UserID']);
-		if($this->WispUser->delete($id))
-		{
+		if ($this->WispUser->delete($id)) {
 			$this->redirect('/wispUsers/index');
 			$this->Session->setFlash(__('Wisp user is removed succefully!', true), 'flash_success');
 		} else {
