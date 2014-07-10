@@ -19,20 +19,20 @@
 
 
 /**
- * Client Model
- *
  * @class Client
  *
- * @brief This class manage default table and validation.
+ * @brief This class manages default table and validation.
  */
-
 class Client extends AppModel
 {
+
+	/**
+	 * @var $useTable
+	 * This variable is used for including table.
+	 */
 	public $useTable = 'clients';
 
-
-
-	// Validating form controllers
+	// Validating form controllers.
 	public $validate = array(
 		'Name' => array(
 			'required' => array(
@@ -47,9 +47,6 @@ class Client extends AppModel
 			)
 		)
 	);
-
-
-
 }
 
 
