@@ -19,24 +19,35 @@
 
 
 /**
- * Group Member Model
+ * @class GroupMember
  *
+ * @brief This class manages default table and method.
  */
-
 class GroupMember extends AppModel
 {
+
+	/**
+	 * @var $useTable
+	 * This variable is used for including table.
+	 */
 	public $useTable = 'users_to_groups';
 
 
-
-	// Fetch usernname via its id.
+	/**
+	 * @method getUserNameById
+	 * This method is used for fetching username.
+	 * @param $userId
+	 * @return $res
+	 */
 	public function getUserNameById($userId)
 	{
-		return $res = $this->query("select Username from users where ID = ".$userId);
+		try {
+			$res = $this->query("SELECT Username FROM users WHERE ID = ".$userId);
+		} catch (exception $ex) {
+			throw new exception('Error in query.');
+		}
+		return $res;
 	}
-
-
-
 }
 
 
