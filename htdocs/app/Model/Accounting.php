@@ -19,11 +19,10 @@
 
 
 /**
- * Accounting Model
- *
+ * @class Accounting
  */
-
-class Accounting extends AppModel {
+class Accounting extends AppModel
+{
 }
 
 
