@@ -19,11 +19,10 @@
 
 
 /**
- * Accounting Summary Model
- *
+ * @class AccountingSummary
  */
-
-class AccountingSummary extends AppModel {
+class AccountingSummary extends AppModel
+{
 }
 
 
