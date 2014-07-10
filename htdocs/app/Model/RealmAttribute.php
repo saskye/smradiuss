@@ -19,21 +19,35 @@
 
 
 /**
- * Realm Attribute Model
+ * @class RealmAttribute
  *
+ * @brief This class manages default table and validation.
  */
-
 class RealmAttribute extends AppModel
 {
+
+	/**
+	 * @var $useTable
+	 * This variable is used for including table.
+	 */
 	public $useTable = 'realm_attributes';
 
 
-
-	//Validating form controllers.
-	public $validate = array('Name' => array('required' => array('rule' => array('notEmpty'),'message' => 'Please enter value')), 'Value' => array('required' => array('rule' => array('notEmpty'),'message' => 'Please enter value')));
-
-
-
+	// Validating form controllers.
+	public $validate = array(
+		'Name' => array(
+			'required' => array(
+				'rule' => array('notEmpty'),
+				'message' => 'Please enter value'
+			)
+		),
+		'Value' => array(
+			'required' => array(
+				'rule' => array('notEmpty'),
+				'message' => 'Please enter value'
+			)
+		)
+	);
 }
 
 
