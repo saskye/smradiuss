@@ -113,7 +113,7 @@ class UsersController extends AppController
 		// Deleting & checking done or not.
 		if ($this->User->delete($id)) {
 			// Deleting user reference data from other db tables.
-			$this->User->deleteUserRef($id);
+			$this->User->deleteUser($id);
 			// Redirecting users to index function.
 			$this->redirect('/users/index');
 			$this->Session->setFlash(__('User is removed succefully!', true), 'flash_success');
