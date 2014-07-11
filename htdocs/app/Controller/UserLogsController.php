@@ -39,7 +39,7 @@ class UserLogsController extends AppController
 			// Creating current month & year date.
 			$current = date('Y-m').'-01';
 			// Fetched data form topups table.
-			$userLog = $this->UserLog->SelectRec($userId,$current);
+			$userLog = $this->UserLog->selectTopup($userId,$current);
 			$this->set('userLog', $userLog);
 			$this->set('userId', $userId);
 
@@ -51,12 +51,12 @@ class UserLogsController extends AppController
 				$this->UserLog->set($data);
 				$logDate = $data['UserLog']['yearData']."-".$data['UserLog']['dayData']."-01";
 				// Selected user log record from paramete logdate.
-			    $userLog = $this->UserLog->SelectRec($userId,$logDate);
+			    $userLog = $this->UserLog->selectTopup($userId,$logDate);
 				$this->set('userLog', $userLog);
 			}
 
 			// Fetch data form accounting table.
-			$username = $this->UserLog->SelectAcc($userId);
+			$username = $this->UserLog->selectUser($userId);
 			$userName = $username[0]['users']['Username'];
 
 			$this->paginate = array(
