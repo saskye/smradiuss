@@ -19,35 +19,88 @@
 
 
 /**
- * User Log Model
+ * @method UserLog
  *
+ * @brief This class manages default table, validation and methods.
  */
-
 class UserLog extends AppModel
 {
-	//Validating form controllers.
-	public $validate = array('Value' => array('required' => array('rule' => array('notEmpty'),'message' => 'Please enter value'),'numeric' => array('rule'     => 'naturalNumber','required' => true,'message'=> 'numbers only')));
 
+	/**
+	 * @var $useTable
+	 * This variable is used for including table.
+	 */
 	public $useTable = 'accounting';
 
 
 
-	//Fetch records form table.
-	public function SelectRec($userId, $data)
+	// Validating form controllers.
+	public $validate = array(
+		'Value' => array(
+			'required' => array(
+				'rule' => array('notEmpty'),
+				'message' => 'Please enter value'
+			),
+			'numeric' => array(
+				'rule' => 'naturalNumber',
+				'required' => true,
+				'message'=> 'numbers only'
+			)
+		)
+	);
+
+
+
+	/**
+	 * @method selectTopup
+	 * This method is used for fetching records.
+	 * @param $userId
+	 * @param $data
+	 * @return $userLog
+	 */
+	public function selectTopup($userId, $data)
 	{
-		return $userLog = $this->query("select * from topups where ValidFrom = '".$data."' and UserID = '".$userId."'");
+		try {
+			$userLog = $this->query("
+				SELECT
+					`ID`,
+					`UserID`,
+					`Timestamp`,
+					`Type`,
+					`Value`,
+					`ValidFrom`,
+					`ValidTo`,
+					`Depleted`,
+					`SMAdminDepletedOn`
+				FROM
+					topups
+				WHERE
+					ValidFrom = '".$data."'
+					AND UserID = '".$userId."'
+			");
+		} catch (exception $ex) {
+			throw new exception('Error in query.');
+		}
+		return $userLog;
 	}
 
 
 
-	//Fetch username.
-	public function SelectAcc($userId)
+	/**
+	 * @method selectUser
+	 * This method is used for fetch username.
+	 * @param $userId
+	 * @return $userLog
+	 */
+	public function selectUser($userId)
 	{
-		return $userLog = $this->query("select Username from users where ID = '".$userId."'");
+		try {
+			$userLog = $this->query("SELECT Username FROM users WHERE ID = ".$userId);
+		} catch (exception $ex) {
+			throw new exception('Error in query.');
+		}
+		return $userLog;
 	}
-
-
-
 }
 
 
