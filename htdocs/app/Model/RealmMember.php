@@ -19,24 +19,35 @@
 
 
 /**
- * Realm Member Model
+ * @class RealmMember
  *
+ * @brief This class manages default table and validation.
  */
-
 class RealmMember extends AppModel
 {
+
+	/**
+	 * @var $useTable
+	 * This variable is used for including table.
+	 */
 	public $useTable = 'clients_to_realms';
 
 
-
-	// Fetch client name via its id.
+	/**
+	 * @method getClientNameById
+	 * This method is used for fetching client name.
+	 * @param $clientID
+	 * @return $res
+	 */
 	public function getClientNameById($clientID)
 	{
-		return $res = $this->query("select Name from clients where ID = ".$clientID);
+		try {
+			$res = $this->query("SELECT Name FROM clients WHERE ID = ".$clientID);
+		} catch (exception $ex) {
+			throw new exception('Error in query.');
+		}
+		return $res;
 	}
-
-
-
 }
 
 
