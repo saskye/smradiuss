@@ -19,43 +19,92 @@
 
 
 /**
- * User Group Model
+ * @class UserGroup
  *
+ * @brief This class manages default table, validation and methods.
  */
-
 class UserGroup extends AppModel
 {
+
+	/**
+	 * @var $useTable
+	 * This variable is used for including table.
+	 */
 	public $useTable = 'users_to_groups';
 
-	//Validating form controllers.
-	public $validate = array('Type' => array('required' => array('rule' => array('notEmpty'),'message' => 'Please enter value')));
+
+	// Validating form controllers.
+	public $validate = array(
+		'Type' => array(
+			'required' => array(
+				'rule' => array('notEmpty'),
+				'message' => 'Please enter value'
+			)
+		)
+	);
 
 
 
-	//Fetching  all groups for select box controller.
+	/**
+	 * @method selectGroup
+	 * This method is used for fetching all groups.
+	 * @return $res
+	 */
 	public function selectGroup()
 	{
-		return $res = $this->query("select ID, Name from groups");
+		try {
+			$res = $this->query("SELECT ID, Name FROM groups");
+		} catch (exception $ex) {
+			throw new exception('Error in query.');
+		}
+		return $res;
 	}
 
 
 
-	//Fetching group name via its id.
+	/**
+	 * @method getGroupById
+	 * This method is used for fetching group name.
+	 * @param $groupId
+	 * @return $res
+	 */
 	public function getGroupById($groupId)
 	{
-		return $res = $this->query("select ID,Name from groups where ID = ".$groupId);
+		try {
+			$res = $this->query("SELECT ID,Name FROM groups WHERE ID = ".$groupId);
+		} catch (exception $ex) {
+			throw new exception('Error in query.');
+		}
+		return $res;
 	}
 
 
 
-	// Saving user groups.
+	/**
+	 * @method insertRec
+	 * This method is used for saving user groups.
+	 * @param $userId
+	 * @param $data
+	 */
 	public function insertRec($userId, $data)
 	{
-		$res = $this->query("INSERT INTO users_to_groups (UserID,GroupID) VALUES ('".$userId."','".$data['UserGroup']['Type']."')");
+		try {
+			$res = $this->query("
+				INSERT INTO users_to_groups
+					(
+						UserID,
+						GroupID
+					)
+				VALUES
+					(
+						'".$userId."',
+						'".$data['UserGroup']['Type']."'
+					)
+			");
+		} catch (exception $ex) {
+			throw new exception('Error in query.');
+		}
 	}
-
-
-
 }
 
 
