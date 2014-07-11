@@ -66,7 +66,7 @@ class UserTopupsController extends AppController
 				// Validating input.
 				if ($this->UserTopup->validates()) {
 					// Saving data.
-			    	$this->UserTopup->InsertRec($userId,$this->request->data);
+			    	$this->UserTopup->insertTopup($userId,$this->request->data);
 					$this->Session->setFlash(__('User topup is saved succefully!', true), 'flash_success');
 				} else {
 					$this->Session->setFlash(__('User topup is not saved succefully!', true), 'flash_failure');
@@ -98,7 +98,7 @@ class UserTopupsController extends AppController
 			// Validating data.
 			if ($this->UserTopup->validates()) {
 				// Saving edited data.
-				$this->UserTopup->editRec($id, $this->request->data);
+				$this->UserTopup->editTopup($id, $this->request->data);
 				$this->Session->setFlash(__('User topup is saved succefully!', true), 'flash_success');
 				// For page reload to reflect new data.
 				$topups = $this->UserTopup->findById($id);
