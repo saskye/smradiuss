@@ -19,28 +19,45 @@
 
 
 /**
- * User Model
+ * @class User
  *
+ * @brief This class manages validation and method.
  */
-
 class User extends AppModel
 {
-	//Validating form controller.
-	public $validate = array('Username' => array('required' => array('rule' => array('notEmpty'),'message' => 'Please choose a username'), 'unique' => array('rule' => 'isUnique', 'message' => 'The username you have chosen has already been registered')));
+
+	// Validating form controller.
+	public $validate = array(
+		'Username' => array(
+			'required' => array(
+				'rule' => array('notEmpty'),
+				'message' => 'Please choose a username'
+			),
+			'unique' => array(
+				'rule' => 'isUnique',
+				'message' => 'The username you have chosen has already been registered'
+			)
+		)
+	);
 
 
 
-	// Delete user records form different tables.
-	public function deleteUserRef($userId)
+	/**
+	 * @method deleteUser
+	 * This method is used for delete user records from different tables.
+	 * @param $userId
+	 */
+	public function deleteUser($userId)
 	{
-		$res = $this->query("delete from wisp_userdata where UserID = ".$userId);
-		$res = $this->query("delete from user_attributes where UserID = '".$userId."'");
-		$res = $this->query("delete from users_to_groups where UserID = '".$userId."'");
-		$res = $this->query("delete from topups where UserID = '".$userId."'");
+		try {
+			$res = $this->query("DELETE FROM wisp_userdata WHERE UserID = ".$userId);
+			$res = $this->query("DELETE FROM User_attributes WHERE UserID = ".$userId);
+			$res = $this->query("DELETE FROM users_to_groups WHERE UserID = ".$userId);
+			$res = $this->query("DELETE FROM topups WHERE UserID = ".$userId);
+		} catch (exception $ex) {
+			throw new exception('Error in query.');
+		}
 	}
-
-
-
 }
 
 
