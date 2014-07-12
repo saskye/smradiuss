@@ -19,16 +19,29 @@
 
 
 /**
- * Wisp Location Model
+ * @class WispLocation
  *
+ * @brief This class manages default table and validation.
  */
-
 class WispLocation extends AppModel
 {
+
+	/**
+	 * @var $useTable
+	 * This variable is used for including table.
+	 */
 	public $useTable = 'wisp_locations';
 
-	//Validating form controller.
-	public $validate = array('Name' => array('required' => array('rule' => array('notEmpty'),'message' => 'Please enter name.')));
+
+	// Validating form controller.
+	public $validate = array(
+		'Name' => array(
+			'required' => array(
+				'rule' => array('notEmpty'),
+				'message' => 'Please enter name.'
+			)
+		)
+	);
 }
 
 
