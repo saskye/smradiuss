@@ -19,32 +19,65 @@
 
 
 /**
- * Wisp Location Member Model
+ * @class WispLocationMember
  *
+ * @brief This class manages default table and methods.
  */
-
 class WispLocationMember extends AppModel
 {
+
+	/**
+	 * @var $useTable
+	 * This variable is used for including table.
+	 */
 	public $useTable = 'wisp_userdata';
 
 
-
-	//Fetching username.
-	public function selectUsername($userName)
+	/**
+	 * @method selectUsername
+	 * This method is used for fetching username.
+	 * @param $userid
+	 * @return $res
+	 */
+	public function selectUsername($userid)
 	{
-		return $res = $this->query("select Username from users where ID = '".$userName."'");
+		try {
+			$res = $this->query("
+				SELECT
+					Username
+				FROM
+					users
+				WHERE
+					ID = ".$userid
+			);
+		} catch (exception $ex) {
+			throw new exception('Error in query.');
+		}
+		return $res;
 	}
 
 
 
-	//Deleting record.
+	/**
+	 * @method deleteMembers
+	 * This method is used for deleting member records.
+	 * @param $id
+	 */
 	public function deleteMembers($id)
 	{
-		$res = $this->query("update wisp_userdata set LocationID = '0' where ID = '".$id."'");
+		try {
+			$res = $this->query("
+				UPDATE
+					wisp_userdata
+				SET
+					LocationID = '0'
+				WHERE
+					ID = ".$id
+			);
+		} catch (exception $ex) {
+			throw new exception('Error in query.');
+		}
 	}
-
-
-
 }
 
 
