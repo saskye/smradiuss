@@ -19,36 +19,112 @@
 
 
 /**
- * Wisp Users Topup Model
+ * @class WispUsersTopup
  *
+ * @brief This class manages default table, validation and methods.
  */
-
 class WispUsersTopup extends AppModel
 {
+
+	/**
+	 * @var $useTable
+	 * This variable is used for including table.
+	 */
 	public $useTable = 'topups';
 
-	//Validating form controllers.
-	public $validate = array('Value' => array('required' => array('rule' => array('notEmpty'),'message' => 'Please enter value'),'numeric' => array('rule' => 'naturalNumber','required' => true,'message'=> 'numbers only')), 'Type' => array('required' => array('rule' => array('notEmpty'),'message' => 'Please select value')));
+
+	// Validating form controllers.
+	public $validate = array(
+		'Value' => array(
+			'required' => array(
+				'rule' => array('notEmpty'),
+				'message' => 'Please enter value'
+			),
+			'numeric' => array(
+				'rule' => 'naturalNumber',
+				'required' => true,
+				'message'=> 'numbers only'
+			)
+		),
+		'Type' => array(
+			'required' => array(
+				'rule' => array('notEmpty'),
+				'message' => 'Please select value'
+			)
+		)
+	);
 
 
 
-	//Insert record in topups table.
+	/**
+	 * @method inser Rec
+	 * This method is used for insert record in topups table.
+	 * @param $userId
+	 * @param $data
+	 */
 	public function insertRec($userId, $data)
 	{
-		$timestamp = date("Y-m-d H:i:s");
-		$res = $this->query("INSERT INTO topups (UserID,Timestamp,Type,Value,ValidFrom,ValidTo) VALUES (?,?,?,?,?,?)",array($userId,$timestamp,$data['WispUsersTopup']['Type'],$data['WispUsersTopup']['Value'],$data['WispUsersTopup']['valid_from'], $data['WispUsersTopup']['valid_to']));
+		try {
+			$timestamp = date("Y-m-d H:i:s");
+			$res = $this->query("
+				INSERT INTO topups
+					(
+						UserID,
+						Timestamp,
+						Type,
+						Value,
+						ValidFrom,
+						ValidTo
+					)
+				VALUES
+					(
+						?,
+						?,
+						?,
+						?,
+						?,
+						?
+					)
+				",array(
+					$userId,
+					$timestamp,
+					$data['WispUsersTopup']['Type'],
+					$data['WispUsersTopup']['Value'],
+					$data['WispUsersTopup']['valid_from'],
+					$data['WispUsersTopup']['valid_to']
+				)
+			);
+		} catch (exception $ex) {
+			throw new exception('Error in query.');
+		}
 	}
 
 
 
-	//Update topups table.
+	/**
+	 * @method editRec
+	 * This method is used for update topups table.
+	 * @param $id
+	 * @param $data
+	 */
 	public function editRec($id, $data)
 	{
-		$res = $this->query("UPDATE topups SET `Type` = '".$data['WispUsersTopup']['Type']."',`Value` = '".$data['WispUsersTopup']['Value']."',`ValidFrom` = '".$data['WispUsersTopup']['valid_from']."',`ValidTo` = '".$data['WispUsersTopup']['valid_to']."' where `ID` = ".$id);
+		try {
+			$res = $this->query("
+				UPDATE
+					topups
+				SET
+					`Type` = '".$data['WispUsersTopup']['Type']."',
+					`Value` = '".$data['WispUsersTopup']['Value']."',
+					`ValidFrom` = '".$data['WispUsersTopup']['valid_from']."',
+					`ValidTo` = '".$data['WispUsersTopup']['valid_to']."'
+				WHERE
+					`ID` = ".$id
+			);
+		} catcvh (exception $ex) {
+			throw new exception('Error in query.');
+		}
 	}
-
-
-
 }
 
 
