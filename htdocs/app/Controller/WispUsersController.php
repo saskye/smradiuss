@@ -244,7 +244,7 @@ class WispUsersController extends AppController
 		}
 
 		// Check if username used.
-		$userName = $this->WispUser->getUserName($thisUsername);
+		$userName = $this->WispUser->getUsername($thisUsername);
 		if ($userName == 0) {
 			$usernameReserved = 0;
 			$string = $thisUsername;
