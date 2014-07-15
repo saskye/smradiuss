@@ -9,41 +9,135 @@ body {
 		<div class="col-md-10"><legend><?php echo __('Add Group Attribute')?></legend>
 			<?php echo $this->Form->create()?>
 				<div class="form-group">
-					<?php echo $this->Form->label('Name', 'Name', array('class'=>'col-md-2 control-label'));?>
+					<?php
+						echo $this->Form->label(
+							'Name',
+							'Name',
+							array(
+								'class'=>'col-md-2 control-label'
+							)
+						);
+					?>
 					<div class="row">
 						<div class="col-md-4 input-group">
-							<?php echo $this->Form->input('Name', array('label' => false, 'class' => 'form-control', 'placeholder' => 'Name'));?>
+							<?php
+								echo $this->Form->input(
+									'Name',
+									array(
+										'label' => false,
+										'class' => 'form-control',
+										'placeholder' => 'Name'
+									)
+								);
+							?>
 						</div>
 					</div>
 				</div>
 				<div class="form-group">
-					<?php echo $this->Form->label('Operator', 'Operator', array('class'=>'col-md-2 control-label'));?>
+					<?php
+						echo $this->Form->label(
+							'Operator',
+							'Operator',
+							array(
+								'class'=>'col-md-2 control-label'
+							)
+						);
+					?>
 					<div class="row">
 						<div class="col-md-4 input-group">
-							<?php echo $this->Form->input('Operator', array('label' => false, 'class' => 'form-control', 'type' => 'select', 'options' => array('=', ':=', '==', '+=', '!=', '<', '>', '<=', '>=', '=~', '!~', '=*', '!*', '||==')));?>
+							<?php
+								echo $this->Form->input(
+									'Operator',
+									array(
+										'label' => false,
+										'class' => 'form-control',
+										'type' => 'select',
+										'options' => array(
+											'=',
+											':=',
+											'==',
+											'+=',
+											'!=',
+											'<',
+											'>',
+											'<=',
+											'>=',
+											'=~',
+											'!~',
+											'=*',
+											'!*',
+											'||=='
+										)
+									)
+								);
+							?>
 						</div>
 					</div>
 				</div>
 				<div class="form-group">
-					<?php echo $this->Form->label('Value', 'Value', array('class'=>'col-md-2 control-label'));?>
+					<?php
+						echo $this->Form->label(
+							'Value',
+							'Value',
+							array(
+								'class'=>'col-md-2 control-label'
+							)
+						);
+					?>
 					<div class="row">
 						<div class="col-md-4 input-group">
-							<?php echo $this->Form->input('Value', array('label' => false, 'class' => 'form-control', 'placeholder' => 'Value'));?>
+							<?php
+								echo $this->Form->input(
+									'Value',
+									array(
+										'label' => false,
+										'class' => 'form-control',
+										'placeholder' => 'Value'
+									)
+								);
+							?>
 						</div>
 					</div>
 				</div>
 				<div class="form-group">
-					<?php echo $this->Form->label('Disabled', 'Disabled', array('class'=>'col-md-2 control-label'));?>
+					<?php
+						echo $this->Form->label(
+							'Disabled',
+							'Disabled',
+							array(
+								'class'=>'col-md-2 control-label'
+							)
+						);
+					?>
 					<div class="row">
 						<div class="col-md-3">
-							<?php echo $this->Form->checkbox('Disabled');?>
-							<?php echo __('Disabled')?>
+							<?php
+								echo $this->Form->checkbox(
+									'Disabled'
+								);
+							?>
+							<?php
+								echo __(
+									'Disabled'
+								)
+							?>
 						</div>
 					</div>
 				</div>
 				<div class="form-group">
 					<button type="submit" class="btn btn-primary"><?php echo __('Add')?></button>
-					<?php echo $this->Html->link('Cancel', array('action' => 'index', $groupId), array('class' => 'btn btn-default'))?>
+					<?php
+						echo $this->Html->link(
+							'Cancel',
+							array(
+								'action' => 'index',
+								$groupId
+							),
+							array(
+								'class' => 'btn btn-default'
+							)
+						)
+					?>
 				</div>
 			<?php echo $this->Form->end(); ?>
 		</div>
