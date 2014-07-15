@@ -10,8 +10,16 @@
 	</div>
 	<div class="collapse navbar-collapse">
 		<ul class="nav navbar-nav">
-			<li><a href="<?php echo BASE_URL; ?>/users/index"><?php echo __('Radius Control Panel')?></a></li>
-			<li><a href="<?php echo BASE_URL; ?>/wispUsers/index"><?php echo __('WiSP Control Panel')?></a></li>
+			<li>
+				<a href="<?php echo BASE_URL; ?>/users/index">
+					<?php echo __('Radius Control Panel')?>
+				</a>
+			</li>
+			<li>
+				<a href="<?php echo BASE_URL; ?>/wispUsers/index">
+					<?php echo __('WiSP Control Panel')?>
+				</a>
+			</li>
 		</ul>
 	</div>
 </div>
