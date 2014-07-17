@@ -72,11 +72,21 @@ class ClientRealm extends AppModel
 	{
 		try {
 			$res = $this->query("
-				INSERT INTO clients_to_realms
-					(ClientID,RealmID)
-				VALUES
-					('".$clientID."','".$data['ClientRealm']['Type']."')
-			");
+					INSERT INTO clients_to_realms
+						(
+							ClientID,
+							RealmID
+						)
+					VALUES
+						(
+							?,
+							?
+						)
+				",array(
+					$clientID,
+					$data['ClientRealm']['Type']
+				)
+			);
 		} catch (exception $ex) {
 			throw new exception('Error in query.');
 		}
