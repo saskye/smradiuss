@@ -68,9 +68,20 @@ class WispUser extends AppModel
 	//Inser username in table and get its id.
 	public function insertUsername($userName)
 	{
-		$res = $this->query("insert into users (Username) values ('".$userName."')",false);
-		return $userId = $this->query('select max(ID) as id FROM `users`',false);
+		$res = $this->query("
+			INSERT INTO users
+				(
+					Username
+				)
+			VALUES
+				(
+					?
+				)
+			",
+			array($userName)
+		);
 
+		return $userId = $this->getLastInsertID();
 	}
 
 
