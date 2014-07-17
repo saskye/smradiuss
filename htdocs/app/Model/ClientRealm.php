@@ -93,7 +93,7 @@ class ClientRealm extends AppModel
 	public function getRealmsById($realmID)
 	{
 		try {
-			$res = $this->query("SELECT Name FROM realms WHERE ID = ".$realmID);
+			$res = $this->query("SELECT Name FROM realms WHERE ID = ?", array($realmID));
 		} catch (exception $ex) {
 			throw new exception('Error in query.');
 		}
