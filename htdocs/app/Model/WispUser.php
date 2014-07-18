@@ -119,7 +119,24 @@ class WispUser extends AppModel
 	//Update wisp_userdata table.
 	public function updateRec($data, $userId)
 	{
-		$res = $this->query("update wisp_userdata set LocationID = '".$data['WispUser']['Location']."', FirstName = '".$data['WispUser']['FirstName']."', LastName = '".$data['WispUser']['LastName']."', Email = '".$data['WispUser']['Email']."', Phone = '".$data['WispUser']['Phone']."' where UserID = '".$userId."'");
+		$res = $this->query("
+			UPDATE wisp_userdata SET
+				LocationID = ?
+				FirstName = ?
+				LastName = ?
+				Email = ?
+				Phone = ?
+			WHERE
+				UserID = ?
+			",array(
+				$data['WispUser']['Location'],
+				$data['WispUser']['FirstName'],
+				$data['WispUser']['LastName'],
+				$data['WispUser']['Email'],
+				$data['WispUser']['Phone'],
+				$userId
+			)
+		);
 	}
 
 
