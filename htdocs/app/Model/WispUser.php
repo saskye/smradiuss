@@ -143,7 +143,7 @@ class WispUser extends AppModel
 	//Update username.
 	public function updateUsername($userId, $userName)
 	{
-		$res = $this->query("update users set Username = '".$userName."' where ID = '".$userId."'");
+		$res = $this->query("UPDATE users SET Username = ? WHERE ID = ?", array($userName, $userId));
 	}
 
 
