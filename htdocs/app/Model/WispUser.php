@@ -186,7 +186,7 @@ class WispUser extends AppModel
 	// Check if username used
 	public function getUserName($userName)
 	{
-		$res = $this->query("select Username from users where Username = '".$userName."'");
+		$res = $this->query("SELECT Username FROM users WHERE Username = ?", array($userName));
 		return count($res);
 	}
 
