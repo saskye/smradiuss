@@ -135,7 +135,7 @@ class WispUser extends AppModel
 	//Fetching value from table.
 	public function getValue($userId)
 	{
-		 return $res = $this->query("select Value from user_attributes where UserID = ".$userId);
+		 return $res = $this->query("SELECT Value FROM user_attributes WHERE UserID = ?", array($userId));
 	}
 
 
