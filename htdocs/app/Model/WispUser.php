@@ -52,7 +52,7 @@ class WispUser extends AppModel
 	//Fetching record from users table.
 	public function selectById($userId)
 	{
-		return $res = $this->query("select Username, Disabled from users where ID = ".$userId,false);
+		return $res = $this->query("SELECT Username, Disabled FROM users WHERE ID = ?", array($userId));
 	}
 
 
