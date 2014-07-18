@@ -175,10 +175,10 @@ class WispUser extends AppModel
 	//Delete user record from all related tables.
 	public function deleteUsers($userId)
 	{
-		$res = $this->query("delete from users where ID = '".$userId."'");
-		$res = $this->query("delete from user_attributes where UserID = '".$userId."'");
-		$res = $this->query("delete from users_to_groups where UserID = '".$userId."'");
-		$res = $this->query("delete from topups where UserID = '".$userId."'");
+		$res = $this->query("DELETE FROM users WHERE ID = ?", array($userId));
+		$res = $this->query("DELETE FROM user_attributes WHERE UserID = ?", array($userId));
+		$res = $this->query("DELETE FROM users_to_groups WHERE UserID = ?", array($userId));
+		$res = $this->query("DELETE FROM topups WHERE UserID = ?", array($userId));
 	}
 
 
