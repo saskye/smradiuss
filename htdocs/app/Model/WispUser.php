@@ -60,7 +60,7 @@ class WispUser extends AppModel
 	//Fetching all locations for select box controller.
 	public function selectLocation()
 	{
-		 return $res = $this->query("select * from wisp_locations");
+		 return $res = $this->query("SELECT * FROM wisp_locations");
 	}
 
 
