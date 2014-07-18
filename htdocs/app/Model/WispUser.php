@@ -195,7 +195,7 @@ class WispUser extends AppModel
 	// Fetching all groups to fill select control.
 	public function selectGroup()
 	{
-		return $res = $this->query("select ID, Name from groups");
+		return $res = $this->query("SELECT ID, Name FROM groups");
 	}
 
 
