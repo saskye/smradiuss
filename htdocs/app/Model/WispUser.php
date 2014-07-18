@@ -151,7 +151,7 @@ class WispUser extends AppModel
 	//Update value.
 	public function updateValue($userId, $userValue)
 	{
-		$res = $this->query("update user_attributes set Value = '".$userValue."' where UserID = '".$userId."'");
+		$res = $this->query("UPDATE user_attributes SET Value = ? WHERE UserID = ?", array($userValue, $userId));
 	}
 
 
