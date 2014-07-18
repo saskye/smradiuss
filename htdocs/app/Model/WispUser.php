@@ -35,7 +35,7 @@ class WispUser extends AppModel
 	//Check username is exist or not in table.
 	public function uniqueCheck($Username)
 	{
-		$res = $this->query("select count(ID) from users where Username = '".$Username['Username']."'");
+		$res = $this->query("SELECT COUNT(ID) FROM users WHERE Username = ?", array($Username['Username']));
 
 		if ($res[0][0]['count(ID)'] >= 1)
 		{
