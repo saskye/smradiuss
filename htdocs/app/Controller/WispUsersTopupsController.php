@@ -65,7 +65,10 @@ class WispUsersTopupsController extends AppController
 				// Validating input.
 				if ($this->WispUsersTopup->validates()) {
 					// Saving data.
-			    	$this->WispUsersTopup->InsertRec($userId,$this->request->data);
+					$requestData['WispUsersTopup']['UserID'] = $userId;
+					$requestData['WispUsersTopup']['ValidFrom'] = $requestData['WispUsersTopup']['valid_from'];
+					$requestData['WispUsersTopup']['ValidTo'] = $requestData['WispUsersTopup']['valid_to'];
+					$this->WispUsersTopup->save($requestData);
 					$this->Session->setFlash(__('Wisp user topup is saved succefully!', true), 'flash_success');
 				} else {
 					$this->Session->setFlash(__('Wisp user topup is not saved!', true), 'flash_failure');
@@ -95,7 +98,17 @@ class WispUsersTopupsController extends AppController
 			// Validating data.
 			if ($this->WispUsersTopup->validates()) {
 				// Saving edited data.
-				$this->WispUsersTopup->editRec($id, $this->request->data);
+				$this->WispUsersTopup->updateAll(
+					array(
+						'Type' => "'".$requestData['WispUsersTopup']['Type']."'",
+						'Value' => "'".$requestData['WispUsersTopup']['Value']."'",
+						'ValidFrom' => "'".$requestData['WispUsersTopup']['valid_from']."'",
+						'ValidTo' => "'".$requestData['WispUsersTopup']['valid_to']."'"
+					),
+					array(
+						'ID' => $id
+					)
+				);
 				$this->Session->setFlash(__('Wisp user topup is edit succefully!', true), 'flash_success');
 				// For page reload to reflect data.
 				$topups = $this->WispUsersTopup->findById($id);
