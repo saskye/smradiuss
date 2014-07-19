@@ -57,7 +57,7 @@ class WispUserLogsController extends AppController
 
 			// Fetch data form accounting table.
 			$username = $this->WispUserLog->SelectAcc($userId);
-			$userName = $username[0]['users']['Username'];
+			$userName = $username['User']['Username'];
 			$this->paginate = array(
 				'limit' => PAGINATION_LIMIT,
 				'conditions' => array('Username' => $userName)
