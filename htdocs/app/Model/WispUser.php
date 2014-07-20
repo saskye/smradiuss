@@ -251,7 +251,7 @@ class WispUser extends AppModel
 	//Delete attributes.
 	public function deleteUserAttibute($userId)
 	{
-		$res = $this->query("delete from user_attributes where UserID = ".$userId." AND Name!='User-Password'");
+		$res = $this->query("DELETE FROM user_attributes WHERE UserID = ? AND Name != ?", array($userId, 'User-Password'));
 	}
 
 
