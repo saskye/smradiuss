@@ -26,10 +26,7 @@
 class UserTopup extends AppModel
 {
 
-	/**
-	 * @var $useTable
-	 * This variable is used for including table.
-	 */
+	// This variable is used for including table.
 	public $useTable = 'topups';
 
 
@@ -50,76 +47,6 @@ class UserTopup extends AppModel
 
 
 
-	/**
-	 * @method insertTopup
-	 * This method is used for insert record in topups table.
-	 * @param $userId
-	 * @param $data
-	 */
-	public function insertTopup($userId, $data)
-	{
-		try {
-			$timestamp = date("Y-m-d H:i:s");
-			$res = $this->query("
-				INSERT INTO topups
-					(
-						UserID,
-						Timestamp,
-						Type,
-						Value,
-						ValidFrom,
-						ValidTo
-					)
-				VALUES
-					(
-						?,
-						?,
-						?,
-						?,
-						?,
-						?
-					)
-			",
-				array(
-					$userId,
-					$timestamp,
-					$data['UserTopup']['Type'],
-					$data['UserTopup']['Value'],
-					$data['UserTopup']['valid_from'],
-					$data['UserTopup']['valid_to']
-				)
-			);
-		} catch (exception $ex) {
-			throw new exception('Error in query.');
-		}
-	}
-
-
-
-	/**
-	 * @method editTopup
-	 * This method is used for update topups table.
-	 * @param $id
-	 * @param $data
-	 */
-	public function editTopup($id, $data)
-	{
-		try {
-			$res = $this->query("
-				UPDATE
-					topups
-				SET
-					`Type` = '".$data['UserTopup']['Type']."',
-					`Value` = '".$data['UserTopup']['Value']."',
-					`ValidFrom` = '".$data['UserTopup']['valid_from']."',
-					`ValidTo` = '".$data['UserTopup']['valid_to']."'
-				WHERE
-					`ID` = ".$id
-			);
-		} catch (exception $ex) {
-			throw new exception('Error in query.');
-		}
-	}
 }
 
 
