@@ -47,8 +47,8 @@ class WispLocationMembersController extends AppController
 			$userNameData= $this->WispLocationMember->selectUsername($wMember['WispLocationMember']['UserID']);
 			foreach($userNameData as $uData)
 			{
-				if(isset($uData['users']['Username'])) {
-					$wMember['WispLocationMember']['userName'] = $userNameData[0]['users']['Username'];
+				if(isset($uData['Username'])) {
+					$wMember['WispLocationMember']['userName'] = $userNameData['User']['Username'];
 				}
 				$memberData[] = $wMember;
 			}
@@ -69,7 +69,14 @@ class WispLocationMembersController extends AppController
 	public function remove($id, $LocationID)
 	{
 		// Deleting
-		$deleteMember = $this->WispLocationMember->deleteMembers($id);
+		$deleteMember = $this->WispLocationMember->updateAll(
+			array(
+				'LocationID' => '0'
+			),
+			array(
+				'ID' => $id
+			)
+		);
 		// Redirecting to index.
 		$this->redirect('/WispLocation_Members/index/'.$LocationID);
 		$this->Session->setFlash(__('Wisp locations member is removed succefully!', true), 'flash_success');
