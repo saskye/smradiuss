@@ -18,6 +18,12 @@
 
 
 
+// Import another models.
+App::import('Model','WispUsersTopup');
+App::import('Model','User');
+
+
+
 /**
  * @class WispUserLog
  *
@@ -26,11 +32,8 @@
 class WispUserLog extends AppModel
 {
 
-	/**
-	 * @var $useTable
-	 * This variable is used for including table.
-	 */
-	public $useTable = 'accounting'; 
+	// This variable is used for including table.
+	public $useTable = 'accounting';
 
 
 	// Validating form controllers.
@@ -54,34 +57,30 @@ class WispUserLog extends AppModel
 	 * @method SelectRec
 	 * This method is used for fetching records from table.
 	 * @param $userId
-	 * @param $data
-	 * @return $userLog
+	 * @param $currentDate
+	 * @return $userTopupData
 	 */
-	public function SelectRec($userId, $data)
+	public function SelectRec($userId, $currentDate)
 	{
 		try {
-			$userLog = $this->query("
-				SELECT
-					`ID`,
-					`UserID`,
-					`Timestamp`,
-					`Type`,
-					`Value`,
-					`ValidFrom`,
-					`ValidTo`,
-					`Depleted`,
-					`SMAdminDepletedOn`
-				FROM
-					topups
-				WHERE
-					ValidFrom = '".$data."'
-				AND
-					UserID = ".$userId
+			// This variable is used for create WispUsersTopup class object.
+			$objWispUsersTopup = new WispUsersTopup();
+
+
+			// This variable is used for fetching data.
+			$userTopupData = $objWispUsersTopup->find(
+				'all',
+				array(
+					'conditions' => array(
+						'UserID' => $userId,
+						'ValidFrom' => $currentDate
+					)
+				)
 			);
 		} catch (exception $ex) {
 			throw new exception('Error in query.');
 		}
-		return $userLog;
+		return $userTopupData;
 	}
 
 
@@ -90,23 +89,31 @@ class WispUserLog extends AppModel
 	 * @method SelectAcc
 	 * This mehtod is used for fetching username.
 	 * @param  $userId
-	 * @return $userLog
+	 * @return $userData
 	 */
 	public function SelectAcc($userId)
 	{
 		try {
-			$userLog = $this->query("
-				SELECT
-					Username
-				FROM
-					users
-				WHERE
-					ID = ".$userId
+			// This variable is used for crate User class object.
+			$objUser = new User();
+
+
+			// This variable is used for fetching data.
+			$userData = $objUser->find(
+				'first',
+				array(
+					'conditions' => array(
+						'ID' => $userId
+					),
+					'fields' => array(
+						'Username'
+					)
+				)
 			);
 		} catch (exception $ex) {
 			throw new exception('Error in query.');
 		}
-		return $userLog;
+		return $userData;
 	}
 }
 
