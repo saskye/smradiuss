@@ -18,6 +18,11 @@
 
 
 
+// Import User model.
+App::import('Model','User');
+
+
+
 /**
  * @class WispLocationMember
  *
@@ -26,10 +31,7 @@
 class WispLocationMember extends AppModel
 {
 
-	/**
-	 * @var $useTable
-	 * This variable is used for including table.
-	 */
+	// This variable is used for including table.
 	public $useTable = 'wisp_userdata';
 
 
@@ -37,47 +39,28 @@ class WispLocationMember extends AppModel
 	 * @method selectUsername
 	 * This method is used for fetching username.
 	 * @param $userid
-	 * @return $res
+	 * @return $userData
 	 */
 	public function selectUsername($userid)
 	{
 		try {
-			$res = $this->query("
-				SELECT
-					Username
-				FROM
-					users
-				WHERE
-					ID = ".$userid
+			$objUser = new User();
+			$userData = $objUser->find(
+				'first',
+				array(
+					'conditions' => array(
+						'ID' => $userid
+					)
+				)
 			);
 		} catch (exception $ex) {
 			throw new exception('Error in query.');
 		}
-		return $res;
+		return $userData;
 	}
 
 
 
-	/**
-	 * @method deleteMembers
-	 * This method is used for deleting member records.
-	 * @param $id
-	 */
-	public function deleteMembers($id)
-	{
-		try {
-			$res = $this->query("
-				UPDATE
-					wisp_userdata
-				SET
-					LocationID = '0'
-				WHERE
-					ID = ".$id
-			);
-		} catch (exception $ex) {
-			throw new exception('Error in query.');
-		}
-	}
 }
 
 
