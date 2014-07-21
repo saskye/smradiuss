@@ -27,37 +27,63 @@ body {
 					<?php echo $this->Form->create()?>
 						<div style="color:#3276B1;margin:5px;">Search</div>
 						<div class="form-group">
-							<?php echo $this->Form->label('Period', 'Period', array('class'=>'col-md-2 control-label'));?>
+							<?php
+								echo $this->Form->label(
+									'Period',
+									'Period',
+									array(
+										'class' => 'col-md-2 control-label'
+									)
+								);
+							?>
 							<div class="row" style="float:left;">
 								<div class="col-md-4 input-group" style="float:left;width:100px;margin-right:0px;margin-left: 18px;">
 									<?php
-									// -- for year select box --
-									$year = date("Y");
-									$start = $year-10;
-									$end = $year+10;
-									$selected = '';
-									$yearData = array();
-  									foreach(range($start, $end) as $number){
-    									$yearData[$number] = $number;
-  									}
-									echo $this->Form->input('yearData', array('label' => false, 'class' => 'form-control', 'type' => 'select', "options" =>$yearData,'selected' => $year));
+										// For year select box
+										$year = date("Y");
+										$start = $year-10;
+										$end = $year+10;
+										$selected = '';
+										$yearData = array();
+  										foreach (range($start, $end) as $number) {
+											$yearData[$number] = $number;
+  										}
+										echo $this->Form->input(
+											'yearData',
+											array(
+												'label' => false,
+												'class' => 'form-control',
+												'type' => 'select',
+												'options' => $yearData,
+												'selected' => $year
+											)
+										);
 									?>
 								</div>
 							</div>
 							<div class="row">
 								<div class="col-md-4 input-group" style="float:left;width:100px;margin-right:0px;margin-left: 18px;">
 									<?php
-									// -- for day select box --
-									$month = date("m");
-									$dayData = array();
-									foreach(range(1, 12) as $number){
-										if($number <= 9){
-    										$dayData['0'.$number] = '0'.$number;
-	  									} else {
-											$dayData[$number] = $number;
+										// For day select box.
+										$month = date("m");
+										$dayData = array();
+										foreach (range(1, 12) as $number) {
+											if ($number <= 9) {
+												$dayData['0'.$number] = '0'.$number;
+	  										} else {
+												$dayData[$number] = $number;
+											}
 										}
-									}
-									echo $this->Form->input('dayData', array('label' => false, 'class' => 'form-control', 'type' => 'select', "options" =>$dayData,'selected' => $month));
+										echo $this->Form->input(
+											'dayData',
+											array(
+												'label' => false,
+												'class' => 'form-control',
+												'type' => 'select',
+												'options' => $dayData,
+												'selected' => $month
+											)
+										);
 									?>
 								</div>
 							</div>
@@ -73,39 +99,26 @@ body {
 						$totalvalue1 = '';
 						$totalvalue2 = '';
 
-						foreach ($userLog as $userLog)
-						{
-							if($userLog['topups']['Type'] == '1')
-							{
-								$totalvalue1[] = $userLog['topups']['Value'].",";
-							}
-							else
-							{
+						foreach ($userLog as $userLog) {
+							if ($userLog['WispUsersTopup']['Type'] == '1') {
+								$totalvalue1[] = $userLog['WispUsersTopup']['Value'].",";
+							} else {
 								$totalvalue1[] = '';
 							}
-							if($userLog['topups']['Type'] == '2')
-							{
-								$totalvalue2[] = $userLog['topups']['Value'].",";
-							}
-							else
-							{
+							if ($userLog['WispUsersTopup']['Type'] == '2') {
+								$totalvalue2[] = $userLog['WispUsersTopup']['Value'].",";
+							} else {
 								$totalvalue2[] = '';
 							}
 						}
-						if($totalvalue1 != '')
-						{
+						if (!empty($totalvalue1)) {
 							$tValue = array_sum($totalvalue1);
-						}
-						else
-						{
+						} else {
 							$tValue = 0;
 						}
-						if($totalvalue2 != '')
-						{
+						if (!empty($totalvalue2)) {
 							$uValue = array_sum($totalvalue2);
-						}
-						else
-						{
+						} else {
 							$uValue = 0;
 						}
 					?>
@@ -121,24 +134,28 @@ body {
 					<div>Total Topups: <?php echo $uValue; ?> MB</div>
 					<div>Usage: 0/<?php echo $uValue; ?> MB</div>
 					<div>---</div>
-					<?php foreach ($userLog1 as $uLog){
-						if($uLog['topups']['Type'] == '1') {
+					<?php
+						foreach ($userLog1 as $uLog) {
+							if ($uLog['WispUsersTopup']['Type'] == '1') { ?>
+								<div>Valid Traffic Topups:</div>
+								<div>ID: <?php echo $uLog['WispUsersTopup']['ID']; ?></div>
+								<div>Usage: 0/<?php echo $uLog['WispUsersTopup']['Value']; ?></div>
+								<div>Valid Until: <?php echo $uLog['WispUsersTopup']['ValidTo']; ?></div>
+								<div>---</div>
+								<?php
+							}
+						}
+						foreach ($userLog1 as $log) {
+							if ($log['WispUsersTopup']['Type'] == '2') { ?>
+								<div>Valid Uptime Topups:</div>
+								<div>ID: <?php echo $log['WispUsersTopup']['ID']; ?></div>
+								<div>Usage: 0/<?php echo $log['WispUsersTopup']['Value']; ?></div>
+								<div>Valid Until: <?php echo $log['WispUsersTopup']['ValidTo']; ?></div>
+								<div>---</div>
+								<?php
+							}
+						}
 					?>
-					<div>Valid Traffic Topups:</div>
-					<div>ID: <?php echo $uLog['topups']['ID']; ?></div>
-					<div>Usage: 0/<?php echo $uLog['topups']['Value']; ?></div>
-					<div>Valid Until: <?php echo $uLog['topups']['ValidTo']; ?></div>
-					<div>---</div>
-					<?php } }
-						foreach ($userLog1 as $log){
-							if($log['topups']['Type'] == '2') {
-					?>
-					<div>Valid Uptime Topups:</div>
-					<div>ID: <?php echo $log['topups']['ID']; ?></div>
-					<div>Usage: 0/<?php echo $log['topups']['Value']; ?></div>
-					<div>Valid Until: <?php echo $log['topups']['ValidTo']; ?></div>
-					<div>---</div>
-					<?php } }  ?>
 				</div>
 				<div>
 					<table class="table">
@@ -178,19 +195,33 @@ body {
 							<tr>
 								<td align="center" colspan="10" >
 									<?php
-									$total = $this->Paginator->counter(array(
-		    							'format' => '%pages%'));
-									if($total >1)
-									{
-										echo $this->Paginator->prev('<<', null, null, array('class' => 'disabled'));
-									?>
-									<?php echo $this->Paginator->numbers(); ?>
-									<!-- Shows the next and previous links -->
-									<?php echo $this->Paginator->next('>>', null, null, array('class' => 'disabled')); ?>
-									<!-- prints X of Y, where X is current page and Y is number of pages -->
-									<?php
-									echo "<span style='margin-left:20px;'>Page : ".$this->Paginator->counter()."</span>";
-									}
+										$total = $this->Paginator->counter(
+											array(
+		    									'format' => '%pages%'
+											)
+										);
+										if ($total >1) {
+											echo $this->Paginator->prev(
+												'<<',
+												null,
+												null,
+												array(
+													'class' => 'disabled'
+												)
+											);
+											echo $this->Paginator->numbers();
+											// Shows the next and previous links.
+											echo $this->Paginator->next(
+												'>>',
+												null,
+												null,
+												array(
+													'class' => 'disabled'
+												)
+											);
+											// Prints X of Y, where X is current page and Y is number of pages.
+											echo "<span style='margin-left:20px;'>Page : ".$this->Paginator->counter()."</span>";
+										}
 									?>
 								</td>
 							</tr>
@@ -198,5 +229,6 @@ body {
 					</table>
 				</div>
 			</div>
+		</div>
 	</div>
 </div>
