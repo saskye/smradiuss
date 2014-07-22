@@ -211,7 +211,20 @@ class WispUser extends AppModel
 	//Select user attributes.
 	public function selectUserAttributes($userId)
 	{
-		return  $res = $this->query("SELECT * FROM user_attributes WHERE UserID = ".$userId,false);
+		return  $res = $this->query("
+				SELECT
+					ID,
+					UserID,
+					GroupID,
+					Disabled,
+					Comment,
+					g.name
+				FROM
+					user_attributes
+				WHERE
+					UserID = ?
+			", array($userId)
+		);
 	}
 
 
