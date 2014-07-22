@@ -53,7 +53,13 @@ class ClientRealm extends AppModel
 	public function selectRealms()
 	{
 		try {
-			$res = $this->query("SELECT ID, Name FROM realms");
+			$res = $this->query("
+				SELECT
+					ID,
+					Name
+				FROM
+					realms
+			");
 		} catch (exception $ex) {
 			throw new exception('Error in query.');
 		}
