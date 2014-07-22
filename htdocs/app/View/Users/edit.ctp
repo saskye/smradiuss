@@ -9,18 +9,51 @@ body {
 		<div class="col-md-10"><legend><?php echo __('Edit User')?></legend>
 			<?php echo $this->Form->create()?>
 				<div class="form-group">
-					<?php echo $this->Form->label('Username', 'Username', array('class'=>'col-md-2 control-label'));?>
+					<?php
+						echo $this->Form->label(
+							'Username',
+							'Username',
+							array(
+								'class' => 'col-md-2 control-label'
+							)
+						);
+					?>
 					<div class="row">
 						<div class="col-md-4 input-group">
-							<?php echo $this->Form->input('Username', array('label' => false, 'class' => 'form-control', 'placeholder' => 'Username', 'value' => $user['User']['Username']));?>
+							<?php
+								echo $this->Form->input(
+									'Username',
+									array(
+										'label' => false,
+										'class' => 'form-control',
+										'placeholder' => 'Username',
+										'value' => $user['User']['Username']
+									)
+								);
+							?>
 						</div>
 					</div>
 				</div>
 				<div class="form-group">
-					<?php echo $this->Form->label('Disabled', 'Disabled', array('class'=>'col-md-2 control-label'));?>
+					<?php
+						echo $this->Form->label(
+							'Disabled',
+							'Disabled',
+							array(
+								'class' => 'col-md-2 control-label'
+							)
+						);
+					?>
 					<div class="row">
 						<div class="col-md-3">
-							<?php echo $this->Form->checkbox('Disabled', array( 'checked' => (($user['User']['Disabled'] == '1') ? true : false)));?>
+							<?php
+								echo $this->Form->checkbox(
+									'Disabled',
+									array(
+										'checked' => (($user['User']['Disabled'] == '1') ? true : false)
+									)
+								);
+							?>
 							<?php echo __('Disabled')?>
 						</div>
 					</div>
