@@ -89,28 +89,33 @@ class WispUser extends AppModel
 	//Inser data in wisp_userdata table.
 	public function insertRec($data)
 	{
-		 $res = $this->query("
-				INSERT INTO wisp_userdata
-					(
-						UserID,
-						LocationID,
-						FirstName,
-						LastName,
-						Email,
-						Phone
-					)
-				VALUES
-					(
-						?,
-						?,
-						?,
-						?,
-						?,
-						?
-					)
-			",
-			array ($data['WispUser']['UserId'], $data['WispUser']['Location'], $data['WispUser']['FirstName'],
-					$data['WispUser']['LastName'], $data['WispUser']['Email'], $data['WispUser']['Phone'])
+		$res = $this->query("
+			INSERT INTO wisp_userdata
+				(
+					UserID,
+					LocationID,
+					FirstName,
+					LastName,
+					Email,
+					Phone
+				)
+			VALUES
+				(
+					?,
+					?,
+					?,
+					?,
+					?,
+					?
+				)
+			",array(
+				$data['WispUser']['UserId'],
+				$data['WispUser']['Location'],
+				$data['WispUser']['FirstName'],
+				$data['WispUser']['LastName'],
+				$data['WispUser']['Email'],
+				$data['WispUser']['Phone']
+			)
 		);
 	}
 
