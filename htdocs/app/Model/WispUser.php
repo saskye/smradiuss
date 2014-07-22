@@ -203,7 +203,7 @@ class WispUser extends AppModel
 	//Fetching user id for delete record.
 	public function fetchUserId($id)
 	{
-		return $res = $this->query("select UserID from wisp_userdata where ID = '".$id."'");
+		return $res = $this->query("SELECT UserID FROM wisp_userdata WHERE ID = ?", array($id));
 	}
 
 
