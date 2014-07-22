@@ -18,6 +18,13 @@
 
 
 
+// Import another models.
+App::import('Model','UserAttribute');
+App::import('Model','UserTopup');
+App::import('Model','UserGroup');
+
+
+
 /**
  * @class User
  *
@@ -25,6 +32,10 @@
  */
 class User extends AppModel
 {
+
+	// This variable is used for including table.
+	public $useTable = 'users';
+
 
 	// Validating form controller.
 	public $validate = array(
@@ -50,10 +61,14 @@ class User extends AppModel
 	public function deleteUser($userId)
 	{
 		try {
-			$res = $this->query("DELETE FROM wisp_userdata WHERE UserID = ".$userId);
-			$res = $this->query("DELETE FROM User_attributes WHERE UserID = ".$userId);
-			$res = $this->query("DELETE FROM users_to_groups WHERE UserID = ".$userId);
-			$res = $this->query("DELETE FROM topups WHERE UserID = ".$userId);
+			$objUserAttribute = new UserAttribute();
+			$objUserAttribute->deleteAll(array('UserID' => $userId),false);
+
+			$objUserGroup = new UserGroup();
+			$objUserGroup->deleteAll(array('UserID' => $userId),false);
+
+			$objUserTopup = new UserTopup();
+			$objUserTopup->deleteAll(array('UserID' => $userId),false);
 		} catch (exception $ex) {
 			throw new exception('Error in query.');
 		}
