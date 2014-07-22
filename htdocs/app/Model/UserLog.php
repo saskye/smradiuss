@@ -18,6 +18,12 @@
 
 
 
+// Import another model.
+App::import('Model','UserTopup');
+App::import('Model','User');
+
+
+
 /**
  * @method UserLog
  *
@@ -26,10 +32,7 @@
 class UserLog extends AppModel
 {
 
-	/**
-	 * @var $useTable
-	 * This variable is used for including table.
-	 */
+	// This variable is used for including table.
 	public $useTable = 'accounting';
 
 
@@ -55,33 +58,26 @@ class UserLog extends AppModel
 	 * @method selectTopup
 	 * This method is used for fetching records.
 	 * @param $userId
-	 * @param $data
-	 * @return $userLog
+	 * @param $validFrom
+	 * @return $userTopupData
 	 */
-	public function selectTopup($userId, $data)
+	public function selectTopup($userId, $validFrom)
 	{
 		try {
-			$userLog = $this->query("
-				SELECT
-					`ID`,
-					`UserID`,
-					`Timestamp`,
-					`Type`,
-					`Value`,
-					`ValidFrom`,
-					`ValidTo`,
-					`Depleted`,
-					`SMAdminDepletedOn`
-				FROM
-					topups
-				WHERE
-					ValidFrom = '".$data."'
-					AND UserID = '".$userId."'
-			");
+			$objUserTopup = new UserTopup();
+			$userTopupData = $objUserTopup->find(
+				'all',
+				array(
+					'conditions' => array(
+						'UserID' => $userId,
+						'ValidFrom' => $validFrom
+					)
+				)
+			);
 		} catch (exception $ex) {
 			throw new exception('Error in query.');
 		}
-		return $userLog;
+		return $userTopupData;
 	}
 
 
@@ -90,16 +86,27 @@ class UserLog extends AppModel
 	 * @method selectUser
 	 * This method is used for fetch username.
 	 * @param $userId
-	 * @return $userLog
+	 * @return $userData
 	 */
 	public function selectUser($userId)
 	{
 		try {
-			$userLog = $this->query("SELECT Username FROM users WHERE ID = ".$userId);
+			$objUser = new User();
+			$userData = $objUser->find(
+				'first',
+				array(
+					'conditions' => array(
+						'ID' => $userId
+					),
+					'fields' => array(
+						'Username'
+					)
+				)
+			);
 		} catch (exception $ex) {
 			throw new exception('Error in query.');
 		}
-		return $userLog;
+		return $userData;
 	}
 }
 
