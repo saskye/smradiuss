@@ -28,7 +28,22 @@ class WispUser extends AppModel
 	public $useTable = 'wisp_userdata';
 
 	//Validating form controllers.
-	public $validate = array('Username' => array('required' => array('rule' => array('notEmpty'),'message' => 'Please choose a username'), 'unique' => array('rule' => array('uniqueCheck'), 'message' => 'The username you have chosen has already been registered')));
+	public $validate = array(
+		'Username' => array(
+			'required' => array(
+				'rule' => array(
+					'notEmpty'
+				),
+				'message' => 'Please choose a username'
+			),
+			'unique' => array(
+				'rule' => array(
+					'uniqueCheck'
+				),
+				'message' => 'The username you have chosen has already been registered'
+			)
+		)
+	);
 
 
 
