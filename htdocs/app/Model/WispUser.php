@@ -127,7 +127,34 @@ class WispUser extends AppModel
 	//Insert attribute data in table.
 	public function addValue($userId, $attName, $attoperator, $password, $modifier = '')
 	{
-		 $res = $this->query("insert into user_attributes (UserID, Name, Operator, Value, Disabled, modifier) values ('".$userId."' , '".$attName."', '".$attoperator."', '".$password."', '0','".$modifier."')");
+		$res = $this->query("
+				INSERT INTO user_attributes
+					(
+						UserID,
+						Name,
+						Operator,
+						Value,
+						Disabled,
+						modifier
+					)
+				VALUES
+					(
+						?,
+						?,
+						?,
+						?,
+						?,
+						?
+					)
+			",array(
+				$userId,
+				$attName,
+				$attoperator,
+				$password,
+				0,
+				$modifier
+			)
+		);
 	}
 
 
