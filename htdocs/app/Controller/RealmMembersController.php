@@ -48,8 +48,8 @@ class RealmMembersController extends AppController
 			foreach ($realmMembers as $realmMember) {
 				$clientData = $this->RealmMember->getClientNameById($realmMember['RealmMember']['ClientID']);
 
-				if (isset($clientData[0]['clients']['Name'])) {
-					$realmMember['RealmMember']['clientName'] = $clientData[0]['clients']['Name'];
+				if (isset($clientData['Client']['Name'])) {
+					$realmMember['RealmMember']['clientName'] = $clientData['Client']['Name'];
 				}
 				$realmMembersData[] = $realmMember;
 			}
