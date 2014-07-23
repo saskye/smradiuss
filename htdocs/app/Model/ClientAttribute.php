@@ -38,7 +38,8 @@ class ClientAttribute extends AppModel
 		'Name' => array(
 			'required' => array(
 				'rule' => array('notEmpty'),
-				'message' => 'Please enter value')
+				'message' => 'Please enter value'
+			)
 		),
 		'Value' => array(
 			'required' => array(
