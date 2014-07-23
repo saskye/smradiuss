@@ -91,7 +91,7 @@ class UserGroup extends AppModel
 						'Name'
 					),
 					'conditions' => array(
-						'ID' =>$ groupId
+						'ID' =>$groupId
 					)
 				)
 			);
