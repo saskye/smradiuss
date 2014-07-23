@@ -18,6 +18,11 @@
 
 
 
+// Import another model.
+App::import('Model','Group');
+
+
+
 /**
  * @class UserGroup
  *
@@ -26,10 +31,7 @@
 class UserGroup extends AppModel
 {
 
-	/**
-	 * @var $useTable
-	 * This variable is used for including table.
-	 */
+	// This variable is used for including table.
 	public $useTable = 'users_to_groups';
 
 
@@ -48,16 +50,25 @@ class UserGroup extends AppModel
 	/**
 	 * @method selectGroup
 	 * This method is used for fetching all groups.
-	 * @return $res
+	 * @return $groups
 	 */
 	public function selectGroup()
 	{
 		try {
-			$res = $this->query("SELECT ID, Name FROM groups");
+			$objGroup = new Group();
+			$groups = $objGroup->find(
+				'all',
+				array(
+					'fields' => array(
+						'ID',
+						'Name'
+					)
+				)
+			);
 		} catch (exception $ex) {
 			throw new exception('Error in query.');
 		}
-		return $res;
+		return $groups;
 	}
 
 
@@ -66,45 +77,32 @@ class UserGroup extends AppModel
 	 * @method getGroupById
 	 * This method is used for fetching group name.
 	 * @param $groupId
-	 * @return $res
+	 * @return $userGroups
 	 */
 	public function getGroupById($groupId)
 	{
 		try {
-			$res = $this->query("SELECT ID,Name FROM groups WHERE ID = ".$groupId);
+			$objGroup = new Group();
+			$userGroups = $objGroup->find(
+				'all',
+				array(
+					'fields' => array(
+						'ID',
+						'Name'
+					),
+					'conditions' => array(
+						'ID' =>$ groupId
+					)
+				)
+			);
 		} catch (exception $ex) {
 			throw new exception('Error in query.');
 		}
-		return $res;
+		return $userGroups;
 	}
 
 
 
-	/**
-	 * @method insertRec
-	 * This method is used for saving user groups.
-	 * @param $userId
-	 * @param $data
-	 */
-	public function insertRec($userId, $data)
-	{
-		try {
-			$res = $this->query("
-				INSERT INTO users_to_groups
-					(
-						UserID,
-						GroupID
-					)
-				VALUES
-					(
-						'".$userId."',
-						'".$data['UserGroup']['Type']."'
-					)
-			");
-		} catch (exception $ex) {
-			throw new exception('Error in query.');
-		}
-	}
 }
 
 
