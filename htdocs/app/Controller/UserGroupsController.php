@@ -49,8 +49,8 @@ class UserGroupsController extends AppController
 			foreach ($UserGroups as $userGroup) {
 				$groupData= $this->UserGroup->getGroupById($userGroup['UserGroup']['GroupID']);
 
-				if (isset($groupData[0]['groups']['Name'])) {
-					$userGroup['UserGroup']['group'] = $groupData[0]['groups']['Name'];
+				if (isset($groupData[0]['Group']['Name'])) {
+					$userGroup['UserGroup']['group'] = $groupData[0]['Group']['Name'];
 				}
 				$UserGroupData[] = $userGroup;
 			}
@@ -76,18 +76,19 @@ class UserGroupsController extends AppController
 			$groupItems = $this->UserGroup->selectGroup();
 
 			foreach ($groupItems as $val) {
-				$arr[$val['groups']['ID']] = $val['groups']['Name'];
+				$arr[$val['groups']['ID']] = $val['Group']['Name'];
 			}
 			$this->set('arr', $arr);
 
 			// Checking submission.
 			if ($this->request->is('post')) {
-				$this->UserGroup->set($this->request->data);
+				$requestData = $this->UserGroup->set($this->request->data);
 
 				// Validating submitted data.
 				if ($this->UserGroup->validates()) {
 					// Saving user groups.
-			    	$this->UserGroup->InsertRec($userId,$this->request->data);
+					$requestData['UserGroup']['UserID'] = $userId;
+					$this->UserGroup->save($requestData);
 					// Sending message to screen.
 					$this->Session->setFlash(__('User Group is saved succefully!', true), 'flash_success');
 
