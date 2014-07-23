@@ -42,7 +42,7 @@ class GroupMember extends AppModel
 	public function getUserNameById($userId)
 	{
 		try {
-			$res = $this->query("SELECT Username FROM users WHERE ID = ".$userId);
+			$res = $this->query("SELECT Username FROM users WHERE ID = ?", array($userId));
 		} catch (exception $ex) {
 			throw new exception('Error in query.');
 		}
