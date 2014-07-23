@@ -42,7 +42,7 @@ class RealmMember extends AppModel
 	public function getClientNameById($clientID)
 	{
 		try {
-			$res = $this->query("SELECT Name FROM clients WHERE ID = ".$clientID);
+			$res = $this->query("SELECT Name FROM clients WHERE ID = ?", array($clientID));
 		} catch (exception $ex) {
 			throw new exception('Error in query.');
 		}
