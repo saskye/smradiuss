@@ -52,14 +52,11 @@ class WispUser extends AppModel
 	{
 		$res = $this->query("SELECT COUNT(ID) FROM users WHERE Username = ?", array($Username['Username']));
 
-		if ($res[0][0]['count(ID)'] >= 1)
-		{
-	  		return false;
-    	}
-    	else
-		{
-	  		return true;
-    	}
+		if ($res[0][0]['count(ID)'] >= 1) {
+			return false;
+		} else {
+			return true;
+		}
 	}
 
 
