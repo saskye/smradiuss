@@ -322,7 +322,8 @@ class WispUser extends AppModel
 	//Delete group.
 	public function deleteUserGroup($userId)
 	{
-		 $res = $this->query("DELETE FROM users_to_groups WHERE UserID = ?", array($userId));
+		$this->query("DELETE FROM users_to_groups WHERE UserID = ?", array($userId));
+		return $this->getAffectedRows();
 	}
 
 
