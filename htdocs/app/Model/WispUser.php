@@ -294,21 +294,26 @@ class WispUser extends AppModel
 	public function insertUserGroup($userId, $groupId)
 	{
 		$res = $this->query("
-				INSERT INTO users_to_groups
-					(
-						UserID,
-						GroupID,
-						Disabled,
-						Comment
-					)
-				VALUES
-					(
-						?,
-						?,
-						?,
-						?
-					)
-			", array($userId, $groupId, '0', '')
+			INSERT INTO users_to_groups
+				(
+					UserID,
+					GroupID,
+					Disabled,
+					Comment
+				)
+			VALUES
+				(
+					?,
+					?,
+					?,
+					?
+				)
+			",array(
+				$userId,
+				$groupId,
+				'0',
+				''
+			)
 		);
 	}
 
