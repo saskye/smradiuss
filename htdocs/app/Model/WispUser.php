@@ -64,7 +64,7 @@ class WispUser extends AppModel
 	//Fetching record from users table.
 	public function selectById($userId)
 	{
-		return $res = $this->query("SELECT Username, Disabled FROM users WHERE ID = ?", array($userId));
+		return $this->query("SELECT Username, Disabled FROM users WHERE ID = ?", array($userId));
 	}
 
 
@@ -72,7 +72,7 @@ class WispUser extends AppModel
 	//Fetching all locations for select box controller.
 	public function selectLocation()
 	{
-		 return $res = $this->query("SELECT * FROM wisp_locations");
+		 return $this->query("SELECT * FROM wisp_locations");
 	}
 
 
@@ -93,7 +93,7 @@ class WispUser extends AppModel
 			array($userName)
 		);
 
-		return $userId = $this->getLastInsertID();
+		return $this->getLastInsertID();
 	}
 
 
@@ -196,7 +196,7 @@ class WispUser extends AppModel
 	//Fetching value from table.
 	public function getValue($userId)
 	{
-		 return $res = $this->query("SELECT Value FROM user_attributes WHERE UserID = ?", array($userId));
+		 return $this->query("SELECT Value FROM user_attributes WHERE UserID = ?", array($userId));
 	}
 
 
@@ -220,7 +220,7 @@ class WispUser extends AppModel
 	//Fetching user id for delete record.
 	public function fetchUserId($id)
 	{
-		return $res = $this->query("SELECT UserID FROM wisp_userdata WHERE ID = ?", array($id));
+		return $this->query("SELECT UserID FROM wisp_userdata WHERE ID = ?", array($id));
 	}
 
 
@@ -256,7 +256,7 @@ class WispUser extends AppModel
 	// Fetching all groups to fill select control.
 	public function selectGroup()
 	{
-		return $res = $this->query("SELECT ID, Name FROM groups");
+		return $this->query("SELECT ID, Name FROM groups");
 	}
 
 
@@ -264,7 +264,7 @@ class WispUser extends AppModel
 	// Select user group from user id
 	public function selectUserGroups($userId)
 	{
-		return  $res = $this->query("SELECT *,g.name FROM users_to_groups as utg , groups as g WHERE UserID = ".$userId." AND g.ID = utg.GroupID",false);
+		return $this->query("SELECT *,g.name FROM users_to_groups as utg , groups as g WHERE UserID = ".$userId." AND g.ID = utg.GroupID",false);
 	}
 
 
@@ -272,18 +272,18 @@ class WispUser extends AppModel
 	//Select user attributes.
 	public function selectUserAttributes($userId)
 	{
-		return  $res = $this->query("
-				SELECT
-					ID,
-					UserID,
-					GroupID,
-					Disabled,
-					Comment,
-					g.name
-				FROM
-					user_attributes
-				WHERE
-					UserID = ?
+		return $this->query("
+			SELECT
+				ID,
+				UserID,
+				GroupID,
+				Disabled,
+				Comment,
+				g.name
+			FROM
+				user_attributes
+			WHERE
+				UserID = ?
 			", array($userId)
 		);
 	}

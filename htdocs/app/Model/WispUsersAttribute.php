@@ -28,7 +28,7 @@ class WispUsersAttribute extends AppModel
 
 	public function selectUserId($id)
 	{
-		return $res = $this->query("SELECT UserID FROM wisp_userdata WHERE ID = ?", array($id));
+		return $this->query("SELECT UserID FROM wisp_userdata WHERE ID = ?", array($id));
 	}
 
 
