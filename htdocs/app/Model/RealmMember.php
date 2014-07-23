@@ -18,6 +18,11 @@
 
 
 
+// Import another model
+App::import('Model','Client');
+
+
+
 /**
  * @class RealmMember
  *
@@ -26,10 +31,7 @@
 class RealmMember extends AppModel
 {
 
-	/**
-	 * @var $useTable
-	 * This variable is used for including table.
-	 */
+	// This variable is used for including table.
 	public $useTable = 'clients_to_realms';
 
 
@@ -37,16 +39,27 @@ class RealmMember extends AppModel
 	 * @method getClientNameById
 	 * This method is used for fetching client name.
 	 * @param $clientID
-	 * @return $res
+	 * @return $clientData
 	 */
 	public function getClientNameById($clientID)
 	{
 		try {
-			$res = $this->query("SELECT Name FROM clients WHERE ID = ?", array($clientID));
+			$objClient = new Client();
+			$clientData = $objClient->find(
+				'first',
+				array(
+					'conditions' => array(
+						'ID' => $clientID
+					),
+					'fields' => array(
+						'Name'
+					)
+				)
+			);
 		} catch (exception $ex) {
 			throw new exception('Error in query.');
 		}
-		return $res;
+		return $clientData;
 	}
 }
 
