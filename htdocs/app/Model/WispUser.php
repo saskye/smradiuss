@@ -72,7 +72,7 @@ class WispUser extends AppModel
 	//Fetching all locations for select box controller.
 	public function selectLocation()
 	{
-		 return $this->query("SELECT * FROM wisp_locations");
+		return $this->query("SELECT * FROM wisp_locations");
 	}
 
 
@@ -196,7 +196,7 @@ class WispUser extends AppModel
 	//Fetching value from table.
 	public function getValue($userId)
 	{
-		 return $this->query("SELECT Value FROM user_attributes WHERE UserID = ?", array($userId));
+		return $this->query("SELECT Value FROM user_attributes WHERE UserID = ?", array($userId));
 	}
 
 
