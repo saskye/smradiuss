@@ -51,7 +51,7 @@ class UserLogsController extends AppController
 				$this->UserLog->set($data);
 				$logDate = $data['UserLog']['yearData']."-".$data['UserLog']['dayData']."-01";
 				// Selected user log record from paramete logdate.
-			    $userLog = $this->UserLog->selectTopup($userId,$logDate);
+				$userLog = $this->UserLog->selectTopup($userId,$logDate);
 				$this->set('userLog', $userLog);
 			}
 

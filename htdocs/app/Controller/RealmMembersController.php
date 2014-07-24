@@ -38,7 +38,7 @@ class RealmMembersController extends AppController
 		if (isset($realmID)) {
 			// Getting list with pagination.
 			$this->paginate = array(
-                'limit' => PAGINATION_LIMIT,
+				'limit' => PAGINATION_LIMIT,
 				'conditions' => array('RealmID' => $realmID)
 			);
 			$realmMembers = $this->paginate();

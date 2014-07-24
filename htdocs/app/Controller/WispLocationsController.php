@@ -55,10 +55,10 @@ class WispLocationsController extends AppController
 			$this->WispLocation->set($this->request->data);
 			// Validating submitted data.
 			if ($this->WispLocation->validates()) {
-			    $this->WispLocation->save($this->request->data);
+				$this->WispLocation->save($this->request->data);
 				$this->Session->setFlash(__('Wisp Location is saved succefully!', true), 'flash_success');
 			} else {
-			    $this->Session->setFlash(__('Wisp Location is not saved!', true), 'flash_failure');
+				$this->Session->setFlash(__('Wisp Location is not saved!', true), 'flash_failure');
 			}
 		}
 	}
@@ -83,10 +83,10 @@ class WispLocationsController extends AppController
 			if ($this->WispLocation->validates()) {
 				$this->WispLocation->id = $id;
 				// Saving data.
-			    $this->WispLocation->save($this->request->data);
+				$this->WispLocation->save($this->request->data);
 				$this->Session->setFlash(__('Wisp Location is edited succefully!', true), 'flash_success');
 			} else {
-			    $this->Session->setFlash(__('Wisp Location is not edited!', true), 'flash_failure');
+				$this->Session->setFlash(__('Wisp Location is not edited!', true), 'flash_failure');
 			}
 		}
 	}

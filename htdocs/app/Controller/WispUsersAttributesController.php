@@ -41,8 +41,8 @@ class WispUsersAttributesController extends AppController
 			$wispUsersAttribute  = $this->paginate();
 			$this->set('wispUsersAttribute', $wispUsersAttribute);
 			$this->set('userId', $userId);
-			} else {
-				$this->redirect('/users/index');
+		} else {
+			$this->redirect('/users/index');
 		}
 	}
 
@@ -100,10 +100,10 @@ class WispUsersAttributesController extends AppController
 				//$this->Session->write('booking_id', $this->request->data['Booking']['booking_id']);
 				//$a = $this->redirect(array('controller'=>'wispUsers','action'=>'add',$requestData));
 				//echo $a; exit;
-			    //$this->WispUsersAttribute->save($requestData);
+				//$this->WispUsersAttribute->save($requestData);
 				$this->Session->setFlash(__('Wisp user attribute is saved succefully!', true), 'flash_success');
 			} else {
-			    $this->Session->setFlash(__('Wisp user attribute is not saved!', true), 'flash_failure');
+				$this->Session->setFlash(__('Wisp user attribute is not saved!', true), 'flash_failure');
 			}
 		}
 	}*/
@@ -189,10 +189,10 @@ class WispUsersAttributesController extends AppController
 			$this->request->data['UserAttribute'] = $this->request->data['User'];
 			$this->UserAttribute->set($this->request->data);
 			if ($this->UserAttribute->validates()) {
-			    $this->UserAttribute->save($this->request->data);
+				$this->UserAttribute->save($this->request->data);
 				$this->Session->setFlash(__('User attribute is saved succefully!', true), 'flash_success');
 			} else {
-			    $this->Session->setFlash(__('User attribute is not saved succefully!', true), 'flash_failure');
+				$this->Session->setFlash(__('User attribute is not saved succefully!', true), 'flash_failure');
 			}
 		}
 	}
