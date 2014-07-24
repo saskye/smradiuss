@@ -51,7 +51,7 @@ class WispUserLogsController extends AppController
 				$this->WispUserLog->set($data);
 				$logDate = $data['WispUserLog']['yearData']."-".$data['WispUserLog']['dayData']."-01";
 				// Select user log record.
-			    $userLog = $this->WispUserLog->SelectRec($userId,$logDate);
+				$userLog = $this->WispUserLog->SelectRec($userId,$logDate);
 				$this->set('userLog', $userLog);
 			}
 

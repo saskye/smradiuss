@@ -37,7 +37,7 @@ class RealmAttributesController extends AppController
 	{
 		if (isset($realmId)) {
 			$this->paginate = array(
-                'limit' => PAGINATION_LIMIT,
+				'limit' => PAGINATION_LIMIT,
 				'conditions' => array('RealmAttribute.RealmID' => $realmId)
 			);
 			$realmAttributes = $this->paginate();
@@ -64,10 +64,10 @@ class RealmAttributesController extends AppController
 			$this->request->data['RealmAttribute']['RealmID'] = intval($this->request->params['pass'][0]);
 			$this->RealmAttribute->set($this->request->data);
 			if ($this->RealmAttribute->validates()) {
-			    $this->RealmAttribute->save($this->request->data);
+				$this->RealmAttribute->save($this->request->data);
 				$this->Session->setFlash(__('Realm attribute is saved succefully!', true), 'flash_success');
 			} else {
-			    $this->Session->setFlash(__('Realm attribute is not saved succefully!', true), 'flash_failure');
+				$this->Session->setFlash(__('Realm attribute is not saved succefully!', true), 'flash_failure');
 			}
 		}
 	}
@@ -90,10 +90,10 @@ class RealmAttributesController extends AppController
 			$this->RealmAttribute->set($this->request->data);
 			if ($this->RealmAttribute->validates()) {
 				$this->RealmAttribute->id = $id;
-			    $this->RealmAttribute->save($this->request->data);
+				$this->RealmAttribute->save($this->request->data);
 				$this->Session->setFlash(__('Realm attribute is saved succefully!', true), 'flash_success');
 			} else {
-			    $this->Session->setFlash(__('Realm attribute is not saved succefully!', true), 'flash_failure');
+				$this->Session->setFlash(__('Realm attribute is not saved succefully!', true), 'flash_failure');
 			}
 		}
 	}

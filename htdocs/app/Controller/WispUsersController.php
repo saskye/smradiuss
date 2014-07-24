@@ -149,7 +149,7 @@ class WispUsersController extends AppController
 					$this->Session->setFlash(__(
 						'Wisp user is saved succefully!', true), 'flash_success');
 				} else {
-		  			$this->Session->setFlash(__('Wisp user is not saved!', true), 'flash_failure');
+					$this->Session->setFlash(__('Wisp user is not saved!', true), 'flash_failure');
 				}
 			} else {
 				// This section work, if number fields is inserted from add many tab option.

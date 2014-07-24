@@ -95,10 +95,10 @@ class UserAttributesController extends AppController
 
 			if ($this->UserAttribute->validates()) {
 				$this->UserAttribute->id = $id;
-			    $this->UserAttribute->save($this->request->data);
+				$this->UserAttribute->save($this->request->data);
 				$this->Session->setFlash(__('Attribute is saved succefully!', true), 'flash_success');
 			} else {
-			    $this->Session->setFlash(__('Attribute is not saved succefully!', true), 'flash_failure');
+				$this->Session->setFlash(__('Attribute is not saved succefully!', true), 'flash_failure');
 			}
 		}
 	}

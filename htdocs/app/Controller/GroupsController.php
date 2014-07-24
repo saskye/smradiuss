@@ -54,10 +54,10 @@ class GroupsController extends AppController
 			// Validating entered data.
 			if ($this->Group->validates()) {
 				// Saving data.
-			    $this->Group->save($this->request->data);
+				$this->Group->save($this->request->data);
 				$this->Session->setFlash(__('Group is saved succefully!', true), 'flash_success');
 			} else {
-			    $this->Session->setFlash(__('Group is not saved succefully!', true), 'flash_failure');
+				$this->Session->setFlash(__('Group is not saved succefully!', true), 'flash_failure');
 			}
 		}
 	}

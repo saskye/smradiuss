@@ -60,10 +60,10 @@ class UsersController extends AppController
 			$this->User->set($this->request->data);
 
 			if ($this->User->validates()) {
-			    $this->User->save($this->request->data);
+				$this->User->save($this->request->data);
 				$this->Session->setFlash(__('User is saved succefully!', true), 'flash_success');
 			} else {
-			    $this->Session->setFlash(__('User is not saved succefully!', true), 'flash_failure');
+				$this->Session->setFlash(__('User is not saved succefully!', true), 'flash_failure');
 			}
 		}
 	}
@@ -96,7 +96,7 @@ class UsersController extends AppController
 				$user = $this->User->findById($id);
 				$this->set('user', $user);
 			} else {
-			    $this->Session->setFlash(__('User is not edited succefully!', true), 'flash_failure');
+				$this->Session->setFlash(__('User is not edited succefully!', true), 'flash_failure');
 			}
 		}
 	}

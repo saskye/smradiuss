@@ -53,10 +53,10 @@ class RealmsController extends AppController
 
 			// Validating enterd data.
 			if ($this->Realm->validates()) {
-			    $this->Realm->save($this->request->data);
+				$this->Realm->save($this->request->data);
 				$this->Session->setFlash(__('Realm is saved succefully!', true), 'flash_success');
 			} else {
-			    $this->Session->setFlash(__('Realm is not saved succefully!', true), 'flash_failure');
+				$this->Session->setFlash(__('Realm is not saved succefully!', true), 'flash_failure');
 			}
 		}
 	}
@@ -83,10 +83,10 @@ class RealmsController extends AppController
 			if ($this->Realm->validates()) {
 				$this->Realm->id = $id;
 				// Saving
-			    $this->Realm->save($this->request->data);
+				$this->Realm->save($this->request->data);
 				$this->Session->setFlash(__('Realm is edited succefully!', true), 'flash_success');
 			} else {
-			    $this->Session->setFlash(__('Realm is not edited succefully!', true), 'flash_failure');
+				$this->Session->setFlash(__('Realm is not edited succefully!', true), 'flash_failure');
 			}
 		}
 	}

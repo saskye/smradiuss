@@ -51,10 +51,10 @@ class ClientsController extends AppController
 		if ($this->request->is('post')) {
 			$this->Client->set($this->request->data);
 			if ($this->Client->validates()) {
-			    $this->Client->save($this->request->data);
+				$this->Client->save($this->request->data);
 				$this->Session->setFlash(__('Client is saved succefully!', true), 'flash_success');
 			} else {
-			    $this->Session->setFlash(__('Client is not saved succefully!', true), 'flash_failure');
+				$this->Session->setFlash(__('Client is not saved succefully!', true), 'flash_failure');
 			}
 		}
 	}
@@ -75,10 +75,10 @@ class ClientsController extends AppController
 			$this->Client->set($this->request->data);
 			if ($this->Client->validates()) {
 				$this->Client->id = $id;
-			    $this->Client->save($this->request->data);
+				$this->Client->save($this->request->data);
 				$this->Session->setFlash(__('Client is edited succefully!', true), 'flash_success');
 			} else {
-			    $this->Session->setFlash(__('Client is not edited succefully!', true), 'flash_failure');
+				$this->Session->setFlash(__('Client is not edited succefully!', true), 'flash_failure');
 			}
 		}
 	}
