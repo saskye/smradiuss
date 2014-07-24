@@ -55,7 +55,7 @@ class WispUsersAttributesController extends AppController
 			$value = $requestData['WispUsersAttribute']['Value'];
 			$modifier = $requestData['WispUsersAttribute']['Modifier'];
 			$attrValue = $value;
-			if(isset($modifier)) {
+			if (isset($modifier)) {
 				switch($modifier)
 				{
 					case "Seconds":
@@ -110,14 +110,14 @@ class WispUsersAttributesController extends AppController
 	public function edit($id, $userId){
 		$wispUsersAttribute = $this->WispUsersAttribute->findById($id);
 		$this->set('wispUsersAttribute', $wispUsersAttribute);
-		if ($this->request->is('post')){
+		if ($this->request->is('post')) {
 			$this->request->data['WispUsersAttribute']['Disabled'] = intval($this->request->data['WispUsersAttribute']['Disabled']);
 			$requestData = $this->request->data;
 			//echo "<pre>";print_r($requestData);exit;
 			$value = $requestData['WispUsersAttribute']['Value'];
 			$modifier = $requestData['WispUsersAttribute']['Modifier'];
 			$attrValue = $value;
-			if(isset($modifier)) {
+			if (isset($modifier)) {
 				switch($modifier) {
 					case "Seconds":
 						$attrValue = $value / 60;
@@ -152,10 +152,10 @@ class WispUsersAttributesController extends AppController
 			$this->WispUsersAttribute->set($requestData);
 			if ($this->WispUsersAttribute->validates()) {
 				$this->WispUsersAttribute->id = $id;
-			    $this->WispUsersAttribute->save($requestData);
+				$this->WispUsersAttribute->save($requestData);
 				$this->Session->setFlash(__('Wisp user attribute is updated succefully!', true), 'flash_success');
 			} else {
-			    $this->Session->setFlash(__('Wisp user attribute is not updated!', true), 'flash_failure');
+				$this->Session->setFlash(__('Wisp user attribute is not updated!', true), 'flash_failure');
 			}
 		}
 	}
@@ -163,8 +163,8 @@ class WispUsersAttributesController extends AppController
 	 * @param $id, $userId
 	 */
 	public function remove($id, $userId){
-		if (isset($id)){
-			if($this->WispUsersAttribute->delete($id)){
+		if (isset($id)) {
+			if ($this->WispUsersAttribute->delete($id)) {
 				$this->redirect('/wispUsers_attributes/index/'.$userId);
 				$this->Session->setFlash(__('Wisp user attribute is removed succefully!', true), 'flash_success');
 			} else {
@@ -179,7 +179,7 @@ class WispUsersAttributesController extends AppController
 	 * @param $Id
 	 */
 	public function attribute($id){
-		if ($this->request->is('post')){
+		if ($this->request->is('post')) {
 			$this->request->data['UserAttribute'] = $this->request->data['User'];
 			$this->UserAttribute->set($this->request->data);
 			if ($this->UserAttribute->validates()) {

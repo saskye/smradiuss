@@ -53,10 +53,9 @@ class GroupMemberController extends AppController
 			$UserNameData =array();
 
 			// Preparing final array.
-			foreach($GroupMember as $groupMember)
-			{
+			foreach ($GroupMember as $groupMember) {
 				$userName = $this->GroupMember->getUserNameById($groupMember['GroupMember']['UserID']);
-				if(isset($userName[0]['users']['Username'])) {
+				if (isset($userName[0]['users']['Username'])) {
 					$groupMember['GroupMember']['UserName'] = $userName[0]['users']['Username'];
 				}
 				$UserNameData[] = $groupMember;
@@ -78,7 +77,7 @@ class GroupMemberController extends AppController
 	 */
 	public function remove($id, $groupID){
 		if (isset($id)) {
-			if($this->GroupMember->delete($id)) {
+			if ($this->GroupMember->delete($id)) {
 				$this->redirect('/group_member/index/'.$groupID);
 				$this->Session->setFlash(__('Removed from this group succefully!', true), 'flash_success');
 			} else {

@@ -110,7 +110,7 @@ class RealmAttributesController extends AppController
 	{
 		if (isset($id)) {
 			// Deleting & checking successful or not.
-			if($this->RealmAttribute->delete($id)) {
+			if ($this->RealmAttribute->delete($id)) {
 				// Redirecting to realms attribute index function.
 				$this->redirect('/realm_attributes/index/'.$realmId);
 				$this->Session->setFlash(__('Realm attribute is removed succefully!', true), 'flash_success');
