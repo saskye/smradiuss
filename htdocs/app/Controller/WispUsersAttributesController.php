@@ -31,8 +31,7 @@ class WispUsersAttributesController extends AppController
 	{
 		$uId = $this->WispUsersAttribute->selectUserId($Id);
 		$userId = $uId[0]['wisp_userdata']['UserID'];
-		if (isset($userId))
-		{
+		if (isset($userId)) {
 			$this->WispUsersAttribute->recursive = 0;
 			$this->paginate = array(
 				'limit' => PAGINATION_LIMIT,
@@ -50,15 +49,13 @@ class WispUsersAttributesController extends AppController
 	/*public function add()
 	{
 		//$this->set('userId', $userId);
-		if ($this->request->is('post'))
-		{
+		if ($this->request->is('post')) {
 
 			$requestData = $this->request->data;
 			$value = $requestData['WispUsersAttribute']['Value'];
 			$modifier = $requestData['WispUsersAttribute']['Modifier'];
 			$attrValue = $value;
-			if(isset($modifier))
-			{
+			if(isset($modifier)) {
 				switch($modifier)
 				{
 					case "Seconds":
@@ -94,8 +91,7 @@ class WispUsersAttributesController extends AppController
 			//$requestData['WispUsersAttribute']['UserID'] = $userId;
 			$this->WispUsersAttribute->set($requestData);
 
-			if ($this->WispUsersAttribute->validates())
-			{
+			if ($this->WispUsersAttribute->validates()) {
 				$this->requestAction('/wispUsers/add', array('pass' => $requestData));
 				//$this->Session->write('booking_id', $this->request->data['Booking']['booking_id']);
 				//$a = $this->redirect(array('controller'=>'wispUsers','action'=>'add',$requestData));
@@ -121,10 +117,8 @@ class WispUsersAttributesController extends AppController
 			$value = $requestData['WispUsersAttribute']['Value'];
 			$modifier = $requestData['WispUsersAttribute']['Modifier'];
 			$attrValue = $value;
-			if(isset($modifier))
-			{
-				switch($modifier)
-				{
+			if(isset($modifier)) {
+				switch($modifier) {
 					case "Seconds":
 						$attrValue = $value / 60;
 						break;
