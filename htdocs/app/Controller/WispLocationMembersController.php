@@ -42,12 +42,10 @@ class WispLocationMembersController extends AppController
 		$memberData = array();
 
 		// Generating final array.
-		foreach($wispLocationMember as $wMember)
-		{
+		foreach ($wispLocationMember as $wMember) {
 			$userNameData= $this->WispLocationMember->selectUsername($wMember['WispLocationMember']['UserID']);
-			foreach($userNameData as $uData)
-			{
-				if(isset($uData['Username'])) {
+			foreach ($userNameData as $uData) {
+				if (isset($uData['Username'])) {
 					$wMember['WispLocationMember']['userName'] = $userNameData['User']['Username'];
 				}
 				$memberData[] = $wMember;
