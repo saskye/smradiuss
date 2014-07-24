@@ -80,7 +80,7 @@ class WispUser extends AppModel
 	//Inser username in table and get its id.
 	public function insertUsername($userName)
 	{
-		$res = $this->query("
+		$this->query("
 			INSERT INTO users
 				(
 					Username
@@ -101,7 +101,7 @@ class WispUser extends AppModel
 	//Inser data in wisp_userdata table.
 	public function insertRec($data)
 	{
-		$res = $this->query("
+		$this->query("
 			INSERT INTO wisp_userdata
 				(
 					UserID,
@@ -129,6 +129,8 @@ class WispUser extends AppModel
 				$data['WispUser']['Phone']
 			)
 		);
+
+		return $this->getLastInsertID();
 	}
 
 
@@ -136,7 +138,7 @@ class WispUser extends AppModel
 	//Update wisp_userdata table.
 	public function updateRec($data, $userId)
 	{
-		$res = $this->query("
+		$this->query("
 			UPDATE wisp_userdata SET
 				LocationID = ?
 				FirstName = ?
@@ -154,6 +156,8 @@ class WispUser extends AppModel
 				$userId
 			)
 		);
+
+		return $this->getAffectedRows();
 	}
 
 
@@ -161,7 +165,7 @@ class WispUser extends AppModel
 	//Insert attribute data in table.
 	public function addValue($userId, $attName, $attoperator, $password, $modifier = '')
 	{
-		$res = $this->query("
+		$this->query("
 			INSERT INTO user_attributes
 				(
 					UserID,
@@ -189,6 +193,8 @@ class WispUser extends AppModel
 				$modifier
 			)
 		);
+
+		return $this->getLastInsertID();
 	}
 
 
@@ -204,7 +210,8 @@ class WispUser extends AppModel
 	//Update username.
 	public function updateUsername($userId, $userName)
 	{
-		$res = $this->query("UPDATE users SET Username = ? WHERE ID = ?", array($userName, $userId));
+		$this->query("UPDATE users SET Username = ? WHERE ID = ?", array($userName, $userId));
+		return $this->getAffectedRows();
 	}
 
 
@@ -212,7 +219,8 @@ class WispUser extends AppModel
 	//Update value.
 	public function updateValue($userId, $userValue)
 	{
-		$res = $this->query("UPDATE user_attributes SET Value = ? WHERE UserID = ?", array($userValue, $userId));
+		$this->query("UPDATE user_attributes SET Value = ? WHERE UserID = ?", array($userValue, $userId));
+		return $this->getAffectedRows();
 	}
 
 
@@ -228,7 +236,8 @@ class WispUser extends AppModel
 	//Deleting attribute.
 	public function deleteUserAttributes($userId)
 	{
-		$res = $this->query("DELETE FROM user_attributes WHERE UserID = ?", array($userId));
+		$this->query("DELETE FROM user_attributes WHERE UserID = ?", array($userId));
+		return $this->getAffectedRows();
 	}
 
 
@@ -296,7 +305,7 @@ class WispUser extends AppModel
 	//Add group
 	public function insertUserGroup($userId, $groupId)
 	{
-		$res = $this->query("
+		$this->query("
 			INSERT INTO users_to_groups
 				(
 					UserID,
@@ -318,6 +327,8 @@ class WispUser extends AppModel
 				''
 			)
 		);
+
+		return $this->getLastInsertID();
 	}
 
 
@@ -334,7 +345,8 @@ class WispUser extends AppModel
 	//Delete attributes.
 	public function deleteUserAttibute($userId)
 	{
-		$res = $this->query("DELETE FROM user_attributes WHERE UserID = ? AND Name != ?", array($userId, 'User-Password'));
+		$this->query("DELETE FROM user_attributes WHERE UserID = ? AND Name != ?", array($userId, 'User-Password'));
+		return $this->getAffectedRows();
 	}
 
 
