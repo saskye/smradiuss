@@ -18,6 +18,11 @@
 
 
 
+// Import another model.
+App::import('Model', 'User');
+
+
+
 /**
  * @class GroupMember
  *
@@ -26,10 +31,7 @@
 class GroupMember extends AppModel
 {
 
-	/**
-	 * @var $useTable
-	 * This variable is used for including table.
-	 */
+	// This variable is used for including table.
 	public $useTable = 'users_to_groups';
 
 
@@ -37,16 +39,25 @@ class GroupMember extends AppModel
 	 * @method getUserNameById
 	 * This method is used for fetching username.
 	 * @param $userId
-	 * @return $res
+	 * @return $getUserName
 	 */
 	public function getUserNameById($userId)
 	{
 		try {
-			$res = $this->query("SELECT Username FROM users WHERE ID = ?", array($userId));
+			$objUser = new User();
+			$getUserName = $objUser->find(
+				'first',
+				array(
+					'conditions' => array(
+						'ID' => $userId
+					),
+					'fields' => array('Username')
+				)
+			);
 		} catch (exception $ex) {
 			throw new exception('Error in query.');
 		}
-		return $res;
+		return $getUserName;
 	}
 }
 
