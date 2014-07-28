@@ -25,6 +25,11 @@
  */
 class GroupAttribute extends AppModel
 {
+
+	// This variable is used for including table.
+	public $useTable = 'group_attributes';
+
+
 	// Validating form controller.
 	public $validate = array(
 		'Name' => array(
