@@ -27,14 +27,6 @@
  */
 class GroupMemberController extends AppController
 {
-
-	/**
-	 * @var $use
-	 * This variable is used for including Users table.
-	 */
-	public $use = array('Users');
-
-
 	/**
 	 * @method index
 	 * @param $groupID
@@ -55,8 +47,8 @@ class GroupMemberController extends AppController
 			// Preparing final array.
 			foreach ($GroupMember as $groupMember) {
 				$userName = $this->GroupMember->getUserNameById($groupMember['GroupMember']['UserID']);
-				if (isset($userName[0]['users']['Username'])) {
-					$groupMember['GroupMember']['UserName'] = $userName[0]['users']['Username'];
+				if (isset($userName['User']['Username'])) {
+					$groupMember['GroupMember']['UserName'] = $userName['User']['Username'];
 				}
 				$UserNameData[] = $groupMember;
 			}
