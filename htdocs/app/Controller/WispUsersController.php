@@ -338,8 +338,8 @@ class WispUsersController extends AppController
 		$userGroups = $this->WispUser->selectUserGroups($user['WispUser']['UserID']);
 		$this->set('userGroups', $userGroups);
 		// Fetcing user attribute.
-		$userAttrib = $this->WispUser->selectUserAttributes($user['WispUser']['UserID']);
-		$this->set('userAttrib', $userAttrib);
+		$userAttributes = $this->WispUser->selectUserAttributes($user['WispUser']['UserID']);
+		$this->set('userAttributes', $userAttributes);
 		// Fetching locations.
 		$location = $grouparr = array();
 		$locationData = $this->WispUser->selectLocation();
@@ -351,10 +351,10 @@ class WispUsersController extends AppController
 		// Fetching all groups to fill select control.
 		$groupItems = $this->WispUser->selectGroup();
 		foreach ($groupItems as $val) {
-			$grouparr[$val['Group']['ID']] = $val['Group']['Name'];
+			$groups[$val['Group']['ID']] = $val['Group']['Name'];
 		}
 
-		$this->set('grouparr', $grouparr);
+		$this->set('groups', $groups);
 		// Update records.
 		$userData[] = array();
 		// Checking submission.
@@ -512,8 +512,8 @@ class WispUsersController extends AppController
 		$userGroups = $this->WispUser->selectUserGroups($user['WispUser']['UserID']);
 		$this->set('userGroups', $userGroups);
 		// Fetcing user attribute data.
-		$userAttrib = $this->WispUser->selectUserAttributes($user['WispUser']['UserID']);
-		$this->set('userAttrib', $userAttrib);
+		$userAttributes = $this->WispUser->selectUserAttributes($user['WispUser']['UserID']);
+		$this->set('userAttributes', $userAttributes);
 		// Fetching all location to fill select control.
 		$locationData = $this->WispUser->selectLocation();
 		foreach ($locationData as $loc) {
