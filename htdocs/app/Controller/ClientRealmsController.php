@@ -48,8 +48,8 @@ class ClientRealmsController extends AppController
 				// Get realms name via realms id.
 				$realmsData= $this->ClientRealm->getRealmsById($clientRealms['ClientRealm']['RealmID']);
 
-				if (isset($realmsData[0]['realms']['Name'])) {
-					$clientRealms['ClientRealm']['realmName'] = $realmsData[0]['realms']['Name'];
+				if (isset($realmsData['Realm']['Name'])) {
+					$clientRealms['ClientRealm']['realmName'] = $realmsData['Realm']['Name'];
 				}
 				$clientRealmsData[] = $clientRealms;
 			}
@@ -77,16 +77,20 @@ class ClientRealmsController extends AppController
 
 			// Adding realms name to final array.
 			foreach ($clientRealms as $val) {
-				$arr[$val['realms']['ID']] = $val['realms']['Name'];
+				$arr[$val['Realm']['ID']] = $val['Realm']['Name'];
 			}
 			$this->set('arr', $arr);
 
 			// run only when submit button clicked.
 			if ($this->request->is('post')) {
-				$this->ClientRealm->set($this->request->data);
+				$requestData = $this->ClientRealm->set($this->request->data);
 
 				if ($this->ClientRealm->validates()) {
-					$this->ClientRealm->InsertRec($clientID,$this->request->data);
+					if ($requestData) {
+						$addData['ClientRealm']['ClientID'] = $clientID;
+						$addData['ClientRealm']['RealmID'] = $requestData['ClientRealm']['Type'];
+					}
+					$this->ClientRealm->save($addData);
 					$this->Session->setFlash(__('Client member is saved succefully!', true), 'flash_success');
 				} else {
 					$this->Session->setFlash(__('Client memberis not saved succefully!', true), 'flash_failure');
