@@ -18,6 +18,11 @@
 
 
 
+// Import another model.
+App::import('Model','Realm');
+
+
+
 /**
  * @class ClientRealm
  *
@@ -26,10 +31,7 @@
 class ClientRealm extends AppModel
 {
 
-	/**
-	 * @var $useTable
-	 * This variable is used for including table.
-	 */
+	// This variable is used for including table.
 	public $useTable = 'clients_to_realms';
 
 
@@ -48,54 +50,25 @@ class ClientRealm extends AppModel
 	/**
 	 * @method selectRealms
 	 * This method is used for fetch realms data.
-	 * @return $res
+	 * @return $realmData
 	 */
 	public function selectRealms()
 	{
 		try {
-			$res = $this->query("
-				SELECT
-					ID,
-					Name
-				FROM
-					realms
-			");
-		} catch (exception $ex) {
-			throw new exception('Error in query.');
-		}
-		return $res;
-	}
-
-
-
-	/**
-	 * @method insertRec
-	 * @param $clientID
-	 * @param $data
-	 * This method is used for insert record in table.
-	 */
-	public function insertRec($clientID, $data)
-	{
-		try {
-			$res = $this->query("
-				INSERT INTO clients_to_realms
-					(
-						ClientID,
-						RealmID
+			$objRealm = new Realm();
+			$realmData = $objRealm->find(
+				'all',
+				array(
+					'fields' => array(
+						'ID',
+						'Name'
 					)
-				VALUES
-					(
-						?,
-						?
-					)
-				",array(
-					$clientID,
-					$data['ClientRealm']['Type']
 				)
 			);
 		} catch (exception $ex) {
 			throw new exception('Error in query.');
 		}
+		return $realmData;
 	}
 
 
@@ -104,16 +77,27 @@ class ClientRealm extends AppModel
 	 * @method getRealmsById
 	 * @param $realmID
 	 * This method is used for get realms name.
-	 * @return $res
+	 * @return $realmName
 	 */
 	public function getRealmsById($realmID)
 	{
 		try {
-			$res = $this->query("SELECT Name FROM realms WHERE ID = ?", array($realmID));
+			$objRealm = new Realm();
+			$realmName = $objRealm->find(
+				'first',
+				array(
+					'conditions' => array(
+						'ID' => $realmID
+					),
+					'fields' => array(
+						'Name'
+					)
+				)
+			);
 		} catch (exception $ex) {
 			throw new exception('Error in query.');
 		}
-		return $res;
+		return $realmName;
 	}
 }
 
