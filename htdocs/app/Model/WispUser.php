@@ -18,339 +18,519 @@
 
 
 
-/**
- * Wisp User Model
- *
- */
+// Import another model.
+App::import('Model','User');
+App::import('Model','WispLocation');
+App::import('Model','UserAttribute');
+App::import('Model','WispUsersTopup');
+App::import('Model','UserGroup');
+App::import('Model','Group');
+App::import('Model','GroupMember');
 
+
+
+/**
+ * @class WispUser
+ *
+ * @brief This class manages default table, validation and methods.
+ */
 class WispUser extends AppModel
 {
+
+	// This variable is used for including table.
 	public $useTable = 'wisp_userdata';
 
-	//Validating form controllers.
-	public $validate = array(
-		'Username' => array(
-			'required' => array(
-				'rule' => array(
-					'notEmpty'
-				),
-				'message' => 'Please choose a username'
-			),
-			'unique' => array(
-				'rule' => array(
-					'uniqueCheck'
-				),
-				'message' => 'The username you have chosen has already been registered'
-			)
-		)
-	);
 
-
-
-	//Check username is exist or not in table.
-	public function uniqueCheck($Username)
+	/**
+	 * @method selectById
+	 * This method is used for fetching record from users table.
+	 * @param $userId
+	 * @return $userData
+	 */
+	public function selectById($userId)
 	{
-		$res = $this->query("SELECT COUNT(ID) FROM users WHERE Username = ?", array($Username['Username']));
+		try {
+			// This variable is used for create User class object.
+			$objUser = new User();
 
-		if ($res[0][0]['count(ID)'] >= 1) {
-			return false;
-		} else {
-			return true;
+
+			// This variable is used for get data.
+			$userData = $objUser->find(
+				'first',
+				array(
+					'conditions' => array(
+						'ID' => $userId
+					)
+				)
+			);
+		} catch (exception $ex) {
+			throw new exception('Error in query.');
+		}
+		return $userData;
+	}
+
+
+
+	/**
+	 * @method selectLocation
+	 * This method is used for fetching all locations data.
+	 * @return $locationData
+	 */
+	public function selectLocation()
+	{
+		try {
+			// This variable is used for create WispLocation class object.
+			$objLocation = new WispLocation();
+
+
+			// This variable is used for get data.
+			$locationData = $objLocation->find('all');
+		} catch (exception $ex) {
+			throw new exception('Error in query.');
+		}
+		return $locationData;
+	}
+
+
+
+	/**
+	 * @method insertUsername
+	 * This method is used for insert username in table and get its id.
+	 * @param $userName
+	 * @return $lastInsertID
+	 */
+	public function insertUsername($userName)
+	{
+		try {
+			// This variable is used for create User class object.
+			$objUser = new User();
+
+
+			$objUser->set('Username', $userName);
+			$objUser->save();
+
+			// This variable is used for get last inserted id.
+			$lastInsertID = $objUser->getLastInsertID();
+		} catch (exception $ex) {
+			throw new exception('Error in query.');
+		}
+		return $lastInsertID;
+	}
+
+
+
+	/**
+	 * @method addValue
+	 * This method is used for insert attribute data in table.
+	 * @param $userId
+	 * @param $attName
+	 * @param $attoperator
+	 * @param $password
+	 * @param $modifier
+	 */
+	public function addValue($userId, $attName, $attoperator, $password, $modifier = '')
+	{
+		try {
+			// This variable is used for create UserAttribute class object.
+			$objUserAttribute = new UserAttribute();
+
+
+			$objUserAttribute->set(
+				array(
+					'UserID' => $userId,
+					'Name' => $attName,
+					'Operator' => $attoperator,
+					'Value' => $password,
+					'Disabled' => '0',
+					'modifier' => $modifier
+				)
+			);
+			$objUserAttribute->save();
+		} catch (exception $ex) {
+			throw new exception('Error in query.');
 		}
 	}
 
 
 
-	//Fetching record from users table.
-	public function selectById($userId)
-	{
-		return $this->query("SELECT Username, Disabled FROM users WHERE ID = ?", array($userId));
-	}
-
-
-
-	//Fetching all locations for select box controller.
-	public function selectLocation()
-	{
-		return $this->query("SELECT * FROM wisp_locations");
-	}
-
-
-
-	//Inser username in table and get its id.
-	public function insertUsername($userName)
-	{
-		$this->query("
-			INSERT INTO users
-				(
-					Username
-				)
-			VALUES
-				(
-					?
-				)
-			",
-			array($userName)
-		);
-
-		return $this->getLastInsertID();
-	}
-
-
-
-	//Inser data in wisp_userdata table.
-	public function insertRec($data)
-	{
-		$this->query("
-			INSERT INTO wisp_userdata
-				(
-					UserID,
-					LocationID,
-					FirstName,
-					LastName,
-					Email,
-					Phone
-				)
-			VALUES
-				(
-					?,
-					?,
-					?,
-					?,
-					?,
-					?
-				)
-			",array(
-				$data['WispUser']['UserId'],
-				$data['WispUser']['Location'],
-				$data['WispUser']['FirstName'],
-				$data['WispUser']['LastName'],
-				$data['WispUser']['Email'],
-				$data['WispUser']['Phone']
-			)
-		);
-
-		return $this->getLastInsertID();
-	}
-
-
-
-	//Update wisp_userdata table.
-	public function updateRec($data, $userId)
-	{
-		$this->query("
-			UPDATE wisp_userdata SET
-				LocationID = ?
-				FirstName = ?
-				LastName = ?
-				Email = ?
-				Phone = ?
-			WHERE
-				UserID = ?
-			",array(
-				$data['WispUser']['Location'],
-				$data['WispUser']['FirstName'],
-				$data['WispUser']['LastName'],
-				$data['WispUser']['Email'],
-				$data['WispUser']['Phone'],
-				$userId
-			)
-		);
-
-		return $this->getAffectedRows();
-	}
-
-
-
-	//Insert attribute data in table.
-	public function addValue($userId, $attName, $attoperator, $password, $modifier = '')
-	{
-		$this->query("
-			INSERT INTO user_attributes
-				(
-					UserID,
-					Name,
-					Operator,
-					Value,
-					Disabled,
-					modifier
-				)
-			VALUES
-				(
-					?,
-					?,
-					?,
-					?,
-					?,
-					?
-				)
-			",array(
-				$userId,
-				$attName,
-				$attoperator,
-				$password,
-				0,
-				$modifier
-			)
-		);
-
-		return $this->getLastInsertID();
-	}
-
-
-
-	//Fetching value from table.
+	/**
+	 * @method getValue
+	 * This method is used for fetching value form table.
+	 * @param $userId
+	 * @return $valueData
+	 */
 	public function getValue($userId)
 	{
-		return $this->query("SELECT Value FROM user_attributes WHERE UserID = ?", array($userId));
+		try {
+			// This variable is used for create UserAttribute calss object.
+			$objUserAttribute = new UserAttribute();
+
+
+			// This variable is used for get data.
+			$valueData = $objUserAttribute->find(
+				'first',
+				array(
+					'conditions' => array(
+						'UserID' => $userId
+					),
+					'fields' => array(
+						'Value'
+					)
+				)
+			);
+		} catch (exception $ex) {
+			throw new exception('Error in query.');
+		}
+		return $valueData;
 	}
 
 
 
-	//Update username.
+	/**
+	 * @method updateUsername
+	 * This method is used for update username.
+	 * @param $userId
+	 * @param $userName
+	 */
 	public function updateUsername($userId, $userName)
 	{
-		$this->query("UPDATE users SET Username = ? WHERE ID = ?", array($userName, $userId));
-		return $this->getAffectedRows();
+		try {
+			// This variable is used for create User class object.
+			$objUser = new User();
+
+
+			$objUser->updateAll(
+				array(
+					'Username' => "'$userName'"
+				),
+				array(
+					'ID' => $userId
+				)
+			);
+		} catch (exception $ex) {
+			throw new exception('Error in query.');
+		}
 	}
 
 
 
-	//Update value.
+	/**
+	 * @method updateValue
+	 * This method is used for update value.
+	 * @param $userId
+	 * @param $userValue
+	 */
 	public function updateValue($userId, $userValue)
 	{
-		$this->query("UPDATE user_attributes SET Value = ? WHERE UserID = ?", array($userValue, $userId));
-		return $this->getAffectedRows();
+		try {
+			// This variable is used for create UserAttribute class object.
+			$objUserAttribute = new UserAttribute();
+
+
+			$objUserAttribute->updateAll(
+				array(
+					'Value' => "'$userValue'"
+				),
+				array(
+					'UserID' => $userId
+				)
+			);
+		} catch (exception $ex) {
+			throw new exception('Error in query');
+		}
 	}
 
 
 
-	//Fetching user id for delete record.
-	public function fetchUserId($id)
-	{
-		return $this->query("SELECT UserID FROM wisp_userdata WHERE ID = ?", array($id));
-	}
-
-
-
-	//Deleting attribute.
+	/**
+	 * @method deleteUserAttributes
+	 * This method is used for deleteing atribute.
+	 * @param $userId
+	 */
 	public function deleteUserAttributes($userId)
 	{
-		$this->query("DELETE FROM user_attributes WHERE UserID = ?", array($userId));
-		return $this->getAffectedRows();
+		try {
+			// This variable is used for create UserAttribute class object.
+			$objUserAttribute = new UserAttribute($userId);
+
+
+			$objUserAttribute->delete();
+		} catch (exception $ex) {
+			throw new exception('Error in query.');
+		}
 	}
 
 
 
-	//Delete user record from all related tables.
+	/**
+	 * @method deleteUsers
+	 * This method is used for delete user record form all related tables.
+	 * @param $usreId
+	 */
 	public function deleteUsers($userId)
 	{
-		$this->query("DELETE FROM users WHERE ID = ?", array($userId));
-		$rowsAffected = $this->getAffectedRows();
-		$this->query("DELETE FROM user_attributes WHERE UserID = ?", array($userId));
-		$this->query("DELETE FROM users_to_groups WHERE UserID = ?", array($userId));
-		$this->query("DELETE FROM topups WHERE UserID = ?", array($userId));
+		try {
+			// This variable is used for create UserAttribute class object.
+			$objUserAttribute = new UserAttribute();
 
-		return $rowsAffected;
+
+			$objUserAttribute->deleteAll(array('UserID' => $userId),false);
+
+			// This variable is used for create UserGroup class object.
+			$objUserGroup = new UserGroup();
+
+
+			$objUserGroup->deleteAll(array('UserID' => $userId),false);
+
+			// This variable is used for create WispUsersTopup class object.
+			$objWispUsersTopup = new WispUsersTopup();
+
+
+			$objWispUsersTopup->deleteAll(array('UserID' => $userId),false);
+
+
+			// This variable is used for create User class object.
+			$objUser = new User();
+
+
+			$objUser->delete(array('ID' => $userId));
+		} catch (exception $ex) {
+			throw new exception('Error in query.');
+		}
 	}
 
 
 
-	// Check if username used
-	public function getUserName($userName)
+	/**
+	 * @method getUserName
+	 * This method is used for check if username used.
+	 * @param $userName
+	 * @return $usernameCountCheck
+	 */
+	public function getUsername($userName)
 	{
-		$res = $this->query("SELECT Username FROM users WHERE Username = ?", array($userName));
-		return count($res);
+		try {
+			// This variable is used for create User class object.
+			$objUser = new User();
+
+
+			// This variable is used for get data.
+			$usernameCountCheck = $objUser->find(
+				'count',
+				array(
+					'conditions' => array(
+						'Username' => $userName
+					)
+				)
+			);
+		} catch (exception $ex) {
+			throw new exception('Error in query.');
+		}
+		return $usernameCountCheck;
 	}
 
 
 
-	// Fetching all groups to fill select control.
+	/**
+	 * @method selectGroup
+	 * This method is used for fetching all groups.
+	 * @return $groups
+	 */
 	public function selectGroup()
 	{
-		return $this->query("SELECT ID, Name FROM groups");
+		try {
+			// This variable is used for create Group class object.
+			$objGroup = new Group();
+
+
+			// This variable is used for get data.
+			$groups = $objGroup->find(
+				'all',
+				array(
+					'fields' => array(
+						'ID',
+						'Name'
+					)
+				)
+			);
+		} catch (exception $ex) {
+			throw new exception('Error in query.');
+		}
+		return $groups;
 	}
 
 
 
-	// Select user group from user id
+	/**
+	 * @method selectUserGroups
+	 * This method is used for select user group.
+	 * @param $userId
+	 * @return $arr
+	 */
 	public function selectUserGroups($userId)
 	{
-		return $this->query("SELECT *,g.name FROM users_to_groups as utg , groups as g WHERE UserID = ".$userId." AND g.ID = utg.GroupID",false);
+		try {
+			// This variable is used for create Group class object.
+			$objGroup = new Group();
+
+
+			// This variable is used for create GroupMember class object.
+			$objGroupMember = new GroupMember();
+
+
+			// This variable is used for get data.
+			$groupMember = $objGroupMember->find(
+				'first',
+				array(
+					'conditions' => array(
+						'UserID' => $userId
+					),
+					'fields' => array(
+						'ID',
+						'UserID',
+						'GroupID',
+						'Disabled',
+						'Comment'
+					)
+				)
+			);
+
+
+			if ($groupMember) {
+				// This variable is used for get data.
+				$group = $objGroup->find(
+					'first',
+					array(
+						'conditions' => array(
+							'ID' => $groupMember['GroupMember']['GroupID']
+						),
+						'fields' => array(
+							'name'
+						)
+					)
+				);
+
+				// This variable is used for merges two arrays into one array.
+				$userGroup = array_merge($groupMember,$group);
+
+
+				// This variable is used for creates an array.
+				$arr = array($userGroup);
+			}
+		} catch (exception $ex) {
+			throw new exception('Error in query.');
+		}
+		return $arr;
 	}
 
 
 
-	//Select user attributes.
+	/**
+	 * @method selectUserAttributes
+	 * This method is used for select user attributes.
+	 * @param $userId
+	 * @return $userAttribute
+	 */
 	public function selectUserAttributes($userId)
 	{
-		return $this->query("
-			SELECT
-				ID,
-				UserID,
-				GroupID,
-				Disabled,
-				Comment,
-				g.name
-			FROM
-				user_attributes
-			WHERE
-				UserID = ?
-			", array($userId)
-		);
+		try {
+			// This variable is used for create UserAttribute class object.
+			$objUserAttribute = new UserAttribute();
+
+
+			// This variable is used for get data.
+			$userAttribute = $objUserAttribute->find(
+				'all',
+				array(
+					'conditions' => array(
+						'UserID' => $userId
+					)
+				)
+			);
+		} catch (exception $ex) {
+			throw new exception('Error in query.');
+		}
+		return $userAttribute;
 	}
 
 
 
-	//Add group
+	/**
+	 * @method insertUserGroup
+	 * This method is used for add group.
+	 * @param $userId
+	 * @param groupId
+	 */
 	public function insertUserGroup($userId, $groupId)
 	{
-		$this->query("
-			INSERT INTO users_to_groups
-				(
-					UserID,
-					GroupID,
-					Disabled,
-					Comment
-				)
-			VALUES
-				(
-					?,
-					?,
-					?,
-					?
-				)
-			",array(
-				$userId,
-				$groupId,
-				'0',
-				''
-			)
-		);
+		try {
+			// This varialble is used for create GroupMember class object.
+			$objGroupMember = new GroupMember();
 
-		return $this->getLastInsertID();
+
+			$objGroupMember->set(
+				array(
+					'UserID' => $userId,
+					'GroupID' => $groupId,
+					'Disabled' => '0',
+					'Comment' => ''
+				)
+			);
+			$objGroupMember->save();
+		} catch (exception $ex) {
+			throw new exception('Error in query.');
+		}
 	}
 
 
 
-	//Delete group.
+	/**
+	 * @method deleteUserGroup
+	 * This method is used for delete group.
+	 * @param $userId
+	 */
 	public function deleteUserGroup($userId)
 	{
-		$this->query("DELETE FROM users_to_groups WHERE UserID = ?", array($userId));
-		return $this->getAffectedRows();
+		try {
+			// This variable is used for create UserGroup class object.
+			$objUserGroup = new UserGroup();
+
+
+			$objUserGroup->deleteAll(
+				array(
+					'UserID' => $userId
+				),
+				false
+			);
+		} catch (exception $ex) {
+			throw new exception('Error in query.');
+		}
 	}
 
 
 
-	//Delete attributes.
+	/**
+	 * @method deleteUserAttibute
+	 * This method is used for delete attributes.
+	 * @param $userId
+	 */
 	public function deleteUserAttibute($userId)
 	{
-		$this->query("DELETE FROM user_attributes WHERE UserID = ? AND Name != ?", array($userId, 'User-Password'));
-		return $this->getAffectedRows();
+		try {
+			// This variable is used for create UserAttribute class object.
+			$objUserAttribute = new UserAttribute();
+
+
+			$objUserAttribute->deleteAll(
+				array(
+					'UserID' => $userId
+				),
+				false
+			);
+		} catch (exception $ex) {
+			throw new exception('Error in query.');
+		}
 	}
-
-
-
 }
 
 
