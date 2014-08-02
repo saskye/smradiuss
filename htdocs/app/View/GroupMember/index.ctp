@@ -5,45 +5,77 @@ body {
 </style>
 
 <div style="padding: 15px 15px">
-	<div class="row"><?php echo $this->element('left_panel');?>
-		<div class="col-md-10"><legend>Group Members List</legend>
+	<div class="row"><?php echo $this->element('left_panel'); ?>
+		<div class="col-md-10"><legend><?php echo __('Group Members List'); ?></legend>
 			<table class="table">
 				<thead>
 					<tr>
 						<th><?php echo $this->Paginator->sort('ID', 'ID'); ?></th>
 						<th><?php echo $this->Paginator->sort('Username', 'Username'); ?></th>
 						<th><?php echo $this->Paginator->sort('Disabled', 'Disabled'); ?></th>
-						<th><a><?php echo __('Actions', true);?></a></th>
+						<th><a><?php echo __('Actions'); ?></a></th>
 					</tr>
 				</thead>
 				<tbody>
-					<?php foreach ($GroupMember as $GroupMember): ?>
+<?php
+					foreach ($GroupMember as $GroupMember) {
+?>
 						<tr>
-							<td><? echo $GroupMember['GroupMember']['ID'];?></td>
-							<td><? echo $GroupMember['GroupMember']['UserName'];?></td>
-							<td><? echo ($GroupMember['GroupMember']['Disabled'] == 1) ? 'true' : 'false';?></td>
+							<td><?php echo h($GroupMember['GroupMember']['ID']); ?></td>
+							<td><?php echo h($GroupMember['GroupMember']['UserName']); ?></td>
+							<td><?php echo ($GroupMember['GroupMember']['Disabled'] == 1) ? 'true' : 'false'; ?></td>
 							<td>
-								<?php echo $this->Html->link('<img src="'.BASE_URL.'/resources/custom/images/silk/icons/table_delete.png"></img>',array('controller' => 'group_member','action' => 'remove', $GroupMember['GroupMember']['ID'], $groupID), array('escape' => false, 'title' => 'Remove Group'), 'Are you sure you want to remove this group member?');?>
+<?php
+								echo $this->Html->image(
+									"/resources/custom/images/silk/icons/table_delete.png",
+									array(
+										"alt" => "Delete",
+										"url" => array(
+											'controller' => 'group_member',
+											'action' => 'remove',
+											$GroupMember['GroupMember']['ID'],
+											$groupID
+										),
+										"title" => "Remove Group"
+									)
+								);
+?>
 							</td>
 						</tr>
-						<? endforeach; ?>
-						<tr>
-						<td align="center" colspan="10" >
-							<?php
-							$total = $this->Paginator->counter(array(
-    							'format' => '%pages%'));
-							if($total >1)
-							{
-							echo $this->Paginator->prev('<<', null, null, array('class' => 'disabled'));
-							?>
-							<?php echo $this->Paginator->numbers(); ?>
-							<!-- Shows the next and previous links -->
-							<?php echo $this->Paginator->next('>>', null, null, array('class' => 'disabled')); ?>
-							<!-- prints X of Y, where X is current page and Y is number of pages -->
-							<?php
-							echo "<span style='margin-left:20px;'>Page : ".$this->Paginator->counter()."</span>";
+<?php
+					}
+?>
+					<tr>
+						<td align="center" colspan="10">
+<?php
+							$total = $this->Paginator->counter(
+								array(
+									'format' => '%pages%'
+								)
+							);
+							if($total > 1) {
+								echo $this->Paginator->prev(
+									'<<',
+									null,
+									null,
+									array(
+										'class' => 'disabled'
+									)
+								);
+								echo $this->Paginator->numbers();
+								// Shows the next and previous links.
+								echo $this->Paginator->next(
+									'>>',
+									null,
+									null,
+									array(
+										'class' => 'disabled'
+									)
+								);
+								// Prints X of Y, where X is current page and Y is number of pages.
+								echo "<span style='margin-left:20px;'>Page : ".$this->Paginator->counter()."</span>";
 							}
-							?>
+?>
 						</td>
 					</tr>
 				</tbody>
