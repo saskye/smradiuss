@@ -5,132 +5,132 @@ body {
 </style>
 
 <div style="padding: 15px 15px">
-	<div class="row"><?php echo $this->element('left_panel');?>
-		<div class="col-md-10"><legend><?php echo __('Add User Attribute')?></legend>
-			<?php echo $this->Form->create()?>
-				<div class="form-group">
-					<?php
-						echo $this->Form->label(
+	<div class="row"><?php echo $this->element('left_panel'); ?>
+		<div class="col-md-10"><legend><?php echo __('Add User Attribute'); ?></legend>
+			<?php echo $this->Form->create(); ?>
+			<div class="form-group">
+<?php
+				echo $this->Form->label(
+					'Name',
+					'Name',
+					array(
+						'class' => 'col-md-2 control-label'
+					)
+				);
+?>
+				<div class="row">
+					<div class="col-md-4 input-group">
+<?php
+						echo $this->Form->input(
 							'Name',
-							'Name',
 							array(
-								'class' => 'col-md-2 control-label'
+								'label' => false,
+								'class' => 'form-control',
+								'placeholder' => 'Name'
 							)
 						);
-					?>
-					<div class="row">
-						<div class="col-md-4 input-group">
-							<?php
-								echo $this->Form->input(
-									'Name',
-									array(
-										'label' => false,
-										'class' => 'form-control',
-										'placeholder' => 'Name'
-									)
-								);
-							?>
-						</div>
+?>
 					</div>
 				</div>
-				<div class="form-group">
-					<?php
-						echo $this->Form->label(
+			</div>
+			<div class="form-group">
+<?php
+				echo $this->Form->label(
+					'Operator',
+					'Operator',
+					array(
+						'class' => 'col-md-2 control-label'
+					)
+				);
+?>
+				<div class="row">
+					<div class="col-md-4 input-group">
+<?php
+						echo $this->Form->input(
 							'Operator',
-							'Operator',
 							array(
-								'class' => 'col-md-2 control-label'
+								'label' => false,
+								'class' => 'form-control',
+								'type' => 'select',
+								'options' => array(
+									'=',
+									':=',
+									'==',
+									'+=',
+									'!=',
+									'<',
+									'>',
+									'<=',
+									'>=',
+									'=~',
+									'!~',
+									'=*',
+									'!*',
+									'||=='
+								)
 							)
 						);
-					?>
-					<div class="row">
-						<div class="col-md-4 input-group">
-							<?php
-								echo $this->Form->input(
-									'Operator',
-									array(
-										'label' => false,
-										'class' => 'form-control',
-										'type' => 'select',
-										'options' => array(
-											'=',
-											':=',
-											'==',
-											'+=',
-											'!=',
-											'<',
-											'>',
-											'<=',
-											'>=',
-											'=~',
-											'!~',
-											'=*',
-											'!*',
-											'||=='
-										)
-									)
-								);
-							?>
-						</div>
+?>
 					</div>
 				</div>
-				<div class="form-group">
-					<?php
-						echo $this->Form->label(
+			</div>
+			<div class="form-group">
+<?php
+				echo $this->Form->label(
+					'Value',
+					'Value',
+					array(
+						'class' => 'col-md-2 control-label'
+					)
+				);
+?>
+				<div class="row">
+					<div class="col-md-4 input-group">
+<?php
+						echo $this->Form->input(
 							'Value',
-							'Value',
 							array(
-								'class' => 'col-md-2 control-label'
+								'label' => false,
+								'class' => 'form-control',
+								'placeholder' => 'Value'
 							)
 						);
-					?>
-					<div class="row">
-						<div class="col-md-4 input-group">
-							<?php
-								echo $this->Form->input(
-									'Value',
-									array(
-										'label' => false,
-										'class' => 'form-control',
-										'placeholder' => 'Value'
-									)
-								);
-							?>
-						</div>
+?>
 					</div>
 				</div>
-				<div class="form-group">
-					<?php
-						echo $this->Form->label(
-							'Disabled',
-							'Disabled',
-							array(
-								'class' => 'col-md-2 control-label'
-							)
-						);
-					?>
-					<div class="row">
-						<div class="col-md-3">
-							<?php echo $this->Form->checkbox('Disabled');?>
-							<?php echo __('Disabled')?>
-						</div>
+			</div>
+			<div class="form-group">
+<?php
+				echo $this->Form->label(
+					'Disabled',
+					'Disabled',
+					array(
+						'class' => 'col-md-2 control-label'
+					)
+				);
+?>
+				<div class="row">
+					<div class="col-md-3">
+						<?php echo $this->Form->checkbox('Disabled'); ?>
+						<?php echo __('Disabled'); ?>
 					</div>
 				</div>
-				<div class="form-group">
-					<button type="submit" class="btn btn-primary"><?php echo __('Add')?></button>
-					<?php
-						echo $this->Html->link(
-							'Cancel',
-							array(
-								'action' => 'index',
-								$userId
-							),
-							array(
-								'class' => 'btn btn-default'
-							)
-						)
-					?>
-				</div>
+			</div>
+			<div class="form-group">
+				<button type="submit" class="btn btn-primary"><?php echo __('Add'); ?></button>
+<?php
+				echo $this->Html->link(
+					'Cancel',
+					array(
+						'action' => 'index',
+						$userId
+					),
+					array(
+						'class' => 'btn btn-default'
+					)
+				);
+?>
+			</div>
 			<?php echo $this->Form->end(); ?>
 		</div>
 	</div>
