@@ -189,68 +189,68 @@ function deleteAttributeRow(valData)
 </script>
 
 <div style="padding: 15px 15px">
-	<div class="row"><?php echo $this->element('wisp_left_panel');?>
-		<div class="col-md-10"><legend>Add Wisp User</legend>
-			<?php echo $this->Form->create()?>
+	<div class="row"><?php echo $this->element('wisp_left_panel'); ?>
+		<div class="col-md-10"><legend><?php echo __('Add Wisp User'); ?></legend>
+			<?php echo $this->Form->create(); ?>
 			<div class="form-group">
-				<?php
-					echo $this->Form->label(
-						'Username',
-						'Username',
-						array(
-							'class' => 'col-md-2 control-label'
-						)
-					);
-				?>
+<?php
+				echo $this->Form->label(
+					'Username',
+					'Username',
+					array(
+						'class' => 'col-md-2 control-label'
+					)
+				);
+?>
 				<div class="row">
 					<div class="col-md-4 input-group">
-						<?php
-							echo $this->Form->input(
-								'Username',
-								array(
-									'label' => false,
-									'class' => 'form-control',
-									'placeholder' => 'Username',
-									'type' => 'text'
-								)
-							);
-						?>
+<?php
+						echo $this->Form->input(
+							'Username',
+							array(
+								'label' => false,
+								'class' => 'form-control',
+								'placeholder' => 'Username',
+								'type' => 'text'
+							)
+						);
+?>
 					</div>
 				</div>
 			</div>
 			<div class="form-group">
-				<?php
-					echo $this->Form->label(
-						'Password',
-						'Password',
-						array(
-							'class' => 'col-md-2 control-label'
-						)
-					);
-				?>
+<?php
+				echo $this->Form->label(
+					'Password',
+					'Password',
+					array(
+						'class' => 'col-md-2 control-label'
+					)
+				);
+?>
 				<div class="row">
 					<div class="col-md-4 input-group">
-						<?php
-							echo $this->Form->input(
-								'Password',
-								array(
-									'label' => false,
-									'class' => 'form-control',
-									'placeholder' => 'Password',
-									'type' => 'text'
-								)
-							);
-						?>
+<?php
+						echo $this->Form->input(
+							'Password',
+							array(
+								'label' => false,
+								'class' => 'form-control',
+								'placeholder' => 'Password',
+								'type' => 'text'
+							)
+						);
+?>
 					</div>
 				</div>
 			</div>
 			<!-- Starting of tabs. -->
 			<div id="tabs1">
 				<ul id="tabs">
-					<li><a href="#pinfo">Personal</a></li>
-					<li><a href="#groups">Groups</a></li>
-					<li><a href="#attributes">Attributes</a></li>
-					<li><a href="#addmany">Add Many</a></li>
+					<li><a href="#pinfo"><?php echo __('Personal'); ?></a></li>
+					<li><a href="#groups"><?php echo __('Groups'); ?></a></li>
+					<li><a href="#attributes"><?php echo __('Attributes'); ?></a></li>
+					<li><a href="#addmany"><?php echo __('Add Many'); ?></a></li>
 				</ul>
 			</div>
 			<!-- Ending of tabs. -->
@@ -258,133 +258,133 @@ function deleteAttributeRow(valData)
 				<!-- Starting of personal info div. -->
 				<div id="pinfo">
 					<div class="form-group">
-						<?php
-							echo $this->Form->label(
-								'FirstName',
-								'First Name',
-								array(
-									'class' => 'col-md-2 control-label'
-								)
-							);
-						?>
+<?php
+						echo $this->Form->label(
+							'FirstName',
+							'First Name',
+							array(
+								'class' => 'col-md-2 control-label'
+							)
+						);
+?>
 						<div class="row">
 							<div class="col-md-4 input-group">
-								<?php
-									echo $this->Form->input(
-										'FirstName',
-										array(
-											'label' => false,
-											'class' => 'form-control',
-											'placeholder' => 'First Name',
-											'type' => 'text'
-										)
-									);
-								?>
+<?php
+								echo $this->Form->input(
+									'FirstName',
+									array(
+										'label' => false,
+										'class' => 'form-control',
+										'placeholder' => 'First Name',
+										'type' => 'text'
+									)
+								);
+?>
 							</div>
 						</div>
 					</div>
 					<div class="form-group">
-						<?php
-							echo $this->Form->label(
-								'LastName',
-								'LastName',
-								array(
-									'class' => 'col-md-2 control-label'
-								)
-							);
-						?>
+<?php
+						echo $this->Form->label(
+							'LastName',
+							'LastName',
+							array(
+								'class' => 'col-md-2 control-label'
+							)
+						);
+?>
 						<div class="row">
 							<div class="col-md-4 input-group">
-								<?php
-									echo $this->Form->input(
-										'LastName',
-										array(
-											'label' => false,
-											'class' => 'form-control',
-											'placeholder' => 'Last Name',
-											'type' => 'text'
-										)
-									);
-								?>
+<?php
+								echo $this->Form->input(
+									'LastName',
+									array(
+										'label' => false,
+										'class' => 'form-control',
+										'placeholder' => 'Last Name',
+										'type' => 'text'
+									)
+								);
+?>
 							</div>
 						</div>
 					</div>
 					<div class="form-group">
-						<?php
-							echo $this->Form->label(
-								'Phone',
-								'Phone',
-								array(
-									'class' => 'col-md-2 control-label'
-								)
-							);
-						?>
+<?php
+						echo $this->Form->label(
+							'Phone',
+							'Phone',
+							array(
+								'class' => 'col-md-2 control-label'
+							)
+						);
+?>
 						<div class="row">
 							<div class="col-md-4 input-group">
-								<?php
-									echo $this->Form->input(
-										'Phone',
-										array(
-											'label' => false,
-											'class' => 'form-control',
-											'placeholder' => 'Phone',
-											'type' => 'text'
-										)
-									);
-								?>
+<?php
+								echo $this->Form->input(
+									'Phone',
+									array(
+										'label' => false,
+										'class' => 'form-control',
+										'placeholder' => 'Phone',
+										'type' => 'text'
+									)
+								);
+?>
 							</div>
 						</div>
 					</div>
 					<div class="form-group">
-						<?php
-							echo $this->Form->label(
-								'Email',
-								'Email',
-								array(
-									'class' => 'col-md-2 control-label'
-								)
-							);
-						?>
+<?php
+						echo $this->Form->label(
+							'Email',
+							'Email',
+							array(
+								'class' => 'col-md-2 control-label'
+							)
+						);
+?>
 						<div class="row">
 							<div class="col-md-4 input-group">
-								<?php
-									echo $this->Form->input(
-										'Email',
-										array(
-											'label' => false,
-											'class' => 'form-control',
-											'placeholder' => 'Email',
-											'type' => 'text'
-										)
-									);
-								?>
+<?php
+								echo $this->Form->input(
+									'Email',
+									array(
+										'label' => false,
+										'class' => 'form-control',
+										'placeholder' => 'Email',
+										'type' => 'text'
+									)
+								);
+?>
 							</div>
 						</div>
 					</div>
 					<div class="form-group">
-						<?php
-							echo $this->Form->label(
-								'Location',
-								'Location',
-								array(
-									'class' => 'col-md-2 control-label'
-								)
-							);
-						?>
+<?php
+						echo $this->Form->label(
+							'Location',
+							'Location',
+							array(
+								'class' => 'col-md-2 control-label'
+							)
+						);
+?>
 						<div class="row">
 							<div class="col-md-4 input-group">
-								<?php
-									echo $this->Form->input(
-										'Location',
-										array(
-											'label' => false,
-											'class' => 'form-control',
-											'type' => 'select',
-											'options' => $location,
-											'empty' => true
-										)
-									);
-								?>
+<?php
+								echo $this->Form->input(
+									'Location',
+									array(
+										'label' => false,
+										'class' => 'form-control',
+										'type' => 'select',
+										'options' => $location,
+										'empty' => true
+									)
+								);
+?>
 							</div>
 						</div>
 					</div>
@@ -393,32 +393,32 @@ function deleteAttributeRow(valData)
 				<!-- Starting of group div. -->
 				<div id="groups" style="display:none;">
 					<div class="form-group">
-						<?php
-							echo $this->Form->label(
-								'Group',
-								'Group',
-								array(
-									'class' => 'col-md-2 control-label'
-								)
-							);
-						?>
+<?php
+						echo $this->Form->label(
+							'Group',
+							'Group',
+							array(
+								'class' => 'col-md-2 control-label'
+							)
+						);
+?>
 						<div class="row">
 							<div class="col-md-4 input-group" style="float:left;">
-								<?php
-									echo $this->Form->input(
-										'Type',
-										array(
-											'empty' => array(
-												0 => 'Please select'
-											),
-											'label' => false,
-											'class' => 'form-control',
-										   	'type' => 'select',
-											'options' => $grouparr,
-											'id' => 'groups'
-										)
-									);
-								?>
+<?php
+								echo $this->Form->input(
+									'Type',
+									array(
+										'empty' => array(
+											0 => 'Please select'
+										),
+										'label' => false,
+										'class' => 'form-control',
+										'type' => 'select',
+										'options' => $groups,
+										'id' => 'groups'
+									)
+								);
+?>
 								<span style="display:none;" id="selectValid"></span>
 							</div>
 							<div style="padding-left:600px;">
@@ -429,7 +429,7 @@ function deleteAttributeRow(valData)
 					<div id='selectGroup'>
 						<table class="table">
 							<thead>
-								<tr><th><a><?php echo __('Name', true);?></a></th></tr>
+								<tr><th><a><?php echo __('Name'); ?></a></th></tr>
 							</thead>
 							<tbody>
 							</tbody>
@@ -439,166 +439,166 @@ function deleteAttributeRow(valData)
 				<!-- Ending of group div. -->
 				<!-- Starting fo attributes div. -->
 				<div id="attributes" style="display:none;">
-					<?php
+<?php
 						$options = array(
-							'Traffic Limit' => 'Traffic Limit',
-							'Uptime Limit' => 'Uptime Limit',
-							'IP Address' => 'IP Address',
-							'MAC Address' => 'MAC Address'
+							'Traffic Limit' => __('Traffic Limit'),
+							'Uptime Limit' => __('Uptime Limit'),
+							'IP Address' => __('IP Address'),
+							'MAC Address' => __('MAC Address')
 						);
 						$operator = array(
-							'Add as reply if unique',
-							'Set configuration value',
-							'Match value in request',
-							'Add reply and set configuration',
-							'Inverse match value in request',
-							'Match less-than value in request',
-							'Match greater-than value in request',
-							'Match less-than or equal value in request',
-							'Match greater-than or equal value in request',
-							'Match string containing regex in request',
-							'Match string not containing regex in request',
-							'Match if attribute is defined in request',
-							'Match if attribute is not defined in request',
-							'Match any of these values in request'
+							__('Add as reply if unique'),
+							__('Set configuration value'),
+							__('Match value in request'),
+							__('Add reply and set configuration'),
+							__('Inverse match value in request'),
+							__('Match less-than value in request'),
+							__('Match greater-than value in request'),
+							__('Match less-than or equal value in request'),
+							__('Match greater-than or equal value in request'),
+							__('Match string containing regex in request'),
+							__('Match string not containing regex in request'),
+							__('Match if attribute is defined in request'),
+							__('Match if attribute is not defined in request'),
+							__('Match any of these values in request')
 						);
 						$modifier = array(
-							'Seconds' => 'Seconds',
-							'Minutes' => 'Minutes',
-							'Hours' => 'Hours',
-							'Days' => 'Days',
-							'Weeks' => 'Weeks',
-							'Months' => 'Months',
-							'MBytes' => 'MBytes',
-							'GBytes' => 'GBytes',
-							'TBytes' => 'TBytes'
+							'Seconds' => __('Seconds'),
+							'Minutes' => __('Minutes'),
+							'Hours' => __('Hours'),
+							'Days' => __('Days'),
+							'Weeks' => __('Weeks'),
+							'Months' => __('Months'),
+							'MBytes' => __('MBytes'),
+							'GBytes' => __('GBytes'),
+							'TBytes' => __('TBytes')
 						);
-					?>
+?>
 					<div class="form-group" style="float:left;width:200px;">
-						<?php
-							echo $this->Form->label(
-								'Name',
-								'Name',
-								array(
-									'class' => 'col-md-2 control-label',
-									'style'=>'width:60px;'
-								)
-							);
-						?>
+<?php
+						echo $this->Form->label(
+							'Name',
+							'Name',
+							array(
+								'class' => 'col-md-2 control-label',
+								'style'=>'width:60px;'
+							)
+						);
+?>
 						<div class="row">
 							<div class="col-md-4 input-group">
-								<?php
-									echo $this->Form->input(
-										'Name',
-										array(
-											'label' => false,
-											'class' => 'form-control',
-											'type' => 'select',
-											'options' => $options,
-											'empty' => array(
-												0 => 'Please select'
-											),
-											'id' => 'nameId',
-											'style' => 'width:150px;'
-										)
-									);
-								?>
-								<span style="display:none;" id="selectName">Please select name.</span>
+<?php
+								echo $this->Form->input(
+									'Name',
+									array(
+										'label' => false,
+										'class' => 'form-control',
+										'type' => 'select',
+										'options' => $options,
+										'empty' => array(
+											0 => 'Please select'
+										),
+										'id' => 'nameId',
+										'style' => 'width:150px;'
+									)
+								);
+?>
+								<span style="display:none;" id="selectName"><?php echo __('Please select name')."."; ?></span>
 							</div>
 						</div>
 					</div>
 					<div class="form-group" style="float:left;width:250px;">
-						<?php
-							echo $this->Form->label(
-								'Operator',
-								'Operator',
-								array(
-									'class' => 'col-md-2 control-label',
-									'style' => 'margin-left:0px;width:80px;'
-								)
-							);
-						?>
+<?php
+						echo $this->Form->label(
+							'Operator',
+							'Operator',
+							array(
+								'class' => 'col-md-2 control-label',
+								'style' => 'margin-left:0px;width:80px;'
+							)
+						);
+?>
 						<div class="row">
 							<div class="col-md-4 input-group">
-								<?php
-									echo $this->Form->input(
-										'Operator',
-										array(
-											'label' => false,
-											'class' => 'form-control',
-											'type' => 'select',
-											'options' => $operator,
-											'empty' => array(
-												'' => 'Please select'
-											),
-											'style' => 'width:180px;',
-											'id' => 'operatorId'
-										)
-									);
-								?>
-								<span style="display:none;" id="selectoperator">Please select operator.</span>
+<?php
+								echo $this->Form->input(
+									'Operator',
+									array(
+										'label' => false,
+										'class' => 'form-control',
+										'type' => 'select',
+										'options' => $operator,
+										'empty' => array(
+											'' => 'Please select'
+										),
+										'style' => 'width:180px;',
+										'id' => 'operatorId'
+									)
+								);
+?>
+								<span style="display:none;" id="selectoperator"><?php echo __('Please select operator')."."; ?></span>
 							</div>
 						</div>
 					</div>
 					<div class="form-group" style="float:left;width:250px;">
-						<?php
-							echo $this->Form->label(
-								'Value',
-								'Value',
-								array(
-									'class' => 'col-md-2 control-label',
-									'style' => 'width:60px;margin-left:0px;'
-								)
-							);
-						?>
+<?php
+						echo $this->Form->label(
+							'Value',
+							'Value',
+							array(
+								'class' => 'col-md-2 control-label',
+								'style' => 'width:60px;margin-left:0px;'
+							)
+						);
+?>
 						<div class="row">
 							<div class="col-md-4 input-group">
-								<?php
-									echo $this->Form->input(
-										'Value',
-										array(
-											'label' => false,
-											'class' => 'form-control',
-											'placeholder' => 'Value',
-											'style'=>'width:180px;',
-											'id' => 'valueId'
-										)
-									);
-								?>
-								<span style="display:none;" id="selectvalue">Please enter value.</span>
+<?php
+								echo $this->Form->input(
+									'Value',
+									array(
+										'label' => false,
+										'class' => 'form-control',
+										'placeholder' => 'Value',
+										'style' => 'width:180px;',
+										'id' => 'valueId'
+									)
+								);
+?>
+								<span style="display:none;" id="selectvalue"><?php echo __('Please enter value')."."; ?></span>
 							</div>
 						</div>
 					</div>
 					<div class="form-group" style="float:left;width:200px">
-						<?php
-							echo $this->Form->label(
-								'Modifier',
-								'Modifier',
-								array(
-									'class' => 'col-md-2 control-label',
-									'style' => 'width:80px;margin-left:0px;'
-								)
-							);
-						?>
+<?php
+						echo $this->Form->label(
+							'Modifier',
+							'Modifier',
+							array(
+								'class' => 'col-md-2 control-label',
+								'style' => 'width:80px;margin-left:0px;'
+							)
+						);
+?>
 						<div class="row">
 							<div class="col-md-4 input-group">
-								<?php
-									echo $this->Form->input(
-										'Modifier',
-										array(
-											'label' => false,
-											'class' => 'form-control',
-											'type' => 'select',
-											'options' => $modifier,
-											'empty' => array(
-												0 => 'Please select'
-											),
-											'style' => 'width:90px;margin-left:0px;',
-											'id' => 'modifierId'
-										)
-									);
-								?>
-								<span style="display:none;" id="selectmodifier">Please select modifier.</span>
+<?php
+								echo $this->Form->input(
+									'Modifier',
+									array(
+										'label' => false,
+										'class' => 'form-control',
+										'type' => 'select',
+										'options' => $modifier,
+										'empty' => array(
+											0 => 'Please select'
+										),
+										'style' => 'width:90px;margin-left:0px;',
+										'id' => 'modifierId'
+									)
+								);
+?>
+								<span style="display:none;" id="selectmodifier"><?php echo __('Please select modifier')."."; ?></span>
 							</div>
 						</div>
 					</div>
@@ -606,15 +606,15 @@ function deleteAttributeRow(valData)
 						<input type="button" value="Add Group" id="attributeBtn" class="btn btn-primary"/>
 					</div>
 					<br><br><br>
-					<div id='selectAttribute1' style="">
-						<input type='hidden' id='attribGenerator' value='1' />
+					<div id='selectAttribute1'>
+						<input type='hidden' id='attribGenerator' value='1'/>
 						<table class="table">
 							<thead>
 								<tr>
-									<th><a><?php echo __('Name', true);?></a></th>
-									<th><a><?php echo __('Operator', true);?></a></th>
-									<th><a><?php echo __('Value', true);?></a></th>
-									<th><a><?php echo __('Modifier', true);?></a></th>
+									<th><a><?php echo __('Name'); ?></a></th>
+									<th><a><?php echo __('Operator'); ?></a></th>
+									<th><a><?php echo __('Value'); ?></a></th>
+									<th><a><?php echo __('Modifier'); ?></a></th>
 								</tr>
 							</thead>
 							<tbody>
@@ -626,54 +626,54 @@ function deleteAttributeRow(valData)
 				<!-- Starting of add many div. -->
 				<div id="addmany" style="display:none;">
 					<div class="form-group">
-						<?php
-							echo $this->Form->label(
-								'Prefix',
-								'Prefix',
-								array(
-									'class' => 'col-md-2 control-label'
-								)
-							);
-						?>
+<?php
+						echo $this->Form->label(
+							'Prefix',
+							'Prefix',
+							array(
+								'class' => 'col-md-2 control-label'
+							)
+						);
+?>
 						<div class="row">
 							<div class="col-md-4 input-group">
-								<?php
-									echo $this->Form->input(
-										'Prefix',
-										array(
-											'label' => false,
-											'class' => 'form-control',
-											'placeholder' => 'Prefix',
-											'type' => 'text'
-										)
-									);
-								?>
+<?php
+								echo $this->Form->input(
+									'Prefix',
+									array(
+										'label' => false,
+										'class' => 'form-control',
+										'placeholder' => 'Prefix',
+										'type' => 'text'
+									)
+								);
+?>
 							</div>
 						</div>
 					</div>
 					<div class="form-group">
-						<?php
-							echo $this->Form->label(
-								'Number',
-								'Number',
-								array(
-									'class' => 'col-md-2 control-label'
-								)
-							);
-						?>
+<?php
+						echo $this->Form->label(
+							'Number',
+							'Number',
+							array(
+								'class' => 'col-md-2 control-label'
+							)
+						);
+?>
 						<div class="row">
 							<div class="col-md-4 input-group">
-								<?php
-									echo $this->Form->input(
-										'Number',
-										array(
-											'label' => false,
-											'class' => 'form-control',
-											'placeholder' => 'Number',
-											'type' => 'text'
-										)
-									);
-								?>
+<?php
+								echo $this->Form->input(
+									'Number',
+									array(
+										'label' => false,
+										'class' => 'form-control',
+										'placeholder' => 'Number',
+										'type' => 'text'
+									)
+								);
+?>
 							</div>
 						</div>
 					</div>
@@ -681,18 +681,18 @@ function deleteAttributeRow(valData)
 				<!-- Ending of add many div. -->
 			</div>
 			<div class="form-group">
-				<button type="submit" class="btn btn-primary"><?php echo __('Add')?></button>
-				<?php
-					echo $this->Html->link(
-						'Cancel',
-						array(
-							'action' => 'index'
-						),
-						array(
-							'class' => 'btn btn-default'
-						)
+				<button type="submit" class="btn btn-primary"><?php echo __('Add'); ?></button>
+<?php
+				echo $this->Html->link(
+					'Cancel',
+					array(
+						'action' => 'index'
+					),
+					array(
+						'class' => 'btn btn-default'
 					)
-				?>
+				);
+?>
 			</div>
 			<?php echo $this->Form->end(); ?>
 		</div>
