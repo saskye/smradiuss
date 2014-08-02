@@ -5,8 +5,8 @@ body {
 </style>
 
 <div style="padding: 15px 15px">
-	<div class="row"><?php echo $this->element('wisp_left_panel');?>
-		<div class="col-md-10"><legend>Wisp User Topups List</legend>
+	<div class="row"><?php echo $this->element('wisp_left_panel'); ?>
+		<div class="col-md-10"><legend><?php echo __('Wisp User Topups List'); ?></legend>
 			<table class="table">
 				<thead>
 					<tr>
@@ -19,112 +19,114 @@ body {
 					</tr>
 				</thead>
 				<tbody>
-					<?php
-						$topUpTypeArr = array(1=>'Traffice' , 2=>'Uptime');
-						foreach ($wtopups as $wtopup): ?>
-							<tr>
-								<td><? echo $wtopup['WispUsersTopup']['ID'];?></td>
-								<td><? echo $topUpTypeArr[$wtopup['WispUsersTopup']['Type']];?></td>
-								<td><? echo $wtopup['WispUsersTopup']['Value'];?></td>
-								<td><? echo date("Y-m-d", strtotime($wtopup['WispUsersTopup']['ValidFrom'])); ?></td>
-								<td><? echo date("Y-m-d", strtotime($wtopup['WispUsersTopup']['ValidTo'])); ?></td>
-								<td>
-									<?php
-										echo $this->Html->link(
-											'<img src="'.BASE_URL.'/resources/custom/images/silk/icons/table_edit.png"></img>',
-											array(
-												'controller' => 'wispUsers_topups',
-												'action' => 'edit',
-												$wtopup['WispUsersTopup']['ID'],
-												$userId
-											),
-											array(
-												'escape' => false,
-												'title' => 'Edit topup'
-											)
-										);
-									?>
-									<?php
-										echo $this->Html->link(
-											'<img src="'.BASE_URL.'/resources/custom/images/silk/icons/table_delete.png"></img>',
-											array(
-												'controller' => 'wispUsers_topups',
-												'action' => 'remove',
-												$wtopup['WispUsersTopup']['ID'],
-												$userId
-											),
-											array(
-												'escape' => false,
-												'title' => 'Remove topup'
-											),
-											'Are you sure you want to remove this topus?'
-										);
-									?>
-								</td>
-							</tr>
-					<? endforeach; ?>
-					<tr>
-						<td align="center" colspan="10" >
-							<?php
-								$total = $this->Paginator->counter(
+<?php
+					$topUpType = array(1 => 'Traffice' , 2 => 'Uptime');
+					foreach ($wtopups as $wtopup) {
+?>
+						<tr>
+							<td><?php echo h($wtopup['WispUsersTopup']['ID']); ?></td>
+							<td><?php echo h($topUpTypeArr[$wtopup['WispUsersTopup']['Type']]); ?></td>
+							<td><?php echo h($wtopup['WispUsersTopup']['Value']); ?></td>
+							<td><?php echo date("Y-m-d", strtotime($wtopup['WispUsersTopup']['ValidFrom'])); ?></td>
+							<td><?php echo date("Y-m-d", strtotime($wtopup['WispUsersTopup']['ValidTo'])); ?></td>
+							<td>
+<?php
+								echo $this->Html->image(
+									"/resources/custom/images/silk/icons/table_edit.png",
 									array(
-										'format' => '%pages%'
+										"alt" => "Edit",
+										"url" => array(
+											'controller' => 'wispUsers_topups',
+											'action' => 'edit',
+											$wtopup['WispUsersTopup']['ID'],
+											$userId
+										),
+										"title" => "Edit topup"
 									)
 								);
-								if ($total >1) {
-									echo $this->Paginator->prev(
-										'<<',
-										null,
-										null,
-										array(
-											'class' => 'disabled'
-										)
-									);
-									echo $this->Paginator->numbers();
-									// Shows the next and previous links.
-									echo $this->Paginator->next(
-										'>>',
-										null,
-										null,
-										array(
-											'class' => 'disabled'
-										)
-									);
-									// Prints X of Y, where X is current page and Y is number of pages.
-									echo "<span style='margin-left:20px;'>Page : ".$this->Paginator->counter()."</span>";
-								}
-							?>
+?>
+<?php
+								echo $this->Html->image(
+									"/resources/custom/images/silk/icons/table_delete.png",
+									array(
+										"alt" => "Delete",
+										"url" => array(
+											'controller' => 'wispUsers_topups',
+											'action' => 'remove',
+											$wtopup['WispUsersTopup']['ID'],
+											$userId
+										),
+										"title" => "Remove topup"
+									)
+								);
+?>
+							</td>
+						</tr>
+<?php
+					}
+?>
+					<tr>
+						<td align="center" colspan="10" >
+<?php
+							$total = $this->Paginator->counter(
+								array(
+									'format' => '%pages%'
+								)
+							);
+							if ($total > 1) {
+								echo $this->Paginator->prev(
+									'<<',
+									null,
+									null,
+									array(
+										'class' => 'disabled'
+									)
+								);
+								echo $this->Paginator->numbers();
+								// Shows the next and previous links.
+								echo $this->Paginator->next(
+									'>>',
+									null,
+									null,
+									array(
+										'class' => 'disabled'
+									)
+								);
+								// Prints X of Y, where X is current page and Y is number of pages.
+								echo "<span style='margin-left:20px;'>Page : ".$this->Paginator->counter()."</span>";
+							}
+?>
 						</td>
 					</tr>
 				</tbody>
 			</table>
 		</div>
 		<div class="form-group">
-			<?php
-				echo $this->Html->link(
-					__('Add Topups'),
-					array(
-						'action' => 'add',
-						$userId
-					),
-					array(
-						'class' => 'btn btn-primary'
-					)
+<?php
+			echo $this->Html->link(
+				__('Add Topups'),
+				array(
+					'action' => 'add',
+					$userId
+				),
+				array(
+					'class' => 'btn btn-primary'
 				)
-			?>
-			<?php
-				echo $this->Html->link(
-					__('Cancel'),
-					array(
-						'controller' => 'wispUsers',
-						'action' => 'index',
-						$userId
-					),
-					array(
-						'class' => 'btn btn-default'
-					)
+			);
+?>
+<?php
+			echo $this->Html->link(
+				__('Cancel'),
+				array(
+					'controller' => 'wispUsers',
+					'action' => 'index',
+					$userId
+				),
+				array(
+					'class' => 'btn btn-default'
 				)
-			?>
+			);
+?>
 		</div>
 	</div>
 </div>
