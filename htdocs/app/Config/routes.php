@@ -33,6 +33,37 @@ Router::connect('/', array('controller' => 'pages', 'action' => 'display', 'home
 
 Router::connect('/pages/*', array('controller' => 'pages', 'action' => 'display'));
 
+// Parse URI's with request vars set e.g. controller/action?param=value&...
+if (!empty($_REQUEST)) {
+
+	// Parsing REQUEST_URI for controller and action
+	$uriParts = explode('/', $_SERVER['REQUEST_URI']);
+
+	$action = $uriParts[count($uriParts) - 1];
+	$controller = $uriParts[count($uriParts) - 2];
+
+	$action = substr($action, 0, strpos($action, '?'));
+
+	App::uses('AWITRoute', 'Routing/Route');
+
+	// e.g. : http://cmert.users.devnet.iitsp.com/smradius/users/index?page=2
+	// older: http://cmert.users.devnet.iitsp.com/smradius/users/index/page:2
+	// Extract Controller/Action
+
+	//Router::connect("/$controller/$action*",
+	Router::connect("/users/index*",
+		array(
+			'controller' => $controller,
+			'action' => $action
+		),
+		array(
+			'routeClass' => 'AWITRoute'
+		)
+	);
+
+}
+
+
 /**
  * Load all plugin routes. See the CakePlugin documentation on
  * how to customize the loading of plugin routes.
