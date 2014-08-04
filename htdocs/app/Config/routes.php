@@ -78,4 +78,6 @@ CakePlugin::routes();
 
 require CAKE . 'Config' . DS . 'routes.php';
 
+Router::parseExtensions('json', 'xml');
+
 // vim: ts=4

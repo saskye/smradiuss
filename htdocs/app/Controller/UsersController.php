@@ -28,11 +28,30 @@
 class UsersController extends AppController
 {
 
+
+
 	/**
 	 * @var $use
 	 * This variable is used for including UserAttribute table.
 	 */
 	public $use = array('UserAttribute');
+
+
+
+	/**
+	 * @var $components
+	 * This variable is used for including components.
+	 */
+	public $components = array('RequestHandler');
+
+
+
+	/**
+	 * @var $viewClass
+	 * This variable is used for setting the viewClass.
+	 */
+	public $viewClass = 'AWITJson';
+
 
 
 	/**
@@ -42,9 +61,11 @@ class UsersController extends AppController
 	public function index()
 	{
 		$this->User->recursive = -1;
-		$this->paginate = array('limit' => PAGINATION_LIMIT );
+		$this->paginate = array('limit' => PAGINATION_LIMIT);
 		$users = $this->paginate();
 		$this->set('users', $users);
+
+		$this->set('_serialize', array('users'));
 	}
 
 
