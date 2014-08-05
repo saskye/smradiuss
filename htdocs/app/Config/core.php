@@ -74,9 +74,11 @@
  *
  * @see ErrorHandler for more information on exception handling and configuration.
  */
+	App::uses('AWITExceptionRenderer', 'Error');
+
 	Configure::write('Exception', array(
 		'handler' => 'ErrorHandler::handleException',
-		'renderer' => 'ExceptionRenderer',
+		'renderer' => 'AWITExceptionRenderer',
 		'log' => true
 	));
 
