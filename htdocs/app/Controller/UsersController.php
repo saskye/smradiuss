@@ -18,6 +18,8 @@
 
 
 
+App::uses('AWITJsonView', 'Lib/View');
+
 /**
  * Users
  *
@@ -42,15 +44,13 @@ class UsersController extends AppController
 	 * @var $components
 	 * This variable is used for including components.
 	 */
-	public $components = array('RequestHandler');
-
-
-
-	/**
-	 * @var $viewClass
-	 * This variable is used for setting the viewClass.
-	 */
-	public $viewClass = 'AWITJson';
+	public $components = array(
+		'RequestHandler' => array(
+			'viewClassMap' => array(
+				'json' => 'AWITJson',
+			)
+		)
+	);
 
 
 

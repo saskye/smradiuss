@@ -18,7 +18,7 @@
 
 
 
-App::uses('JsonView', 'Cake/View');
+App::uses('JsonView', 'View');
 
 /**
  * @class AWITJsonView
@@ -56,7 +56,7 @@ class AWITJsonView extends JsonView {
 
 		// Handle 'Not Found' errors e.g. pagination request beyond bounds
 		if (isset($data['name'])) {
-			if (stripos('Not Found', $data['name']) >= -1) {
+			if (stripos('Not Found', $data['name']) > -1) {
 				$status = 'fail';
 				$message = $data['name'];
 			}
