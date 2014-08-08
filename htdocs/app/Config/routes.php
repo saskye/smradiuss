@@ -34,7 +34,7 @@ Router::connect('/', array('controller' => 'pages', 'action' => 'display', 'home
 Router::connect('/pages/*', array('controller' => 'pages', 'action' => 'display'));
 
 // Parse URI's with request vars set e.g. controller/action?param=value&...
-if (!empty($_REQUEST)) {
+if (!empty($_SERVER['QUERY_STRING'])) {
 
 	// Parsing REQUEST_URI for controller and action
 	$uriParts = explode('/', $_SERVER['REQUEST_URI']);
@@ -50,8 +50,7 @@ if (!empty($_REQUEST)) {
 	// older: http://cmert.users.devnet.iitsp.com/smradius/users/index/page:2
 	// Extract Controller/Action
 
-	//Router::connect("/$controller/$action*",
-	Router::connect("/users/index*",
+	Router::connect("/$controller/$action*",
 		array(
 			'controller' => $controller,
 			'action' => $action
