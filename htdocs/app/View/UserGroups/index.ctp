@@ -12,7 +12,13 @@ body {
 					<tr>
 						<th><?php echo $this->Paginator->sort('ID', 'ID'); ?></th>
 						<th><?php echo $this->Paginator->sort('Name', 'Name'); ?></th>
-						<th><a><?php echo __('Actions'); ?></a></th>
+<?php
+						if($this->Access->check($groupName, 'UserGroupsDelete')) {
+?>
+							<th><a><?php echo __('Actions'); ?></a></th>
+<?php
+						}
+?>
 					</tr>
 				</thead>
 				<tbody>
@@ -24,19 +30,21 @@ body {
 							<td><?php echo h($UserGroup['UserGroup']['group']); ?></td>
 							<td>
 <?php
-								echo $this->Html->image(
-									"/resources/custom/images/silk/icons/table_delete.png",
-									array(
-										"alt" => "Delete",
-										"url" => array(
-											'controller' => 'user_groups',
-											'action' => 'remove',
-											$UserGroup['UserGroup']['ID'],
-											$userId
-										),
-										"title" => "Remove Group"
-									)
-								);
+								if($this->Access->check($groupName, 'UserGroupsDelete')) {
+									echo $this->Html->image(
+										"/resources/custom/images/silk/icons/table_delete.png",
+										array(
+											"alt" => "Delete",
+											"url" => array(
+												'controller' => 'user_groups',
+												'action' => 'remove',
+												$UserGroup['UserGroup']['ID'],
+												$userId
+											),
+											"title" => "Remove Group"
+										)
+									);
+								}
 ?>
 							</td>
 						</tr>
@@ -81,16 +89,18 @@ body {
 		</div>
 		<div class="form-group">
 <?php
-			echo $this->Html->link(
-				__('Add Group'),
-				array(
-					'action' => 'add',
-					$userId
-				),
-				array(
-					'class' => 'btn btn-primary'
-				)
-			);
+			if ($this->Access->check($groupName, 'UserGroupsAdd')) {
+				echo $this->Html->link(
+					__('Add Group'),
+					array(
+						'action' => 'add',
+						$userId
+					),
+					array(
+						'class' => 'btn btn-primary'
+					)
+				);
+			}
 ?>
 <?php
 			echo $this->Html->link(
