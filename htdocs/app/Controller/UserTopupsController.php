@@ -19,22 +19,52 @@
 
 
 /**
- * User topups
- *
  * @class UserTopupsController
  *
  * @brief This class manages topups for user.
  */
 class UserTopupsController extends AppController
 {
+	/**
+	 * @var $components
+	 * This variable is used for include other conponents.
+	 */
+	var $components = array('Auth', 'Acl','Access');
+
+
+	/**
+	 * @var $helpers
+	 * This variable is used for include other helper file.
+	 */
+	var $helpers = array('Access');
+
+
+	/**
+	 * @method beforeFilter
+	 * This method executes method that we need to be executed before any other action.
+	 */
+	function beforeFilter()
+	{
+		parent::beforeFilter();
+	}
+
+
 
 	/**
 	 * @method index
-	 * @param $userId
 	 * This method is used to show user topups list with pagination.
+	 * @param $userId
 	 */
 	public function index($userId)
 	{
+		// Get user group name.
+		$groupName = $this->Access->getGroupName($this->Session->read('User.ID'));
+		$this->set('groupName', $groupName);
+		// Check permission.
+		$permission = $this->Access->checkPermission('UserTopupsController', 'View', $this->Session->read('User.ID'));
+		if (empty($permission)) {
+			throw new UnauthorizedException();
+		}
 		if (isset($userId)) {
 			$this->UserTopup->recursive = 0;
 			$this->paginate = array(
@@ -51,11 +81,16 @@ class UserTopupsController extends AppController
 
 	/**
 	 * @method add
-	 * @param $userId
 	 * This method is used to add user topups.
+	 * @param $userId
 	 */
 	public function add($userId)
 	{
+		// Check permission.
+		$permission = $this->Access->checkPermission('UserTopupsController', 'Add', $this->Session->read('User.ID'));
+		if (empty($permission)) {
+			throw new UnauthorizedException();
+		}
 		if (isset($userId)) {
 			$this->set('userId', $userId);
 
@@ -70,9 +105,9 @@ class UserTopupsController extends AppController
 					$requestData['UserTopup']['ValidFrom'] = $requestData['UserTopup']['valid_from'];
 					$requestData['UserTopup']['ValidTo'] = $requestData['UserTopup']['valid_to'];
 					$this->UserTopup->save($requestData);
-					$this->Session->setFlash(__('User topup is saved succefully!', true), 'flash_success');
+					$this->Session->setFlash(__('User topup is saved succefully')."!", 'flash_success');
 				} else {
-					$this->Session->setFlash(__('User topup is not saved succefully!', true), 'flash_failure');
+					$this->Session->setFlash(__('User topup is not saved succefully')."!", 'flash_failure');
 				}
 			}
 		}
@@ -82,12 +117,17 @@ class UserTopupsController extends AppController
 
 	/**
 	 * @method edit
+	 * This method is used to edit user topups.
 	 * @param $id
 	 * @param $userId
-	 * This method is used to edit user topups.
 	 */
 	public function edit($id, $userId)
 	{
+		// Check permission.
+		$permission = $this->Access->checkPermission('UserTopupsController', 'Edit', $this->Session->read('User.ID'));
+		if (empty($permission)) {
+			throw new UnauthorizedException();
+		}
 		// Loading topup data from user Id.
 		$topups = $this->UserTopup->findById($id);
 		$this->set('topup', $topups);
@@ -112,12 +152,12 @@ class UserTopupsController extends AppController
 						'ID' => $id
 					)
 				);
-				$this->Session->setFlash(__('User topup is saved succefully!', true), 'flash_success');
+				$this->Session->setFlash(__('User topup is saved succefully')."!", 'flash_success');
 				// For page reload to reflect new data.
 				$topups = $this->UserTopup->findById($id);
 				$this->set('topup', $topups);
 			} else {
-				$this->Session->setFlash(__('User topup is not saved succefully!', true), 'flash_failure');
+				$this->Session->setFlash(__('User topup is not saved succefully')."!", 'flash_failure');
 			}
 		}
 	}
@@ -126,19 +166,24 @@ class UserTopupsController extends AppController
 
 	/**
 	 * @method remove
+	 * This method is used to delete user topups.
 	 * @param $id
 	 * @param $userId
-	 * This method is used to delete user topups.
 	 */
 	public function remove($id, $userId)
 	{
+		// Check permission.
+		$permission = $this->Access->checkPermission('UserTopupsController', 'Delete', $this->Session->read('User.ID'));
+		if (empty($permission)) {
+			throw new UnauthorizedException();
+		}
 		if (isset($id)) {
 			// Deleting
 			if ($this->UserTopup->delete($id)) {
 				$this->redirect('/user_topups/index/'.$userId);
-				$this->Session->setFlash(__('User topup is removed succefully!', true), 'flash_success');
+				$this->Session->setFlash(__('User topup is removed succefully')."!", 'flash_success');
 			} else {
-				$this->Session->setFlash(__('User topup is not removed succefully!', true), 'flash_failure');
+				$this->Session->setFlash(__('User topup is not removed succefully')."!", 'flash_failure');
 			}
 		} else {
 			$this->redirect('/user_topups/index'.$userId);
