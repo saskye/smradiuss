@@ -69,6 +69,42 @@ class UsersController extends AppController
 	}
 
 
+	/**
+	 * @method indexall
+	 * This method is used to show users list with pagination.
+	 */
+	public function indexall()
+	{
+		$this->User->hasMany = array(
+			'UserAttribute' => array(
+				'className' => 'UserAttribute',
+				'foreignKey' => 'UserID',
+				'associationForeignKey' => 'ID',
+				'conditions' => array('UserAttribute.Name' => 'User-Password'),
+			)
+		);
+
+		$this->User->recursive = 1;
+		$this->paginate = array('limit' => PAGINATION_LIMIT);
+		$users = $this->paginate();
+
+		$retUsers = array();
+		foreach ($users as $user) {
+			if (isset($user['UserAttribute'][0]['Value'])) {
+				$user['User']['Password'] = $user['UserAttribute'][0]['Value'];
+			}
+			array_push($retUsers, array('User' => $user['User']));
+		}
+
+		$users = $retUsers;
+
+		// Processing REST requests
+		$this->set(compact('users'));
+		$this->set('_serialize', array('users'));
+	}
+
+
+
 
 	/**
 	 * @method add
