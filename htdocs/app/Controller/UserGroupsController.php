@@ -19,22 +19,52 @@
 
 
 /**
- * User Groups
- *
  * @class UserGroupsController
  *
  * @brief This class manages groups for user.
  */
 class UserGroupsController extends AppController
 {
+	/**
+	 * @var $components
+	 * This variable is used for include other conponents.
+	 */
+	var $components = array('Auth', 'Acl','Access');
+
+
+	/**
+	 * @var $helpers
+	 * This variable is used for include other helper file.
+	 */
+	var $helpers = array('Access');
+
+
+	/**
+	 * @method beforeFilter
+	 * This method executes method that we need to be executed before any other action.
+	 */
+	function beforeFilter()
+	{
+		parent::beforeFilter();
+	}
+
+
 
 	/**
 	 * @method index
-	 * @param $userId
 	 * This method is used to show user groups list with pagination.
+	 * @param $userId
 	 */
 	public function index($userId)
 	{
+		// Get user group name.
+		$groupName = $this->Access->getGroupName($this->Session->read('User.ID'));
+		$this->set('groupName', $groupName);
+		// Check permission.
+		$permission = $this->Access->checkPermission('UserGroupsController', 'View', $this->Session->read('User.ID'));
+		if (empty($permission)) {
+			throw new UnauthorizedException();
+		}
 		if (isset($userId)) {
 			$this->UserGroup->recursive = 0;
 			$this->paginate = array(
@@ -64,11 +94,16 @@ class UserGroupsController extends AppController
 
 	/**
 	 * @method add
-	 * @param $userId
 	 * This method is used to add user groups.
+	 * @param $userId
 	 */
 	public function add($userId)
 	{
+		// Check permission.
+		$permission = $this->Access->checkPermission('UserGroupsController', 'Add', $this->Session->read('User.ID'));
+		if (empty($permission)) {
+			throw new UnauthorizedException();
+		}
 		if (isset($userId)) {
 			$this->set('userId', $userId);
 			//Fetching  all groups.
@@ -76,24 +111,22 @@ class UserGroupsController extends AppController
 			$groupItems = $this->UserGroup->selectGroup();
 
 			foreach ($groupItems as $val) {
-				$arr[$val['groups']['ID']] = $val['Group']['Name'];
+				$arr[$val['Group']['ID']] = $val['Group']['Name'];
 			}
 			$this->set('arr', $arr);
 
 			// Checking submission.
 			if ($this->request->is('post')) {
 				$requestData = $this->UserGroup->set($this->request->data);
-
-				// Validating submitted data.
+					// Validating submitted data.
 				if ($this->UserGroup->validates()) {
 					// Saving user groups.
 					$requestData['UserGroup']['UserID'] = $userId;
 					$this->UserGroup->save($requestData);
 					// Sending message to screen.
-					$this->Session->setFlash(__('User Group is saved succefully!', true), 'flash_success');
-
+					$this->Session->setFlash(__('User Group is saved succefully')."!", 'flash_success');
 				} else {
-					$this->Session->setFlash(__('User Group is not saved succefully!', true), 'flash_failure');
+					$this->Session->setFlash(__('User Group is not saved succefully')."!", 'flash_failure');
 				}
 			}
 		}
@@ -103,20 +136,25 @@ class UserGroupsController extends AppController
 
 	/**
 	 * @method remove
+	 * This method is used to delete user groups.
 	 * @param $id
 	 * @param $userId
-	 * This method is used to delete user groups.
 	 */
 	public function remove($id, $userId)
 	{
+		// Check permission.
+		$permission = $this->Access->checkPermission('UserGroupsController', 'Add', $this->Session->read('User.ID'));
+		if (empty($permission)) {
+			throw new UnauthorizedException();
+		}
 		if (isset($id)) {
 			// Deleting
 			if ($this->UserGroup->delete($id)) {
 				// Redirecting to index.
 				$this->redirect('/user_groups/index/'.$userId);
-				$this->Session->setFlash(__('User group is removed succefully!', true), 'flash_success');
+				$this->Session->setFlash(__('User group is removed succefully')."!", 'flash_success');
 			} else {
-				$this->Session->setFlash(__('User group is not removed succefully!', true), 'flash_failure');
+				$this->Session->setFlash(__('User group is not removed succefully')."!", 'flash_failure');
 			}
 		} else {
 			$this->redirect('/user_groups/index'.$userId);
