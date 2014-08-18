@@ -19,8 +19,6 @@
 
 
 /**
- * User Logs
- *
  * @class UserLogsController
  *
  * @brief This class manages the user's logs.
@@ -29,12 +27,45 @@ class UserLogsController extends AppController
 {
 
 	/**
+	 * @var $components
+	 * This variable is used for include other conponents.
+	 */
+	var $components = array('Auth', 'Acl','Access');
+
+
+	/**
+	 * @var $helpers
+	 * This variable is used for include other helper file.
+	 */
+	var $helpers = array('Access');
+
+
+	/**
+	 * @method beforeFilter
+	 * This method executes method that we need to be executed before any other action.
+	 */
+	function beforeFilter()
+	{
+		parent::beforeFilter();
+	}
+
+
+
+	/**
 	 * @method index
-	 * @param $userId
 	 * This method is used to show user logs list with pagination.
+	 * @param $userId
 	 */
 	public function index($userId)
 	{
+		// Get user group name.
+		$groupName = $this->Access->getGroupName($this->Session->read('User.ID'));
+		$this->set('groupName', $groupName);
+		// Check permission.
+		$permission = $this->Access->checkPermission('UserLogsController', 'View', $this->Session->read('User.ID'));
+		if (empty($permission)) {
+			throw new UnauthorizedException();
+		}
 		if (isset($userId)) {
 			// Creating current month & year date.
 			$current = date('Y-m').'-01';
