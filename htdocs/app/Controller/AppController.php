@@ -26,7 +26,9 @@
  * You can put all application-wide controller-related methods here.
  */
 
-App::uses('Controller', 'Controller');
+App::uses('AWITController', 'Controller');
+App::uses('AWITPaginatorComponent', 'Controller/Component');
+App::uses('AWITJsonView', 'Lib/View');
 
 /**
  * Application Controller
@@ -36,9 +38,57 @@ App::uses('Controller', 'Controller');
  *		  will inherit them.
  * @package app.Controller
  */
-class AppController extends Controller
+class AppController extends AWITController
 {
-	public $components = array('DebugKit.Toolbar', 'Session','Cookie');
+	/**
+	 * @var $components
+	 * Components loaded for all Controllers
+	 */
+	public $components = array(
+		'DebugKit.Toolbar', 'Session','Cookie', 'AWITPaginator',
+		'RequestHandler' => array(
+			'viewClassMap' => array(
+				'json' => 'AWITJson',
+			)
+		)
+	);
+
+
+
+	/**
+	 * @method indexapi
+	 * Method to handle all REST responses to list data
+	 *
+	 * @param $id ID to search against
+	 */
+	public function indexapi($id = '')
+	{
+		// Call default list function
+		$this->index($id);
+
+		// Catching viewVars
+		$data = $this->viewVars;
+
+		// Processing REST requests
+		$this->set(compact('data'));
+		$this->set('_serialize', array('data'));
+	}
+
+
+
+	/**
+	 * @method pages
+	 * Return pagination statistics for REST pagination
+	 *
+	 * @param $id ID to search against
+	 */
+	public function pages($id = '') {
+		$this->index($id);
+		$pages =  $this->getPaginationPages();
+
+		$this->set(compact('pages'));
+		$this->set('_serialize', 'pages');
+	}
 }
 
 // vim: ts=4
