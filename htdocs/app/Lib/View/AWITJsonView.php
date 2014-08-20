@@ -64,15 +64,15 @@ class AWITJsonView extends JsonView {
 
 		// Handle http error codes '404' etc. errors e.g. missing controller
 		if (isset($data['code'])) {
-				$status = 'fail';
-				$code = $data['code'];
-				$message = $data['code'];
+			$status = 'fail';
+			$code = $data['code'];
+			$message = $data['code'];
 
-				if (isset($data['message'])) {
-					$message = $data['message'];
-				} else if (isset($data['name'])) {
-					$message = $data['name'];
-				}
+			if (isset($data['message'])) {
+				$message = $data['message'];
+			} else if (isset($data['name'])) {
+				$message = $data['name'];
+			}
 		}
 
 		// Handle pre defined properly structured AWIT Json variables
