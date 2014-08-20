@@ -33,11 +33,17 @@ App::import('Model','UserGroup');
 class User extends AppModel
 {
 
-	// This variable is used for including table.
+	/**
+	 * @var $useTable
+	 * This variable is used for including table.
+	 */
 	public $useTable = 'users';
 
 
-	// Validating form controller.
+	/**
+	 * @var $validate
+	 * Validating form controller.
+	 */
 	public $validate = array(
 		'Username' => array(
 			'required' => array(
