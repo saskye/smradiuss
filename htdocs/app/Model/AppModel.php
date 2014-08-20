@@ -26,11 +26,12 @@
  *
  * @package app.Model
  */
-App::uses('Model', 'Model');
+App::uses('AWITModel', 'Model');
 
 
 
 /**
+ * class AppModel
  * Application model for Cake.
  *
  * @class AppModel
@@ -40,7 +41,7 @@ App::uses('Model', 'Model');
  *
  * @package app.Model
  */
-class AppModel extends Model
+class AppModel extends AWITModel
 {
 }
 
