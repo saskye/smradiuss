@@ -25,13 +25,13 @@ App::uses('CakeRoute', 'Cake/Routing/Route');
  */
 class AWITRoute extends CakeRoute {
 
-/**
- * @method parse
- * Constructs the route array with the needed parameters
- *
- * @param string $url The URL to attempt to parse.
- * @return mixed Boolean false on failure, otherwise an array or parameters
- */
+	/**
+	 * @method parse
+	 * Constructs the route array with the needed parameters
+	 *
+	 * @param string $url The URL to attempt to parse.
+	 * @return mixed Boolean false on failure, otherwise an array or parameters
+	 */
 
 	public function parse($url) {
 
