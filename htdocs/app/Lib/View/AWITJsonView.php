@@ -27,13 +27,13 @@ App::uses('JsonView', 'View');
  */
 class AWITJsonView extends JsonView {
 
-/**
- * @method _serialize
- * Serialize view vars
- *
- * @param array $serialize The viewVars that need to be serialized
- * @return string The serialized data
- */
+	/**
+	 * @method _serialize
+	 * Serialize view vars
+	 *
+	 * @param array $serialize The viewVars that need to be serialized
+	 * @return string The serialized data
+	 */
 	protected function _serialize($serialize) {
 		if (is_array($serialize)) {
 			$data = array();
@@ -66,8 +66,28 @@ class AWITJsonView extends JsonView {
 		if (isset($data['code'])) {
 				$status = 'fail';
 				$code = $data['code'];
-				$message = isset($data['name'])? $data['name'] : $data['code'];
+				$message = $data['code'];
+
+				if (isset($data['message'])) {
+					$message = $data['message'];
+				} else if (isset($data['name'])) {
+					$message = $data['name'];
+				}
 		}
+
+		// Handle pre defined properly structured AWIT Json variables
+		if (isset($data['status'])) {
+			$status = $data['status'];
+		}
+
+		if (isset($data['message'])) {
+			$message = $data['message'];
+		}
+
+		if (isset($data['data'])) {
+			$data = $data['data'];
+		}
+
 
 		$result = array();
 		$result['status'] = $status;
