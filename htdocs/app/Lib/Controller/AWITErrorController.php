@@ -29,42 +29,20 @@ App::uses('CakeErrorController', 'Controller');
  */
 class AWITErrorController extends CakeErrorController {
 
-/**
- * @var $components
- * This variable is used for including components.
- */
-public $components = array(
-	'RequestHandler' => array(
-		'viewClassMap' => array(
-			'json' => 'AWITJson',
+
+
+	/**
+	 * @var $components
+	 * This variable is used for including components.
+	 */
+	public $components = array(
+		'RequestHandler' => array(
+			'viewClassMap' => array(
+				'json' => 'AWITJson',
+			)
 		)
-	)
-);
+	);
 
 
-
-/**
- * @method __construct
- * Constructor
- *
- * @param CakeRequest $request
- * @param CakeResponse $response
- */
-	public function __construct($request = null, $response = null) {
-		parent::__construct($request, $response);
-		$this->constructClasses();
-		if (count(Router::extensions()) &&
-				!$this->Components->attached('RequestHandler')
-		) {
-			$this->RequestHandler = $this->Components->load('RequestHandler');
-		}
-		if ($this->Components->enabled('Auth')) {
-			$this->Components->disable('Auth');
-		}
-		if ($this->Components->enabled('Security')) {
-			$this->Components->disable('Security');
-		}
-		$this->_set(array('cacheAction' => false, 'viewPath' => 'Errors'));
-	}
 
 }
