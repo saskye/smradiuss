@@ -15,7 +15,14 @@ body {
 						<th><a><?php echo __('Operator'); ?></a></th>
 						<th><a><?php echo __('Value'); ?></a></th>
 						<th><a><?php echo __('Disabled'); ?></a></th>
-						<th><a><?php echo __('Actions'); ?></a></th>
+<?php
+						if ($this->Access->check($groupName, 'UserAttributesEdit') ||
+								$this->Access->check($groupName, 'UserAttributesDelete')) {
+?>
+							<th><a><?php echo __('Actions'); ?></a></th>
+<?php
+						}
+?>
 					</tr>
 				</thead>
 				<tbody>
@@ -46,34 +53,38 @@ body {
 							<td><?php echo (h($userAttribute['UserAttribute']['Disabled']) == 1) ? 'true' : 'false'; ?></td>
 							<td>
 <?php
-								echo $this->Html->image(
-									"/resources/custom/images/silk/icons/table_edit.png",
-									array(
-										"alt" => "Edit",
-										"url" => array(
-											'controller' => 'user_attributes',
-											'action' => 'edit',
-											$userAttribute['UserAttribute']['ID'],
-											$userId
-										),
-										"title" => "Edit attribute"
-									)
-								);
+								if ($this->Access->check($groupName, 'UserAttributesEdit')) {
+									echo $this->Html->image(
+										"/resources/custom/images/silk/icons/table_edit.png",
+										array(
+											"alt" => "Edit",
+											"url" => array(
+												'controller' => 'user_attributes',
+												'action' => 'edit',
+												$userAttribute['UserAttribute']['ID'],
+												$userId
+											),
+											"title" => "Edit attribute"
+										)
+									);
+								}
 ?>
 <?php
-								echo $this->Html->image(
-									"/resources/custom/images/silk/icons/table_delete.png",
-									array(
-										"alt" => "Delete",
-										"url" => array(
-											'controller' => 'user_attributes',
-											'action' => 'remove',
-											$userAttribute['UserAttribute']['ID'],
-											$userId
-										),
-										"title" => "Remove attribute"
-									)
-								);
+								if ($this->Access->check($groupName, 'UserAttributesDelete')) {
+									echo $this->Html->image(
+										"/resources/custom/images/silk/icons/table_delete.png",
+										array(
+											"alt" => "Delete",
+											"url" => array(
+												'controller' => 'user_attributes',
+												'action' => 'remove',
+												$userAttribute['UserAttribute']['ID'],
+												$userId
+											),
+											"title" => "Remove attribute"
+										)
+									);
+								}
 ?>
 							</td>
 						</tr>
@@ -117,16 +128,18 @@ body {
 			</table>
 			<div class="form-group">
 <?php
-				echo $this->Html->link(
-					__('Add'),
-					array(
-						'action' => 'add',
-						$userId
-					),
-					array(
-						'class' => 'btn btn-primary'
-					)
-				)
+				if ($this->Access->check($groupName, 'UserAttributesAdd')) {
+					echo $this->Html->link(
+						__('Add'),
+						array(
+							'action' => 'add',
+							$userId
+						),
+						array(
+							'class' => 'btn btn-primary'
+						)
+					);
+				}
 ?>
 <?php
 				echo $this->Html->link(
