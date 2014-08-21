@@ -79,7 +79,6 @@ class AWITExceptionRenderer extends ExceptionRenderer {
 	 * @return void
 	 */
 	public function error400($error) {
-		echo "AWITExceptionRenderer: Method: [{$this->method}]";
 		$message = $error->getMessage();
 		if (!Configure::read('debug') && $error instanceof CakeException) {
 			$message = __d('cake', 'Not Found');
