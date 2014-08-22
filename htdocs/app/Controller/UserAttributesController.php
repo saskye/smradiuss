@@ -19,22 +19,52 @@
 
 
 /**
- * User Attributes
- *
  * @class UserAttributesController
  *
  * @brief This class manages the attributes for users.
  */
 class UserAttributesController extends AppController
 {
+	/**
+	 * @var $components
+	 * This variable is used for include other conponents.
+	 */
+	var $components = array('Auth', 'Acl','Access');
+
+
+	/**
+	 * @var $helpers
+	 * This variable is used for include other helper file.
+	 */
+	var $helpers = array('Access');
+
+
+	/**
+	 * @method beforeFilter
+	 * This method executes method that we need to be executed before any other action.
+	 */
+	function beforeFilter()
+	{
+		parent::beforeFilter();
+	}
+
+
 
 	/**
 	 * @method index
-	 * @param $userId
 	 * This method is used to show list of user attributes with pagination.
+	 * @param $userId
 	 */
 	public function index($userId)
 	{
+		// Get user group name.
+		$groupName = $this->Access->getGroupName($this->Session->read('User.ID'));
+		$this->set('groupName', $groupName);
+		// Check permission.
+		$permission = $this->Access->checkPermission('UserAttributesController', 'View', $this->Session->read('User.ID'));
+		if (empty($permission)) {
+			throw new UnauthorizedException();
+		}
 		if (isset($userId)) {
 			$this->UserAttribute->recursive = 0;
 			$this->paginate = array(
@@ -53,25 +83,28 @@ class UserAttributesController extends AppController
 
 	/**
 	 * @method add
-	 * @param $userId
 	 * This method is used to add users attributes.
+	 * @param $userId
 	 */
 	public function add($userId)
 	{
+		// Check permission.
+		$permission = $this->Access->checkPermission('UserAttributesController', 'Add', $this->Session->read('User.ID'));
+		if (empty($permission)) {
+			throw new UnauthorizedException();
+		}
 		$this->set('userId', $userId);
-
 		if ($this->request->is('post')) {
 			$this->request->data['UserAttribute']['Disabled'] = intval($this->request->data['UserAttribute']['Disabled']);
 			$this->request->data['UserAttribute']['UserID'] = intval($this->request->params['pass'][0]);
 			$this->UserAttribute->set($this->request->data);
-
 			// Validating
 			if ($this->UserAttribute->validates()) {
 				// Saving
 				$this->UserAttribute->save($this->request->data);
-				$this->Session->setFlash(__('User attribute is saved succefully!', true), 'flash_success');
+				$this->Session->setFlash(__('User attribute is saved succefully')."!", 'flash_success');
 			} else {
-				$this->Session->setFlash(__('User attribute is not saved succefully!', true), 'flash_failure');
+				$this->Session->setFlash(__('User attribute is not saved succefully')."!", 'flash_failure');
 			}
 		}
 	}
@@ -80,25 +113,28 @@ class UserAttributesController extends AppController
 
 	/**
 	 * @method edit
+	 * This method is used to edit users attributes.
 	 * @param $id
 	 * @param $userId
-	 * This method is used to edit users attributes.
 	 */
 	public function edit($id, $userId)
 	{
+		// Check permission.
+		$permission = $this->Access->checkPermission('UserAttributesController', 'Edit', $this->Session->read('User.ID'));
+		if (empty($permission)) {
+			throw new UnauthorizedException();
+		}
 		$userAttribute = $this->UserAttribute->findById($id);
 		$this->set('userAttribute', $userAttribute);
-
 		if ($this->request->is('post')) {
 			$this->request->data['UserAttribute']['Disabled'] = intval($this->request->data['UserAttribute']['Disabled']);
 			$this->UserAttribute->set($this->request->data);
-
 			if ($this->UserAttribute->validates()) {
 				$this->UserAttribute->id = $id;
 				$this->UserAttribute->save($this->request->data);
-				$this->Session->setFlash(__('Attribute is saved succefully!', true), 'flash_success');
+				$this->Session->setFlash(__('Attribute is saved succefully')."!", 'flash_success');
 			} else {
-				$this->Session->setFlash(__('Attribute is not saved succefully!', true), 'flash_failure');
+				$this->Session->setFlash(__('Attribute is not saved succefully')."!", 'flash_failure');
 			}
 		}
 	}
@@ -107,20 +143,25 @@ class UserAttributesController extends AppController
 
 	/**
 	 * @method remove
+	 * This method is used to delete users attributes.
 	 * @param $id
 	 * @param $userId
-	 * This method is used to delete users attributes.
 	 */
 	public function remove($id, $userId)
 	{
+		// Check permission.
+		$permission = $this->Access->checkPermission('UserAttributesController', 'Delete', $this->Session->read('User.ID'));
+		if (empty($permission)) {
+			throw new UnauthorizedException();
+		}
 		if (isset($id)) {
 			// Deleting and checking.
 			if ($this->UserAttribute->delete($id)) {
 				// Redirecting to index.
 				$this->redirect('/user_attributes/index/'.$userId);
-				$this->Session->setFlash(__('User is removed succefully!', true), 'flash_success');
+				$this->Session->setFlash(__('User is removed succefully')."!", 'flash_success');
 			} else {
-				$this->Session->setFlash(__('User is not removed succefully!', true), 'flash_failure');
+				$this->Session->setFlash(__('User is not removed succefully')."!", 'flash_failure');
 			}
 		} else {
 			$this->redirect('/user_attributes/index'.$userId);
