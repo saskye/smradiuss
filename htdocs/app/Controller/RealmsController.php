@@ -19,14 +19,36 @@
 
 
 /**
- * Realms
- *
  * @class RealmsController
  *
  * @brief This class manages the realms.
  */
 class RealmsController extends AppController
 {
+	/**
+	 * @var $components
+	 * This variable is used for include other conponents.
+	 */
+	var $components = array('Auth', 'Acl','Access');
+
+
+	/**
+	 * @var $helpers
+	 * This variable is used for include other helper file.
+	 */
+	var $helpers = array('Access');
+
+
+	/**
+	 * @method beforeFilter
+	 * This method executes method that we need to be executed before any other action.
+	 */
+	function beforeFilter()
+	{
+		parent::beforeFilter();
+	}
+
+
 
 	/**
 	 * @method index
@@ -34,6 +56,14 @@ class RealmsController extends AppController
 	 */
 	public function index()
 	{
+		// Get user group name.
+		$groupName = $this->Access->getGroupName($this->Session->read('User.ID'));
+		$this->set('groupName', $groupName);
+		// Check permission.
+		$permission = $this->Access->checkPermission('RealmsController', 'View', $this->Session->read('User.ID'));
+		if (empty($permission)) {
+			throw new UnauthorizedException();
+		}
 		$this->Realm->recursive = -1;
 		$this->paginate = array('limit' => PAGINATION_LIMIT);
 		$realm = $this->paginate();
@@ -48,15 +78,19 @@ class RealmsController extends AppController
 	 */
 	public function add()
 	{
+		// Check permission.
+		$permission = $this->Access->checkPermission('RealmsController', 'Add', $this->Session->read('User.ID'));
+		if (empty($permission)) {
+			throw new UnauthorizedException();
+		}
 		if ($this->request->is('post')) {
 			$this->Realm->set($this->request->data);
-
 			// Validating enterd data.
 			if ($this->Realm->validates()) {
 				$this->Realm->save($this->request->data);
-				$this->Session->setFlash(__('Realm is saved succefully!', true), 'flash_success');
+				$this->Session->setFlash(__('Realm is saved succefully'."!"), 'flash_success');
 			} else {
-				$this->Session->setFlash(__('Realm is not saved succefully!', true), 'flash_failure');
+				$this->Session->setFlash(__('Realm is not saved succefully'."!"), 'flash_failure');
 			}
 		}
 	}
@@ -65,28 +99,31 @@ class RealmsController extends AppController
 
 	/**
 	 * @method edit
-	 * @param $id
 	 * This method is used to edit realms.
+	 * @param $id
 	 */
 	public function edit($id)
 	{
+		// Check permission.
+		$permission = $this->Access->checkPermission('RealmsController', 'Edit', $this->Session->read('User.ID'));
+		if (empty($permission)) {
+			throw new UnauthorizedException();
+		}
 		// Fetch record and set to variable.
 		$realm = $this->Realm->findById($id);
 		$this->set('realm', $realm);
-
 		// Checking submission.
 		if ($this->request->is('post')) {
 			// Setting submitted data.
 			$this->Realm->set($this->request->data);
-
 			// Validating submitted data.
 			if ($this->Realm->validates()) {
 				$this->Realm->id = $id;
 				// Saving
 				$this->Realm->save($this->request->data);
-				$this->Session->setFlash(__('Realm is edited succefully!', true), 'flash_success');
+				$this->Session->setFlash(__('Realm is edited succefully'."!"), 'flash_success');
 			} else {
-				$this->Session->setFlash(__('Realm is not edited succefully!', true), 'flash_failure');
+				$this->Session->setFlash(__('Realm is not edited succefully'."!"), 'flash_failure');
 			}
 		}
 	}
@@ -95,18 +132,23 @@ class RealmsController extends AppController
 
 	/**
 	 * @method remove
-	 * @param $id
 	 * This method is used to delete realms.
+	 * @param $id
 	 */
 	public function remove($id)
 	{
+		// Check permission.
+		$permission = $this->Access->checkPermission('RealmsController', 'Delete', $this->Session->read('User.ID'));
+		if (empty($permission)) {
+			throw new UnauthorizedException();
+		}
 		// Deleting & check done or not.
 		if ($this->Realm->delete($id)) {
 			// Redirecting to index.
 			$this->redirect('/realms/index');
-			$this->Session->setFlash(__('Realm is removed succefully!', true), 'flash_success');
+			$this->Session->setFlash(__('Realm is removed succefully'."!"), 'flash_success');
 		} else {
-			$this->Session->setFlash(__('Realm is not removed succefully!', true), 'flash_failure');
+			$this->Session->setFlash(__('Realm is not removed succefully'."!"), 'flash_failure');
 		}
 	}
 }
