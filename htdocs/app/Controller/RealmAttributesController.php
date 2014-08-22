@@ -19,29 +19,58 @@
 
 
 /**
- * Realm Attributes
- *
  * @class RealmAttributesController
  *
  * @brief This class manages the attributes for realm.
  */
 class RealmAttributesController extends AppController
 {
+	/**
+	 * @var $components
+	 * This variable is used for include other conponents.
+	 */
+	var $components = array('Auth', 'Acl','Access');
+
+
+	/**
+	 * @var $helpers
+	 * This variable is used for include other helper file.
+	 */
+	var $helpers = array('Access');
+
+
+	/**
+	 * @method beforeFilter
+	 * This method executes method that we need to be executed before any other action.
+	 */
+	function beforeFilter()
+	{
+		parent::beforeFilter();
+	}
+
+
 
 	/**
 	 * @method index
+	 * This method is used for showing realms attributes with pagination.
 	 * @param $realmId
-	 * This method is used for showing realms attribures with pagination.
 	 */
 	public function index($realmId)
 	{
+		// Get user group name.
+		$groupName = $this->Access->getGroupName($this->Session->read('User.ID'));
+		$this->set('groupName', $groupName);
+		// Check permission.
+		$permission = $this->Access->checkPermission('RealmMembersController', 'View', $this->Session->read('User.ID'));
+		if (empty($permission)) {
+			throw new UnauthorizedException();
+		}
 		if (isset($realmId)) {
 			$this->paginate = array(
 				'limit' => PAGINATION_LIMIT,
 				'conditions' => array('RealmAttribute.RealmID' => $realmId)
 			);
 			$realmAttributes = $this->paginate();
-
 			$this->set('realmAttributes', $realmAttributes);
 			$this->set('realmId', $realmId);
 		} else {
@@ -53,11 +82,16 @@ class RealmAttributesController extends AppController
 
 	/**
 	 * @method add
-	 * @param $realmId
 	 * This method is used to add realms attributes.
+	 * @param $realmId
 	 */
 	public function add($realmId)
 	{
+		// Check permission.
+		$permission = $this->Access->checkPermission('RealmAttributesController', 'Add', $this->Session->read('User.ID'));
+		if (empty($permission)) {
+			throw new UnauthorizedException();
+		}
 		$this->set('realmId', $realmId);
 		if ($this->request->is('post')) {
 			$this->request->data['RealmAttribute']['Disabled'] = intval($this->request->data['RealmAttribute']['Disabled']);
@@ -65,9 +99,9 @@ class RealmAttributesController extends AppController
 			$this->RealmAttribute->set($this->request->data);
 			if ($this->RealmAttribute->validates()) {
 				$this->RealmAttribute->save($this->request->data);
-				$this->Session->setFlash(__('Realm attribute is saved succefully!', true), 'flash_success');
+				$this->Session->setFlash(__('Realm attribute is saved succefully')."!", 'flash_success');
 			} else {
-				$this->Session->setFlash(__('Realm attribute is not saved succefully!', true), 'flash_failure');
+				$this->Session->setFlash(__('Realm attribute is not saved succefully')."!", 'flash_failure');
 			}
 		}
 	}
@@ -76,11 +110,16 @@ class RealmAttributesController extends AppController
 
 	/**
 	 * @method edit
-	 * @param $id
 	 * This method is used to edit realms attributes.
+	 * @param $id
 	 */
 	public function edit($id)
 	{
+		// Check permission.
+		$permission = $this->Access->checkPermission('RealmAttributesController', 'Edit', $this->Session->read('User.ID'));
+		if (empty($permission)) {
+			throw new UnauthorizedException();
+		}
 		$realmAttribute = $this->RealmAttribute->findById($id);
 		$this->set('realmAttribute', $realmAttribute);
 		// Checking submitted or not.
@@ -91,9 +130,9 @@ class RealmAttributesController extends AppController
 			if ($this->RealmAttribute->validates()) {
 				$this->RealmAttribute->id = $id;
 				$this->RealmAttribute->save($this->request->data);
-				$this->Session->setFlash(__('Realm attribute is saved succefully!', true), 'flash_success');
+				$this->Session->setFlash(__('Realm attribute is saved succefully')."!", 'flash_success');
 			} else {
-				$this->Session->setFlash(__('Realm attribute is not saved succefully!', true), 'flash_failure');
+				$this->Session->setFlash(__('Realm attribute is not saved succefully')."!", 'flash_failure');
 			}
 		}
 	}
@@ -102,20 +141,24 @@ class RealmAttributesController extends AppController
 
 	/**
 	 * @method remove
+	 * This method is used to delete realms attributes.
 	 * @param $id
 	 * @param $realmId
-	 * This method is used to delete realms attributes.
 	 */
 	public function remove($id, $realmId)
 	{
+		$permission = $this->Access->checkPermission('RealmAttributesController', 'Delete', $this->Session->read('User.ID'));
+		if (empty($permission)) {
+			throw new UnauthorizedException();
+		}
 		if (isset($id)) {
 			// Deleting & checking successful or not.
 			if ($this->RealmAttribute->delete($id)) {
 				// Redirecting to realms attribute index function.
 				$this->redirect('/realm_attributes/index/'.$realmId);
-				$this->Session->setFlash(__('Realm attribute is removed succefully!', true), 'flash_success');
+				$this->Session->setFlash(__('Realm attribute is removed succefully')."!", 'flash_success');
 			} else {
-				$this->Session->setFlash(__('Realm attribute is not removed succefully!', true), 'flash_failure');
+				$this->Session->setFlash(__('Realm attribute is not removed succefully')."!", 'flash_failure');
 			}
 		} else {
 			$this->redirect('/realm_attributes/index'.$realmId);
