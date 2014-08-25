@@ -18,6 +18,11 @@
 
 
 
+// Loads Util class.
+App::uses('Util', 'Utility');
+
+
+
 /**
  * @class RealmAttributesController
  *
@@ -61,7 +66,7 @@ class RealmAttributesController extends AppController
 		$groupName = $this->Access->getGroupName($this->Session->read('User.ID'));
 		$this->set('groupName', $groupName);
 		// Check permission.
-		$permission = $this->Access->checkPermission('RealmMembersController', 'View', $this->Session->read('User.ID'));
+		$permission = $this->Access->checkPermission('RealmAttributesController', 'View', $this->Session->read('User.ID'));
 		if (empty($permission)) {
 			throw new UnauthorizedException();
 		}
@@ -73,6 +78,10 @@ class RealmAttributesController extends AppController
 			$realmAttributes = $this->paginate();
 			$this->set('realmAttributes', $realmAttributes);
 			$this->set('realmId', $realmId);
+
+			// Setting the attribute operators.
+			$attributeOperators = Util::getAttributeOperators();
+			$this->set('attributeOperators', $attributeOperators);
 		} else {
 			$this->redirect('/realm_attributes/index');
 		}
@@ -93,6 +102,9 @@ class RealmAttributesController extends AppController
 			throw new UnauthorizedException();
 		}
 		$this->set('realmId', $realmId);
+		// Setting the attribute operators.
+		$attributeOperators = Util::getAttributeOperators();
+		$this->set('attributeOperators', $attributeOperators);
 		if ($this->request->is('post')) {
 			$this->request->data['RealmAttribute']['Disabled'] = intval($this->request->data['RealmAttribute']['Disabled']);
 			$this->request->data['RealmAttribute']['RealmID'] = intval($this->request->params['pass'][0]);
@@ -122,6 +134,9 @@ class RealmAttributesController extends AppController
 		}
 		$realmAttribute = $this->RealmAttribute->findById($id);
 		$this->set('realmAttribute', $realmAttribute);
+		// Setting the attribute operators.
+		$attributeOperators = Util::getAttributeOperators();
+		$this->set('attributeOperators', $attributeOperators);
 		// Checking submitted or not.
 		if ($this->request->is('post')) {
 			$this->request->data['RealmAttribute']['Disabled'] = intval($this->request->data['RealmAttribute']['Disabled']);
