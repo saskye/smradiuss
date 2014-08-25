@@ -22,6 +22,7 @@ App::uses('Model', 'Model');
 App::uses('AWITModelValidator', 'Model');
 App::uses('CakeEventListener', 'Event');
 App::uses('ClassRegistry', 'Utility');
+App::uses('Controller', 'Controller');
 
 /**
  * @class AWITModel
@@ -127,8 +128,11 @@ class AWITModel extends Model implements CakeEventListener {
 	public function save($data = null, $validate = true, $fieldList = array()) {
 		$object = parent::save($data, $validate, $fieldList);
 
-		$this->getController()->set(compact('object'));
-		$this->getController()->set('_serialize', 'object');
+		$controller = $this->getController();
+		if (is_object($controller) && $controller instanceof Controller) {
+			$controller->set(compact('object'));
+			$controller->set('_serialize', 'object');
+		}
 
 		return $object;
 	}
@@ -157,8 +161,11 @@ class AWITModel extends Model implements CakeEventListener {
 			);
 		}
 
-		$this->getController()->set(compact('object'));
-		$this->getController()->set('_serialize', 'object');
+		$controller = $this->getController();
+		if (is_object($controller) && $controller instanceof Controller) {
+			$controller->set(compact('object'));
+			$controller->set('_serialize', 'object');
+		}
 
 		return $object;
 	}
@@ -180,8 +187,11 @@ class AWITModel extends Model implements CakeEventListener {
 	public function updateAll($fields, $conditions = true) {
 		$object = parent::updateAll($fields, $conditions);
 
-		$this->getController()->set(compact('object'));
-		$this->getController()->set('_serialize', 'object');
+		$controller = $this->getController();
+		if (is_object($controller) && $controller instanceof Controller) {
+			$controller->set(compact('object'));
+			$controller->set('_serialize', 'object');
+		}
 
 		return $object;
 	}
@@ -205,8 +215,11 @@ class AWITModel extends Model implements CakeEventListener {
 	public function create($data = array(), $filterKey = false) {
 		$object = parent::create($data, $filterKey);
 
-		$this->getController()->set(compact('object'));
-		$this->getController()->set('_serialize', 'object');
+		$controller = $this->getController();
+		if (is_object($controller) && $controller instanceof Controller) {
+			$controller->set(compact('object'));
+			$controller->set('_serialize', 'object');
+		}
 
 		return $object;
 	}
