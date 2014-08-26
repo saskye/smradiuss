@@ -18,23 +18,58 @@
 
 
 
+// Loads Util class.
+App::uses('Util', 'Utility');
+
+
+
 /**
- * Client Attributes
- *
  * @class ClientAttributesController
  *
  * @brief This class manages the client attributes.
  */
 class ClientAttributesController extends AppController
 {
+	/**
+	 * @var $components
+	 * This variable is used for include other conponents.
+	 */
+	var $components = array('Auth', 'Acl','Access');
+
+
+	/**
+	 * @var $helpers
+	 * This variable is used for include other helper file.
+	 */
+	var $helpers = array('Access');
+
+
+	/**
+	 * @method beforeFilter
+	 * This method executes method that we need to be executed before any other action.
+	 */
+	function beforeFilter()
+	{
+		parent::beforeFilter();
+	}
+
+
 
 	/**
 	 * @method index
-	 * @param $clientID
 	 * This method is used for fetching list of client attributes with pagination.
+	 * @param $clientID
 	 */
 	public function index($clientID)
 	{
+		// Get user group name.
+		$groupName = $this->Access->getGroupName($this->Session->read('User.ID'));
+		$this->set('groupName', $groupName);
+		// Check permission.
+		$permission = $this->Access->checkPermission('ClientAttributesController', 'View', $this->Session->read('User.ID'));
+		if (empty($permission)) {
+			throw new UnauthorizedException();
+		}
 		if (isset($clientID)) {
 			// Fetching records with pagination
 			$this->paginate = array(
@@ -44,6 +79,9 @@ class ClientAttributesController extends AppController
 			$clientAttributes = $this->paginate();
 			$this->set('clientAttributes', $clientAttributes);
 			$this->set('clientID', $clientID);
+			// Setting the attribute operators.
+			$attributeOperators = Util::getAttributeOperators();
+			$this->set('attributeOperators', $attributeOperators);
 		} else {
 			$this->redirect('/client_attributes/index');
 		}
@@ -53,12 +91,20 @@ class ClientAttributesController extends AppController
 
 	/**
 	 * @method add
-	 * @param $clientID
 	 * This method is used to add client attributes.
+	 * @param $clientID
 	 */
 	public function add($clientID)
 	{
+		// Check permission.
+		$permission = $this->Access->checkPermission('ClientAttributesController', 'Add', $this->Session->read('User.ID'));
+		if (empty($permission)) {
+			throw new UnauthorizedException();
+		}
 		$this->set('clientID', $clientID);
+		// Setting the attribute operators.
+		$attributeOperators = Util::getAttributeOperators();
+		$this->set('attributeOperators', $attributeOperators);
 		if ($this->request->is('post')) {
 			$this->request->data['ClientAttribute']['Disabled'] = intval($this->request->data['ClientAttribute']['Disabled']);
 			$this->request->data['ClientAttribute']['ClientID'] = intval($this->request->params['pass'][0]);
@@ -67,9 +113,9 @@ class ClientAttributesController extends AppController
 			if ($this->ClientAttribute->validates()) {
 				//Saving data to table.
 				$this->ClientAttribute->save($this->request->data);
-				$this->Session->setFlash(__('Client attribute is saved succefully!', true), 'flash_success');
+				$this->Session->setFlash(__('Client attribute is saved succefully')."!", 'flash_success');
 			} else {
-				$this->Session->setFlash(__('Client attribute is not saved succefully!', true), 'flash_failure');
+				$this->Session->setFlash(__('Client attribute is not saved succefully')."!", 'flash_failure');
 			}
 		}
 	}
@@ -78,23 +124,31 @@ class ClientAttributesController extends AppController
 
 	/**
 	 * @method edit
+	 * This method is used to edit client attributes.
 	 * @param $id
 	 * @param $clientID
-	 * This method is used to edit client attributes.
 	 */
 	public function edit($id, $clientID)
 	{
+		// Check permission.
+		$permission = $this->Access->checkPermission('ClientAttributesController', 'Edit', $this->Session->read('User.ID'));
+		if (empty($permission)) {
+			throw new UnauthorizedException();
+		}
 		$clientAttribute = $this->ClientAttribute->findById($id);
 		$this->set('clientAttribute', $clientAttribute);
+		// Setting the attribute operators.
+		$attributeOperators = Util::getAttributeOperators();
+		$this->set('attributeOperators', $attributeOperators);
 		if ($this->request->is('post')) {
 			$this->request->data['ClientAttribute']['Disabled'] = intval($this->request->data['ClientAttribute']['Disabled']);
 			$this->ClientAttribute->set($this->request->data);
 			if ($this->ClientAttribute->validates()) {
 				$this->ClientAttribute->id = $id;
 				$this->ClientAttribute->save($this->request->data);
-				$this->Session->setFlash(__('Clien attribute is saved succefully!', true), 'flash_success');
+				$this->Session->setFlash(__('Client attribute is saved succefully')."!", 'flash_success');
 			} else {
-				$this->Session->setFlash(__('Clien attribute is not saved succefully!', true), 'flash_failure');
+				$this->Session->setFlash(__('Client attribute is not saved succefully')."!", 'flash_failure');
 			}
 		}
 	}
@@ -103,19 +157,24 @@ class ClientAttributesController extends AppController
 
 	/**
 	 * @method remove
+	 * This method is used to delete client attributes.
 	 * @param $id
 	 * @param $clientID
-	 * This method is used to delete client attributes.
 	 */
 	public function remove($id, $clientID)
 	{
+		// Check permission.
+		$permission = $this->Access->checkPermission('ClientAttributesController', 'Delete', $this->Session->read('User.ID'));
+		if (empty($permission)) {
+			throw new UnauthorizedException();
+		}
 		if (isset($id)) {
 			// Deleting then redirecting to index
 			if ($this->ClientAttribute->delete($id)) {
 				$this->redirect('/client_attributes/index/'.$clientID);
-				$this->Session->setFlash(__('Client attribute is removed succefully!', true), 'flash_success');
+				$this->Session->setFlash(__('Client attribute is removed succefully')."!", 'flash_success');
 			} else {
-				$this->Session->setFlash(__('Client attribute is not removed succefully!', true), 'flash_failure');
+				$this->Session->setFlash(__('Client attribute is not removed succefully')."!", 'flash_failure');
 			}
 		} else {
 			$this->redirect('/client_attributes/index'.$clientID);
