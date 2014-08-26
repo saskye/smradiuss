@@ -15,27 +15,19 @@ padding-top: 50px;
 						<th><a><?php echo __('Operator'); ?></a></th>
 						<th><a><?php echo __('Value'); ?></a></th>
 						<th><a><?php echo __('Disabled'); ?></a></th>
-						<th><a><?php echo __('Actions'); ?></a></th>
+<?php
+						if ($this->Access->check($groupName, 'ClientAttributesEdit') ||
+								$this->Access->check($groupName, 'ClientAttributesDelete')) {
+?>
+							<th><a><?php echo __('Actions'); ?></a></th>
+<?php
+						}
+?>
 					</tr>
 				</thead>
 				<tbody>
 <?php
-					$options = array(
-						'=',
-						':=',
-						'==',
-						'+=',
-						'!=',
-						'<',
-						'>',
-						'<=',
-						'>=',
-						'=~',
-						'!~',
-						'=*',
-						'!*',
-						'||=='
-					);
+					$options = $attributeOperators;
 					foreach ($clientAttributes as $clientAttributes) {
 ?>
 					<tr>
@@ -46,34 +38,38 @@ padding-top: 50px;
 						<td><?php echo ($clientAttributes['ClientAttribute']['Disabled'] == 1) ? 'true' : 'false'; ?></td>
 						<td>
 <?php
-							echo $this->Html->image(
-								"/resources/custom/images/silk/icons/table_edit.png",
-								array(
-									"alt" => "Edit",
-									"url" => array(
-										'controller' => 'client_attributes',
-										'action' => 'edit',
-										$clientAttributes['ClientAttribute']['ID'],
-										$clientID
-									),
-									"title" => "Edit attribute"
-								)
-							);
+							if ($this->Access->check($groupName, 'ClientAttributesEdit')) {
+								echo $this->Html->image(
+									"/resources/custom/images/silk/icons/table_edit.png",
+									array(
+										"alt" => "Edit",
+										"url" => array(
+											'controller' => 'client_attributes',
+											'action' => 'edit',
+											$clientAttributes['ClientAttribute']['ID'],
+											$clientID
+										),
+										"title" => "Edit attribute"
+									)
+								);
+							}
 ?>
 <?php
-							echo $this->Html->image(
-								"/resources/custom/images/silk/icons/table_delete.png",
-								array(
-									"alt" => "Delete",
-									"url" => array(
-										'controller' => 'client_attributes',
-										'action' => 'remove',
-										$clientAttributes['ClientAttribute']['ID'],
-										$clientID
-									),
-									"title" => "Remove attribute"
-								)
-							);
+							if ($this->Access->check($groupName, 'ClientAttributesDelete')) {
+								echo $this->Html->image(
+									"/resources/custom/images/silk/icons/table_delete.png",
+									array(
+										"alt" => "Delete",
+										"url" => array(
+											'controller' => 'client_attributes',
+											'action' => 'remove',
+											$clientAttributes['ClientAttribute']['ID'],
+											$clientID
+										),
+										"title" => "Remove attribute"
+									)
+								);
+							}
 ?>
 						</td>
 					</tr>
@@ -117,16 +113,18 @@ padding-top: 50px;
 			</table>
 			<div class="form-group">
 <?php
-				echo $this->Html->link(
-					__('Add'),
-					array(
-						'action' => 'add',
-						$clientID
-					),
-					array(
-						'class' => 'btn btn-primary'
-					)
-				);
+				if ($this->Access->check($groupName, 'ClientAttributesAdd')) {
+					echo $this->Html->link(
+						__('Add'),
+						array(
+							'action' => 'add',
+							$clientID
+						),
+						array(
+							'class' => 'btn btn-primary'
+						)
+					);
+				}
 ?>
 <?php
 				echo $this->Html->link(
