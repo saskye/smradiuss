@@ -53,22 +53,7 @@ body {
 								'label' => false,
 								'class' => 'form-control',
 								'type' => 'select',
-								'options' => array(
-									'=',
-									':=',
-									'==',
-									'+=',
-									'!=',
-									'<',
-									'>',
-									'<=',
-									'>=',
-									'=~',
-									'!~',
-									'=*',
-									'!*',
-									'||=='
-								),
+								'options' => $attributeOperators,
 								'value' => $userAttribute['UserAttribute']['Operator']
 							)
 						);

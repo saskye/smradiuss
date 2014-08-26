@@ -18,6 +18,10 @@
 
 
 
+App::uses('Util', 'Utility');
+
+
+
 /**
  * @class UserAttributesController
  *
@@ -71,7 +75,12 @@ class UserAttributesController extends AppController
 				'limit' => PAGINATION_LIMIT,
 				'conditions' => array('UserAttribute.UserID' => $userId)
 			);
-			$userAttributes  = $this->paginate();
+			$userAttributes = $this->paginate();
+
+			// Setting the attribute operators
+			$attributeOperators = Util::getAttributeOperators();
+
+			$this->set('attributeOperators', $attributeOperators);
 			$this->set('userAttributes', $userAttributes);
 			$this->set('userId', $userId);
 		} else {
@@ -93,6 +102,10 @@ class UserAttributesController extends AppController
 		if (empty($permission)) {
 			throw new UnauthorizedException();
 		}
+
+		// Setting the attribute operators
+		$attributeOperators = Util::getAttributeOperators();
+
 		$this->set('userId', $userId);
 		if ($this->request->is('post')) {
 			$this->request->data['UserAttribute']['Disabled'] = intval($this->request->data['UserAttribute']['Disabled']);
@@ -126,6 +139,10 @@ class UserAttributesController extends AppController
 		}
 		$userAttribute = $this->UserAttribute->findById($id);
 		$this->set('userAttribute', $userAttribute);
+
+		// Setting the attribute operators
+		$attributeOperators = Util::getAttributeOperators();
+
 		if ($this->request->is('post')) {
 			$this->request->data['UserAttribute']['Disabled'] = intval($this->request->data['UserAttribute']['Disabled']);
 			$this->UserAttribute->set($this->request->data);
