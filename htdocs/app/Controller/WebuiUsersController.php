@@ -66,6 +66,11 @@ class WebuiUsersController extends AppController
 					$this->Session->write('User.Type', $selectData[0]['WebuiUser']['Type']);
 					return $this->redirect($this->Auth->redirect('/users/index'));
 				} else {
+					// Handling REST response here
+					if ($this->request->accepts('application/json')) {
+						throw new UnauthorizedException("Login Failed");
+					}
+
 					$this->Session->setFlash(__('Invalid username or password, try again'), 'flash_failure');
 				}
 			}
