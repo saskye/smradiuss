@@ -19,22 +19,52 @@
 
 
 /**
- * Client Realms
- *
  * @class ClientRealmsController
  *
  * @brief This class manages the client realms.
  */
 class ClientRealmsController extends AppController
 {
+	/**
+	 * @var $components
+	 * This variable is used for include other conponents.
+	 */
+	var $components = array('Auth', 'Acl','Access');
+
+
+	/**
+	 * @var $helpers
+	 * This variable is used for include other helper file.
+	 */
+	var $helpers = array('Access');
+
+
+	/**
+	 * @method beforeFilter
+	 * This method executes method that we need to be executed before any other action.
+	 */
+	function beforeFilter()
+	{
+		parent::beforeFilter();
+	}
+
+
 
 	/**
 	 * @method index
-	 * @param $clientID
 	 * This method is used to loads client realms list with pagination.
+	 * @param $clientID
 	 */
 	public function index($clientID)
 	{
+		// Get user group name.
+		$groupName = $this->Access->getGroupName($this->Session->read('User.ID'));
+		$this->set('groupName', $groupName);
+		// Check permission.
+		$permission = $this->Access->checkPermission('ClientRealmsController', 'View', $this->Session->read('User.ID'));
+		if (empty($permission)) {
+			throw new UnauthorizedException();
+		}
 		if (isset($clientID)) {
 			// Fetching records with pagination.
 			$this->paginate = array(
@@ -65,11 +95,16 @@ class ClientRealmsController extends AppController
 
 	/**
 	 * @method add
-	 * @param $clientID
 	 * This method is used to add client realms.
+	 * @param $clientID
 	 */
 	public function add($clientID)
 	{
+		// Check permission.
+		$permission = $this->Access->checkPermission('ClientRealmsController', 'Add', $this->Session->read('User.ID'));
+		if (empty($permission)) {
+			throw new UnauthorizedException();
+		}
 		if (isset($clientID)) {
 			$this->set('clientID', $clientID);
 			// Fetch realms for select box controler.
@@ -91,9 +126,9 @@ class ClientRealmsController extends AppController
 						$addData['ClientRealm']['RealmID'] = $requestData['ClientRealm']['Type'];
 					}
 					$this->ClientRealm->save($addData);
-					$this->Session->setFlash(__('Client member is saved succefully!', true), 'flash_success');
+					$this->Session->setFlash(__('Client member is saved successfully')."!", 'flash_success');
 				} else {
-					$this->Session->setFlash(__('Client memberis not saved succefully!', true), 'flash_failure');
+					$this->Session->setFlash(__('Client member is not saved successfully')."!", 'flash_failure');
 				}
 			}
 		}
@@ -103,19 +138,24 @@ class ClientRealmsController extends AppController
 
 	/**
 	 * @method remove
+	 * This method is used to delete client realms.
 	 * @param $id
 	 * @param $clientID
-	 * This method is used to delete client realms.
 	 */
 	public function remove($id, $clientID)
 	{
+		// Check permission.
+		$permission = $this->Access->checkPermission('ClientRealmsController', 'Delete', $this->Session->read('User.ID'));
+		if (empty($permission)) {
+			throw new UnauthorizedException();
+		}
 		if (isset($id)) {
 			// Deleting then redirected to index function.
 			if ($this->ClientRealm->delete($id)) {
 				$this->redirect('/client_realms/index/'.$clientID);
-				$this->Session->setFlash(__('Client realm is removed succefully!', true), 'flash_success');
+				$this->Session->setFlash(__('Client realm is removed successfully')."!", 'flash_success');
 			} else {
-				$this->Session->setFlash(__('Client realm is not removed succefully!', true), 'flash_failure');
+				$this->Session->setFlash(__('Client realm is not removed successfully')."!", 'flash_failure');
 			}
 		} else {
 			$this->redirect('/client_realms/index'.$clientID);
