@@ -12,7 +12,13 @@ body {
 					<tr>
 						<th><a><?php echo __('ID'); ?></a></th>
 						<th><a><?php echo __('Name'); ?></a></th>
-						<th><a><?php echo __('Action'); ?></a></th>
+<?php
+						if ($this->Access->check($groupName, 'ClientRealmsDelete')) {
+?>
+							<th><a><?php echo __('Action'); ?></a></th>
+<?php
+						}
+?>
 					</tr>
 				</thead>
 				<tbody>
@@ -24,19 +30,21 @@ body {
 							<td><?php echo h($clientRealms['ClientRealm']['realmName']); ?></td>
 							<td>
 <?php
-								echo $this->Html->image(
-									"/resources/custom/images/silk/icons/table_delete.png",
-									array(
-										"alt" => "Delete",
-										"url" => array(
-											'controller' => 'client_realms',
-											'action' => 'remove',
-											$clientRealms['ClientRealm']['ID'],
-											$clientID
-										),
-										"title" => "Remove realm"
-									)
-								);
+								if ($this->Access->check($groupName, 'ClientRealmsDelete')) {
+									echo $this->Html->image(
+										"/resources/custom/images/silk/icons/table_delete.png",
+										array(
+											"alt" => "Delete",
+											"url" => array(
+												'controller' => 'client_realms',
+												'action' => 'remove',
+												$clientRealms['ClientRealm']['ID'],
+												$clientID
+											),
+											"title" => "Remove realm"
+										)
+									);
+								}
 ?>
 							</td>
 						</tr>
@@ -80,16 +88,18 @@ body {
 			</table>
 			<div class="form-group">
 <?php
-				echo $this->Html->link(
-					__('Add'),
-					array(
-						'action' => 'add',
-						$clientID
-					),
-					array(
-						'class' => 'btn btn-primary'
-					)
-				);
+				if ($this->Access->check($groupName, 'ClientRealmsAdd')) {
+					echo $this->Html->link(
+						__('Add'),
+						array(
+							'action' => 'add',
+							$clientID
+						),
+						array(
+							'class' => 'btn btn-primary'
+						)
+					);
+				}
 ?>
 <?php
 				echo $this->Html->link(
