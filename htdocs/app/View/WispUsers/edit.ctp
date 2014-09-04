@@ -400,19 +400,33 @@ function editAttributeRow(valData)
 							</table>
 						</div>
 					</div>
-					<!-- end attributes -->
-
+					<!-- Ending of attributes div. -->
 				</div>
 				<div class="form-group">
-					<button type="submit" class="btn btn-primary"><?php echo __('Update')?></button>
-					<?php echo $this->Html->link('Cancel', array('action' => 'index'), array('class' => 'btn btn-default'))?>
+					<button type="submit" class="btn btn-primary"><?php echo __('Update'); ?></button>
+<?php
+					echo $this->Html->link(
+						'Cancel',
+						array(
+							'action' => 'index'
+						),
+						array(
+							'class' => 'btn btn-default'
+						)
+					)
+?>
 				</div>
+			</div>
 			<?php echo $this->Form->end(); ?>
 		</div>
 	</div>
 </div>
 <?php
-function reverceSwitchModifier($val,$attrValues)
+	/**
+	 * @method reverceSwitchModifier
+	 * This method is used for calculate attribute value according val.
+	 */
+	function reverseSwitchModifier($val,$attrValues)
 	{
 		$av = '';
 
@@ -447,6 +461,5 @@ function reverceSwitchModifier($val,$attrValues)
 				break;
 		}
 		return $av;
-
 	}
 ?>
