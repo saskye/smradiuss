@@ -121,7 +121,7 @@ $("#btn").click(function()
 	$("#selectValid").css("display", "none");
 	var groupText = $("#groups option:selected").text();
 	var groupValue = $("#groups option:selected").val();
-	if(groupText == 'please select')
+	if(groupText == 'Please Select')
 	{
 		$("#selectValid").html("Please select group.");
 		$("#selectValid").css("display", "block");
