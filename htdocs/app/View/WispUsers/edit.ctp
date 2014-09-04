@@ -163,7 +163,7 @@ $("#attributeBtn").click(function()
 	{
 		$("#selectName").css("display", "none");
 	}
-	if(operatorText == 'please select')
+	if(operatorText == 'Please Select')
 	{
 		$("#selectoperator").css("display", "block");
 		valid = 0;
