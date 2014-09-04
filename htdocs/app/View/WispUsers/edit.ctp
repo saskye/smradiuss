@@ -317,17 +317,9 @@ function editAttributeRow(valData)
 									<div style = "padding-left:600px;"><input type = "button" value = "Add Group" id="btn" class="btn btn-primary"/></div>
 								</div>
 							</div>
-							<div id='selectGroup'>
-								<table class="table">
-									<thead>
-										<tr><th><a><?php echo __('Name', true);?></a></th></tr>
-									</thead>
-									<tbody>
-										<?php foreach($userGroups as $ug) {	?>
-											<tr id='grp<?php echo $ug['utg']['GroupID'];?>'><td><?php echo $ug['g']['Name'];?><input type='hidden' name='groupId[]' value='<?php echo $ug['utg']['GroupID'];?>'></td><td align='right'><input type = 'button' value = 'Remove' onclick='deleteGroupRow(<?php echo $ug['utg']['GroupID'];?>);' class='btn btn-primary'/></td></tr>
-										<?php } ?>
-									</tbody>
-								</table>
+							<div style="padding-left:600px;">
+								<input type="button" value="<?php echo __('Add Group'); ?>" id="btn"
+									class="btn btn-primary" name="add_group"/>
 							</div>
 						</div>
 						<!-- end group -->
