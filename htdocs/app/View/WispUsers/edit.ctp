@@ -330,23 +330,79 @@ function editAttributeRow(valData)
 								</table>
 							</div>
 						</div>
-						<!-- end group -->
-
-						<!-- start attributes -->
-						<div id="attributes" style="display:none;">
-							<?php
-								$options = array('Traffic Limit' => 'Traffic Limit', 'Uptime Limit' => 'Uptime Limit', 'IP Address' => 'IP Address', 'MAC Address' => 'MAC Address');
-								$operator=array('Add as reply if unique', 'Set configuration value', 'Match value in request', 'Add reply and set configuration', 'Inverse match value in request', 'Match less-than value in request', 'Match greater-than value in request', 'Match less-than or equal value in request', 'Match greater-than or equal value in request','Match string containing regex in request', 'Match string not containing regex in request', 'Match if attribute is defined in request', 'Match if attribute is not defined in request', 'Match any of these values in request');
-								$modifier = array('Seconds' => 'Seconds', 'Minutes' => 'Minutes', 'Hours' => 'Hours', 'Days' => 'Days', 'Weeks' => 'Weeks', 'Months' => 'Months', 'MBytes' => 'MBytes', 'GBytes' => 'GBytes', 'TBytes' => 'TBytes');
-							?>
-							<div class="form-group" style="float:left;width:200px;">
-								<?php echo $this->Form->label('Name', 'Name', array('class'=>'col-md-2 control-label','style'=>'width:60px;'));?>
-								<div class="row">
-									<div class="col-md-4 input-group">
-										<?php echo $this->Form->input('Name', array('label' => false, 'class' => 'form-control', 'type' => 'select', 'options' => $options, 'empty' => array(0=>'please select'), 'id' => 'nameId', 'style' => 'width:150px;'));?>
-										<span style="display:none;" id="selectName">Please select name.</span>
-									</div>
-								</div>
+					</div>
+					<div id='selectGroup'>
+						<table class="table">
+							<thead>
+								<tr><th><a><?php echo __('Name'); ?></a></th></tr>
+							</thead>
+							<tbody>
+<?php
+								if (isset($userGroups)) {
+									foreach($userGroups as $userGroup) {
+?>
+										<tr id='grp<?php echo h($userGroup['GroupMember']['GroupID']); ?>'>
+											<td>
+<?php
+												echo h($userGroup['Group']['name']);
+?>
+												<input type='hidden' name='groupId[]'
+														value='<?php echo h($userGroup['GroupMember']['GroupID']); ?>'>
+											</td>
+											<td align='right'>
+											<input type='button' value='Remove'
+													onclick='deleteGroupRow(
+<?php
+														echo h($userGroup['GroupMember']['GroupID']);
+?>
+													);'	class='btn btn-primary'/>
+											</td>
+										</tr>
+<?php
+									}
+								}
+?>
+							</tbody>
+						</table>
+					</div>
+				</div>
+				<!-- Ending of group div. -->
+				<!-- Starting of attributes div. -->
+				<div id="attributes" style="display:none;">
+					<div class="form-group" style="float:left;width:200px;">
+<?php
+						echo $this->Form->label(
+							'Name',
+							'Name',
+							array(
+								'class' => 'col-md-2 control-label',
+								'style'=>'width:60px;'
+							)
+						);
+?>
+						<div class="row">
+							<div class="col-md-4 input-group">
+<?php
+								echo $this->Form->input(
+									'Name',
+									array(
+										'label' => false,
+										'class' => 'form-control',
+										'type' => 'select',
+										'options' => $options,
+										'empty' => array(
+											0 => __('Please Select')
+										),
+										'id' => 'nameId',
+										'style' => 'width:150px;'
+									)
+								);
+?>
+								<span style="display:none;" id="selectName">
+<?php
+									echo __('Please select name.');
+?>
+								</span>
 							</div>
 							<div class="form-group" style="float:left;width:250px;">
 								<?php echo $this->Form->label('Operator', 'Operator', array('class'=>'col-md-2 control-label', 'style'=>'margin-left:0px;width:80px;'));?>
