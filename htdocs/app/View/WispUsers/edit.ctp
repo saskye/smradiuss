@@ -401,13 +401,35 @@ function editAttributeRow(valData)
 								);
 ?>
 							</div>
-							<div class="form-group">
-								<?php echo $this->Form->label('Location', 'Location', array('class'=>'col-md-2 control-label'));?>
-								<div class="row">
-									<div class="col-md-4 input-group">
-										<?php echo $this->Form->input('Location', array('label' => false, 'class' => 'form-control', 'type' => 'select', 'options' => $location, 'empty' => false, 'options' => $location, 'value' => $user['WispUser']['LocationID'], 'empty' => true));?>
-									</div>
-								</div>
+						</div>
+					</div>
+					<div class="form-group">
+<?php
+						echo $this->Form->label(
+							'Location',
+							'Location',
+							array(
+								'class' => 'col-md-2 control-label'
+							)
+						);
+?>
+						<div class="row">
+							<div class="col-md-4 input-group">
+<?php
+								echo $this->Form->input(
+									'Location',
+									array(
+										'label' => false,
+										'class' => 'form-control',
+										'type' => 'select',
+										'options' => $location,
+										'empty' => false,
+										'options' => $location,
+										'value' => $user['WispUser']['LocationID'],
+										'empty' => true
+									)
+								);
+?>
 							</div>
 						</div>
 						<!-- end personal info div -->
