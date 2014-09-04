@@ -248,27 +248,42 @@ function editAttributeRow(valData)
 						</div>
 					</div>
 				</div>
-
-				<!-- for tabs -->
-				<div id="tabs1">
-					<ul id="tabs">
-  						<li><a href="#pinfo">Personal</a></li>
-  						<li><a href="#groups">Groups</a></li>
-  						<li><a href="#attributes">Attributes</a></li>
-					</ul>
-				</div>
-				<!-- end tabs -->
-
-				<div id="slides" >
-					<!-- personal info div -->
-						<div id="pinfo">
-							<div class="form-group">
-								<?php echo $this->Form->label('FirstName', 'First Name', array('class'=>'col-md-2 control-label'));?>
-								<div class="row">
-									<div class="col-md-4 input-group">
-										<?php echo $this->Form->input('FirstName', array('label' => false, 'class' => 'form-control', 'placeholder' => 'First Name', 'value' => $user['WispUser']['FirstName']));?>
-									</div>
-								</div>
+			</div>
+			<!-- Sataring of tabs. -->
+			<div id="tabs1">
+				<ul id="tabs">
+					<li><a href="#pinfo"><?php echo __('Personal'); ?></a></li>
+					<li><a href="#groups"><?php echo __('Groups'); ?></a></li>
+					<li><a href="#attributes"><?php echo __('Attributes'); ?></a></li>
+				</ul>
+			</div>
+			<!-- Ending of tabs. -->
+			<div id="slides">
+				<!-- Starting of personal info div. -->
+				<div id="pinfo">
+					<div class="form-group">
+<?php
+						echo $this->Form->label(
+							'FirstName',
+							'First Name',
+							array(
+								'class' => 'col-md-2 control-label'
+							)
+						);
+?>
+						<div class="row">
+							<div class="col-md-4 input-group">
+<?php
+								echo $this->Form->input(
+									'FirstName',
+									array(
+										'label' => false,
+										'class' => 'form-control',
+										'placeholder' => 'First Name',
+										'value' => $user['WispUser']['FirstName']
+									)
+								);
+?>
 							</div>
 							<div class="form-group">
 								<?php echo $this->Form->label('LastName', 'LastName', array('class'=>'col-md-2 control-label'));?>
