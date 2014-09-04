@@ -375,13 +375,31 @@ function editAttributeRow(valData)
 								);
 ?>
 							</div>
-							<div class="form-group">
-								<?php echo $this->Form->label('Email', 'Email', array('class'=>'col-md-2 control-label'));?>
-								<div class="row">
-									<div class="col-md-4 input-group">
-										<?php echo $this->Form->input('Email', array('label' => false, 'class' => 'form-control', 'placeholder' => 'Email', 'value' => $user['WispUser']['Email']));?>
-									</div>
-								</div>
+						</div>
+					</div>
+					<div class="form-group">
+<?php
+						echo $this->Form->label(
+							'Email',
+							'Email',
+							array(
+								'class' => 'col-md-2 control-label'
+							)
+						);
+?>
+						<div class="row">
+							<div class="col-md-4 input-group">
+<?php
+								echo $this->Form->input(
+									'Email',
+									array(
+										'label' => false,
+										'class' => 'form-control',
+										'placeholder' => 'Email',
+										'value' => $user['WispUser']['Email']
+									)
+								);
+?>
 							</div>
 							<div class="form-group">
 								<?php echo $this->Form->label('Location', 'Location', array('class'=>'col-md-2 control-label'));?>
