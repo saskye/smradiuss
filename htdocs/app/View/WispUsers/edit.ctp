@@ -209,6 +209,7 @@ $("#attributeBtn").click(function()
 function deleteGroupRow(valData)
 {
 	$('#grp'+valData).remove();
+	$("select").removeAttr('disabled');
 }
 function deleteAttributeRow(valData)
 {
