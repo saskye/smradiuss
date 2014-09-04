@@ -432,19 +432,45 @@ function editAttributeRow(valData)
 ?>
 							</div>
 						</div>
-						<!-- end personal info div -->
-
-						<!-- start group -->
-						<div id="groups" style="display:none;">
-							<div class="form-group">
-								<?php echo $this->Form->label('Group', 'Group', array('class'=>'col-md-2 control-label'));?>
-								<div class="row">
-									<div class="col-md-4 input-group" style="float:left;">
-										<?php echo $this->Form->input('Type', array('empty' => array(0=>'please select'),'label' => false, 'class' => 'form-control', 'type' => 'select', "options" =>$grouparr, 'id' => 'groups'));?>
-										<span style="display:none;" id="selectValid"></span>
-									</div>
-									<div style = "padding-left:600px;"><input type = "button" value = "Add Group" id="btn" class="btn btn-primary"/></div>
-								</div>
+					</div>
+				</div>
+				<!-- Ending of personal info div. -->
+				<!-- Starting of group div. -->
+				<div id="groups" style="display:none;">
+					<div class="form-group">
+<?php
+						echo $this->Form->label(
+							'Group',
+							'Group',
+							array(
+								'class' => 'col-md-2 control-label'
+							)
+						);
+?>
+						<div class="row">
+							<div class="col-md-4 input-group" style="float:left;">
+<?php
+								if (isset($userGroups)) {
+									$disabled = 'disabled';
+								} else {
+									$disabled = 'FALSE';
+								}
+								echo $this->Form->input(
+									'Type',
+									array(
+										'empty' => array(
+											0 => __('Please Select')
+										),
+										'label' => false,
+										'class' => 'form-control',
+										'type' => 'select',
+										'options' => $groups,
+										'id' => 'groups',
+										'disabled' => $disabled
+									)
+								);
+?>
+								<span style="display:none;" id="selectValid"></span>
 							</div>
 							<div id='selectGroup'>
 								<table class="table">
