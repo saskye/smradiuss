@@ -200,7 +200,7 @@ $("#attributeBtn").click(function()
 			$("#selectAttribute1").css("display","block");
 			$("#selectAttribute1 table").append(row);
 			$("#attribGenerator").val(attrTemp+1);
-			$('select option:contains("please select")').prop('selected',true);
+			$('select option:contains("Please Select")').prop('selected',true);
 			$("#valueId").val("");
 		}
 	}
