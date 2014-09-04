@@ -348,14 +348,42 @@ function editAttributeRow(valData)
 									</div>
 								</div>
 							</div>
-							<div class="form-group" style="float:left;width:250px;">
-								<?php echo $this->Form->label('Operator', 'Operator', array('class'=>'col-md-2 control-label', 'style'=>'margin-left:0px;width:80px;'));?>
-								<div class="row">
-									<div class="col-md-4 input-group">
-										<?php echo $this->Form->input('Operator', array('label' => false, 'class' => 'form-control','type' => 'select', 'options' => $operator, 'empty' => array(''=>'please select'), 'style'=>'width:180px;', 'id' => 'operatorId'));?>
-										<span style="display:none;" id="selectoperator">Please select operator.</span>
-									</div>
-								</div>
+						</div>
+					</div>
+					<div class="form-group" style="float:left;width:250px;">
+<?php
+						echo $this->Form->label(
+							'Operator',
+							'Operator',
+							array(
+								'class' => 'col-md-2 control-label',
+								'style' => 'margin-left:0px;width:80px;'
+							)
+						);
+?>
+						<div class="row">
+							<div class="col-md-4 input-group">
+<?php
+								echo $this->Form->input(
+									'Operator',
+									array(
+										'label' => false,
+										'class' => 'form-control',
+										'type' => 'select',
+										'options' => $operator,
+										'empty' => array(
+											'' => __('Please Select')
+										),
+										'style' => 'width:180px;',
+										'id' => 'operatorId'
+									)
+								);
+?>
+								<span style="display:none;" id="selectoperator">
+<?php
+									echo __('Please select operator.');
+?>
+								</span>
 							</div>
 							<div class="form-group" style="float:left;width:250px;">
 								<?php echo $this->Form->label('Value', 'Value', array('class'=>'col-md-2 control-label', 'style'=>'width:60px;margin-left:0px;'));?>
