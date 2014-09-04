@@ -229,16 +229,34 @@ function editAttributeRow(valData)
 </script>
 
 <div style="padding: 15px 15px">
-	<div class="row"><?php echo $this->element('wisp_left_panel');?>
-		<div class="col-md-10"><legend>Edit Wisp User</legend>
-			<?php echo $this->Form->create()?>
-				<div class="form-group">
-					<?php echo $this->Form->label('Username', 'Username', array('class'=>'col-md-2 control-label'));?>
-					<div class="row">
-						<div class="col-md-4 input-group">
-							<?php echo $this->Form->input('Username', array('label' => false, 'class' => 'form-control', 'placeholder' => 'Username', 'value' => $user['WispUser']['Username']));?>
-							<input type='hidden' name='hiddenUserName' value='<?php echo $user['WispUser']['Username']; ?>' />
-						</div>
+	<div class="row"><?php echo $this->element('wisp_left_panel'); ?>
+		<div class="col-md-10"><legend><?php echo __('Edit Wisp User'); ?></legend>
+			<?php echo $this->Form->create(); ?>
+			<div class="form-group">
+<?php
+				echo $this->Form->label(
+					'Username',
+					'Username',
+					array(
+						'class' => 'col-md-2 control-label'
+					)
+				);
+?>
+				<div class="row">
+					<div class="col-md-4 input-group">
+<?php
+						echo $this->Form->input(
+							'Username',
+							array(
+								'label' => false,
+								'class' => 'form-control',
+								'placeholder' => 'Username',
+								'value' => $user['WispUser']['Username']
+							)
+						);
+?>
+						<input type='hidden' name='hiddenUserName'
+									value='<?php echo h($user['WispUser']['Username']); ?>'/>
 					</div>
 				</div>
 				<div class="form-group">
