@@ -134,9 +134,16 @@ $("#btn").click(function()
 			$("#selectValid").css("display", "block");
 			return false;
 		}
-		$("#selectGroup table").append("<tr id='grp"+groupValue+"'><td>"+groupText+"<input type='hidden' name='groupId[]' value='"+groupValue+"'></td><td align='right'><input type = 'button' value = 'Remove' onclick='deleteGroupRow("+groupValue+");' class='btn btn-primary'/></td></tr>");
-		$('select option:contains("please select")').prop('selected',true);
-	}
+		var userGroups = "<tr id='grp"+groupValue+"'>" +
+				"<td>"+groupText+"<input type='hidden' name='groupId[]' value='"+groupValue+"'></td>" +
+				"<td align='right'>" +
+				"<input type='button' value='Remove' onclick='deleteGroupRow("+groupValue+");' class='btn btn-primary'/>" +
+				"</td></tr>";
+		$("#selectGroup table").append(userGroups);
+
+		$('select option:contains("Please Select")').prop('selected',true);
+		$('#groups select').prop('disabled', true);
+}
 	$("#groups").html(optionList).selectmenu('refresh', true);
 });
 
