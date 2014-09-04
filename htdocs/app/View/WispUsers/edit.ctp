@@ -540,14 +540,38 @@ function editAttributeRow(valData)
 ?>
 								</span>
 							</div>
-							<div class="form-group" style="float:left;width:250px;">
-								<?php echo $this->Form->label('Value', 'Value', array('class'=>'col-md-2 control-label', 'style'=>'width:60px;margin-left:0px;'));?>
-								<div class="row">
-									<div class="col-md-4 input-group">
-										<?php echo $this->Form->input('Value', array('label' => false, 'class' => 'form-control', 'placeholder' => 'Value', 'style'=>'width:180px;', 'id' => 'valueId'));?>
-										<span style="display:none;" id="selectvalue">Please enter value.</span>
-									</div>
-								</div>
+						</div>
+					</div>
+					<div class="form-group" style="float:left;width:250px;">
+<?php
+						echo $this->Form->label(
+							'Value',
+							'Value',
+							array(
+								'class' => 'col-md-2 control-label',
+								'style' => 'width:60px;margin-left:0px;'
+							)
+						);
+?>
+						<div class="row">
+							<div class="col-md-4 input-group">
+<?php
+								echo $this->Form->input(
+									'Value',
+									array(
+										'label' => false,
+										'class' => 'form-control',
+										'placeholder' => 'Value',
+										'style' => 'width:180px;',
+										'id' => 'valueId'
+									)
+								);
+?>
+								<span style="display:none;" id="selectvalue">
+<?php
+									echo __('Please enter value.');
+?>
+								</span>
 							</div>
 							<div class="form-group" style="float:left;width:200px">
 								<?php echo $this->Form->label('Modifier', 'Modifier', array('class'=>'col-md-2 control-label', 'style'=>'width:80px;margin-left:0px;'));?>
