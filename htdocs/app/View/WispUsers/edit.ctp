@@ -573,14 +573,42 @@ function editAttributeRow(valData)
 ?>
 								</span>
 							</div>
-							<div class="form-group" style="float:left;width:200px">
-								<?php echo $this->Form->label('Modifier', 'Modifier', array('class'=>'col-md-2 control-label', 'style'=>'width:80px;margin-left:0px;'));?>
-								<div class="row">
-									<div class="col-md-4 input-group">
-										<?php echo $this->Form->input('Modifier', array('label' => false, 'class' => 'form-control','type' => 'select', 'options' => $modifier, 'empty' => array(0=>'please select'), 'style'=>'width:90px;margin-left:0px;', 'id' => 'modifierId'));?>
-										<span style="display:none;" id="selectmodifier">Please select modifier.</span>
-									</div>
-								</div>
+						</div>
+					</div>
+					<div class="form-group" style="float:left;width:200px">
+<?php
+						echo $this->Form->label(
+							'Modifier',
+							'Modifier',
+							array(
+								'class' => 'col-md-2 control-label',
+								'style' => 'width:80px;margin-left:0px;'
+							)
+						);
+?>
+						<div class="row">
+							<div class="col-md-4 input-group">
+<?php
+								echo $this->Form->input(
+									'Modifier',
+									array(
+										'label' => false,
+										'class' => 'form-control',
+										'type' => 'select',
+										'options' => $modifier,
+										'empty' => array(
+											0 => __('Please Select')
+										),
+										'style' => 'width:90px;margin-left:0px;',
+										'id' => 'modifierId'
+									)
+								);
+?>
+								<span style="display:none;" id="selectmodifier">
+<?php
+									echo __('Please select modifier.');
+?>
+								</span>
 							</div>
 							<div style = "padding-left:0px;"><input type = "button" value = "Add Group" id="attributeBtn" class="btn btn-primary"/></div><br><br><br>
 						<div id='selectAttribute1' style="">
