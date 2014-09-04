@@ -240,12 +240,30 @@ function editAttributeRow(valData)
 						</div>
 					</div>
 				</div>
-				<div class="form-group">
-					<?php echo $this->Form->label('Password', 'Password', array('class'=>'col-md-2 control-label'));?>
-					<div class="row">
-						<div class="col-md-4 input-group">
-							<?php echo $this->Form->input('Password', array('label' => false, 'class' => 'form-control', 'placeholder' => 'Password', 'value' => $user['WispUser']['Password']));?>
-						</div>
+			</div>
+			<div class="form-group">
+<?php
+				echo $this->Form->label(
+					'Password',
+					'Password',
+					array(
+						'class' => 'col-md-2 control-label'
+					)
+				);
+?>
+				<div class="row">
+					<div class="col-md-4 input-group">
+<?php
+						echo $this->Form->input(
+							'Password',
+							array(
+								'label' => false,
+								'class' => 'form-control',
+								'placeholder' => 'Password',
+								'value' => $user['WispUser']['Password']
+							)
+						);
+?>
 					</div>
 				</div>
 
