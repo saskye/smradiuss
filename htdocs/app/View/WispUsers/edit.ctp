@@ -622,15 +622,9 @@ function editAttributeRow(valData)
 										<th><a><?php echo __('Value', true);?></a></th>
 										<th><a><?php echo __('Modifier', true);?></a></th>
 									</tr>
-								</thead>
-								<tbody>
-								<?php
-									$arrOperator = array(0=>"=",1=>":=",2=>"==",3=>"+=",4=>"!=",5=>"<",6=>">",7=>"<=",8=>">=",9=>"=~",10=>"!~",11=>"=*",12=>"!*",13=>"||==");
-									$i=0; foreach($userAttrib as $ua) { $i++;
-									if($ua['user_attributes']['Name']=='User-Password') { continue; }
-								?>
-								<tr id='attrib<?php echo $i; ?>'><td><?php echo $ua['user_attributes']['Name']; ?><input type='hidden' name='attributeName[]' id='attributeName<?php echo $i; ?>' value='<?php echo $ua['user_attributes']['Name']; ?>'></td><td><?php echo $arrOperator[$ua['user_attributes']['Operator']]; ?><input type='hidden' name='attributeoperator[]' id='attributeoperator<?php echo $i; ?>' value='<?php echo $ua['user_attributes']['Operator']; ?>'></td><td><?php echo reverceSwitchModifier($ua['user_attributes']['modifier'],$ua['user_attributes']['Value']); ?><input type='hidden' name='attributeValues[]' value='<?php echo reverceSwitchModifier($ua['user_attributes']['modifier'],$ua['user_attributes']['Value']); ?>' id='attributeValues<?php echo $i; ?>' ></td><td><?php echo $ua['user_attributes']['modifier']; ?><input type='hidden' name='attributeModifier[]'id='attributeModifier<?php echo $i; ?>' value='<?php echo $ua['user_attributes']['modifier']; ?>'></td><td align='right'><input type = 'button' value = 'Edit' onclick='editAttributeRow(<?php echo $i; ?>);' class='btn btn-primary'/> <input type = 'button' value = 'Remove' onclick='deleteAttributeRow(<?php echo $i; ?>);' class='btn btn-primary'/></td></tr>
-								<?php } ?>
+<?php
+								}
+?>
 								</tbody>
 							</table>
 						</div>
