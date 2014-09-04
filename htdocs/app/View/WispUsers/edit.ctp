@@ -149,12 +149,12 @@ $("#attributeBtn").click(function()
 	var operatorValue = $("#operatorId option:selected").val();
 	var attributeValue = $("#valueId").val();
 	var modifierText = $("#modifierId option:selected").text();
-	if(modifierText == 'please select')
+	if(modifierText == 'Please Select')
 	{
 		modifierText = '';
 	}
 	var valid = 1;
-	if(nameText == 'please select')
+	if(nameText == 'Please Select')
 	{
 		$("#selectName").css("display", "block");
 		valid = 0;
