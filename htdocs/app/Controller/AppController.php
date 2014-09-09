@@ -75,28 +75,6 @@ class AppController extends AWITController
 
 
 	/**
-	 * @method indexapi
-	 * Method to handle all REST responses to list data
-	 *
-	 * @param $id ID to search against
-	 */
-	public function indexapi($id = '')
-	{
-		// Call default list function
-		$this->index($id);
-
-		// Catching viewVars
-		$data = $this->viewVars;
-
-		// Processing REST requests
-		$this->set(compact('data'));
-		$this->set('_serialize', array('data'));
-	}
-
-
-
-
-	/**
 	 * @method pages
 	 * Return pagination statistics for REST pagination
 	 *
@@ -144,6 +122,26 @@ class AppController extends AWITController
 			$this->Auth->loginAction = array('controller' => 'webui_users', 'action' => 'login');
 		}
 	}
+
+
+
+	/**
+	 * @method beforeRender
+	 * This method gets called before the view is rendered and
+	 * serializes all viewVars to provide transparent REST responses
+	 */
+	public function beforeRender() {
+		// Catching viewVars
+		$data = $this->viewVars;
+
+		// Processing REST requests
+		$this->set(compact('data'));
+		$this->set('_serialize', array('data'));
+	}
+
+
+
+
 }
 
 // vim: ts=4
