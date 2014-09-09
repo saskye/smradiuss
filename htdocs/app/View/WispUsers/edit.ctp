@@ -665,17 +665,76 @@ function editAttributeRow(valData)
 ?>
 								</span>
 							</div>
-							<div style = "padding-left:0px;"><input type = "button" value = "Add Group" id="attributeBtn" class="btn btn-primary"/></div><br><br><br>
-						<div id='selectAttribute1' style="">
-							<input type='hidden' id='attribGenerator' value='<?php echo (sizeof($userAttrib) + 1) ; ?>' />
-							<input type='hidden' id='editCheck' value='0' />
-							<table class="table">
-								<thead>
-									<tr>
-										<th><a><?php echo __('Name', true);?></a></th>
-										<th><a><?php echo __('Operator', true);?></a></th>
-										<th><a><?php echo __('Value', true);?></a></th>
-										<th><a><?php echo __('Modifier', true);?></a></th>
+						</div>
+					</div>
+					<div style="padding-left:0px;">
+						<input type="button" value="<?php echo __('Add Attribute'); ?>" id="attributeBtn"
+								class="btn btn-primary" name="add_attribute"/>
+					</div>
+					<br><br><br>
+					<div id='selectAttribute1' style="">
+						<input type='hidden' id='editCheck' value='0' />
+						<table class="table">
+							<thead>
+								<tr>
+									<th><a><?php echo __('Name'); ?></a></th>
+									<th><a><?php echo __('Operator'); ?></a></th>
+									<th><a><?php echo __('Value'); ?></a></th>
+									<th><a><?php echo __('Modifier'); ?></a></th>
+								</tr>
+							</thead>
+							<tbody>
+<?php
+								$i = 0;
+								foreach ($userAttributes as $userAttribute) {
+									$i++;
+									if ($userAttribute['UserAttribute']['Name']=='User-Password') {
+										continue;
+									}
+?>
+									<tr id='attrib<?php echo $i; ?>'>
+										<td>
+<?php
+											echo h($userAttribute['UserAttribute']['Name']);
+?>
+											<input type='hidden' name='attributeName[]'
+													id='attributeName<?php echo $i; ?>'
+													value='<?php echo h($userAttribute['UserAttribute']['Name']); ?>'>
+										</td>
+										<td>
+<?php
+											echo h($operators[
+													$userAttribute['UserAttribute']['Operator']
+											]);
+?>
+											<input type='hidden' name='attributeoperator[]' id='attributeoperator<?php echo $i; ?>'
+													value='<?php
+														echo h($userAttribute['UserAttribute']['Operator']);
+													?>'>
+										</td>
+										<td>
+<?php
+											$attrValue = reverseSwitchModifier(
+													$userAttribute['UserAttribute']['modifier'],
+													$userAttribute['UserAttribute']['Value']);
+											echo h($attrValue);
+?>
+											<input type='hidden' name='attributeValues[]' value='<?php echo $attrValue; ?>'
+													id='attributeValues<?php echo $i; ?>' >
+										</td>
+										<td>
+<?php
+											echo h($userAttribute['UserAttribute']['modifier']);
+?>
+											<input type='hidden' name='attributeModifier[]'id='attributeModifier<?php echo $i; ?>'
+													value='<?php echo h($userAttribute['UserAttribute']['modifier']); ?>'>
+										</td>
+										<td align='right'>
+											<input type='button' value='<?php echo __("Edit"); ?>' name='edit_attribute'
+													onclick='editAttributeRow(<?php echo $i; ?>);' class='btn btn-primary'/>
+											<input type='button' value='<?php echo __("Remove"): ?>' name='delete_attribute'
+													onclick='deleteAttributeRow(<?php echo $i; ?>);' class='btn btn-primary'/>
+										</td>
 									</tr>
 <?php
 								}
