@@ -27,7 +27,7 @@ body {
 				</thead>
 				<tbody>
 <?php
-					$options = $this->Access->attributeOptions();
+					$options = $attributeOperators;
 					foreach ($realmAttributes as $realmAttributes) {
 ?>
 						<tr>
