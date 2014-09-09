@@ -50,6 +50,16 @@ class AWITJsonView extends JsonView {
 			$data = isset($this->viewVars[$serialize]) ? $this->viewVars[$serialize] : null;
 		}
 
+		// Handle dynamic view vars
+		if (isset($data['data']['data'])) {
+			$data = $data['data']['data'];
+		}
+
+		// Removing _serialize element from output
+		if (isset($data['data']['_serialize'])) {
+			unset($data['data']['_serialize']);
+		}
+
 		$status = 'success';
 		$message = '';
 		$code = '';
@@ -75,6 +85,12 @@ class AWITJsonView extends JsonView {
 			}
 		}
 
+		// Handle objects returned from Model management
+		if (isset($data['data']['object'])) {
+			$data = $data['data']['object'];
+		}
+
+
 		// Handle pre defined properly structured AWIT Json variables
 		if (isset($data['status'])) {
 			$status = $data['status'];
@@ -87,7 +103,6 @@ class AWITJsonView extends JsonView {
 		if (isset($data['data'])) {
 			$data = $data['data'];
 		}
-
 
 		$result = array();
 		$result['status'] = $status;
