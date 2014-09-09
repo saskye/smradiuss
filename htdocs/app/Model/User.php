@@ -97,10 +97,10 @@ class User extends AppModel
 
 			if (!empty($attrExists)) {
 				$attrData = array();
-				$attrData['UserID'] = $id;
+				$attrData['UserID'] = $this->getDataSource()->getConnection()->quote($id);
 				$attrData['Name'] = "'User-Password'";
-				$attrData['Operator']= "'" . Util::getAttributeOperatorIndexByValue('==') . "'";
-				$attrData['Value'] = "'" . $data['User']['Password'] . "'";
+				$attrData['Operator']= "'=='";
+				$attrData['Value'] = $this->getDataSource()->getConnection()->quote($data['User']['Password'], PDO::PARAM_STR);
 				$attrData['Disabled'] = 0;
 
 				$objUserAttribute->updateAll($attrData, array('Name' => 'User-Password', 'UserID' => $id));
@@ -108,7 +108,7 @@ class User extends AppModel
 				$attrData = array();
 				$attrData['UserID'] = $id;
 				$attrData['Name'] = 'User-Password';
-				$attrData['Operator']= '==';
+				$attrData['Operator'] = '==';
 				$attrData['Value'] = $data['User']['Password'];
 				$attrData['Disabled'] = 0;
 
