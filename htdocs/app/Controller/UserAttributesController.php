@@ -105,6 +105,7 @@ class UserAttributesController extends AppController
 
 		// Setting the attribute operators
 		$attributeOperators = Util::getAttributeOperators();
+		$this->set(compact('attributeOperators'));
 
 		$this->set('userId', $userId);
 		if ($this->request->is('post')) {
