@@ -52,7 +52,7 @@ class AppController extends AWITController
 	 * Components loaded for all Controllers
 	 */
 	public $components = array(
-		'DebugKit.Toolbar', 'Session','Cookie', 'AWITPaginator',
+		'Session','Cookie', 'AWITPaginator',
 		'RequestHandler' => array(
 			'viewClassMap' => array(
 				'json' => 'AWITJson',
@@ -102,10 +102,31 @@ class AppController extends AWITController
 	 *
 	 * @param $id ID to search against
 	 */
-	public function pages($id = '') {
-		$this->index($id);
+	public function pages() {
+
+		// Calling index with supplied args
+		$args = func_get_args();
+		$reflectionMethod = new ReflectionMethod(get_class($this), 'index');
+		$parameters = $reflectionMethod->getParameters();
+		$paramArray = array();
+
+		$paramIndex = 0;
+		foreach ($parameters as $param) {
+			// Catching param names and their values to be extracted when child method is called
+			$paramArray[$param->name] = $args[$paramIndex];
+			$paramIndex++;
+		}
+
+		// Calling the Controller's index method with parameters
+		$reflectionMethod->invoke($this, $paramArray);
+
+		// Retrieving pagination statistics
 		$pages =  $this->getPaginationPages();
 
+		// Reset view vars
+		$this->viewVars = array();
+
+		// Exporting stats to view
 		$this->set(compact('pages'));
 		$this->set('_serialize', 'pages');
 	}
