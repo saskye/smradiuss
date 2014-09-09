@@ -19,14 +19,36 @@
 
 
 /**
- * Client
- *
  * @class ClientsController
  *
  * @brief This class manages clients.
  */
 class ClientsController extends AppController
 {
+	/**
+	 * @var $components
+	 * This variable is used for include other conponents.
+	 */
+	var $components = array('Auth', 'Acl','Access');
+
+
+	/**
+	 * @var $helpers
+	 * This variable is used for include other helper file.
+	 */
+	var $helpers = array('Access');
+
+
+	/**
+	 * @method beforeFilter
+	 * This method executes method that we need to be executed before any other action.
+	 */
+	function beforeFilter()
+	{
+		parent::beforeFilter();
+	}
+
+
 
 	/**
 	 * @method index
@@ -34,6 +56,14 @@ class ClientsController extends AppController
 	 */
 	public function index()
 	{
+		// Get user group name.
+		$groupName = $this->Access->getGroupName($this->Session->read('User.ID'));
+		$this->set('groupName', $groupName);
+		// Check permission.
+		$permission = $this->Access->checkPermission('ClientsController', 'View', $this->Session->read('User.ID'));
+		if (empty($permission)) {
+			throw new UnauthorizedException();
+		}
 		$this->Client->recursive = -1;
 		$this->paginate = array('limit' => PAGINATION_LIMIT);
 		$client = $this->paginate();
@@ -48,13 +78,18 @@ class ClientsController extends AppController
 	 */
 	public function add()
 	{
+		// Check permission.
+		$permission = $this->Access->checkPermission('ClientsController', 'Add', $this->Session->read('User.ID'));
+		if (empty($permission)) {
+			throw new UnauthorizedException();
+		}
 		if ($this->request->is('post')) {
 			$this->Client->set($this->request->data);
 			if ($this->Client->validates()) {
 				$this->Client->save($this->request->data);
-				$this->Session->setFlash(__('Client is saved succefully!', true), 'flash_success');
+				$this->Session->setFlash(__('Client is saved succefully')."!", 'flash_success');
 			} else {
-				$this->Session->setFlash(__('Client is not saved succefully!', true), 'flash_failure');
+				$this->Session->setFlash(__('Client is not saved succefully')."!", 'flash_failure');
 			}
 		}
 	}
@@ -63,11 +98,16 @@ class ClientsController extends AppController
 
 	/**
 	 * @method edit
-	 * @param $id
 	 * This method is used to edit clients.
+	 * @param $id
 	 */
 	public function edit($id)
 	{
+		// Check permission.
+		$permission = $this->Access->checkPermission('ClientsController', 'Edit', $this->Session->read('User.ID'));
+		if (empty($permission)) {
+			throw new UnauthorizedException();
+		}
 		// Assigning client data to var.
 		$client = $this->Client->findById($id);
 		$this->set('client', $client);
@@ -76,9 +116,9 @@ class ClientsController extends AppController
 			if ($this->Client->validates()) {
 				$this->Client->id = $id;
 				$this->Client->save($this->request->data);
-				$this->Session->setFlash(__('Client is edited succefully!', true), 'flash_success');
+				$this->Session->setFlash(__('Client is edited succefully')."!", 'flash_success');
 			} else {
-				$this->Session->setFlash(__('Client is not edited succefully!', true), 'flash_failure');
+				$this->Session->setFlash(__('Client is not edited succefully')."!", 'flash_failure');
 			}
 		}
 	}
@@ -87,16 +127,21 @@ class ClientsController extends AppController
 
 	/**
 	 * @method remove
-	 * @param $id
 	 * This method is used to delete clients.
+	 * @param $id
 	 */
 	public function remove($id)
 	{
+		// Check permission.
+		$permission = $this->Access->checkPermission('ClientsController', 'Delete', $this->Session->read('User.ID'));
+		if (empty($permission)) {
+			throw new UnauthorizedException();
+		}
 		if ($this->Client->delete($id)) {
 			$this->redirect('/clients/index');
-			$this->Session->setFlash(__('Client is removed succefully!', true), 'flash_success');
+			$this->Session->setFlash(__('Client is removed succefully')."!", 'flash_success');
 		} else {
-			$this->Session->setFlash(__('Client is not removed succefully!', true), 'flash_failure');
+			$this->Session->setFlash(__('Client is not removed succefully')."!", 'flash_failure');
 		}
 	}
 }
