@@ -35,11 +35,18 @@ App::uses('AWITJsonView', 'Lib/View');
  *
  * @class AppController
  * @brief Add your application-wide methods in the class below, your controllers
- *		  will inherit them.
+ *	will inherit them.
  * @package app.Controller
  */
 class AppController extends AWITController
 {
+	/**
+	 * @var $helpers
+	 * This variable is used for include other helper file.
+	 */
+	var $helpers = array('Html', 'Form', 'Session', 'Access');
+
+
 	/**
 	 * @var $components
 	 * Components loaded for all Controllers
@@ -50,6 +57,18 @@ class AppController extends AWITController
 			'viewClassMap' => array(
 				'json' => 'AWITJson',
 			)
+		),
+		'Auth' => array(
+			'loginRedirect' => array(
+				'controller' => 'users',
+				'action' => 'index'
+			),
+			'logoutRedirect' => array(
+				'controller' => 'webui_users',
+				'action' => 'login'
+			),
+			'Acl',
+			'Access'
 		)
 	);
 
@@ -76,6 +95,7 @@ class AppController extends AWITController
 
 
 
+
 	/**
 	 * @method pages
 	 * Return pagination statistics for REST pagination
@@ -88,6 +108,20 @@ class AppController extends AWITController
 
 		$this->set(compact('pages'));
 		$this->set('_serialize', 'pages');
+	}
+
+
+
+	/**
+	 * @method beforeFilter
+	 * This method executes method that we need to be executed before any other action.
+	 */
+	function beforeFilter()
+	{
+		if ($this->Session->check('User.ID') != true) {
+			$this->Auth->allow('login');
+			$this->Auth->loginAction = array('controller' => 'webui_users', 'action' => 'login');
+		}
 	}
 }
 
