@@ -58,8 +58,12 @@ class AWITModelValidator extends ModelValidator implements ArrayAccess, Iterator
 				'message' => $errors
 			);
 
-			$this->getController()->set(compact('data'));
-			$this->getController()->set('_serialize', 'data');
+			$controller = $this->getController();
+			if (is_object($controller) && $controller instanceof Controller) {
+				$controller->set(compact('data'));
+				$controller->set('_serialize', 'data');
+			}
+
 		}
 
 		if (is_array($errors)) {
