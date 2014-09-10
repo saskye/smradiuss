@@ -29,6 +29,73 @@ class AWITExceptionRenderer extends ExceptionRenderer {
 
 
 	/**
+	 * @method __construct
+	 * Overrides constructor to provide support for rendering HttpExceptions
+	 * the same way CakeException framework errors are rendererd.
+	 *
+	 * This means that it's now possible to create a app/View/Errors/uncamel_case.ctp
+	 * file for the respective HttpException.
+	 *
+	 * Creates the controller to perform rendering on the error response.
+	 * If the error is a CakeException it will be converted to either a 400 or a 500
+	 * code error depending on the code used to construct the error.
+	 *
+	 * @param Exception $exception Exception
+	 */
+	public function __construct(Exception $exception) {
+		$this->controller = $this->_getController($exception);
+
+		if (method_exists($this->controller, 'appError')) {
+			return $this->controller->appError($exception);
+		}
+		$method = $template = Inflector::variable(str_replace('Exception', '', get_class($exception)));
+		$code = $exception->getCode();
+
+		$methodExists = method_exists($this, $method);
+
+		if ($exception instanceof HttpException && !$methodExists) {
+			$method = '_httpError';
+			if (empty($template) || $template === 'internalError') {
+				$template = 'error500';
+			}
+		}
+
+		$this->template = $template;
+		$this->method = $method;
+		$this->error = $exception;
+
+		parent::__construct($exception);
+	}
+
+
+
+	/**
+	 * @method _httpError
+	 * Clone of the _cakeError function which takes HttpException as argument.
+	 *
+	 * Generic handler for the internal framework errors CakePHP can generate.
+	 *
+	 * @param CakeException $error
+	 * @return void
+	 */
+	protected function _httpError(HttpException $error) {
+		$url = $this->controller->request->here();
+		$code = ($error->getCode() >= 400 && $error->getCode() < 506) ? $error->getCode() : 500;
+		$this->controller->response->statusCode($code);
+		$this->controller->set(array(
+			'code' => $code,
+			'url' => h($url),
+			'name' => h($error->getMessage()),
+			'error' => $error,
+			'_serialize' => array('code', 'url', 'name')
+		));
+		$this->controller->set($error->getAttributes());
+		$this->_outputMessage($this->template);
+	}
+
+
+
+	/**
 	 * @method _getController
 	 *
 	 * Get the controller instance to handle the exception.

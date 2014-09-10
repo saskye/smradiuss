@@ -61,7 +61,7 @@ class CakeBaseException extends RuntimeException {
  * @package       Cake.Error
  */
 if (!class_exists('HttpException', false)) {
-	class HttpException extends CakeBaseException {
+	class HttpException extends CakeException {
 	}
 }
 
