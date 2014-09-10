@@ -144,8 +144,8 @@ class UsersController extends AppController
 			$this->User->set($this->request->data);
 
 			// Validating submitted data.
+			$this->User->id = $id;
 			if ($this->User->validates()) {
-				$this->User->id = $id;
 				// Save to database.
 				$this->User->save($this->request->data);
 				$this->Session->setFlash(__('User is edited succefully!', true), 'flash_success');

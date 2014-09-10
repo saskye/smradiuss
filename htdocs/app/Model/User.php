@@ -53,6 +53,7 @@ class User extends AppModel
 			),
 			'unique' => array(
 				'rule' => 'isUnique',
+				'on' => 'create',
 				'message' => 'The username you have chosen has already been registered'
 			)
 		)
