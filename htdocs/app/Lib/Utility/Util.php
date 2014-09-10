@@ -39,24 +39,112 @@ class Util extends Object {
 
 
 	/**
-	 * @def ATTRIBUTE_OPERATORS
+	 * @var attributeOperators
 	 * Contains a list of Attribute Operators used throughout the application
 	 */
 	public static $attributeOperators = array (
-		'=',
-		':=',
-		'==',
-		'+=',
-		'!=',
-		'<',
-		'>',
-		'<=',
-		'>=',
-		'=~',
-		'!~',
-		'=*',
-		'!*',
-		'||=='
+		'=' => array(
+			'title' => __('Add as reply if unique'),
+			'description' => __('
+Not allowed as a check item for RADIUS protocol attributes. It is allowed for server configuration attributes (Auth-Type, etc),
+and sets the value of on attribute, only if there is no other item of the same name.
+As a reply item, it means "add the item to the reply list, but only if there is no other item of the same attribute.
+			'),
+		),
+		':=' => array(
+			'title' => __('Set configuration value'),
+			'description' => __('
+Always matches as a check item, and replaces in the configuration items any attribute of
+the same name. If no attribute of that name appears in the request, then this attribute is added.
+As a reply item, it has an identical meaning, but for the reply items, instead of the request items.
+			'),
+		)
+		'==' => array(
+			'title' => __('Match value in request'),
+			'description' => __('
+As a check item, it matches if the named attribute is present in the request, AND has the given value.
+Not allowed as a reply item.
+			'),
+		)
+		'+=' => array(
+			'title' => __('Add reply and set configuration'),
+			'description' => __('
+Always matches as a check item, and adds the current attribute with value to the list of configuration items.
+As a reply item, it has an identical meaning, but the attribute is added to the reply items.
+			'),
+		)
+		'!=' => array(
+			'title' => __('Inverse match value in request'),
+			'description' => __('
+As a check item, matches if the given attribute is in the request, AND does not have the given value.
+Not allowed as a reply item.
+			'),
+		)
+		'<' => array(
+			'title' => __('Match less-than value in request'),
+			'description' => __('
+As a check item, it matches if the request contains an attribute with a value less than the one given.
+Not allowed as a reply item.
+			'),
+		)
+		'>' => array(
+			'title' => __('Match greater-than value in request'),
+			'description' => __('
+As a check item, it matches if the request contains an attribute with a value greater than the one given.
+Not allowed as a reply item.
+			'),
+		)
+		'<=' => array(
+			'title' => __('Match less-than or equal value in request'),
+			'description' => __('
+As a check item, it matches if the request contains an attribute with a value less than, or equal to the one given.
+Not allowed as a reply item.
+			'),
+		)
+		'>=' => array(
+			'title' => __('Match greater-than or equal value in request'),
+			'description' => __('
+As a check item, it matches if the request contains an attribute with a value greater than, or equal to the one given.
+Not allowed as a reply item.
+			'),
+		)
+		'=~' => array(
+			'title' => __('Match string containing regex in request'),
+			'description' => __('
+As a check item, it matches if the request contains an attribute which matches the given regular expression.
+This operator may only be applied to string attributes.
+Not allowed as a reply item.
+			'),
+		)
+		'!~' => array(
+			'title' => __('Match string not containing regex in request'),
+			'description' => __('
+As a check item, it matches if the request contains an attribute which does not match the given regular expression.
+This operator may only be applied to string attributes.
+Not allowed as a reply item.
+
+			'),
+		)
+		'=*' => array(
+			'title' => __('Match if attribute is defined in request'),
+			'description' => __('
+As a check item, it matches if the request contains the named attribute, no matter what the value is.
+Not allowed as a reply item.
+			'),
+		)
+		'!*' => array(
+			'title' => __('Match if attribute is not defined in request'),
+			'description' => __('
+As a check item, it matches if the request does not contain the named attribute, no matter what the value is.
+Not allowed as a reply item.
+			'),
+		)
+		'||==' => array(
+			'title' => __('Match any of these values in request'),
+			'description' => __('
+Logical OR, this creates a multi-value attribute of which any of the items can match the operator.
+			'),
+		)
 	);
 
 
@@ -68,7 +156,12 @@ class Util extends Object {
 	 * @return ATTRIBUTE_OPERATORS
 	 */
 	public static function getAttributeOperators() {
-		return self::$attributeOperators;
+		$operators = array();
+		foreach (array_keys(self::$attributeOperators) as $key) {
+			$operators[$key] = $key;
+		}
+
+		return $operators;
 	}
 
 
