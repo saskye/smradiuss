@@ -47,7 +47,17 @@ class UserPermissionsController extends AppController
 	 */
 	public function index()
 	{
-		$permissionList = $this->Acl->Aro->Permission->find('all');
+		// Get user group name.
+		$groupName = $this->Access->getGroupName($this->Session->read('User.ID'));
+		$this->set('groupName', $groupName);
+		// Check permission.
+		$permission = $this->Access->checkPermission('UserPermissionsController', 'View', $this->Session->read('User.ID'));
+		if (empty($permission)) {
+			throw new UnauthorizedException();
+		}
+		// Fetching all data.
+		$this->paginate = array('limit' => PAGINATION_LIMIT);
+		$permissionList = $this->paginate($this->Acl->Aro->Permission);
 		$this->set('permissionList', $permissionList);
 	}
 
@@ -59,12 +69,26 @@ class UserPermissionsController extends AppController
 	 */
 	public function add()
 	{
-		$allGroups = '';
-		$groups = $this->UserPermission->selectGroup();
-		foreach ($groups as $value) {
-			$allGroups[$value['Group']['Name']] = $value['Group']['Name'];
+		// Check permission.
+		$permission = $this->Access->checkPermission('UserPermissionsController', 'Add', $this->Session->read('User.ID'));
+		if (empty($permission)) {
+			throw new UnauthorizedException();
 		}
-		$this->set('allGroups', $allGroups);
+		$allTypes = '';
+		// Fetching all types.
+		$aroTypes = $this->Acl->Aro->find(
+			'all',
+			array(
+				'fields' => array(
+					'alias'
+				)
+			)
+		);
+		foreach ($aroTypes as $types) {
+			$allTypes[$types['Aro']['alias']] = $types['Aro']['alias'];
+		}
+		$this->set('allTypes', $allTypes);
+		// Fetching all controllers.
 		$controllers = $this->Acl->Aco->find(
 			'list',
 			array(
@@ -82,6 +106,7 @@ class UserPermissionsController extends AppController
 			$requestData = $this->UserPermission->set($this->request->data);
 			$getActions = array_slice($requestData, 1);
 			if ($this->UserPermission->validates()) {
+				// Fetching controlelr name by id.
 				$controllerName = $this->Acl->Aco->find(
 					'first',
 					array(
@@ -96,6 +121,7 @@ class UserPermissionsController extends AppController
 				);
 				foreach ($requestData['permission'] as $actionId) {
 					if ($actionId != 0) {
+						// Fetching controller's alias name by controller's action id.
 						$controllerAlias = $this->Acl->Aco->find(
 							'first',
 							array(
@@ -105,16 +131,39 @@ class UserPermissionsController extends AppController
 								)
 							)
 						);
+						// Save permission.
 						$this->Acl->allow(
 							$requestData['UserPermission']['aro_id'],
 							$controllerAlias['Aco']['alias']
 						);
 					}
 				}
-				$this->Session->setFlash(__('Permission added succefully!'), 'flash_success');
+				$this->Session->setFlash(__('Permission add successfully')."!", 'flash_success');
 			} else {
-				$this->Session->setFlash(__('Permission not added!'), 'flash_failure');
+				$this->Session->setFlash(__('Permission not added')."!", 'flash_failure');
 			}
+		}
+	}
+
+
+
+	/**
+	 * @method remove
+	 * This method is used to delete user permission.
+	 * @param $id
+	 */
+	public function remove($id)
+	{
+		// Check permission.
+		$permission = $this->Access->checkPermission('UserPermissionsController', 'Delete', $this->Session->read('User.ID'));
+		if (empty($permission)) {
+			throw new UnauthorizedException();
+		}
+		if ($this->UserPermission->delete($id)) {
+			$this->redirect('/user_permissions');
+			$this->Session->setFlash(__('User Permissions is removed successfully')."!", 'flash_success');
+		} else {
+			$this->Session->setFlash(__('User Permissions is not removed successfully')."!", 'flash_failure');
 		}
 	}
 
