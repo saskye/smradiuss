@@ -52,7 +52,7 @@ body {
 								'label' => false,
 								'class' => 'form-control',
 								'type' => 'select',
-								'options' => $attributeOperators
+								'options' => $operators
 							)
 						);
 ?>
