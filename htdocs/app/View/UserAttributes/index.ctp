@@ -27,28 +27,12 @@ body {
 				</thead>
 				<tbody>
 <?php
-					$options = array(
-						'=',
-						':=',
-						'==',
-						'+=',
-						'!=',
-						'<',
-						'>',
-						'<=',
-						'>=',
-						'=~',
-						'!~',
-						'=*',
-						'!*',
-						'||=='
-					);
 					foreach ($userAttributes as $userAttribute) {
 ?>
 						<tr>
 							<td><?php echo h($userAttribute['UserAttribute']['ID']); ?></td>
 							<td><?php echo h($userAttribute['UserAttribute']['Name']); ?></td>
-							<td><?php echo h($options[$userAttribute['UserAttribute']['Operator']]); ?></td>
+							<td><?php echo h($userAttribute['UserAttribute']['Operator']); ?></td>
 							<td><?php echo h($userAttribute['UserAttribute']['Value']); ?></td>
 							<td><?php echo (h($userAttribute['UserAttribute']['Disabled']) == 1) ? 'true' : 'false'; ?></td>
 							<td>
