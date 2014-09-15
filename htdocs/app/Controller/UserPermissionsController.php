@@ -191,6 +191,65 @@ class UserPermissionsController extends AppController
 		$this->set('controllerActions', $controllerActions);
 		$this->layout = false;
 	}
+
+
+
+	/**
+	 * @method editActions
+	 * This method is used for edit actions permission.
+	 * @param $controllerId
+	 */
+	public function editActions($typeId, $controllerId)
+	{
+		// Fetching controller actions.
+		$controllerActions = $this->Acl->Aco->find(
+			'list',
+			array(
+				'fields' => array(
+					'id',
+					'Actions'
+				),
+				'conditions' => array(
+					'parent_id' => $controllerId
+				)
+			)
+		);
+		// Fetching controller action's permission.
+		$aco = array();
+		foreach ($controllerActions as $key => $value) {
+			array_push($aco, $this->Acl->Aro->Permission->find(
+					'first',
+					array(
+						'conditions' => array(
+							'aco_id' => $key,
+							'aro_id' => $typeId
+						)
+					)
+				)
+			);
+		}
+		$i = 0;
+		foreach ($controllerActions as $key => $value) {
+			if (isset($aco[$i]['Aco'])) {
+				if (in_array($value,$aco[$i]['Aco'])) {
+					$userAction[$i]['id'] = $key;
+					$userAction[$i]['value'] = $value;
+					$userAction[$i]['checked'] = '1';
+				} else {
+					$userAction[$i]['id'] = $key;
+					$userAction[$i]['value'] = $value;
+					$userAction[$i]['checked'] = '0';
+				}
+			} else {
+				$userAction[$i]['id'] = $key;
+				$userAction[$i]['value'] = $value;
+				$userAction[$i]['checked'] = '0';
+			}
+			$i++;
+		}
+		$this->set('userActions', $userAction);
+		$this->layout = false;
+	}
 }
 
 
