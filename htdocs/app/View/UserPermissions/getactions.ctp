@@ -3,7 +3,7 @@ echo "
 	<div class='form-group'>
 ";
 echo
-		$this->Form->label('Disabled', 'Disabled', array('class'=>'col-md-2 control-label'));
+		$this->Form->label('Action', 'Action', array('class'=>'col-md-2 control-label'));
 echo "
 		<div class='row'>
 			<div class='col-md-3'>
