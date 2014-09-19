@@ -27,8 +27,8 @@ $(document).on("change" , "#controllerns" , function() {
 			<div class="form-group">
 <?php
 				echo $this->Form->label(
-					'SelectGroup',
-					'Select Group',
+					'Type',
+					'Type',
 					array(
 						'class' => 'col-md-2 control-label'
 					)
@@ -40,13 +40,11 @@ $(document).on("change" , "#controllerns" , function() {
 						echo $this->Form->input(
 							'aro_id',
 							array(
-								'empty' => array(
-									0 => 'Please select group'
-								),
+								'empty' => __('Please select type'),
 								'label' => false,
 								'class' => 'form-control',
 								'type' => 'select',
-								'options' => $allGroups
+								'options' => $allTypes
 							)
 						);
 ?>
@@ -56,8 +54,8 @@ $(document).on("change" , "#controllerns" , function() {
 			<div class="form-group">
 <?php
 				echo $this->Form->label(
-					'SelectModel',
-					'Select Model',
+					'Controller',
+					'Controller',
 					array(
 						'class' => 'col-md-2 control-label'
 					)
@@ -69,9 +67,7 @@ $(document).on("change" , "#controllerns" , function() {
 						echo $this->Form->input(
 							'aco_id',
 							array(
-								'empty' => array(
-									0 => 'Please select controller'
-								),
+								'empty' => __('Please select controller'),
 								'label' => false,
 								'class' => 'form-control',
 								'type' => 'select',
@@ -86,6 +82,18 @@ $(document).on("change" , "#controllerns" , function() {
 			<div id="actions"></div>
 			<div class="form-group">
 				<button type="submit" class="btn btn-primary"><?php echo __('Add'); ?></button>
+<?php
+				echo $this->Html->link(
+					__('Cancel'),
+					array(
+						'controller' => 'user_permissions',
+						'action' => 'index'
+					),
+					array(
+						'class' => 'btn btn-default'
+					)
+				);
+?>
 			</div>
 			<?php echo $this->Form->end(); ?>
 		</div>
