@@ -19,14 +19,36 @@
 
 
 /**
- * Groups
- *
  * @class GroupsController
  *
  * @brief This class manages the groups.
  */
 class GroupsController extends AppController
 {
+	/**
+	 * @var $components
+	 * This variable is used for include other conponents.
+	 */
+	var $components = array('Auth', 'Acl','Access');
+
+
+	/**
+	 * @var $helpers
+	 * This variable is used for include other helper file.
+	 */
+	var $helpers = array('Access');
+
+
+	/**
+	 * @method beforeFilter
+	 * This method executes method that we need to be executed before any other action.
+	 */
+	function beforeFilter()
+	{
+		parent::beforeFilter();
+	}
+
+
 
 	/**
 	 * @method index
@@ -34,6 +56,14 @@ class GroupsController extends AppController
 	 */
 	public function index()
 	{
+		// Get user group name.
+		$groupName = $this->Access->getGroupName($this->Session->read('User.ID'));
+		$this->set('groupName', $groupName);
+		// Check permission.
+		$permission = $this->Access->checkPermission('GroupsController', 'View', $this->Session->read('User.ID'));
+		if (empty($permission)) {
+			throw new UnauthorizedException();
+		}
 		$this->Group->recursive = -1;
 		$this->paginate = array('limit' => PAGINATION_LIMIT );
 		$groups = $this->paginate();
@@ -48,6 +78,11 @@ class GroupsController extends AppController
 	 */
 	public function add()
 	{
+		// Check permission.
+		$permission = $this->Access->checkPermission('GroupsController', 'Add', $this->Session->read('User.ID'));
+		if (empty($permission)) {
+			throw new UnauthorizedException();
+		}
 		if ($this->request->is('post')) {
 			$this->Group->set($this->request->data);
 
@@ -55,9 +90,9 @@ class GroupsController extends AppController
 			if ($this->Group->validates()) {
 				// Saving data.
 				$this->Group->save($this->request->data);
-				$this->Session->setFlash(__('Group is saved succefully!', true), 'flash_success');
+				$this->Session->setFlash(__('Group is saved successfully')."!", 'flash_success');
 			} else {
-				$this->Session->setFlash(__('Group is not saved succefully!', true), 'flash_failure');
+				$this->Session->setFlash(__('Group is not saved succefully')."!", 'flash_failure');
 			}
 		}
 	}
@@ -66,28 +101,32 @@ class GroupsController extends AppController
 
 	/**
 	 * @method edit
-	 * @param $id
 	 * This method is used to edit groups.
+	 * @param $id
 	 */
 	public function edit($id)
 	{
+		// Check permission.
+		$permission = $this->Access->checkPermission('GroupsController', 'Edit', $this->Session->read('User.ID'));
+		if (empty($permission)) {
+			throw new UnauthorizedException();
+		}
 		$group = $this->Group->findById($id);
 		$this->set('group', $group);
 
 		// Checking submit button is clicked or not
 		if ($this->request->is('post')) {
 			$this->Group->set($this->request->data);
-
+			$this->Group->id = $id;
 			// Validating submitted data.
 			if ($this->Group->validates()) {
-				$this->Group->id = $id;
 				$this->Group->save($this->request->data);
-				$this->Session->setFlash(__('Group is edited succefully!', true), 'flash_success');
+				$this->Session->setFlash(__('Group is edited successfully')."!", 'flash_success');
 				// For reload page to reflect change in data
 				$group = $this->Group->findById($id);
 				$this->set('group', $group);
 			} else {
-				$this->Session->setFlash(__('Group is not edited succefully!', true), 'flash_failure');
+				$this->Session->setFlash(__('Group is not edited successfully')."!", 'flash_failure');
 			}
 		}
 	}
@@ -96,20 +135,28 @@ class GroupsController extends AppController
 
 	/**
 	 * @method remove
-	 * @param $id
 	 * This method is used to delete groups.
+	 * @param $id
 	 */
 	public function remove($id)
 	{
+		// Check permission.
+		$permission = $this->Access->checkPermission('GroupsController', 'Delete', $this->Session->read('User.ID'));
+		if (empty($permission)) {
+			throw new UnauthorizedException();
+		}
 		// Deleting
 		if ($this->Group->delete($id)) {
+			$this->Group->deleteUserGroup($id);
 			// Redirected to index function.
 			$this->redirect('/groups/index');
-			$this->Session->setFlash(__('Group is removed succefully!', true), 'flash_success');
+			$this->Session->setFlash(__('Group was removed successfully')."!", 'flash_success');
 		} else {
-			$this->Session->setFlash(__('Group is not removed succefully!', true), 'flash_failure');
+			$this->Session->setFlash(__('Group is not removed successfully')."!", 'flash_failure');
 		}
 	}
 }
+
+
 
 // vim: ts=4
