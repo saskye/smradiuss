@@ -18,11 +18,6 @@
 
 
 
-// Import other model.
-App::import('Model','Group');
-
-
-
 /**
  * @class UserPermission
  *
@@ -30,34 +25,27 @@ App::import('Model','Group');
  */
 class UserPermission extends AppModel
 {
-	// Variable is used for include default table.
-	public $useTable = 'users_to_groups';
+	// Variable is used for including table.
+	public $useTable = 'aros_acos';
 
 
-	/**
-	 * @method selectGroup
-	 * This method is used for select all groups.
-	 * @return $groups
-	 */
-	public function selectGroup()
-	{
-		try {
-			$objGroup = new Group();
-			$groups = $objGroup->find(
-				'all',
-				array(
-					'fields' => array(
-						'ID',
-						'Name'
-					)
-				)
-			);
-		} catch (exception $ex) {
-			throw new exception('Error in query.');
-		}
-		return $groups;
-	}
+	//Validating form controller.
+	public $validate = array(
+		'aro_id' => array(
+			'required' => array(
+				'rule' => array('notEmpty'),
+				'message' => 'Please select type.'
+			)
+		),
+		'aco_id' => array(
+			'required' => array(
+				'rule' => array('notEmpty'),
+				'message' => 'Please select controller.'
+			)
+		)
+	);
 }
+
 
 
 // vim: ts=4
