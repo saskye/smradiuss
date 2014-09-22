@@ -2,6 +2,9 @@
 body {
 	padding-top: 50px;
 }
+.pagination .current a {
+	background-color: #eee;
+}
 </style>
 
 <script type="text/javascript">
@@ -60,32 +63,31 @@ function confirmDelete(msg, link)
 									);
 								}
 ?>
-
 <?php
 								if ($this->Access->check($groupName, 'UserPermissionDelete')) {
 ?>
-									<a href="#"
-										onclick="return confirmDelete(
-											'Are you sure you want to delete this user permission.',
-											'<?php
-												echo $this->Html->url(
-													array(
-														'controller' => 'user_permissions',
-														'action' => 'remove',
-														$permissionLists['Permission']['id']
-													)
-												);
-											?>'
-										)"
-									>
+									<a href="#" onclick="return confirmDelete(
+										'Are you sure you want to delete this user permission.',
+										'<?php
+											echo $this->Html->url(
+												array(
+													'controller' => 'user_permissions',
+													'action' => 'remove',
+													$permissionLists['Permission']['id']
+												)
+											); ?>'
+										)">
 <?php
-									echo $this->Html->image(
-										"/resources/custom/images/silk/icons/user_delete.png",
-										array(
-											"alt" => "Delete",
-											"title" => "Delete Permission"
-										)
-									);
+										echo $this->Html->image(
+											"/resources/custom/images/silk/icons/user_delete.png",
+											array(
+												"alt" => "Delete",
+												"title" => "Delete Permission"
+											)
+										);
+?>
+									</a>
+<?php
 								}
 ?>
 							</td>
@@ -95,35 +97,41 @@ function confirmDelete(msg, link)
 ?>
 					<tr>
 						<td align="center" colspan="10">
+							<ul class="pagination">
 <?php
-							$total = $this->Paginator->counter(
-								array(
-									'format' => '%pages%'
-								)
-							);
-							if ($total > 1) {
-								echo $this->Paginator->prev(
-									'<<',
-									null,
-									null,
-									array(
-										'class' => 'disabled'
-									)
-								);
-								echo $this->Paginator->numbers();
-								// Shows the next and previous links.
-								echo $this->Paginator->next(
-									'>>',
-									null,
-									null,
-									array(
-										'class' => 'disabled'
-									)
-								);
-								// Prints X of Y, where X is current page and Y is number of pages.
+								echo ($this->Paginator->first()) ? $this->Paginator->first(
+										'First',
+										array('tag' => 'li'),
+										null,
+										null
+									) : '<li class="disabled"><a href="#">First</a></li>';
+								echo ($this->Paginator->hasPrev()) ? $this->Paginator->prev(
+										'«',
+										array('tag' => 'li'),
+										null,
+										null
+									) : '<li class="disabled"><a href="#">«</a></li>';
+								echo $this->Paginator->numbers(
+										array(
+											'separator' => false,
+											'tag' => 'li',
+											'currentTag' => 'a'
+										)
+									);
+								echo ($this->Paginator->hasNext()) ? $this->Paginator->next(
+										'»',
+										array('tag' => 'li'),
+										null,
+										null) : '<li class="disabled"><a href="#">»</a></li>';
+								echo ($this->Paginator->last()) ? $this->Paginator->last(
+										'Last',
+										array('tag' => 'li'),
+										null,
+										null
+									) : '<li class="disabled"><a href="#">Last</a></li>';
 								echo "<span style='margin-left:20px;'>Page : ".$this->Paginator->counter()."</span>";
-							}
 ?>
+							</ul>
 						</td>
 					</tr>
 				</tbody>
