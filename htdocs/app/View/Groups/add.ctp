@@ -25,6 +25,7 @@ body {
 							'Name',
 							array(
 								'label' => false,
+								'type' => 'text',
 								'class' => 'form-control',
 								'placeholder' => 'Name'
 							)
@@ -34,7 +35,78 @@ body {
 				</div>
 			</div>
 			<div class="form-group">
-				<button type="submit" class="btn btn-primary"><?php echo __('Add'); ?></button>
+<?php
+				echo $this->Form->label(
+					'Priority',
+					'Priority',
+					array(
+						'class' => 'col-md-2 control-label'
+					)
+				);
+?>
+				<div class="row">
+					<div class="col-md-4 input-group">
+<?php
+						echo $this->Form->input(
+							'Priority',
+							array(
+								'type' => 'text',
+								'label' => false,
+								'class' => 'form-control',
+								'placeholder' => 'Priority'
+							)
+						);
+?>
+					</div>
+				</div>
+			</div>
+			<div class="form-group">
+<?php
+				echo $this->Form->label(
+					'Comment',
+					'Comment',
+					array(
+						'class' => 'col-md-2 control-label'
+					)
+				);
+?>
+				<div class="row">
+					<div class="col-md-4 input-group">
+<?php
+						echo $this->Form->input(
+							'Comment',
+							array(
+								'type' => 'text',
+								'label' => false,
+								'class' => 'form-control',
+								'placeholder' => 'Comment'
+							)
+						);
+?>
+					</div>
+				</div>
+			</div>
+			<div class="form-group">
+<?php
+				echo $this->Form->label(
+					'Disabled',
+					'Disabled',
+					array(
+						'class' => 'col-md-2 control-label'
+					)
+				);
+?>
+				<div class="row">
+					<div class="col-md-3">
+<?php
+						echo $this->Form->checkbox('Disabled');
+						echo __('Disabled');
+?>
+					</div>
+				</div>
+			</div>
+			<div class="form-group">
+				<button type="submit" class="btn btn-primary" name="add_group"><?php echo __('Add'); ?></button>
 <?php
 				echo $this->Html->link(
 					'Cancel',
