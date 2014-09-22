@@ -70,4 +70,60 @@ class UserTypesController extends AppController
 		$this->set('userTypes', $userTypes);
 	}
 
+
+
+	/**
+	 * @method add
+	 * This method is used to add user type.
+	 */
+	public function add()
+	{
+		// Check permission.
+		$permission = $this->Access->checkPermission('UserTypesController', 'Add', $this->Session->read('User.ID'));
+		if (empty($permission)) {
+			throw new UnauthorizedException();
+		}
+		if ($this->request->is('post')) {
+			$this->UserType->set($this->request->data);
+			if ($this->UserType->validates()) {
+				$this->UserType->save($this->request->data);
+				$this->Session->setFlash(__('User type is saved successfully')."!", 'flash_success');
+			} else {
+				$this->Session->setFlash(__('User type is not saved successfully')."!", 'flash_failure');
+			}
+		}
+	}
+
+
+
+	/**
+	 * @method edit
+	 * This method is used to edit user type.
+	 * @param $id
+	 */
+	public function edit($id)
+	{
+		// Check permission.
+		$permission = $this->Access->checkPermission('UserTypesController', 'Edit', $this->Session->read('User.ID'));
+		if (empty($permission)) {
+			throw new UnauthorizedException();
+		}
+		// Assigning client data to var.
+		$userTypes = $this->UserType->findById($id);
+		$this->set('userTypes', $userTypes);
+		if ($this->request->is('post')) {
+			$this->UserType->id = $id;
+			$this->UserType->set($this->request->data);
+			if ($this->UserType->validates()) {
+				$this->UserType->save($this->request->data);
+				$this->Session->setFlash(__('User Type is edited successfully')."!", 'flash_success');
+			} else {
+				$this->Session->setFlash(__('User Type is not edited successfully')."!", 'flash_failure');
+			}
+		}
+	}
 }
+
+
+
+// vim: ts=4
