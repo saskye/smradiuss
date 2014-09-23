@@ -25,8 +25,18 @@
  */
 class UserPermissionsController extends AppController
 {
-	// Variable $components is used for load other components.
+	/**
+	 * @var $components
+	 * Variable $components is used for load other components.
+	 */
 	var $components = array('Auth', 'Acl','Access');
+
+
+	/**
+	 * @var $helpers
+	 * This variable is used for include other helper file.
+	 */
+	var $helpers = array('Access');
 
 
 	/**
@@ -35,8 +45,7 @@ class UserPermissionsController extends AppController
 	 */
 	function beforeFilter()
 	{
-		$this->Auth->userModel = 'WebuiUser';
-		$this->Auth->allow('*');
+		parent::beforeFilter();
 	}
 
 
@@ -164,6 +173,117 @@ class UserPermissionsController extends AppController
 			$this->Session->setFlash(__('User Permissions is removed successfully')."!", 'flash_success');
 		} else {
 			$this->Session->setFlash(__('User Permissions is not removed successfully')."!", 'flash_failure');
+		}
+	}
+
+
+
+	/**
+	 * @method edit
+	 * This method is used for edit permission.
+	 * @param $id
+	 */
+	public function edit($id)
+	{
+		// Check permission.
+		$permission = $this->Access->checkPermission('UserPermissionsController', 'Edit', $this->Session->read('User.ID'));
+		if (empty($permission)) {
+			throw new UnauthorizedException();
+		}
+		// Fetching permission data.
+		$permissionData = $this->Acl->Aro->Permission->find(
+			'first',
+			array(
+				'conditions' => array(
+					'Permission.id' => $id
+				)
+			)
+		);
+		$this->set('permissionData', $permissionData);
+		$aroId = $permissionData['Aro']['id'];
+		$this->set('aroId', $aroId);
+		$acoId = $permissionData['Aco']['parent_id'];
+		$this->set('acoId', $acoId);
+		if ($this->request->is('post')) {
+			$requestData = $this->UserPermission->set($this->request->data);
+			$arosId = $requestData['UserPermission']['aro_id'];
+			$acosId = $requestData['UserPermission']['aco_id'];
+			if ($arosId == $permissionData['Aro']['id'] && $acosId == $permissionData['Aco']['parent_id']) {
+				$getActions = array_slice($requestData, 1);
+				if ($this->UserPermission->validates()) {
+					// Fetching controller name by id.
+					$controllerName = $this->Acl->Aco->find(
+						'first',
+						array(
+							'fields' => array(
+								'alias'
+							),
+							'conditions' => array(
+								'parent_id IS Null',
+								'id' => $acosId
+							)
+						)
+					);
+					// Fetching action name by id.
+					$actionName = $this->Acl->Aro->find(
+						'first',
+						array(
+							'fields' => array(
+								'alias'
+							),
+							'conditions' => array(
+								'id' => $arosId
+							)
+						)
+					);
+					// Fetching all action's id by it's parent id.
+					$allActions = $this->Acl->Aco->find(
+						'list',
+						array(
+							'fields' => array(
+								'id'
+							),
+							'conditions' => array(
+								'parent_id' => $acosId
+							)
+						)
+					);
+					// Deleting previous records.
+					foreach ($allActions as $actions) {
+						$this->UserPermission->deleteAll(
+							array(
+								'aro_id' => $arosId,
+								'aco_id' => $actions
+							)
+						);
+					}
+					foreach ($requestData['permission'] as $actionId) {
+						if ($actionId != 0) {
+							// Fetching controller alias name by controller's action id.
+							$controllerAlias = $this->Acl->Aco->find(
+								'first',
+								array(
+									'fields' => 'alias',
+									'conditions' => array(
+										'id' => $actionId
+									)
+								)
+							);
+							// Save updated records.
+							$this->Acl->allow(
+								$actionName['Aro']['alias'],
+								$controllerAlias['Aco']['alias']
+							);
+						}
+					}
+					$this->Session->setFlash(__('User Permission was edited successfully')."!", 'flash_success');
+					$this->redirect('/user_permissions');
+				} else {
+					$this->Session->setFlash(__('User Permission was not edited successfully')."!", 'flash_failure');
+				}
+			} else {
+				$this->Session->setFlash(__('Error occured on submission')."!", 'flash_failure');
+			}
 		}
 	}
 
