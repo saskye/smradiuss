@@ -53,22 +53,7 @@ body {
 								'label' => false,
 								'class' => 'form-control',
 								'type' => 'select',
-								'options' => array(
-									'=',
-									':=',
-									'==',
-									'+=',
-									'!=',
-									'<',
-									'>',
-									'<=',
-									'>=',
-									'=~',
-									'!~',
-									'=*',
-									'!*',
-									'||=='
-								),
+								'options' => $operators,
 								'value' => $groupAttribute['GroupAttribute']['Operator']
 							)
 						);
@@ -120,17 +105,18 @@ body {
 						} else {
 							$isCheck = false;
 						}
+
+						echo $this->Form->checkbox('Disabled', array('checked' => $isCheck));
+						echo __('Disabled');
 ?>
-						<?php echo $this->Form->checkbox('Disabled', array('checked' => $isCheck)); ?>
-						<?php echo __('Disabled'); ?>
 					</div>
 				</div>
 			</div>
 			<div class="form-group">
-				<button type="submit" class="btn btn-primary"><?php echo __('Save'); ?></button>
+				<button type="submit" class="btn btn-primary" name="edit_group_attribute"><?php echo __('Save'); ?></button>
 <?php
 				echo $this->Html->link(
-					__('Cancel'),
+					'Cancel',
 					array(
 						'action' => 'index',
 						$groupAttribute['GroupAttribute']['GroupID']
