@@ -87,9 +87,9 @@ class UserTypesController extends AppController
 			$this->UserType->set($this->request->data);
 			if ($this->UserType->validates()) {
 				$this->UserType->save($this->request->data);
-				$this->Session->setFlash(__('User type is saved successfully')."!", 'flash_success');
+				$this->Session->setFlash(__('User type was saved successfully')."!", 'flash_success');
 			} else {
-				$this->Session->setFlash(__('User type is not saved successfully')."!", 'flash_failure');
+				$this->Session->setFlash(__('User type was not saved successfully')."!", 'flash_failure');
 			}
 		}
 	}
@@ -116,12 +116,35 @@ class UserTypesController extends AppController
 			$this->UserType->set($this->request->data);
 			if ($this->UserType->validates()) {
 				$this->UserType->save($this->request->data);
-				$this->Session->setFlash(__('User Type is edited successfully')."!", 'flash_success');
+				$this->Session->setFlash(__('User type was edited successfully')."!", 'flash_success');
 			} else {
-				$this->Session->setFlash(__('User Type is not edited successfully')."!", 'flash_failure');
+				$this->Session->setFlash(__('User type could not be edited successfully')."!", 'flash_failure');
 			}
 		}
 	}
+
+
+
+	/**
+	 * @method remove
+	 * This method is used to delete user type.
+	 * @param $id
+	 */
+	public function remove($id)
+	{
+		// Check permission.
+		$permission = $this->Access->checkPermission('UserTypesController', 'Delete', $this->Session->read('User.ID'));
+		if (empty($permission)) {
+			throw new UnauthorizedException();
+		}
+		if ($this->UserType->delete($id)) {
+			$this->redirect('/user_types/index');
+			$this->Session->setFlash(__('User type was removed successfully')."!", 'flash_success');
+		} else {
+			$this->Session->setFlash(__('User type could not be removed')."!", 'flash_failure');
+		}
+	}
+
 }
 
 
