@@ -25,8 +25,11 @@
  */
 class WebuiUsersController extends AppController
 {
-	// This variable is used for include other conponents.
-	var $components = array('Auth', 'Acl');
+	/**
+	 * @var $components
+	 * This variable is used for include other conponents.
+	 */
+	var $components = array('Auth', 'Acl', 'Access');
 
 
 	/**
@@ -37,7 +40,31 @@ class WebuiUsersController extends AppController
 	{
 		parent::beforeFilter();
 		$this->Auth->userModel = 'WebuiUser';
-		$this->Auth->allow('login', 'logout');
+		$this->Auth->allow('login');
+	}
+
+
+
+	/**
+	 * @method index
+	 * This method is used for showing webui user list.
+	 */
+	function index()
+	{
+		// Get user group name.
+		$groupName = $this->Access->getGroupName($this->Session->read('User.ID'));
+		$this->set('groupName', $groupName);
+		// Check permission.
+		$permission = $this->Access->checkPermission('WebuiUsersController', 'View', $this->Session->read('User.ID'));
+		if (empty($permission)) {
+			throw new UnauthorizedException();
+		}
+		$this->WebuiUser->recursive = -1;
+		$this->paginate = array('limit' => PAGINATION_LIMIT);
+		$webuiUsers = $this->paginate();
+		$this->set('webuiUsers', $webuiUsers);
+		$types = $this->Acl->Aro->find('list',array('fields' => array('id','alias')));
+		$this->set('types', $types);
 	}
 
 
@@ -63,7 +90,6 @@ class WebuiUsersController extends AppController
 				);
 				if (!empty($selectData)) {
 					$this->Session->write('User.ID', $selectData[0]['WebuiUser']['ID']);
-					$this->Session->write('User.Type', $selectData[0]['WebuiUser']['Type']);
 					return $this->redirect($this->Auth->redirect('/users/index'));
 				} else {
 					// Handling REST response here
@@ -86,6 +112,7 @@ class WebuiUsersController extends AppController
 	public function logout()
 	{
 		$this->Auth->logout();
+		$this->Session->delete('User.ID');
 		$this->redirect('/webui_users/login');
 	}
 }
