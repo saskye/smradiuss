@@ -70,6 +70,121 @@ class WebuiUsersController extends AppController
 
 
 	/**
+	 * @method add
+	 * This method is used for add webui user.
+	 */
+	function add()
+	{
+		// Check permission.
+		$permission = $this->Access->checkPermission('WebuiUsersController', 'Add', $this->Session->read('User.ID'));
+		if (empty($permission)) {
+			throw new UnauthorizedException();
+		}
+		// Get all types.
+		$types = $this->Acl->Aro->find('list',array('fields' => array('id','alias')));
+		$this->set('types', $types);
+		// run only when submit button clicked.
+		if ($this->request->is('post')) {
+			$requestData = $this->WebuiUser->set($this->request->data);
+			if ($this->WebuiUser->validates()) {
+				$password = Security::hash($requestData['WebuiUser']['Password'], 'sha1', true);
+				$requestData['WebuiUser']['Password'] = $password;
+				$this->WebuiUser->save($requestData);
+				$this->Session->setFlash(__('Webui user is saved successfully')."!", 'flash_success');
+			} else {
+				$this->Session->setFlash(__('Webui user is not saved successfully')."!", 'flash_failure');
+			}
+		}
+	}
+
+
+
+	/**
+	 * @method edit
+	 * This method is used for edit webui user.
+	 * @param $id
+	 */
+	function edit($id)
+	{
+		// Check permission.
+		$permission = $this->Access->checkPermission('WebuiUsersController', 'Edit', $this->Session->read('User.ID'));
+		if (empty($permission)) {
+			throw new UnauthorizedException();
+		}
+		// Fetch record via id.
+		$webuiUser = $this->WebuiUser->findById($id);
+		$this->set('webuiUser', $webuiUser);
+		// Fetch all types.
+		$types = $this->Acl->Aro->find('list',array('fields' => array('id','alias')));
+		$this->set('types', $types);
+		if ($this->request->is('post')) {
+			$requestData = $this->WebuiUser->set($this->request->data);
+			$oldPassword = Security::hash($requestData['WebuiUser']['OldPassword'], 'sha1', true);
+			$password = $webuiUser['WebuiUser']['Password'];
+			if (!empty($requestData['WebuiUser']['OldPassword'])) {
+				if (empty($requestData['WebuiUser']['NewPassword'])) {
+					$this->Session->setFlash(__('New password required')."!", 'flash_failure');
+					return false;
+				}
+			}
+			if (!empty($requestData['WebuiUser']['NewPassword'])) {
+				if (empty($requestData['WebuiUser']['OldPassword'])) {
+					$this->Session->setFlash(__('Old password required')."!", 'flash_failure');
+					return false;
+				}
+			}
+			if (!empty($requestData['WebuiUser']['OldPassword']) && !empty($requestData['WebuiUser']['NewPassword'])) {
+				if ($oldPassword == $password) {
+					$newPassword = Security::hash($requestData['WebuiUser']['NewPassword'], 'sha1', true);
+					$requestData['WebuiUser']['Password'] = $newPassword;
+				} else {
+					$this->Session->setFlash(__('Old password does not match')."!", 'flash_failure');
+					return false;
+				}
+			} else {
+				$requestData['WebuiUser']['Password'] = $password;
+			}
+			$this->WebuiUser->id = $id;
+			if ($this->WebuiUser->validates()) {
+				$this->WebuiUser->save($requestData);
+				$this->Session->setFlash(__('Webui user was edited successfully')."!", 'flash_success');
+			} else {
+				$this->Session->setFlash(__('Webui user was not edited successfully')."!", 'flash_failure');
+			}
+		}
+	}
+
+
+
+	/**
+	 * @method remove
+	 * This method is used to delete client realms.
+	 * @param $id
+	 * @param $clientID
+	 */
+	public function remove($id)
+	{
+		// Check permission.
+		$permission = $this->Access->checkPermission('WebuiUsersController', 'Delete', $this->Session->read('User.ID'));
+		if (empty($permission)) {
+			throw new UnauthorizedException();
+		}
+		if (isset($id)) {
+			// Deleting then redirected to index function.
+			if ($this->WebuiUser->delete($id)) {
+				$this->redirect('/webui_users/index/');
+				$this->Session->setFlash(__('Webui User was removed successfully')."!", 'flash_success');
+			} else {
+				$this->Session->setFlash(__('Webui User was not removed successfully')."!", 'flash_failure');
+			}
+		} else {
+			$this->redirect('/webui_users/index');
+		}
+	}
+
+
+
+	/**
 	 * @method login
 	 * This method is used for check user authentication.
 	 */
