@@ -2,13 +2,15 @@
 body {
 	padding-top: 50px;
 }
+.pagination .current a {
+	background-color: #EEEEEE;
+}
 </style>
 
 <script type="text/javascript">
 function confirmDelete(msg, link)
 {
-	yes = confirm(msg);
-	if (yes) {
+	if (confirm(msg)) {
 		location.href = link;
 	} else {
 		return false;
@@ -28,8 +30,10 @@ function confirmDelete(msg, link)
 						<th><a><?php echo __('Disabled'); ?></a></th>
 						<th><a><?php echo __('Type'); ?></a></th>
 <?php
-						if ($this->Access->check($groupName, 'WebuiUsersEdit') ||
-								$this->Access->check($groupName, 'WebuiUsersDelete')) {
+						if (
+							$this->Access->check($groupName, 'WebuiUsersEdit') ||
+							$this->Access->check($groupName, 'WebuiUsersDelete')
+						) {
 ?>
 							<th><a><?php echo __('Action'); ?></a></th>
 <?php
@@ -68,18 +72,16 @@ function confirmDelete(msg, link)
 <?php
 								if ($this->Access->check($groupName, 'WebuiUsersDelete')) {
 ?>
-									<a href="#"
-										onclick="return confirmDelete(
-											'Are you sure you want to delete this user.',
-											'<?php
-												echo $this->Html->url(
-													array(
-														'controller' => 'webui_users',
-														'action' => 'remove',
-														$webuiUser['WebuiUser']['ID']
-													)
-												);
-											?>'
+									<a href="#" onclick="return confirmDelete(
+										'Are you sure you want to delete this user.',
+										'<?php
+											echo $this->Html->url(
+												array(
+													'controller' => 'webui_users',
+													'action' => 'remove',
+													$webuiUser['WebuiUser']['ID']
+												)
+											); ?>'
 										)">
 <?php
 										echo $this->Html->image(
@@ -105,30 +107,43 @@ function confirmDelete(msg, link)
 							$total = $this->Paginator->counter(
 								array(
 									'format' => '%pages%'
-									)
-								);
-								if ($total > 1) {
-									echo $this->Paginator->prev(
-										'<<',
-										null,
-										null,
-										array(
-											'class' => 'disabled'
-										)
-									);
-									echo $this->Paginator->numbers();
-									// Shows the next and previous links.
-									echo $this->Paginator->next(
-										'>>',
-										null,
-										null,
-										array(
-											'class' => 'disabled'
-										)
-									);
-									// Prints X of Y, where X is current page and Y is number of pages.
-									echo "<span style='margin-left:20px;'>Page : ".$this->Paginator->counter()."</span>";
+								)
+							);
+							if ($total > 1) {
+?>
+								<ul class="pagination">
+<?php
+								if ($this->Paginator->first()) {
+									echo $this->Paginator->first('First', array('tag' => 'li'), null, null);
+								} else {
+									echo '<li class="disabled"><a href="#">First</a></li>';
 								}
+
+								if ($this->Paginator->hasPrev()) {
+									echo $this->Paginator->prev('&laquo;', array('tag' => 'li', 'escape' => false), null, null);
+								} else {
+									echo '<li class="disabled"><a href="#">&laquo;</a></li>';
+								}
+
+								echo $this->Paginator->numbers(array('separator' => false, 'tag' => 'li', 'currentTag' => 'a'));
+
+								if ($this->Paginator->hasNext()) {
+									echo $this->Paginator->next('&raquo;', array('tag' => 'li', 'escape' => false), null, null);
+								} else {
+									echo '<li class="disabled"><a href="#">&raquo;</a></li>';
+								}
+
+								if ($this->Paginator->last()) {
+									echo $this->Paginator->last('Last', array('tag' => 'li'), null, null);
+								} else {
+									echo '<li class="disabled"><a href="#">Last</a></li>';
+								}
+
+								echo "<span style='margin-left:20px;'>Page : ".$this->Paginator->counter()."</span>";
+?>
+								</ul>
+<?php
+							}
 ?>
 						</td>
 					</tr>
