@@ -2,7 +2,21 @@
 body {
 	padding-top: 50px;
 }
+.pagination .current a {
+	background-color: #EEEEEE;
+}
 </style>
+
+<script type="text/javascript">
+function confirmDelete(msg, link)
+{
+	if (confirm(msg)) {
+		location.href = link;
+	} else {
+		return false;
+	}
+}
+</script>
 
 <div style="padding: 15px 15px">
 	<div class="row"><?php echo $this->element('left_panel'); ?>
@@ -14,10 +28,12 @@ body {
 						<th><a><?php echo __('Name'); ?></a></th>
 						<th><a><?php echo __('Disabled'); ?></a></th>
 <?php
-						if ($this->Access->check($groupName, 'RealmsEdit') ||
-								$this->Access->check($groupName, 'RealmsDelete') ||
-								$this->Access->check($groupName, 'RealmAttributesView') ||
-								$this->Access->check($groupName, 'RealmMembersView')) {
+						if (
+							$this->Access->check($groupName, 'RealmsEdit') ||
+							$this->Access->check($groupName, 'RealmsDelete') ||
+							$this->Access->check($groupName, 'RealmAttributesView') ||
+							$this->Access->check($groupName, 'RealmMembersView')
+						) {
 ?>
 							<th><a><?php echo __('Actions'); ?></a></th>
 <?php
@@ -52,18 +68,29 @@ body {
 ?>
 <?php
 								if ($this->Access->check($groupName, 'RealmsDelete')) {
-									echo $this->Html->image(
-										"/resources/custom/images/silk/icons/table_delete.png",
-										array(
-											"alt" => "Delete",
-											"url" => array(
-												'controller' => 'realms',
-												'action' => 'remove',
-												$realm['Realm']['ID']
-											),
-											"title" => "Remove realm"
-										)
-									);
+?>
+									<a href="#" onclick="return confirmDelete(
+										'Are you sure you want to delete.',
+										'<?php
+											echo $this->Html->url(
+												array(
+													'controller' => 'realms',
+													'action' => 'remove',
+													$realm['Realm']['ID']
+												)
+											); ?>'
+										)">
+<?php
+										echo $this->Html->image(
+											"/resources/custom/images/silk/icons/table_delete.png",
+											array(
+												"alt" => "Delete",
+												"title" => "Delete realm"
+											)
+										);
+?>
+									</a>
+<?php
 								}
 ?>
 <?php
@@ -112,26 +139,39 @@ body {
 								)
 							);
 							if ($total > 1) {
-								echo $this->Paginator->prev(
-									'<<',
-									null,
-									null,
-									array(
-										'class' => 'disabled'
-									)
-								);
-								echo $this->Paginator->numbers();
-								// Shows the next and previous links.
-								echo $this->Paginator->next(
-									'>>',
-									null,
-									null,
-									array(
-										'class' => 'disabled'
-									)
-								);
-								// Prints X of Y, where X is current page and Y is number of pages.
+?>
+								<ul class="pagination">
+<?php
+								if ($this->Paginator->first()) {
+									echo $this->Paginator->first('First', array('tag' => 'li'), null, null);
+								} else {
+									echo '<li class="disabled"><a href="#">First</a></li>';
+								}
+
+								if ($this->Paginator->hasPrev()) {
+									echo $this->Paginator->prev('&laquo;', array('tag' => 'li', 'escape' => false), null, null);
+								} else {
+									echo '<li class="disabled"><a href="#">&laquo;</a></li>';
+								}
+
+								echo $this->Paginator->numbers(array('separator' => false, 'tag' => 'li', 'currentTag' => 'a'));
+
+								if ($this->Paginator->hasNext()) {
+									echo $this->Paginator->next('&raquo;', array('tag' => 'li', 'escape' => false), null, null);
+								} else {
+									echo '<li class="disabled"><a href="#">&raquo;</a></li>';
+								}
+
+								if ($this->Paginator->last()) {
+									echo $this->Paginator->last('Last', array('tag' => 'li'), null, null);
+								} else {
+									echo '<li class="disabled"><a href="#">Last</a></li>';
+								}
+
 								echo "<span style='margin-left:20px;'>Page : ".$this->Paginator->counter()."</span>";
+?>
+								</ul>
+<?php
 							}
 ?>
 						</td>
