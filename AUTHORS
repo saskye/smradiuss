@@ -2,19 +2,3 @@ Project Lead:
 =============
 Nigel Kukard  <nkukard@lbsd.net>
 
-Programmers:
-============
-Robert Anderson <randerson@lbsd.net>
-
-
-Attribution:
-============
-OPERATORS shamelessly ripped from FreeRadius
-see: COPYRIGHT.FreeRadius CREDITS.FreeRadius LICENSE.FreeRadius
-
-dicts/ shamelessly ripped from Net::Radius and FreeRadius 
-see: README.Net-Radius
-see: COPYRIGHT.FreeRadius CREDITS.FreeRadius LICENSE.FreeRadius
-
-Radius/ shamelessly ripped from Net::Radius
-see: README.Net-Radius

@@ -1,8 +1,0 @@
-# IPOQue vendor specific dictionary
-# Copyright (C) 2010, AllWorldIT
-#
-# IPOQue Attributes                                                
-
-VENDOR          ipoque          30012
-ATTRIBUTE       ipoque-class    			1       string       ipoque
-
