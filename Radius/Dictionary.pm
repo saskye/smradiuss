@@ -1,3 +1,22 @@
+# COPYRIGHT AND LICENSE
+#
+# Copyright 2007-2016, AllWorldIT 
+#
+# Original work (c) Christopher Masto. Changes (c) 2002,2003 Luis
+# E. Muñoz <luismunoz@cpan.org>.
+# 
+# This software can be used under the same terms as perl itself. It also
+# carries the same warranties.
+# 
+# Please send bug reports (or patches) as well as feedback and
+# suggestions to
+# 
+# luismunoz@cpan.org
+# 
+# When submitting bugs, it is very important that you include the
+# relevant information for reproducing the bug. Packet dumps are most
+# useful.
+
 package Radius::Dictionary;
 
 use strict;
