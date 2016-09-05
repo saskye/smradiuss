@@ -12,6 +12,7 @@ Installing SMRadius.
 - Crytpt::RC4
 - Digest::SHA1
 - Digest::MD4
+- Math::Expression
 
 * Requirements for webui
 - PHP v5+
