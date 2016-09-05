@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 # SMRadius administration tool
-# Copyright (C) 2009-2015, AllWorldIT
+# Copyright (C) 2009-2016, AllWorldIT
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -28,15 +28,25 @@ use lib qw(
 );
 
 
-use Config::IniFiles;
-use DateTime;
+# Check Config::IniFiles is instaslled
+if (!eval {require Config::IniFiles; 1;}) {
+	print STDERR "You're missing Config::IniFiles, try 'apt-get install libconfig-inifiles-perl'\n";
+	exit 1;
+}
+
+# Check DateTime is installed
+if (!eval {require DateTime; 1;}) {
+	print STDERR "You're missing DateTime, try 'apt-get install libdatetime-perl'\n";
+	exit 1;
+}
+
 use Getopt::Long;
 
 use smradius::logging;
 use smradius::version;
 
 
-print("SMRadius Admin Tool v".VERSION." - Copyright (c) 2008-2009 AllWorldIT\n");
+print("SMRadius Admin Tool v".VERSION." - Copyright (c) 2008-2016 AllWorldIT\n");
 
 # Fire up commandline processing...
 my %opts;

@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 # Radius daemon
-# Copyright (C) 2007-2015, AllWorldIT
+# Copyright (C) 2007-2016, AllWorldIT
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -23,12 +23,37 @@ use warnings;
 use lib('/usr/local/lib/smradius-0.0','/usr/lib/smradius-0.0',
         '/usr/lib64/smradius-0.0','smradius','awitpt');
 
-package radiusd;
+package smradiusd;
 
 
-use base qw(Net::Server::PreFork);
-use Config::IniFiles;
-use DateTime;
+# Check if we have Net::Server::PreFork installed
+if (!eval {require Net::Server::PreFork; 1;}) {
+	print STDERR "You're missing Net::Server::PreFork, try 'apt-get install libnet-server-perl'\n";
+	exit 1;
+}
+
+# Check Config::IniFiles is instaslled
+if (!eval {require Config::IniFiles; 1;}) {
+	print STDERR "You're missing Config::IniFiles, try 'apt-get install libconfig-inifiles-perl'\n";
+	exit 1;
+}
+
+# Check DateTime is installed
+if (!eval {require DateTime; 1;}) {
+	print STDERR "You're missing DateTime, try 'apt-get install libdatetime-perl'\n";
+	exit 1;
+}
+
+# Check Cache::FastMmap is installed
+if (!eval {require Cache::FastMmap; 1;}) {
+	print STDERR "You're missing DateTime, try 'apt-get install libcache-fastmmap-perl'\n";
+	exit 1;
+} else {
+	eval "use awitpt::cache;";
+}
+
+
+eval "use base qw(Net::Server::PreFork);";
 use Getopt::Long;
 use Sys::Syslog;
 use Time::HiRes qw( gettimeofday tv_interval );
@@ -38,7 +63,6 @@ use smradius::constants;
 use smradius::logging;
 use smradius::config;
 use awitpt::db::dbilayer;
-use awitpt::cache;
 use smradius::util;
 use smradius::attributes;
 
@@ -390,6 +414,7 @@ sub plugin_register {
 }
 
 
+
 # Initialize child
 sub child_init_hook
 {
@@ -438,6 +463,7 @@ sub child_finish_hook {
 	$self->log(LOG_INFO,"[SMRADIUS] Shutting down caching engine ($$)");
 	awitpt::cache::disconnect($self);
 }
+
 
 
 # Process requests we get
@@ -1221,6 +1247,7 @@ CHECK_RESULT:
 }
 
 
+
 # Initialize child
 sub server_exit
 {
@@ -1275,7 +1302,7 @@ sub log
 
 # Display help
 sub displayHelp {
-	print(STDERR "SMRadius v".VERSION." - Copyright (c) 2007-2011, AllWorldIT\n");
+	print(STDERR "SMRadius v".VERSION." - Copyright (c) 2007-2016, AllWorldIT\n");
 
 	print(STDERR<<EOF);
 

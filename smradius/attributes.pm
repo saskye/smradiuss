@@ -1,5 +1,5 @@
 # Attribute handling functions
-# Copyright (C) 2007-2015, AllWorldIT
+# Copyright (C) 2007-2016, AllWorldIT
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -42,7 +42,11 @@ our (@ISA,@EXPORT);
 );
 
 
-use Math::Expression;
+# Check Math::Expression is installed
+if (!eval {require Math::Expression; 1;}) {
+	print STDERR "You're missing Math::Expression, try 'apt-get install libmath-expression-perl'\n";
+	exit 1;
+}
 
 use smradius::logging;
 use smradius::util;
