@@ -175,30 +175,30 @@ sub post_auth_hook
 	#
 
 	# Uptime..
-	my $alteredUptimeLimit = 0;
+	my $uptimeLimitWithTopups = 0;
 	if ($uptimeTopup > 0) {
 		if (defined($uptimeLimit)) {
-			$alteredUptimeLimit = $uptimeLimit + $uptimeTopup;
+			$uptimeLimitWithTopups = $uptimeLimit + $uptimeTopup;
 		} else {
-			$alteredUptimeLimit = $uptimeTopup;
+			$uptimeLimitWithTopups = $uptimeTopup;
 		}
 	} else {
 		if (defined($uptimeLimit)) {
-			$alteredUptimeLimit = $uptimeLimit;
+			$uptimeLimitWithTopups = $uptimeLimit;
 		}
 	}
 
 	# Traffic..
-	my $alteredTrafficLimit = 0;
+	my $trafficLimitWithTopups = 0;
 	if ($trafficTopup > 0) {
 		if (defined($trafficLimit)) {
-			$alteredTrafficLimit = $trafficLimit + $trafficTopup;
+			$trafficLimitWithTopups = $trafficLimit + $trafficTopup;
 		} else {
-			$alteredTrafficLimit = $trafficTopup;
+			$trafficLimitWithTopups = $trafficTopup;
 		}
 	} else {
 		if (defined($trafficLimit)) {
-			$alteredTrafficLimit = $trafficLimit;
+			$trafficLimitWithTopups = $trafficLimit;
 		}
 	}
 
@@ -247,28 +247,28 @@ sub post_auth_hook
 	if (defined($user->{'ConfigAttributes'}->{'SMRadius-Config-Capping-Uptime-Multiplier'})) {
 		my $multiplier = pop(@{$user->{'ConfigAttributes'}->{'SMRadius-Config-Capping-Uptime-Multiplier'}});
 
-		my $newLimit = $alteredUptimeLimit * $multiplier;
+		my $newLimit = $uptimeLimitWithTopups * $multiplier;
 		my $newSessionTime = $accountingUsage->{'TotalSessionTime'} * $multiplier;
 
-		$alteredUptimeLimit = $newLimit;
+		$uptimeLimitWithTopups = $newLimit;
 		$accountingUsage->{'TotalSessionTime'} = $newSessionTime;
 
 		$server->log(LOG_INFO,"[MOD_FEATURE_CAPPING] Client uptime multiplier '$multiplier' changes ".
-				"uptime limit ('$alteredUptimeLimit' => '$newLimit'), ".
+				"uptime limit ('$uptimeLimitWithTopups' => '$newLimit'), ".
 				"uptime usage ('".$accountingUsage->{'TotalSessionTime'}."' => '$newSessionTime')"
 		);
 	}
 	if (defined($user->{'ConfigAttributes'}->{'SMRadius-Config-Capping-Traffic-Multiplier'})) {
 		my $multiplier = pop(@{$user->{'ConfigAttributes'}->{'SMRadius-Config-Capping-Traffic-Multiplier'}});
 
-		my $newLimit = $alteredTrafficLimit * $multiplier;
+		my $newLimit = $trafficLimitWithTopups * $multiplier;
 		my $newDataUsage = $accountingUsage->{'TotalDataUsage'} * $multiplier;
 
-		$alteredTrafficLimit = $newLimit;
+		$trafficLimitWithTopups = $newLimit;
 		$accountingUsage->{'TotalDataUsage'} = $newDataUsage; 
 
 		$server->log(LOG_INFO,"[MOD_FEATURE_CAPPING] Client traffic multiplier '$multiplier' changes ".
-				"traffic limit ('$alteredTrafficLimit' => '$newLimit'), ".
+				"traffic limit ('$trafficLimitWithTopups' => '$newLimit'), ".
 				"traffic usage ('".$accountingUsage->{'TotalDataUsage'}."' => '$newDataUsage')"
 		);
 	}
@@ -282,19 +282,21 @@ sub post_auth_hook
 	if (!(defined($uptimeLimit) && $uptimeLimit == 0)) {
 
 		# Capped
-		if ($accountingUsage->{'TotalSessionTime'} >= $alteredUptimeLimit) {
+		if ($accountingUsage->{'TotalSessionTime'} >= $uptimeLimitWithTopups) {
 			$server->log(LOG_DEBUG,"[MOD_FEATURE_CAPPING] Usage of ".$accountingUsage->{'TotalSessionTime'}.
-					"Min exceeds allowed limit of ".$alteredUptimeLimit."Min. Capped.");
+					"Min exceeds allowed limit of ".$uptimeLimitWithTopups."Min. Capped.");
 			return MOD_RES_NACK;
 		# Setup limits
 		} else {
 			# Check if we returning Mikrotik vattributes
+			# FIXME: NK - this is not mikrotik specific
 			if (defined($config->{'enable_mikrotik'})) {
+				# FIXME: NK - We should cap the maximum total session time to that which is already set, if something is set
 				# Setup reply attributes for Mikrotik HotSpots
 				my %attribute = (
 					'Name' => 'Session-Timeout',
 					'Operator' => '=',
-					'Value' => $alteredUptimeLimit - $accountingUsage->{'TotalSessionTime'}
+					'Value' => $uptimeLimitWithTopups - $accountingUsage->{'TotalSessionTime'}
 				);
 				setReplyAttribute($server,$user->{'ReplyAttributes'},\%attribute);
 			}
@@ -305,21 +307,21 @@ sub post_auth_hook
 	if (!(defined($trafficLimit) && $trafficLimit == 0)) {
 
 		# Capped
-		if ($accountingUsage->{'TotalDataUsage'} >= $alteredTrafficLimit) {
+		if ($accountingUsage->{'TotalDataUsage'} >= $trafficLimitWithTopups) {
 			$server->log(LOG_DEBUG,"[MOD_FEATURE_CAPPING] Usage of ".$accountingUsage->{'TotalDataUsage'}.
-					"Mb exceeds allowed limit of ".$alteredTrafficLimit."Mb. Capped.");
+					"Mb exceeds allowed limit of ".$trafficLimitWithTopups."Mb. Capped.");
 			return MOD_RES_NACK;
 		# Setup limits
 		} else {
 			# Check if we returning Mikrotik vattributes
 			if (defined($config->{'enable_mikrotik'})) {
 				# Get remaining traffic
-				my $remainingTraffic = $alteredTrafficLimit - $accountingUsage->{'TotalDataUsage'};
+				my $remainingTraffic = $trafficLimitWithTopups - $accountingUsage->{'TotalDataUsage'};
 				my $remainingTrafficLimit = ( $remainingTraffic % 4096 ) * 1024 * 1024;
 				my $remainingTrafficGigawords = floor($remainingTraffic / 4096);
 	
 				# Setup reply attributes for Mikrotik HotSpots
-				for my $attrName ('Recv','Xmit','Total') {
+				foreach my $attrName ('Recv','Xmit','Total') {
 					my %attribute = (
 						'Vendor' => 14988,
 						'Name' => "Mikrotik-$attrName-Limit",
@@ -437,30 +439,30 @@ sub post_acct_hook
 
 
 	# Uptime..
-	my $alteredUptimeLimit = 0;
+	my $uptimeLimitWithTopups = 0;
 	if ($uptimeTopup > 0) {
 		if (defined($uptimeLimit)) {
-			$alteredUptimeLimit = $uptimeLimit + $uptimeTopup;
+			$uptimeLimitWithTopups = $uptimeLimit + $uptimeTopup;
 		} else {
-			$alteredUptimeLimit = $uptimeTopup;
+			$uptimeLimitWithTopups = $uptimeTopup;
 		}
 	} else {
 		if (defined($uptimeLimit)) {
-			$alteredUptimeLimit = $uptimeLimit;
+			$uptimeLimitWithTopups = $uptimeLimit;
 		}
 	}
 
 	# Traffic..
-	my $alteredTrafficLimit = 0;
+	my $trafficLimitWithTopups = 0;
 	if ($trafficTopup > 0) {
 		if (defined($trafficLimit)) {
-			$alteredTrafficLimit = $trafficLimit + $trafficTopup;
+			$trafficLimitWithTopups = $trafficLimit + $trafficTopup;
 		} else {
-			$alteredTrafficLimit = $trafficTopup;
+			$trafficLimitWithTopups = $trafficTopup;
 		}
 	} else {
 		if (defined($trafficLimit)) {
-			$alteredTrafficLimit = $trafficLimit;
+			$trafficLimitWithTopups = $trafficLimit;
 		}
 	}
 
@@ -509,17 +511,17 @@ sub post_acct_hook
 
 	if (defined($user->{'ConfigAttributes'}->{'SMRadius-Config-Capping-Uptime-Multiplier'})) {
 		my $multiplier = pop(@{$user->{'ConfigAttributes'}->{'SMRadius-Config-Capping-Uptime-Multiplier'}});
-		my $newLimit = $alteredUptimeLimit * $multiplier;
+		my $newLimit = $uptimeLimitWithTopups * $multiplier;
 		$server->log(LOG_INFO,"[MOD_FEATURE_CAPPING] Client cap uptime multiplier '$multiplier' changes limit ".
-				"from '$alteredUptimeLimit' to '$newLimit'");
-		$alteredUptimeLimit = $newLimit;
+				"from '$uptimeLimitWithTopups' to '$newLimit'");
+		$uptimeLimitWithTopups = $newLimit;
 	}
 	if (defined($user->{'ConfigAttributes'}->{'SMRadius-Config-Capping-Traffic-Multiplier'})) {
 		my $multiplier = pop(@{$user->{'ConfigAttributes'}->{'SMRadius-Config-Capping-Traffic-Multiplier'}});
-		my $newLimit = $alteredTrafficLimit * $multiplier;
+		my $newLimit = $trafficLimitWithTopups * $multiplier;
 		$server->log(LOG_INFO,"[MOD_FEATURE_CAPPING] Client cap traffic multiplier '$multiplier' changes limit ".
-				"from '$alteredTrafficLimit' to '$newLimit'");
-		$alteredTrafficLimit = $newLimit;
+				"from '$trafficLimitWithTopups' to '$newLimit'");
+		$trafficLimitWithTopups = $newLimit;
 	}
 
 
@@ -531,9 +533,9 @@ sub post_acct_hook
 	if (!(defined($uptimeLimit) && $uptimeLimit == 0)) {
 
 		# Capped
-		if ($accountingUsage->{'TotalSessionTime'} >= $alteredUptimeLimit) {
+		if ($accountingUsage->{'TotalSessionTime'} >= $uptimeLimitWithTopups) {
 			$server->log(LOG_DEBUG,"[MOD_FEATURE_CAPPING] Usage of ".$accountingUsage->{'TotalSessionTime'}.
-					"Min exceeds allowed limit of ".$alteredUptimeLimit."Min. Capped.");
+					"Min exceeds allowed limit of ".$uptimeLimitWithTopups."Min. Capped.");
 			return MOD_RES_NACK;
 		}
 	}
@@ -542,9 +544,9 @@ sub post_acct_hook
 	if (!(defined($trafficLimit) && $trafficLimit == 0)) {
 
 		# Capped
-		if ($accountingUsage->{'TotalDataUsage'} >= $alteredTrafficLimit) {
+		if ($accountingUsage->{'TotalDataUsage'} >= $trafficLimitWithTopups) {
 			$server->log(LOG_DEBUG,"[MOD_FEATURE_CAPPING] Usage of ".$accountingUsage->{'TotalDataUsage'}.
-					"Mb exceeds allowed limit of ".$alteredTrafficLimit."Mb. Capped.");
+					"Mb exceeds allowed limit of ".$trafficLimitWithTopups."Mb. Capped.");
 			return MOD_RES_NACK;
 		}
 	}
