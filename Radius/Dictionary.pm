@@ -50,9 +50,9 @@ sub new {
 sub readfile {
   my ($self, $filename) = @_;
 
-  open(DICT, "< $filename") or return undef;
+  open(my $DICT, "<", $filename) or return;
 
-  while (defined(my $l = <DICT>)) {
+  while (defined(my $l = <$DICT>)) {
     next if $l =~ /^\#/;
     next unless my @l = split /\s+/, $l;
 
@@ -185,7 +185,8 @@ sub readfile {
       warn "Warning: Weird dictionary line: $l\n";
     }
   }
-  close DICT;
+  close $DICT;
+  return;
 }
 
 # Accessors for standard attributes
