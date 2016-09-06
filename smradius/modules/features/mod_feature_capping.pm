@@ -29,13 +29,9 @@ use smradius::util;
 use POSIX qw(floor);
 
 
-# Exporter stuff
-require Exporter;
-our (@ISA,@EXPORT,@EXPORT_OK);
-@ISA = qw(Exporter);
-@EXPORT = qw(
-);
-@EXPORT_OK = qw(
+# Load exporter
+use base qw(Exporter);
+our @EXPORT_OK = qw(
 );
 
 
@@ -88,6 +84,7 @@ sub init
 		}
 	}
 
+	return;
 }
 
 
