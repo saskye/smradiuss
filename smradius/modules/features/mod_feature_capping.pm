@@ -206,34 +206,13 @@ sub post_auth_hook
 	#
 	# Display our usages
 	#
+	_logUptimeUsage($server,$accountUsage,$uptimeLimit,$uptimeTopup);
+	_logTrafficUsage($server,$accountUsage,$trafficLimit,$trafficToup);
 
-	# Uptime..
-	if (!(defined($uptimeLimit) && $uptimeLimit == 0)) {
-		if (!defined($uptimeLimit)) {
-			$server->log(LOG_DEBUG,"[MOD_FEATURE_CAPPING] Uptime => Usage total: ".$accountingUsage->{'TotalSessionTime'}.
-					"Min (Cap: Prepaid, Topups: ".$uptimeTopup."Min)");
-		} else {
-			$server->log(LOG_DEBUG,"[MOD_FEATURE_CAPPING] Uptime => Usage total: ".$accountingUsage->{'TotalSessionTime'}.
-					"Min (Cap: ".$uptimeLimit."Min, Topups: ".$uptimeTopup."Min)");
-		}
-	} else {
-		$server->log(LOG_DEBUG,"[MOD_FEATURE_CAPPING] Uptime => Usage total: ".$accountingUsage->{'TotalSessionTime'}.
-				"Min (Cap: Uncapped, Topups: ".$uptimeTopup."Min)");
-	}
 
-	# Traffic..
-	if (!(defined($trafficLimit) && $trafficLimit == 0)) {
-		if (!defined($trafficLimit)) {
-			$server->log(LOG_DEBUG,"[MOD_FEATURE_CAPPING] Bandwidth => Usage total: ".$accountingUsage->{'TotalDataUsage'}.
-					"Mb (Cap: Prepaid, Topups: ".$trafficTopup."Mb)");
-		} else {
-			$server->log(LOG_DEBUG,"[MOD_FEATURE_CAPPING] Bandwidth => Usage total: ".$accountingUsage->{'TotalDataUsage'}.
-					"Mb (Cap: ".$trafficLimit."Mb, Topups: ".$trafficTopup."Mb)");
-		}
-	} else {
-		$server->log(LOG_DEBUG,"[MOD_FEATURE_CAPPING] Bandwidth => Usage total: ".$accountingUsage->{'TotalDataUsage'}.
-				"Mb (Cap: Uncapped, Topups: ".$trafficTopup."Mb)");
-	}
+	#
+	# Add conditional variables
+	#
 
 	# Add attribute conditionals BEFORE override
 	addAttributeConditionalVariable($user,"SMRadius_Capping_TotalDataUsage",$accountingUsage->{'TotalDataUsage'});
@@ -471,34 +450,13 @@ sub post_acct_hook
 	# Display our usages
 	#
 
-	# Uptime..
-	if (!(defined($uptimeLimit) && $uptimeLimit == 0)) {
-		if (!defined($uptimeLimit)) {
-			$server->log(LOG_DEBUG,"[MOD_FEATURE_CAPPING] Uptime => Usage total: ".$accountingUsage->{'TotalSessionTime'}.
-					"Min (Cap: Prepaid, Topups: ".$uptimeTopup."Min)");
-		} else {
-			$server->log(LOG_DEBUG,"[MOD_FEATURE_CAPPING] Uptime => Usage total: ".$accountingUsage->{'TotalSessionTime'}.
-					"Min (Cap: ".$uptimeLimit."Min, Topups: ".$uptimeTopup."Min)");
-		}
-	} else {
-		$server->log(LOG_DEBUG,"[MOD_FEATURE_CAPPING] Uptime => Usage total: ".$accountingUsage->{'TotalSessionTime'}.
-				"Min (Cap: Uncapped, Topups: ".$uptimeTopup."Min)");
-	}
+	_logUptimeUsage($server,$accountUsage,$uptimeLimit,$uptimeTopup);
+	_logTrafficUsage($server,$accountUsage,$trafficLimit,$trafficToup);
 
-	# Traffic..
-	if (!(defined($trafficLimit) && $trafficLimit == 0)) {
-		if (!defined($trafficLimit)) {
-			$server->log(LOG_DEBUG,"[MOD_FEATURE_CAPPING] Bandwidth => Usage total: ".$accountingUsage->{'TotalDataUsage'}.
-					"Mb (Cap: Prepaid, Topups: ".$trafficTopup."Mb)");
-		} else {
-			$server->log(LOG_DEBUG,"[MOD_FEATURE_CAPPING] Bandwidth => Usage total: ".$accountingUsage->{'TotalDataUsage'}.
-					"Mb (Cap: ".$trafficLimit."Mb, Topups: ".$trafficTopup."Mb)");
-		}
-	} else {
-		$server->log(LOG_DEBUG,"[MOD_FEATURE_CAPPING] Bandwidth => Usage total: ".$accountingUsage->{'TotalDataUsage'}.
-				"Mb (Cap: Uncapped, Topups: ".$trafficTopup."Mb)");
-	}
 
+	#
+	# Add conditional variables
+	#
 
 	# Add attribute conditionals BEFORE override
 	addAttributeConditionalVariable($user,"SMRadius_Capping_TotalDataUsage",$accountingUsage->{'TotalDataUsage'});
@@ -605,6 +563,59 @@ sub _getAccountingUsage
 			}
 			$server->log(LOG_ERR,"[MOD_FEATURE_CAPPING] No usage data found for user '".$user->{'Username'}."'");
 		}
+	}
+
+	return undef;
+}
+
+
+
+## @internal
+# Code snippet to log our uptime details
+sub _logUptimeUsage
+{
+	my ($server,$accountUsage,$uptimeLimit,$uptimeTopup) = @_;
+
+
+	# Check if our limit is defined
+	if (defined($uptimeLimit)) {
+		# If so, check if its > 0, which would depict its capped
+		if ($uptimeLimit > 0) {
+			$server->log(LOG_DEBUG,"[MOD_FEATURE_CAPPING] Uptime => Usage total: ".$accountingUsage->{'TotalSessionTime'}.
+					"Min (Cap: ".$uptimeLimit."Min, Topups: ".$uptimeTopup."Min)");
+		} else {
+			$server->log(LOG_DEBUG,"[MOD_FEATURE_CAPPING] Uptime => Usage total: ".$accountingUsage->{'TotalSessionTime'}.
+					"Min (Cap: Uncapped, Topups: ".$uptimeTopup."Min)");
+		}
+	} else {
+		$server->log(LOG_DEBUG,"[MOD_FEATURE_CAPPING] Uptime => Usage total: ".$accountingUsage->{'TotalSessionTime'}.
+				"Min (Cap: Prepaid, Topups: ".$uptimeTopup."Min)");
+	}
+
+	return undef;
+}
+
+
+
+## @internal
+sub _logTrafficUsage
+{
+	my ($server,$accountUsage,$trafficLimit,$trafficTopup) = @_;
+
+
+	# Check if our limit is defined
+	if (defined($trafficLimit)) {
+		# If so, check if its > 0, which would depict its capped
+		if ($trafficLimit > 0) {
+			$server->log(LOG_DEBUG,"[MOD_FEATURE_CAPPING] Bandwidth => Usage total: ".$accountingUsage->{'TotalDataUsage'}.
+					"Mb (Cap: ".$trafficLimit."Mb, Topups: ".$trafficTopup."Mb)");
+		} else {
+			$server->log(LOG_DEBUG,"[MOD_FEATURE_CAPPING] Bandwidth => Usage total: ".$accountingUsage->{'TotalDataUsage'}.
+					"Mb (Cap: Uncapped, Topups: ".$trafficTopup."Mb)");
+		}
+	} else {
+		$server->log(LOG_DEBUG,"[MOD_FEATURE_CAPPING] Bandwidth => Usage total: ".$accountingUsage->{'TotalDataUsage'}.
+				"Mb (Cap: Prepaid, Topups: ".$trafficTopup."Mb)");
 	}
 
 	return undef;
