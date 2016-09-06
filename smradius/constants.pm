@@ -22,15 +22,17 @@
 package smradius::constants;
 
 use strict;
+use warnings;
+
+
 
 # Exporter stuff
-require Exporter;
-our (@ISA,@EXPORT,@EXPORT_OK);
-@ISA = qw(Exporter);
+use base qw(Exporter);
+our (@EXPORT,@EXPORT_OK);
 @EXPORT = qw(
 	RES_OK
 	RES_ERROR
-	
+
 	MOD_RES_ACK
 	MOD_RES_NACK
 	MOD_RES_SKIP
@@ -47,7 +49,7 @@ use constant {
 	MOD_RES_SKIP => 0,
 	MOD_RES_ACK => 1,
 	MOD_RES_NACK => 2,
-	
+
 	UINT_MAX => 2**32
 };
 

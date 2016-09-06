@@ -94,7 +94,7 @@ sub isBoolean
 
 	# Check if we're defined
 	if (!defined($var)) {
-		return undef;
+		return;
 	}
 
 	# Nuke whitespaces
@@ -109,7 +109,7 @@ sub isBoolean
 	}
 
 	# Invalid or unknown
-	return undef;
+	return;
 }
 
 

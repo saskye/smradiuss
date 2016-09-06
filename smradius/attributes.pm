@@ -24,9 +24,8 @@ use strict;
 use warnings;
 
 # Exporter stuff
-require Exporter;
-our (@ISA,@EXPORT);
-@ISA = qw(Exporter);
+use base qw(Exporter);
+our (@EXPORT);
 @EXPORT = qw(
 	addAttribute
 	checkAuthAttribute
@@ -135,7 +134,7 @@ sub addAttribute
 	}
 
 	# Process the item incase its a config attribute
-	processConfigAttribute($server,$user,$attribute);
+	return processConfigAttribute($server,$user,$attribute);
 }
 
 
@@ -758,6 +757,8 @@ sub addAttributeConditionalVariable
 
 	print(STDERR "CONDITIONAL VARIABLE:  $name => $value\n");
 	$user->{'AttributeConditionalVariables'}->{$name} = [ $value ];
+
+	return;
 }
 
 
@@ -787,7 +788,7 @@ sub processConditional
 
 	# Create the environment
 	my @error;
-	my $mathEnv = new Math::Expression(
+	my $mathEnv = Math::Expression->new(
 			'PrintErrFunc' => sub { @error = @_ },
 			'VarHash' => $user->{'AttributeConditionalVariables'}
 	);

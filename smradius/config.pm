@@ -24,9 +24,8 @@ use strict;
 use warnings;
 
 # Exporter stuff
-require Exporter;
-our (@ISA,@EXPORT);
-@ISA = qw(Exporter);
+use base qw(Exporter);
+our (@EXPORT);
 @EXPORT = qw(
 );
 
@@ -68,7 +67,7 @@ sub Init
 	} else {
 		$server->{'smradius'}{'event_timezone'} = "GMT";
 	}
-		
+
 	# Should we use the packet timestamp?
 	if (defined($config->{'radius'}{'use_packet_timestamp'})) {
 		if ($config->{'radius'}{'use_packet_timestamp'} =~ /^\s*(yes|true|1)\s*$/i) {
@@ -81,7 +80,7 @@ sub Init
 	} else {
 		$server->{'smradius'}{'use_packet_timestamp'} = 0;
 	}
-		
+
 	# Should we use abuse prevention?
 	if (defined($config->{'radius'}{'use_abuse_prevention'})) {
 		if ($config->{'radius'}{'use_abuse_prevention'} =~ /^\s*(yes|true|1)\s*$/i) {
@@ -112,13 +111,15 @@ sub Init
 	} else {
 		$server->{'smradius'}{'accounting_request_abuse_threshold'} = 5;
 	}
-		
+
 	$server->log(LOG_NOTICE,"smradius/config.pm: Using ". ( $server->{'smradius'}{'use_packet_timestamp'} ? 'packet' : 'server' ) ." timestamp");
 	$server->log(LOG_NOTICE,"smradius/config.pm: Using timezone '".$server->{'smradius'}{'event_timezone'}."'");
 	$server->log(LOG_NOTICE,"smradius/config.pm: Abuse prevention ".( $server->{'smradius'}{'use_abuse_prevention'} ? 
 			'active (access-threshold = '.$server->{'smradius'}{'access_request_abuse_threshold'}.
 			', accounting-threshold = '.$server->{'smradius'}{'accounting_request_abuse_threshold'}.')'
 			: 'inactive'));
+
+	return;
 }
 
 
