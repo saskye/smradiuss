@@ -38,7 +38,7 @@ use smradius::constants;
 use smradius::logging;
 use Crypt::DES;
 use Crypt::RC4;
-use Digest::SHA1;
+use Digest::SHA;
 use Digest::MD4 qw( md4 );
 use Digest::MD5 qw( );
 
@@ -328,7 +328,7 @@ sub ChallengeHash
 
 
 	# SHA encryption
-	my $sha = Digest::SHA1->new();
+	my $sha = Digest::SHA->new();
 	$sha->add($PeerChallenge);
 	$sha->add($AuthenticatorChallenge);
 	$sha->add($UserName);
@@ -565,7 +565,7 @@ sub GenerateAuthenticatorResponse
 	my $PasswordHashHash = HashNtPasswordHash($PasswordHash);
 		
 	# SHA encryption
-	my $sha = Digest::SHA1->new();
+	my $sha = Digest::SHA->new();
 	$sha->add($PasswordHashHash);
 	$sha->add($NTResponse);
 	foreach my $item (@Magic1) {
@@ -575,7 +575,7 @@ sub GenerateAuthenticatorResponse
 
 	my $Challenge = ChallengeHash($PeerChallenge, $AuthenticatorChallenge, $UserName);
 
-	$sha = Digest::SHA1->new();
+	$sha = Digest::SHA->new();
 	$sha->add($Digest);
 	$sha->add($Challenge);
 	foreach my $item (@Magic2) {
@@ -849,7 +849,7 @@ sub GetMasterKey
 		 "68", "65", "20", "4d", "50", "50", "45", "20", "4d",
 		 "61", "73", "74", "65", "72", "20", "4b", "65", "79");
 
-	my $sha = Digest::SHA1->new();
+	my $sha = Digest::SHA->new();
 	$sha->add($PasswordHashHash);
 	$sha->add($NTResponse);
 	foreach my $item (@Magic1) {
@@ -962,7 +962,7 @@ sub GetAsymmetricStartKey
 		}
 	}
 
-	my $sha = Digest::SHA1->new();
+	my $sha = Digest::SHA->new();
 	$sha->add($MasterKey);
 	foreach my $item (@SHSpad1) {
 		$sha->add(pack("H*",$item));
