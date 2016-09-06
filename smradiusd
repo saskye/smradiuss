@@ -21,7 +21,7 @@ use strict;
 use warnings;
 
 use lib('/usr/local/lib/smradius-0.0','/usr/lib/smradius-0.0',
-        '/usr/lib64/smradius-0.0','smradius','awitpt');
+	'/usr/lib64/smradius-0.0','smradius','awitpt');
 
 package smradiusd;
 
@@ -49,11 +49,15 @@ if (!eval {require Cache::FastMmap; 1;}) {
 	print STDERR "You're missing DateTime, try 'apt-get install libcache-fastmmap-perl'\n";
 	exit 1;
 } else {
-	eval "use awitpt::cache;";
+	eval {use awitpt::cache;};
 }
 
 
-eval "use base qw(Net::Server::PreFork);";
+## no critic (BuiltinFunctions::ProhibitStringyEval)
+eval qq{
+	use base qw(Net::Server::PreFork);
+};
+## use critic
 use Getopt::Long;
 use Sys::Syslog;
 use Time::HiRes qw( gettimeofday tv_interval );
@@ -325,6 +329,8 @@ sub configure {
 	$self->{'config'} = $cfg;
 	$self->{'cmdline'} = $cmdline;
 	$self->{'inifile'} = \%config;
+
+	return;
 }
 
 
@@ -344,7 +350,7 @@ sub post_configure_hook {
 
 	# Load dictionaries
 	$self->log(LOG_INFO,"[SMRADIUS] Initializing dictionaries...");
-	my $dict = new Radius::Dictionary;
+	my $dict = Radius::Dictionary->new();
 	foreach my $df (@{$config->{'dictionary_list'}}) {
 		# Load dictionary
 		if (!$dict->readfile($df)) {
@@ -364,10 +370,12 @@ sub post_configure_hook {
 		my ($mod_dir,$mod_name) = ($1,$2);
 
 		# Load module
-		my $res = eval("
+		## no critic (BuiltinFunctions::ProhibitStringyEval)
+		my $res = eval qq{
 			use smradius::modules::${mod_dir}::${mod_name};
 			plugin_register(\$self,\"${mod_name}\",\$smradius::modules::${mod_dir}::${mod_name}::pluginInfo);
-		");
+		};
+		## use critic
 		if ($@ || (defined($res) && $res != 0)) {
 			$self->log(LOG_WARN,"[SMRADIUS] Error loading module $module ($@)");
 		} else {
@@ -386,6 +394,7 @@ sub post_configure_hook {
 
 	$self->log(LOG_INFO,"[SMRADIUS] System modules initialized.");
 
+	return;
 }
 
 
@@ -449,6 +458,7 @@ sub child_init_hook
 		}
 	}
 
+	return;
 }
 
 
@@ -462,6 +472,8 @@ sub child_finish_hook {
 
 	$self->log(LOG_INFO,"[SMRADIUS] Shutting down caching engine ($$)");
 	awitpt::cache::disconnect($self);
+
+	return;
 }
 
 
@@ -491,7 +503,7 @@ sub process_request {
 	my $now = time();
 
 	# Parse packet
-	my $pkt = new Radius::Packet($self->{'radius'}->{'dictionary'},$udp_packet);
+	my $pkt = Radius::Packet->new($self->{'radius'}->{'dictionary'},$udp_packet);
 
 	# VERIFY SOURCE SERVER
 	$self->log(LOG_DEBUG,"[SMRADIUS] Packet From = > ".$server->{'peeraddr'});
@@ -870,7 +882,7 @@ sub process_request {
 
 						# Create socket to send packet out on
 						my $podServerTimeout = "10";  # 10 second timeout
-						my $podSock = new IO::Socket::INET(
+						my $podSock = IO::Socket::INET->new(
 								PeerAddr => $podServer,
 								PeerPort => $podServerPort,
 								Type => SOCK_DGRAM,
@@ -890,7 +902,7 @@ sub process_request {
 						}
 
 						# Once sent, we need to get a response back
-						my $sh = new IO::Select($podSock);
+						my $sh = IO::Select->new($podSock);
 						if (!$sh) {
 							$self->log(LOG_ERR,"[SMRADIUS] POST-ACCT: Failed to select data on socket");
 							next;
@@ -1261,14 +1273,17 @@ sub server_exit
 
 	# Parent exit
 	$self->SUPER::server_exit();
+
+	return;
 }
 
 
 
 # Slightly better logging
-sub log
+sub log ## no critic (Subroutines::ProhibitBuiltinHomonyms)
 {
 	my ($self,$level,$msg,@args) = @_;
+
 
 	# Check log level and set text
 	my $logtxt = "UNKNOWN";
@@ -1295,7 +1310,8 @@ sub log
 	if (@args > 0) {
 		$msg = sprintf($msg,@args);
 	}
-	$self->SUPER::log($level,"[".$self->log_time." - $$] $msg");
+
+	return $self->SUPER::log($level,"[".$self->log_time." - $$] $msg");
 }
 
 
@@ -1312,6 +1328,8 @@ Usage: $0 [args]
     --fg                   Don't go into background
 
 EOF
+
+	return;
 }
 
 

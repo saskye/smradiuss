@@ -20,7 +20,8 @@ use strict;
 use warnings;
 
 use lib('/usr/local/lib/smradius-0.0','/usr/lib/smradius-0.0',
-        '/usr/lib64/smradius-0.0','smradius','awitpt');
+	'/usr/lib64/smradius-0.0','smradius','awitpt');
+
 
 # Check Config::IniFiles is instaslled
 if (!eval {require Config::IniFiles; 1;}) {
@@ -45,6 +46,8 @@ Usage: $0 [args] <server> <acct|auth|disconnect> <secret>
     --raddb                Directory where the radius dictionary files are
 
 EOF
+
+	return;
 }
 
 
@@ -73,9 +76,9 @@ if ($cmdline->{'help'}) {
 
 # Make sure we only have 2 additional args
 if (@ARGV > 3 || @ARGV < 3) {
-        print(STDERR "ERROR: Invalid number of arguments\n\n");
-        displayHelp();
-        exit 1;
+	print(STDERR "ERROR: Invalid number of arguments\n\n");
+	displayHelp();
+	exit 1;
 }
 
 if (!defined($cmdline->{'raddb'}) || $cmdline->{'raddb'} eq "") {
@@ -119,7 +122,7 @@ print(STDERR "\n");
 
 # Time to start loading the dictionary
 print(STDERR "Loading dictionaries...");
-my $raddb = new Radius::Dictionary;
+my $raddb = Radius::Dictionary->new();
 
 # Look for filesi n the dir
 opendir(DIR, $cmdline->{'raddb'})
@@ -167,7 +170,7 @@ $pkt->set_authenticator($authen);
 print(STDERR " > Authenticator: $ident\n");
 
 # Pull in attributes
-while (my $line = <STDIN>) {
+while (my $line = <>) {
 	# Remove EOL
 	chomp($line);
 	# Split on , and newline
@@ -190,7 +193,7 @@ my $udp_packet = $pkt->pack();
 
 # Create socket to send packet out on
 my $sockTimeout = "10";  # 10 second timeout
-my $sock = new IO::Socket::INET(
+my $sock = IO::Socket::INET->new(
 		PeerAddr => $server,
 		PeerPort => $port,
 		Type => SOCK_DGRAM,
@@ -213,7 +216,7 @@ if (!$sock->send($udp_packet)) {
 print(STDERR "\nResponse:\n");
 
 # Once sent, we need to get a response back
-my $rsock = new IO::Select($sock);
+my $rsock = IO::Select->new($sock);
 if (!$rsock) {
 	print(STDERR "ERROR: Failed to select response data on socket\n");
 	exit 1;
@@ -233,7 +236,7 @@ if (!$udp_packet) {
 }
 
 # Parse packet
-$pkt = new Radius::Packet($raddb,$udp_packet);
+$pkt = Radius::Packet->new($raddb,$udp_packet);
 print(STDERR " > Authenticated: ". (defined(auth_req_verify($udp_packet,$secret,$authen)) ? "yes" : "no") ."\n");
 print(STDERR $pkt->str_dump());
 

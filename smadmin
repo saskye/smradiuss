@@ -278,7 +278,7 @@ sub loadModules
 	}
 
 	# Emulate server
-	$server = new smserver;
+	$server = smserver->new();
 	$server->{'inifile'} = \%config;
 	# Init everything
 	$server->init();
@@ -290,16 +290,20 @@ sub loadModules
 		my ($mod_dir,$mod_name) = ($1,$2);
 
 		# Load module
-		my $res = eval("
+		## no critic (BuiltinFunctions::ProhibitStringyEval)
+		my $res = eval qq{
 			use smradius::modules::${mod_dir}::${mod_name};
 			plugin_register(\$server,\"${mod_name}\",\$smradius::modules::${mod_dir}::${mod_name}::pluginInfo);
-		");
+		};
+		## use critic
 		if ($@ || (defined($res) && $res != 0)) {
 			$server->log(LOG_ERR,"WARNING: Error loading module $module ($@)");
 		} else {
 			$server->log(LOG_DEBUG,"[SMRADIUS] Plugin '$module' loaded.");
 		}
 	}
+
+	return;
 }
 
 
@@ -318,6 +322,8 @@ Usage: $0 [args]
     --reset-userdata       Reset user data counters in addition to --cleanup
 
 EOF
+
+	return;
 }
 
 
@@ -366,7 +372,10 @@ sub init
 	}
 	# Setup database handle
 	awitpt::db::dblayer::setHandle($self->{'client'}->{'dbh'});
+
+	return;
 }
+
 
 
 # Same format as Net::Server
@@ -376,7 +385,10 @@ sub log_time {
 			$year+1900, $mon+1, $day, $hour, $min, $sec);
 }
 
-sub log
+
+
+
+sub log ## no critic (Subroutines::ProhibitBuiltinHomonyms)
 {
 	my ($self,$level,$msg,@args) = @_;
 
@@ -407,6 +419,8 @@ sub log
 	}
 	# FIXME: we shouldn't ignore $level
 	print(STDERR "[".log_time()." - $$] $msg\n");
+
+	return;
 }
 
 
