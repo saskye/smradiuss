@@ -1,0 +1,11 @@
+stages:
+  - default
+
+publish:
+  stage: default
+  script:
+    - apt-get update
+    - apt-get dist-upgrade -y
+    - apt-get install -y libperl-critic-perl
+    - perlcritic -4 "$CI_PROJECT_DIR"
+
