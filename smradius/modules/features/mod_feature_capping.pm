@@ -1,16 +1,16 @@
 # Capping support
-# Copyright (C) 2007-2011, AllWorldIT
-# 
+# Copyright (C) 2007-2016, AllWorldIT
+#
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; either version 2 of the License, or
 # (at your option) any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
@@ -61,6 +61,8 @@ my $TIME_TOPUPS_KEY = 'SMRadius-Capping-Uptime-Topup';
 
 my $config;
 
+
+
 ## @internal
 # Initialize module
 sub init
@@ -89,6 +91,7 @@ sub init
 }
 
 
+
 ## @post_auth_hook($server,$user,$packet)
 # Post authentication hook
 #
@@ -106,6 +109,7 @@ sub post_auth_hook
 	return MOD_RES_SKIP if ($user->{'_UserDB'}->{'Name'} eq "SQL User Database (MAC authentication)");
 
 	$server->log(LOG_DEBUG,"[MOD_FEATURE_CAPPING] POST AUTH HOOK");
+
 
 	#
 	# Get limits from attributes
@@ -182,11 +186,9 @@ sub post_auth_hook
 		}
 	}
 
-
 	#
 	# Get valid traffic and uptime topups
 	#
-
 
 	# Check if there was any data returned at all
 	my $uptimeTopup = 0;
@@ -225,10 +227,10 @@ sub post_auth_hook
 		}
 	}
 
+
 	#
 	# Set the new uptime and traffic limits (limit, if any.. + topups)
 	#
-
 
 	# Uptime..
 	my $alteredUptimeLimit = 0;
@@ -263,7 +265,6 @@ sub post_auth_hook
 	# Display our usages
 	#
 
-
 	# Uptime..
 	if (!(defined($uptimeLimit) && $uptimeLimit == 0)) {
 		if (!defined($uptimeLimit)) {
@@ -295,6 +296,7 @@ sub post_auth_hook
 	# Add attribute conditionals BEFORE override
 	addAttributeConditionalVariable($user,"SMRadius_Capping_TotalDataUsage",$accountingUsage->{'TotalDataUsage'});
 	addAttributeConditionalVariable($user,"SMRadius_Capping_TotalSessionTime",$accountingUsage->{'TotalSessionTime'});
+
 
 	#
 	# Allow for capping overrides by client attribute
@@ -333,7 +335,6 @@ sub post_auth_hook
 	#
 	# Check if we've exceeded our limits
 	#
-
 
 	# Uptime..
 	if (!(defined($uptimeLimit) && $uptimeLimit == 0)) {
@@ -401,6 +402,7 @@ sub post_auth_hook
 
 	return MOD_RES_ACK;
 }
+
 
 
 ## @post_acct_hook($server,$user,$packet)
@@ -508,7 +510,6 @@ sub post_acct_hook
 	# Get valid traffic and uptime topups
 	#
 
-
 	# Check if there was any data returned at all
 	my $uptimeTopup = 0;
 	if (defined($user->{'ConfigAttributes'}->{$TIME_TOPUPS_KEY})) {
@@ -584,7 +585,6 @@ sub post_acct_hook
 	# Display our usages
 	#
 
-
 	# Uptime..
 	if (!(defined($uptimeLimit) && $uptimeLimit == 0)) {
 		if (!defined($uptimeLimit)) {
@@ -618,6 +618,7 @@ sub post_acct_hook
 	addAttributeConditionalVariable($user,"SMRadius_Capping_TotalDataUsage",$accountingUsage->{'TotalDataUsage'});
 	addAttributeConditionalVariable($user,"SMRadius_Capping_TotalSessionTime",$accountingUsage->{'TotalSessionTime'});
 
+
 	#
 	# Allow for capping overrides by client attribute
 	#
@@ -641,7 +642,6 @@ sub post_acct_hook
 	#
 	# Check if we've exceeded our limits
 	#
-
 
 	# Uptime..
 	if (!(defined($uptimeLimit) && $uptimeLimit == 0)) {
