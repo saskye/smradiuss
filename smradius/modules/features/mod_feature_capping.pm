@@ -115,75 +115,17 @@ sub post_auth_hook
 	# Get limits from attributes
 	#
 
+	my $uptimeLimit = _getAttributeKeyLimit($server,$user,$UPTIME_LIMIT_KEY);
+	my $trafficLimit = _getAttributeKeyLimit($server,$user,$TRAFFIC_LIMIT_KEY);
 
-	# Check if there is an uptime limit
-	my $uptimeLimit;
-	if (defined($user->{'Attributes'}->{$UPTIME_LIMIT_KEY})) {
-		$server->log(LOG_DEBUG,"[MOD_FEATURE_CAPPING] '".$UPTIME_LIMIT_KEY."' is defined");
-
-		# Check for valid attribute operator: ':='
-		if (defined($user->{'Attributes'}->{$UPTIME_LIMIT_KEY}->{':='})) {
-
-			# Check for valid attribute value
-			if (defined($user->{'Attributes'}->{$UPTIME_LIMIT_KEY}->{':='}->{'Value'}) &&
-					$user->{'Attributes'}->{$UPTIME_LIMIT_KEY}->{':='}->{'Value'} =~ /^\d+$/) {
-
-				$uptimeLimit = $user->{'Attributes'}->{$UPTIME_LIMIT_KEY}->{':='}->{'Value'};
-			} else {
-				$server->log(LOG_NOTICE,"[MOD_FEATURE_CAPPING] '".$user->{'Attributes'}->{$UPTIME_LIMIT_KEY}->{':='}->{'Value'}.
-						"' is NOT a numeric value");
-			}
-
-		} else {
-			$server->log(LOG_NOTICE,"[MOD_FEATURE_CAPPING] No valid operators for attribute '".
-					$user->{'Attributes'}->{$UPTIME_LIMIT_KEY}."'");
-		}
-	}
-
-	# Check if there is a traffic limit
-	my $trafficLimit;
-	if (defined($user->{'Attributes'}->{$TRAFFIC_LIMIT_KEY})) {
-		$server->log(LOG_DEBUG,"[MOD_FEATURE_CAPPING] '".$TRAFFIC_LIMIT_KEY."' is defined");
-
-		# Check for valid attribute operator: ':='
-		if (defined($user->{'Attributes'}->{$TRAFFIC_LIMIT_KEY}->{':='})) {
-
-			# Check for valid attribute value
-			if (defined($user->{'Attributes'}->{$TRAFFIC_LIMIT_KEY}->{':='}->{'Value'}) &&
-					$user->{'Attributes'}->{$TRAFFIC_LIMIT_KEY}->{':='}->{'Value'} =~ /^\d+$/) {
-
-				$trafficLimit = $user->{'Attributes'}->{$TRAFFIC_LIMIT_KEY}->{':='}->{'Value'};
-			} else {
-				$server->log(LOG_NOTICE,"[MOD_FEATURE_CAPPING] '".$user->{'Attributes'}->{$TRAFFIC_LIMIT_KEY}->{':='}->{'Value'}.
-						"' is NOT a numeric value");
-			}
-
-		} else {
-			$server->log(LOG_NOTICE,"[MOD_FEATURE_CAPPING] No valid operators for attribute '".
-					$user->{'Attributes'}->{$TRAFFIC_LIMIT_KEY}."'");
-		}
-	}
 
 	#
 	# Get current traffic and uptime usage
 	#
 
-
-	# Loop with plugins to find anything supporting getting of usage
-	my $accountingUsage;
-	foreach my $module (@{$server->{'module_list'}}) {
-		# Do we have the correct plugin?
-		if ($module->{'Accounting_getUsage'}) {
-			$server->log(LOG_INFO,"[MOD_FEATURE_CAPPING] Found plugin: '".$module->{'Name'}."'");
-			# Fetch users session uptime & bandwidth used
-			my $res = $module->{'Accounting_getUsage'}($server,$user,$packet);
-			if (!defined($res)) {
-				$server->log(LOG_ERR,"[MOD_FEATURE_CAPPING] No usage data found for user '".$user->{'Username'}."'");
-				return MOD_RES_SKIP;
-			}
-
-			$accountingUsage = $res;
-		}
+	my $accountingUsage = _getAccountingUsage($server,$user,$packet);
+	if (!defined($accountingUsage)) {
+		return MOD_RES_SKIP;
 	}
 
 	#
@@ -434,75 +376,17 @@ sub post_acct_hook
 	# Get limits from attributes
 	#
 
+	my $uptimeLimit = _getAttributeKeyLimit($server,$user,$UPTIME_LIMIT_KEY);
+	my $trafficLimit = _getAttributeKeyLimit($server,$user,$TRAFFIC_LIMIT_KEY);
 
-	# Check if there is an uptime limit
-	my $uptimeLimit;
-	if (defined($user->{'Attributes'}->{$UPTIME_LIMIT_KEY})) {
-		$server->log(LOG_DEBUG,"[MOD_FEATURE_CAPPING] '".$UPTIME_LIMIT_KEY."' is defined");
-
-		# Check for valid attribute operator: ':='
-		if (defined($user->{'Attributes'}->{$UPTIME_LIMIT_KEY}->{':='})) {
-
-			# Check for valid attribute value
-			if (defined($user->{'Attributes'}->{$UPTIME_LIMIT_KEY}->{':='}->{'Value'}) &&
-					$user->{'Attributes'}->{$UPTIME_LIMIT_KEY}->{':='}->{'Value'} =~ /^\d+$/) {
-
-				$uptimeLimit = $user->{'Attributes'}->{$UPTIME_LIMIT_KEY}->{':='}->{'Value'};
-			} else {
-				$server->log(LOG_NOTICE,"[MOD_FEATURE_CAPPING] '".$user->{'Attributes'}->{$UPTIME_LIMIT_KEY}->{':='}->{'Value'}.
-						"' is NOT a numeric value");
-			}
-
-		} else {
-			$server->log(LOG_NOTICE,"[MOD_FEATURE_CAPPING] No valid operators for attribute '".
-					$user->{'Attributes'}->{$UPTIME_LIMIT_KEY}."'");
-		}
-	}
-
-	# Check if there is a traffic limit
-	my $trafficLimit;
-	if (defined($user->{'Attributes'}->{$TRAFFIC_LIMIT_KEY})) {
-		$server->log(LOG_DEBUG,"[MOD_FEATURE_CAPPING] '".$TRAFFIC_LIMIT_KEY."' is defined");
-
-		# Check for valid attribute operator: ':='
-		if (defined($user->{'Attributes'}->{$TRAFFIC_LIMIT_KEY}->{':='})) {
-
-			# Check for valid attribute value
-			if (defined($user->{'Attributes'}->{$TRAFFIC_LIMIT_KEY}->{':='}->{'Value'}) &&
-					$user->{'Attributes'}->{$TRAFFIC_LIMIT_KEY}->{':='}->{'Value'} =~ /^\d+$/) {
-
-				$trafficLimit = $user->{'Attributes'}->{$TRAFFIC_LIMIT_KEY}->{':='}->{'Value'};
-			} else {
-				$server->log(LOG_NOTICE,"[MOD_FEATURE_CAPPING] '".$user->{'Attributes'}->{$TRAFFIC_LIMIT_KEY}->{':='}->{'Value'}.
-						"' is NOT a numeric value");
-			}
-
-		} else {
-			$server->log(LOG_NOTICE,"[MOD_FEATURE_CAPPING] No valid operators for attribute '".
-					$user->{'Attributes'}->{$TRAFFIC_LIMIT_KEY}."'");
-		}
-	}
 
 	#
 	# Get current traffic and uptime usage
 	#
-
-
-	# Loop with plugins to find anything supporting getting of usage
-	my $accountingUsage;
-	foreach my $module (@{$server->{'module_list'}}) {
-		# Do we have the correct plugin?
-		if ($module->{'Accounting_getUsage'}) {
-			$server->log(LOG_INFO,"[MOD_FEATURE_CAPPING] Found plugin: '".$module->{'Name'}."'");
-			# Fetch users session uptime & bandwidth used
-			my $res = $module->{'Accounting_getUsage'}($server,$user,$packet);
-			if (!defined($res)) {
-				$server->log(LOG_ERR,"[MOD_FEATURE_CAPPING] No usage data found for user '".$user->{'Username'}."'");
-				return MOD_RES_SKIP;
-			}
-
-			$accountingUsage = $res;
-		}
+	#
+	my $accountingUsage = _getAccountingUsage($server,$user,$packet);
+	if (!defined($accountingUsage)) {
+		return MOD_RES_SKIP;
 	}
 
 
@@ -666,6 +550,62 @@ sub post_acct_hook
 	}
 
 	return MOD_RES_ACK;
+}
+
+
+
+## @internal
+# Code snippet to grab the current uptime limit by processing the user attributes
+sub _getAttributeKeyLimit
+{
+	my ($server,$user,$attributeKey) = @_;
+
+
+	# Short circuit return if we don't have the uptime key set
+	return undef if (!defined($user->{'Attributes'}->{$$attributeKey}));
+
+	# Short circuit if we do not have a valid attribute operator: ':='
+	if (!defined($user->{'Attributes'}->{$$attributeKey}->{':='})) {
+		$server->log(LOG_NOTICE,"[MOD_FEATURE_CAPPING] No valid operators for attribute '".
+				$user->{'Attributes'}->{$$attributeKey}."'");
+		return undef;
+	}
+
+	$server->log(LOG_DEBUG,"[MOD_FEATURE_CAPPING] '".$$attributeKey."' is defined");
+
+	# Check for valid attribute value
+	if (!defined($user->{'Attributes'}->{$$attributeKey}->{':='}->{'Value'}) ||
+			$user->{'Attributes'}->{$$attributeKey}->{':='}->{'Value'} !~ /^\d+$/) {
+		$server->log(LOG_NOTICE,"[MOD_FEATURE_CAPPING] '".$user->{'Attributes'}->{$$attributeKey}->{':='}->{'Value'}.
+				"' is NOT a numeric value");
+		return undef;
+	}
+
+	return $user->{'Attributes'}->{$$attributeKey}->{':='}->{'Value'};
+}
+
+
+
+## @internal
+# Code snippet to grab the current accounting usage of a user
+sub _getAccountingUsage
+{
+	my ($server,$user,$packet) = @_;
+
+
+	foreach my $module (@{$server->{'module_list'}}) {
+		# Do we have the correct plugin?
+		if (defined($module->{'Accounting_getUsage'})) {
+			$server->log(LOG_INFO,"[MOD_FEATURE_CAPPING] Found plugin: '".$module->{'Name'}."'");
+			# Fetch users session uptime & bandwidth used
+			if (my $res = $module->{'Accounting_getUsage'}($server,$user,$packet)) {
+				return $res;
+			}
+			$server->log(LOG_ERR,"[MOD_FEATURE_CAPPING] No usage data found for user '".$user->{'Username'}."'");
+		}
+	}
+
+	return undef;
 }
 
 
