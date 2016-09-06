@@ -206,8 +206,8 @@ sub post_auth_hook
 	#
 	# Display our usages
 	#
-	_logUptimeUsage($server,$accountUsage,$uptimeLimit,$uptimeTopup);
-	_logTrafficUsage($server,$accountUsage,$trafficLimit,$trafficToup);
+	_logUptimeUsage($server,$accountingUsage,$uptimeLimit,$uptimeTopup);
+	_logTrafficUsage($server,$accountingUsage,$trafficLimit,$trafficTopup);
 
 
 	#
@@ -450,8 +450,8 @@ sub post_acct_hook
 	# Display our usages
 	#
 
-	_logUptimeUsage($server,$accountUsage,$uptimeLimit,$uptimeTopup);
-	_logTrafficUsage($server,$accountUsage,$trafficLimit,$trafficToup);
+	_logUptimeUsage($server,$accountingUsage,$uptimeLimit,$uptimeTopup);
+	_logTrafficUsage($server,$accountingUsage,$trafficLimit,$trafficTopup);
 
 
 	#
@@ -574,7 +574,7 @@ sub _getAccountingUsage
 # Code snippet to log our uptime details
 sub _logUptimeUsage
 {
-	my ($server,$accountUsage,$uptimeLimit,$uptimeTopup) = @_;
+	my ($server,$accountingUsage,$uptimeLimit,$uptimeTopup) = @_;
 
 
 	# Check if our limit is defined
@@ -600,7 +600,7 @@ sub _logUptimeUsage
 ## @internal
 sub _logTrafficUsage
 {
-	my ($server,$accountUsage,$trafficLimit,$trafficTopup) = @_;
+	my ($server,$accountingUsage,$trafficLimit,$trafficTopup) = @_;
 
 
 	# Check if our limit is defined
