@@ -7,5 +7,5 @@ publish:
     - apt-get update
     - apt-get dist-upgrade -y
     - apt-get install -y libperl-critic-perl
-    - perlcritic -4 "$CI_PROJECT_DIR"
+    - perlcritic --gentle "$CI_PROJECT_DIR"
 
