@@ -1,16 +1,16 @@
 # Topup support
-# Copyright (C) 2007-2011, AllWorldIT
-# 
+# Copyright (C) 2007-2016, AllWorldIT
+#
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; either version 2 of the License, or
 # (at your option) any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
@@ -116,7 +116,7 @@ sub init
 			AND @TP@topups.Depleted = 0
 			AND @TP@users.Username = ?
 	';
-	
+
 
 	# Setup SQL queries
 	if (defined($scfg->{'mod_config_sql_topups'})) {
@@ -137,7 +137,7 @@ sub init
 			} else {
 				$config->{'get_topups_query'} = $scfg->{'mod_config_sql_topups'}->{'get_topups_query'};
 			}
-			
+
 		}
 	}
 }
@@ -201,7 +201,6 @@ sub getTopups
 	while (my $row = hashifyLCtoMC($sth->fetchrow_hashref(), qw(ID Type Value))) {
 		_trafficSummaryAdd($trafficSummaries,$row,'Value');
 	}
-
 	DBFreeRes($sth);
 
 	# Save configuration for the user
@@ -264,7 +263,7 @@ sub cleanup
 
 	# Finished for now
 	DBFreeRes($sth);
-	
+
 	# Start of multiple queries
 	DBBegin();
 
@@ -373,7 +372,7 @@ sub cleanup
 		}
 		DBFreeRes($sth);
 
-		# Log the summary	
+		# Log the summary
 		$server->log(LOG_NOTICE,"[MOD_CONFIG_SQL_TOPUPS] Cleanup => Username '%s', PeriodKey '%s', TotalSessionTime '%s', ".
 				" TotalDataUsage '%s'",$username,$prevPeriodKey,$usageTotals{'TotalSessionTime'}->bstr(),
 				$usageTotals{'TotalDataUsage'}->bstr(),	$usageTotals{'TotalDataUsage'}->bstr());
@@ -533,7 +532,7 @@ sub cleanup
 				my $unix_validTo = str2time($row->{'ValidTo'});
 				# Process traffic topup
 				if (_isTrafficTopup($row->{'Type'})) {
-					push(@trafficSummary, { 
+					push(@trafficSummary, {
 							TopupID => $row->{'TopupID'},
 							Balance => $row->{'Balance'},
 							ValidTo => $unix_validTo,
@@ -549,7 +548,7 @@ sub cleanup
 
 				# Process uptime topup
 				} elsif (_isUptimeTopup($row->{'Type'})) {
-					push(@uptimeSummary, { 
+					push(@uptimeSummary, {
 							TopupID => $row->{'TopupID'},
 							Balance => $row->{'Balance'},
 							ValidTo => $unix_validTo,
@@ -818,7 +817,7 @@ sub cleanup
 		# User has started using topup uptime..
 		if ($uptimeOverUsage > 0) {
 			$server->log(LOG_NOTICE,"[MOD_CONFIG_SQL_TOPUPS] Cleanup =>     UPTIME OVERAGE: $uptimeOverUsage");
-			
+
 			# Sort topups first expiring first
 			my @sortedUptimeSummary = sort { $a->{'ValidTo'} cmp $b->{'ValidTo'} } @uptimeSummary;
 
