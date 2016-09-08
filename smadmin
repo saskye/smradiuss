@@ -24,7 +24,7 @@ use warnings;
 # Set library directory
 use lib qw(
 	smradius
-	awitpt
+	awitpt/lib
 );
 
 
@@ -337,8 +337,8 @@ use warnings;
 
 use smradius::logging;
 use smradius::config;
-use awitpt::db::dbilayer;
-use awitpt::db::dblayer;
+use AWITPT::DB::DBILayer;
+use AWITPT::DB::DBLayer;
 
 # Return oursevles
 sub new
@@ -361,9 +361,9 @@ sub init
 	smradius::config::Init($self);
 
 	# Init system stuff
-	$self->{'client'}->{'dbh'} = awitpt::db::dbilayer::Init($self,'smradius');
+	$self->{'client'}->{'dbh'} = AWITPT::DB::DBILayer::Init($self,'smradius');
 	if (!defined($self->{'client'}->{'dbh'})) {
-		$self->log(LOG_WARN,"Failed to Initialize: ".awitpt::db::dbilayer::internalError()." ($$)");
+		$self->log(LOG_WARN,"Failed to Initialize: ".AWITPT::DB::DBILayer::internalError()." ($$)");
 		die;
 	}
 	if ($self->{'client'}->{'dbh'}->connect()) {
@@ -371,7 +371,7 @@ sub init
 		die;
 	}
 	# Setup database handle
-	awitpt::db::dblayer::setHandle($self->{'client'}->{'dbh'});
+	AWITPT::DB::DBLayer::setHandle($self->{'client'}->{'dbh'});
 
 	return;
 }

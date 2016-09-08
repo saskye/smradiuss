@@ -22,8 +22,9 @@ use warnings;
 
 # Modules we need
 use smradius::constants;
-use awitpt::cache;
-use awitpt::db::dblayer;
+use AWITPT::Cache;
+use AWITPT::DB::DBLayer;
+use AWITPT::Util;
 use smradius::logging;
 use smradius::util;
 
@@ -353,7 +354,7 @@ sub getUsage
 	# Fetch data
 	my $sth = DBSelect(@dbDoParams);
 	if (!$sth) {
-		$server->log(LOG_ERR,"[MOD_ACCOUNTING_SQL] Database query failed: ".awitpt::db::dblayer::Error());
+		$server->log(LOG_ERR,"[MOD_ACCOUNTING_SQL] Database query failed: ".AWITPT::DB::DBLayer::Error());
 		return;
 	}
 
@@ -458,7 +459,7 @@ sub acct_log
 		# Fetch previous records of the same session
 		my $sth = DBSelect(@dbDoParams);
 		if (!$sth) {
-			$server->log(LOG_ERR,"[MOD_ACCOUNTING_SQL] Database query failed: ".awitpt::db::dblayer::Error());
+			$server->log(LOG_ERR,"[MOD_ACCOUNTING_SQL] Database query failed: ".AWITPT::DB::DBLayer::Error());
 			return;
 		}
 
@@ -549,7 +550,7 @@ sub acct_log
 		$sth = DBDo(@dbDoParams);
 		if (!$sth) {
 			$server->log(LOG_ERR,"[MOD_ACCOUNTING_SQL] Failed to update accounting ALIVE record: ".
-					awitpt::db::dblayer::Error());
+					AWITPT::DB::DBLayer::Error());
 			return MOD_RES_NACK;
 		}
 
@@ -579,7 +580,7 @@ sub acct_log
 		my $sth = DBDo(@dbDoParams);
 		if (!$sth) {
 			$server->log(LOG_ERR,"[MOD_ACCOUNTING_SQL] Failed to insert accounting START record: ".
-					awitpt::db::dblayer::Error());
+					AWITPT::DB::DBLayer::Error());
 			return MOD_RES_NACK;
 		}
 		# Update first login?
@@ -607,7 +608,7 @@ sub acct_log
 		# Update database (status)
 		my $sth = DBDo(@dbDoParams);
 		if (!$sth) {
-			$server->log(LOG_ERR,"[MOD_ACCOUNTING_SQL] Failed to update accounting STOP record: ".awitpt::db::dblayer::Error());
+			$server->log(LOG_ERR,"[MOD_ACCOUNTING_SQL] Failed to update accounting STOP record: ".AWITPT::DB::DBLayer::Error());
 			return MOD_RES_NACK;
 		}
 	}
@@ -628,7 +629,7 @@ sub fixDuplicates
 	# Select duplicates
 	my $sth = DBSelect(@dbDoParams);
 	if (!$sth) {
-		$server->log(LOG_ERR,"[MOD_ACCOUNTING_SQL] Database query failed: ".awitpt::db::dblayer::Error());
+		$server->log(LOG_ERR,"[MOD_ACCOUNTING_SQL] Database query failed: ".AWITPT::DB::DBLayer::Error());
 		return;
 	}
 
@@ -651,7 +652,7 @@ sub fixDuplicates
 		# Delete duplicates
 		$sth = DBDo(@dbDoParams);
 		if (!$sth) {
-			$server->log(LOG_ERR,"[MOD_ACCOUNTING_SQL] Database query failed: ".awitpt::db::dblayer::Error());
+			$server->log(LOG_ERR,"[MOD_ACCOUNTING_SQL] Database query failed: ".AWITPT::DB::DBLayer::Error());
 			DBRollback();
 			return;
 		}
@@ -699,7 +700,7 @@ sub cleanup
 	);
 	if (!$sth) {
 		$server->log(LOG_ERR,"[MOD_ACCOUNTING_SQL] Cleanup => Failed to delete accounting summary record: ".
-				awitpt::db::dblayer::Error());
+				AWITPT::DB::DBLayer::Error());
 		DBRollback();
 		return;
 	}
@@ -724,7 +725,7 @@ sub cleanup
 	);
 	if (!$sth) {
 		$server->log(LOG_ERR,"[MOD_ACCOUNTING_SQL] Cleanup => Failed to select accounting record: ".
-				awitpt::db::dblayer::Error());
+				AWITPT::DB::DBLayer::Error());
 		return;
 	}
 
@@ -831,7 +832,7 @@ sub cleanup
 		);
 		if (!$sth) {
 			$server->log(LOG_ERR,"[MOD_ACCOUNTING_SQL] Cleanup => Failed to create accounting summary record: ".
-					awitpt::db::dblayer::Error());
+					AWITPT::DB::DBLayer::Error());
 			DBRollback();
 			return;
 		}

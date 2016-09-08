@@ -22,9 +22,10 @@ use warnings;
 
 # Modules we need
 use smradius::constants;
-use awitpt::cache;
+use AWITPT::Cache;
 use smradius::logging;
-use awitpt::db::dblayer;
+use AWITPT::DB::DBLayer;
+use AWITPT::Util;
 use smradius::util;
 use smradius::attributes;
 
@@ -270,7 +271,7 @@ sub find
 
 	my $sth = DBSelect(@dbDoParams);
 	if (!$sth) {
-		$server->log(LOG_ERR,"[MOD_USERDB_SQL] Failed to find user data: ".awitpt::db::dblayer::Error());
+		$server->log(LOG_ERR,"[MOD_USERDB_SQL] Failed to find user data: ".AWITPT::DB::DBLayer::Error());
 		return MOD_RES_SKIP;
 	}
 
@@ -330,7 +331,7 @@ sub get
 	# Query database
 	my $sth = DBSelect(@dbDoParams);
 	if (!$sth) {
-		$server->log(LOG_ERR,"Failed to get group attributes: ".awitpt::db::dblayer::Error());
+		$server->log(LOG_ERR,"Failed to get group attributes: ".AWITPT::DB::DBLayer::Error());
 		return RES_ERROR;
 	}
 
@@ -348,7 +349,7 @@ sub get
 	# Query database
 	$sth = DBSelect(@dbDoParams);
 	if (!$sth) {
-		$server->log(LOG_ERR,"Failed to get user attributes: ".awitpt::db::dblayer::Error());
+		$server->log(LOG_ERR,"Failed to get user attributes: ".AWITPT::DB::DBLayer::Error());
 		return RES_ERROR;
 	}
 
@@ -396,7 +397,7 @@ sub data_set
 	# Query database
 	my $sth = DBDo(@dbDoParams);
 	if (!$sth) {
-		$server->log(LOG_ERR,"Failed to update users data: ".awitpt::db::dblayer::Error());
+		$server->log(LOG_ERR,"Failed to update users data: ".AWITPT::DB::DBLayer::Error());
 		return RES_ERROR;
 	}
 
@@ -407,7 +408,7 @@ sub data_set
 		# Insert
 		$sth = DBDo(@dbDoParams);
 		if (!$sth) {
-			$server->log(LOG_ERR,"Failed to set users data: ".awitpt::db::dblayer::Error());
+			$server->log(LOG_ERR,"Failed to set users data: ".AWITPT::DB::DBLayer::Error());
 			return RES_ERROR;
 		}
 	}
@@ -476,7 +477,7 @@ sub data_get
 	# Query database
 	my $sth = DBSelect(@dbDoParams);
 	if (!$sth) {
-		$server->log(LOG_ERR,"Failed to get users data: ".awitpt::db::dblayer::Error());
+		$server->log(LOG_ERR,"Failed to get users data: ".AWITPT::DB::DBLayer::Error());
 		return RES_ERROR;
 	}
 

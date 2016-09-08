@@ -22,7 +22,7 @@ use warnings;
 
 # Modules we need
 use smradius::constants;
-use awitpt::db::dblayer;
+use AWITPT::DB::DBLayer;
 use smradius::logging;
 use smradius::util;
 

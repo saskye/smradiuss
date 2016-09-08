@@ -23,9 +23,10 @@ use warnings;
 # Modules we need
 use smradius::constants;
 use smradius::logging;
-use awitpt::db::dblayer;
-use awitpt::cache;
-use awitpt::netip;
+use AWITPT::DB::DBLayer;
+use AWITPT::Cache;
+use AWITPT::NetIP;
+use AWITPT::Util;
 use smradius::util;
 use smradius::attributes;
 
@@ -170,7 +171,7 @@ sub getConfig
 	$server->log(LOG_DEBUG,"Processing DEFAULT realm attributes");
 	my $sth = DBSelect($config->{'get_config_realm_id_query'},$realmName);
 	if (!$sth) {
-		$server->log(LOG_ERR,"Failed to get default realm ID: ".awitpt::db::dblayer::Error());
+		$server->log(LOG_ERR,"Failed to get default realm ID: ".AWITPT::DB::DBLayer::Error());
 		return MOD_RES_NACK;
 	}
 	# Set realm ID
@@ -185,7 +186,7 @@ sub getConfig
 	if (defined($realmID)) {
 		$sth = DBSelect($config->{'get_config_realm_attributes_query'},$realmID);
 		if (!$sth) {
-			$server->log(LOG_ERR,"Failed to get default realm config attributes: ".awitpt::db::dblayer::Error());
+			$server->log(LOG_ERR,"Failed to get default realm config attributes: ".AWITPT::DB::DBLayer::Error());
 			return MOD_RES_NACK;
 		}
 		# Add any default realm attributes to config attributes
@@ -203,7 +204,7 @@ sub getConfig
 
 		$sth = DBSelect($config->{'get_config_realm_id_query'},$realmName);
 		if (!$sth) {
-			$server->log(LOG_ERR,"Failed to get user realm config attributes: ".awitpt::db::dblayer::Error());
+			$server->log(LOG_ERR,"Failed to get user realm config attributes: ".AWITPT::DB::DBLayer::Error());
 			return MOD_RES_NACK;
 		}
 		# Fetch realm ID
@@ -215,7 +216,7 @@ sub getConfig
 			# User realm attributes
 			$sth = DBSelect($config->{'get_config_realm_attributes_query'},$realmID);
 			if (!$sth) {
-				$server->log(LOG_ERR,"Failed to get user realm config attributes: ".awitpt::db::dblayer::Error());
+				$server->log(LOG_ERR,"Failed to get user realm config attributes: ".AWITPT::DB::DBLayer::Error());
 				return MOD_RES_NACK;
 			}
 			# Add any realm attributes to config attributes
@@ -257,12 +258,12 @@ sub getConfig
 
 		$sth = DBSelect($config->{'get_config_accesslist_query'},$realmID);
 		if (!$sth) {
-			$server->log(LOG_ERR,"Failed to get config attributes: ".awitpt::db::dblayer::Error());
+			$server->log(LOG_ERR,"Failed to get config attributes: ".AWITPT::DB::DBLayer::Error());
 			return MOD_RES_NACK;
 		}
 
 		# Grab peer address object
-		my $peerAddrObj =  new awitpt::netip($server->{'server'}{'peeraddr'});
+		my $peerAddrObj =  AWITPT::NetIP->new($server->{'server'}{'peeraddr'});
 
 		# Check if we know this client
 		my @accessList;
@@ -273,7 +274,7 @@ sub getConfig
 			@accessList = split(',',$res->{'AccessList'});
 			# Loop with what we get and check if we have match
 			foreach my $range (@accessList) {
-				my $rangeObj = new awitpt::netip($range);
+				my $rangeObj = new AWITPT::NetIP->new($range);
 				# Check for match
 		 		if ($peerAddrObj->is_within($rangeObj)) {
 					$clientID = $res->{'ID'};
@@ -299,7 +300,7 @@ sub getConfig
 	if (defined($clientID)) {
 		my $sth = DBSelect($config->{'get_config_client_attributes_query'},$clientID);
 		if (!$sth) {
-			$server->log(LOG_ERR,"Failed to get default config attributes: ".awitpt::db::dblayer::Error());
+			$server->log(LOG_ERR,"Failed to get default config attributes: ".AWITPT::DB::DBLayer::Error());
 			return MOD_RES_NACK;
 		}
 		# Add to config attributes

@@ -22,7 +22,7 @@ use warnings;
 
 # Modules we need
 use smradius::constants;
-use awitpt::db::dblayer;
+use AWITPT::DB::DBLayer;
 use smradius::logging;
 use smradius::util;
 
@@ -152,7 +152,7 @@ sub updateUserStats
 	# Perform query
 	my $sth = DBDo(@dbDoParams);
 	if (!$sth) {
-		$server->log(LOG_ERR,"[MOD_FEATURE_UPDATE_USER_STATS_SQL] Database query failed: ".awitpt::db::dblayer::Error());
+		$server->log(LOG_ERR,"[MOD_FEATURE_UPDATE_USER_STATS_SQL] Database query failed: ".AWITPT::DB::DBLayer::Error());
 		return;
 	}
 

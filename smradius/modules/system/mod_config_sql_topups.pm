@@ -23,7 +23,8 @@ use warnings;
 # Modules we need
 use smradius::constants;
 use smradius::logging;
-use awitpt::db::dblayer;
+use AWITPT::DB::DBLayer;
+use AWITPT::Util;
 use smradius::util;
 use smradius::attributes;
 
@@ -182,7 +183,7 @@ sub getTopups
 	# Query database
 	my $sth = DBSelect($config->{'get_topups_summary_query'},$periodKey,$username);
 	if (!$sth) {
-		$server->log(LOG_ERR,"Failed to get topup information: ".awitpt::db::dblayer::Error());
+		$server->log(LOG_ERR,"Failed to get topup information: ".AWITPT::DB::DBLayer::Error());
 		return MOD_RES_NACK;
 	}
 	while (my $row = hashifyLCtoMC($sth->fetchrow_hashref(), qw(Balance Type ID))) {
@@ -193,7 +194,7 @@ sub getTopups
 	# Query database
 	$sth = DBSelect($config->{'get_topups_query'},$thisMonth->ymd,$now->ymd,$username);
 	if (!$sth) {
-		$server->log(LOG_ERR,"Failed to get topup information: ".awitpt::db::dblayer::Error());
+		$server->log(LOG_ERR,"Failed to get topup information: ".AWITPT::DB::DBLayer::Error());
 		return MOD_RES_NACK;
 	}
 	# Fetch all new topups
@@ -251,7 +252,7 @@ sub cleanup
 
 	if (!$sth) {
 		$server->log(LOG_ERR,"[MOD_CONFIG_SQL_TOPUPS] Cleanup => Failed to select users: ".
-				awitpt::db::dblayer::Error());
+				AWITPT::DB::DBLayer::Error());
 		return;
 	}
 
@@ -280,7 +281,7 @@ sub cleanup
 	);
 	if (!$sth) {
 		$server->log(LOG_ERR,"[MOD_CONFIG_SQL_TOPUPS] Cleanup => Failed to delete topup summaries: ".
-				awitpt::db::dblayer::Error());
+				AWITPT::DB::DBLayer::Error());
 		DBRollback();
 		return;
 	}
@@ -297,7 +298,7 @@ sub cleanup
 	);
 	if (!$sth) {
 		$server->log(LOG_ERR,"[MOD_CONFIG_SQL_TOPUPS] Cleanup => Failed to undeplete topups: ".
-				awitpt::db::dblayer::Error());
+				AWITPT::DB::DBLayer::Error());
 		DBRollback();
 		return;
 	}
@@ -316,7 +317,7 @@ sub cleanup
 	);
 	if (!$sth) {
 		$server->log(LOG_ERR,"[MOD_CONFIG_SQL_TOPUPS] Cleanup => Failed to retrieve accounting summaries: ".
-				awitpt::db::dblayer::Error());
+				AWITPT::DB::DBLayer::Error());
 		DBRollback();
 		return;
 	}
@@ -343,7 +344,7 @@ sub cleanup
 		);
 		if (!$sth) {
 			$server->log(LOG_ERR,"[MOD_CONFIG_SQL_TOPUPS] Cleanup => Failed to select accounting summary record: ".
-					awitpt::db::dblayer::Error());
+					AWITPT::DB::DBLayer::Error());
 			goto FAIL_ROLLBACK;
 		}
 
@@ -393,7 +394,7 @@ sub cleanup
 
 		if (!$sth) {
 			$server->log(LOG_ERR,"[MOD_CONFIG_SQL_TOPUPS] Cleanup => Failed to select group usage caps: ".
-					awitpt::db::dblayer::Error());
+					AWITPT::DB::DBLayer::Error());
 			goto FAIL_ROLLBACK;
 		}
 
@@ -448,7 +449,7 @@ sub cleanup
 
 		if (!$sth) {
 			$server->log(LOG_ERR,"[MOD_CONFIG_SQL_TOPUPS] Cleanup => Failed to select user usage caps: ".
-					awitpt::db::dblayer::Error());
+					AWITPT::DB::DBLayer::Error());
 			goto FAIL_ROLLBACK;
 		}
 
@@ -517,7 +518,7 @@ sub cleanup
 
 		if (!$sth) {
 			$server->log(LOG_ERR,"[MOD_CONFIG_SQL_TOPUPS] Cleanup => Failed to select topup summaries: ".
-					awitpt::db::dblayer::Error());
+					AWITPT::DB::DBLayer::Error());
 			goto FAIL_ROLLBACK;
 		}
 
@@ -588,7 +589,7 @@ sub cleanup
 
 		if (!$sth) {
 			$server->log(LOG_ERR,"[MOD_CONFIG_SQL_TOPUPS] Cleanup => Failed to select topups: ".
-					awitpt::db::dblayer::Error());
+					AWITPT::DB::DBLayer::Error());
 			goto FAIL_ROLLBACK;
 		}
 
@@ -980,7 +981,7 @@ sub cleanup
 
 			if (!$sth) {
 				$server->log(LOG_ERR,"[MOD_CONFIG_SQL_TOPUPS] Cleanup => Failed to create topup summary: ".
-						awitpt::db::dblayer::Error());
+						AWITPT::DB::DBLayer::Error());
 				goto FAIL_ROLLBACK;
 			}
 
@@ -1007,7 +1008,7 @@ sub cleanup
 			);
 			if (!$sth) {
 				$server->log(LOG_ERR,"[MOD_CONFIG_SQL_TOPUPS] Cleanup => Failed to deplete topup: ".
-						awitpt::db::dblayer::Error());
+						AWITPT::DB::DBLayer::Error());
 				goto FAIL_ROLLBACK;
 			}
 
@@ -1033,7 +1034,7 @@ sub cleanup
 			);
 			if (!$sth) {
 				$server->log(LOG_ERR,"[MOD_CONFIG_SQL_TOPUPS] Cleanup => Failed to update topups_summary: ".
-						awitpt::db::dblayer::Error());
+						AWITPT::DB::DBLayer::Error());
 				goto FAIL_ROLLBACK;
 			}
 

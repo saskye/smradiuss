@@ -22,9 +22,10 @@ use warnings;
 
 # Modules we need
 use smradius::constants;
-use awitpt::cache;
+use AWITPT::Cache;
 use smradius::logging;
-use awitpt::db::dblayer;
+use AWITPT::DB::DBLayer;
+use AWITPT::Util;
 use smradius::util;
 use smradius::attributes;
 
@@ -137,7 +138,7 @@ sub find
 
 	my $sth = DBSelect(@dbDoParams);
 	if (!$sth) {
-		$server->log(LOG_ERR,"[MOD_USERDB_MACAUTH_SQL] Failed to find data for MAC address: ".awitpt::db::dblayer::Error());
+		$server->log(LOG_ERR,"[MOD_USERDB_MACAUTH_SQL] Failed to find data for MAC address: ".AWITPT::DB::DBLayer::Error());
 		return MOD_RES_SKIP;
 	}
 

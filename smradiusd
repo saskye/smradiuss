@@ -21,7 +21,7 @@ use strict;
 use warnings;
 
 use lib('/usr/local/lib/smradius-0.0','/usr/lib/smradius-0.0',
-	'/usr/lib64/smradius-0.0','smradius','awitpt');
+	'/usr/lib64/smradius-0.0','smradius','awitpt/lib');
 
 package smradiusd;
 
@@ -49,7 +49,7 @@ if (!eval {require Cache::FastMmap; 1;}) {
 	print STDERR "You're missing DateTime, try 'apt-get install libcache-fastmmap-perl'\n";
 	exit 1;
 } else {
-	eval {use awitpt::cache;};
+	eval {use AWITPT::Cache;};
 }
 
 
@@ -66,7 +66,7 @@ use smradius::version;
 use smradius::constants;
 use smradius::logging;
 use smradius::config;
-use awitpt::db::dbilayer;
+use AWITPT::DB::DBILayer;
 use smradius::util;
 use smradius::attributes;
 
@@ -386,7 +386,7 @@ sub post_configure_hook {
 
 	$self->log(LOG_INFO,"[SMRADIUS] Initializing system modules.");
 	# Init caching engine
-	awitpt::cache::Init($self,{
+	AWITPT::Cache::Init($self,{
 		'cache_file' => $self->{'config'}{'cache_file'},
 		'cache_file_user' => $self->{'server'}->{'user'},
 		'cache_file_group' => $self->{'server'}->{'group'}
@@ -434,7 +434,7 @@ sub child_init_hook
 	$self->SUPER::child_init_hook();
 
 	$self->log(LOG_INFO,"[SMRADIUS] Starting up caching engine");
-	awitpt::cache::connect($self);
+	AWITPT::Cache::connect($self);
 
 	# Do we need database support?
 	if ($self->{'smradius'}->{'database'}->{'enabled'}) {
@@ -443,7 +443,7 @@ sub child_init_hook
 		$self->{'client'}->{'dbh_status'} = time();
 
 		# Init core database support
-		$self->{'client'}->{'dbh'} = awitpt::db::dbilayer::Init($self,'smradius');
+		$self->{'client'}->{'dbh'} = AWITPT::DB::DBILayer::Init($self,'smradius');
 		if (defined($self->{'client'}->{'dbh'})) {
 			# Check if we succeeded
 			if (!($self->{'client'}->{'dbh'}->connect())) {
@@ -471,7 +471,7 @@ sub child_finish_hook {
 	$self->SUPER::child_finish_hook();
 
 	$self->log(LOG_INFO,"[SMRADIUS] Shutting down caching engine ($$)");
-	awitpt::cache::disconnect($self);
+	AWITPT::Cache::disconnect($self);
 
 	return;
 }
@@ -544,7 +544,7 @@ sub process_request {
 	}
 
 	# Setup database handle
-	awitpt::db::dblayer::setHandle($self->{'client'}->{'dbh'});
+	AWITPT::DB::DBLayer::setHandle($self->{'client'}->{'dbh'});
 
 	# Log line to use with logging
 	my $logLine = "";
@@ -1268,7 +1268,7 @@ sub server_exit
 
 	$self->log(LOG_DEBUG,"Destroying system modules.");
 	# Destroy cache
-	awitpt::cache::Destroy($self);
+	AWITPT::Cache::Destroy($self);
 	$self->log(LOG_DEBUG,"System modules destroyed.");
 
 	# Parent exit
