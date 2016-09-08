@@ -186,7 +186,7 @@ sub readfile {
     }
   }
   close $DICT;
-  return;
+  return 1;
 }
 
 # Accessors for standard attributes
