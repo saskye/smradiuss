@@ -447,26 +447,26 @@ sub _getAttributeKeyLimit
 
 
 	# Short circuit return if we don't have the uptime key set
-	return if (!defined($user->{'Attributes'}->{$$attributeKey}));
+	return if (!defined($user->{'Attributes'}->{$attributeKey}));
 
 	# Short circuit if we do not have a valid attribute operator: ':='
-	if (!defined($user->{'Attributes'}->{$$attributeKey}->{':='})) {
+	if (!defined($user->{'Attributes'}->{$attributeKey}->{':='})) {
 		$server->log(LOG_NOTICE,"[MOD_FEATURE_CAPPING] No valid operators for attribute '".
-				$user->{'Attributes'}->{$$attributeKey}."'");
+				$user->{'Attributes'}->{$attributeKey}."'");
 		return;
 	}
 
-	$server->log(LOG_DEBUG,"[MOD_FEATURE_CAPPING] '".$$attributeKey."' is defined");
+	$server->log(LOG_DEBUG,"[MOD_FEATURE_CAPPING] Attribute '".$attributeKey."' is defined");
 
 	# Check for valid attribute value
-	if (!defined($user->{'Attributes'}->{$$attributeKey}->{':='}->{'Value'}) ||
-			$user->{'Attributes'}->{$$attributeKey}->{':='}->{'Value'} !~ /^\d+$/) {
-		$server->log(LOG_NOTICE,"[MOD_FEATURE_CAPPING] '".$user->{'Attributes'}->{$$attributeKey}->{':='}->{'Value'}.
+	if (!defined($user->{'Attributes'}->{$attributeKey}->{':='}->{'Value'}) ||
+			$user->{'Attributes'}->{$attributeKey}->{':='}->{'Value'} !~ /^\d+$/) {
+		$server->log(LOG_NOTICE,"[MOD_FEATURE_CAPPING] Attribute '".$user->{'Attributes'}->{$attributeKey}->{':='}->{'Value'}.
 				"' is NOT a numeric value");
 		return;
 	}
 
-	return $user->{'Attributes'}->{$$attributeKey}->{':='}->{'Value'};
+	return $user->{'Attributes'}->{$attributeKey}->{':='}->{'Value'};
 }
 
 
