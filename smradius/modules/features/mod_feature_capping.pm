@@ -139,32 +139,12 @@ sub post_auth_hook
 	#
 
 	# Uptime..
-	my $uptimeLimitWithTopups = 0;
-	if ($uptimeTopup > 0) {
-		if (defined($uptimeLimit)) {
-			$uptimeLimitWithTopups = $uptimeLimit + $uptimeTopup;
-		} else {
-			$uptimeLimitWithTopups = $uptimeTopup;
-		}
-	} else {
-		if (defined($uptimeLimit)) {
-			$uptimeLimitWithTopups = $uptimeLimit;
-		}
-	}
+	# // is a defined operator,  $a ? defined($a) : $b
+	my $uptimeLimitWithTopups = ($uptimeLimit // 0) + $uptimeTopupAmount;
 
 	# Traffic..
-	my $trafficLimitWithTopups = 0;
-	if ($trafficTopup > 0) {
-		if (defined($trafficLimit)) {
-			$trafficLimitWithTopups = $trafficLimit + $trafficTopup;
-		} else {
-			$trafficLimitWithTopups = $trafficTopup;
-		}
-	} else {
-		if (defined($trafficLimit)) {
-			$trafficLimitWithTopups = $trafficLimit;
-		}
-	}
+	# // is a defined operator,  $a ? defined($a) : $b
+	my $trafficLimitWithTopups = ($trafficLimit // 0) + $trafficTopupAmount;
 
 
 	#
@@ -222,7 +202,7 @@ sub post_auth_hook
 	#
 
 	# Uptime..
-	if (!(defined($uptimeLimit) && $uptimeLimit == 0)) {
+	if (defined($uptimeLimit) && $uptimeLimit > 0) {
 
 		# Capped
 		if ($accountingUsage->{'TotalSessionTime'} >= $uptimeLimitWithTopups) {
@@ -247,7 +227,7 @@ sub post_auth_hook
 	}
 
 	# Traffic
-	if (!(defined($trafficLimit) && $trafficLimit == 0)) {
+	if (defined($trafficLimit) && $trafficLimit > 0) {
 
 		# Capped
 		if ($accountingUsage->{'TotalDataUsage'} >= $trafficLimitWithTopups) {
@@ -382,31 +362,12 @@ sub post_acct_hook
 
 
 	# Uptime..
-	my $uptimeLimitWithTopups = 0;
-	if ($uptimeTopup > 0) {
-		if (defined($uptimeLimit)) {
-			$uptimeLimitWithTopups = $uptimeLimit + $uptimeTopup;
-		} else {
-			$uptimeLimitWithTopups = $uptimeTopup;
-		}
-	} else {
-		if (defined($uptimeLimit)) {
-			$uptimeLimitWithTopups = $uptimeLimit;
-		}
-	}
+	# // is a defined operator,  $a ? defined($a) : $b
+	my $uptimeLimitWithTopups = ($uptimeLimit // 0) + $uptimeTopupAmount;
 
 	# Traffic..
-	my $trafficLimitWithTopups = 0;
-	if ($trafficTopup > 0) {
-		if (defined($trafficLimit)) {
-			$trafficLimitWithTopups = $trafficLimit + $trafficTopup;
-		} else {
-			$trafficLimitWithTopups = $trafficTopup;
-		}
-	} else {
-		if (defined($trafficLimit)) {
-			$trafficLimitWithTopups = $trafficLimit;
-		}
+	# // is a defined operator,  $a ? defined($a) : $b
+	my $trafficLimitWithTopups = ($trafficLimit // 0) + $trafficTopupAmount;
 	}
 
 
@@ -452,7 +413,7 @@ sub post_acct_hook
 	#
 
 	# Uptime..
-	if (!(defined($uptimeLimit) && $uptimeLimit == 0)) {
+	if (defined($uptimeLimit) && $uptimeLimit > 0) {
 
 		# Capped
 		if ($accountingUsage->{'TotalSessionTime'} >= $uptimeLimitWithTopups) {
@@ -463,7 +424,7 @@ sub post_acct_hook
 	}
 
 	# Traffic
-	if (!(defined($trafficLimit) && $trafficLimit == 0)) {
+	if (defined($trafficLimit) && $trafficLimit > 0) {
 
 		# Capped
 		if ($accountingUsage->{'TotalDataUsage'} >= $trafficLimitWithTopups) {
