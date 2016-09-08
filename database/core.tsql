@@ -159,7 +159,7 @@ CREATE TABLE @PREFIX@topups (
 
 	Timestamp		DATETIME,
 
-				/* 1 = traffic topup, 2 = uptime topup */
+				/* 1 = traffic topup, 2 = uptime topup, 4 = auto-topup */
 	Type			@INT_UNSIGNED@,
 
 	ValidFrom		DATETIME,

@@ -62,6 +62,13 @@ our $pluginInfo = {
 # Module config
 my $config;
 
+
+# Helper functions
+sub _isTrafficTopup { my $val = shift; return ($val & 1) == 1; }
+sub _isUptimeTopup { my $val = shift; return ($val & 2) == 2; }
+sub _isAutoTopup { my $val = shift; return ($val & 4) == 4; }
+
+
 ## @internal
 # Initialize module
 sub init
@@ -149,6 +156,14 @@ sub getTopups
 	my ($server,$user,$packet) = @_;
 
 
+	# Fetch all summaries
+	my $trafficSummaries = {
+		'traffic' => 0,
+		'uptime' => 0,
+		'traffic-topup' => 0,
+		'uptime-topup' => 0,
+	};
+
 	# Check to see if we have a username
 	my $username = $user->{'Username'};
 
@@ -170,18 +185,8 @@ sub getTopups
 		$server->log(LOG_ERR,"Failed to get topup information: ".awitpt::db::dblayer::Error());
 		return MOD_RES_NACK;
 	}
-
-	# Fetch all summaries
-	my (@trafficSummary,@uptimeSummary);
 	while (my $row = hashifyLCtoMC($sth->fetchrow_hashref(), qw(Balance Type ID))) {
-		if ($row->{'Type'} == 1) {
-			# Add to traffic summary list
-			push(@trafficSummary, { Value => $row->{'Balance'}, ID => $row->{'ID'} });
-		}
-		if ($row->{'Type'} == 2) {
-			# Add to uptime summary list
-			push(@uptimeSummary, { Value => $row->{'Balance'}, ID => $row->{'ID'} });
-		}
+		_trafficSummaryAdd($trafficSummaries,$row,'Balance');
 	}
 	DBFreeRes($sth);
 
@@ -191,79 +196,23 @@ sub getTopups
 		$server->log(LOG_ERR,"Failed to get topup information: ".awitpt::db::dblayer::Error());
 		return MOD_RES_NACK;
 	}
-
-	# Fetch all new topups 
+	# Fetch all new topups
 	my (@trafficTopups,@uptimeTopups);
 	while (my $row = hashifyLCtoMC($sth->fetchrow_hashref(), qw(ID Type Value))) {
-		if ($row->{'Type'} == 1) {
-			# Add topup to traffic array
-			push(@trafficTopups, { Value => $row->{'Value'}, ID => $row->{'ID'} });
-		}
-		if ($row->{'Type'} == 2) {
-			# Add topup to uptime array
-			push(@uptimeTopups, { Value => $row->{'Value'}, ID => $row->{'ID'} });
-		}
+		_trafficSummaryAdd($trafficSummaries,$row,'Value');
 	}
 
 	DBFreeRes($sth);
 
-	# Add up traffic
-	my $totalTopupTraffic = 0;
-	# Traffic topups..
-	foreach my $topup (@trafficTopups) {
-		# Use only if numeric
-		if ($topup->{'Value'} =~ /^[0-9]+$/) {
-			$totalTopupTraffic += $topup->{'Value'};
-		} else {
-			$server->log(LOG_DEBUG,"[MOD_CONFIG_SQL_TOPUPS] Topup with ID '".niceUndef($topup->{'ID'}).
-					"' is not a numeric value");
-			return MOD_RES_NACK;
-		}
-	}
-	# Traffic summaries..
-	foreach my $summary (@trafficSummary) {
-		# Use only if numeric
-		if ($summary->{'Value'} =~ /^[0-9]+$/) {
-			$totalTopupTraffic += $summary->{'Value'};
-		} else {
-			$server->log(LOG_DEBUG,"[MOD_CONFIG_SQL_TOPUPS] Topup with ID '".niceUndef($summary->{'ID'}).
-					"' is not a numeric value");
-			return MOD_RES_NACK;
-		}
-	}
-
-	# Add up uptime
-	my $totalTopupUptime = 0;
-	# Uptime topups..
-	foreach my $topup (@uptimeTopups) {
-		# Use only if numeric
-		if ($topup->{'Value'} =~ /^[0-9]+$/) {
-			$totalTopupUptime += $topup->{'Value'};
-		} else {
-			$server->log(LOG_DEBUG,"[MOD_CONFIG_SQL_TOPUPS] Topup with ID '".niceUndef($topup->{'ID'}).
-					"' is not a numeric value");
-			return MOD_RES_NACK;
-		}
-	}
-	# Uptime summaries..
-	foreach my $summary (@uptimeSummary) {
-		# Use only if numeric
-		if ($summary->{'Value'} =~ /^[0-9]+$/) {
-			$totalTopupUptime += $summary->{'Value'};
-		} else {
-			$server->log(LOG_DEBUG,"[MOD_CONFIG_SQL_TOPUPS] Topup with ID '".niceUndef($summary->{'ID'}).
-					"' is not a numeric value");
-			return MOD_RES_NACK;
-		}
-	}
-
-	# Process traffic topups
+	# Save configuration for the user
 	processConfigAttribute($server,$user,{ 'Name' => 'SMRadius-Capping-Traffic-Topup',
-			'Operator' => ':=', 'Value' => $totalTopupTraffic });
-
-	# Process uptime topups
+			'Operator' => ':=', 'Value' => $trafficSummaries->{'traffic'} });
 	processConfigAttribute($server,$user,{ 'Name' => 'SMRadius-Capping-Uptime-Topup',
-			'Operator' => ':=', 'Value' => $totalTopupUptime });
+			'Operator' => ':=', 'Value' => $trafficSummaries->{'uptime'} });
+	processConfigAttribute($server,$user,{ 'Name' => 'SMRadius-Capping-Traffic-AutoTopup',
+			'Operator' => ':=', 'Value' => $trafficSummaries->{'traffic-auto'} });
+	processConfigAttribute($server,$user,{ 'Name' => 'SMRadius-Capping-Uptime-AutoTopup',
+			'Operator' => ':=', 'Value' => $trafficSummaries->{'uptime-auto'} });
 
 	return MOD_RES_ACK;
 }
@@ -583,7 +532,7 @@ sub cleanup
 				# Convert string to unix time
 				my $unix_validTo = str2time($row->{'ValidTo'});
 				# Process traffic topup
-				if ($row->{'Type'} == 1) {
+				if (_isTrafficTopup($row->{'Type'})) {
 					push(@trafficSummary, { 
 							TopupID => $row->{'TopupID'},
 							Balance => $row->{'Balance'},
@@ -599,7 +548,7 @@ sub cleanup
 					);
 
 				# Process uptime topup
-				} elsif ($row->{'Type'} == 2) {
+				} elsif (_isUptimeTopup($row->{'Type'})) {
 					push(@uptimeSummary, { 
 							TopupID => $row->{'TopupID'},
 							Balance => $row->{'Balance'},
@@ -651,7 +600,7 @@ sub cleanup
 			# Convert string to unix time
 			my $unix_validTo = str2time($row->{'ValidTo'});
 			# If this is a traffic topup ...
-			if ($row->{'Type'} == 1) {
+			if (_isTrafficTopup($row->{'Type'})) {
 				push(@trafficTopups, {
 					ID => $row->{'ID'},
 					Value => $row->{'Value'},
@@ -666,7 +615,7 @@ sub cleanup
 				);
 
 			# Or a uptime topup...
-			} elsif ($row->{'Type'} == 2) {
+			} elsif (_isUptimeTopup($row->{'Type'})) {
 				push(@uptimeTopups, {
 					ID => $row->{'ID'},
 					Value => $row->{'Value'},
@@ -1106,6 +1055,41 @@ FAIL_ROLLBACK:
 	$server->log(LOG_NOTICE,"[MOD_CONFIG_SQL_TOPUPS] Cleanup => Database has been rolled back, no records updated");
 	return;
 }
+
+
+
+## @internal
+# Function snippet to add up traffic summaries based on topup types
+sub _trafficSummaryAdd
+{
+	my ($trafficSummaries,$topup,$key) = @_;
+
+	# First we add up NON-autotopup's
+	if (!_isAutoTopup($topup->{'Type'})) {
+
+		# Add the topup amount to the appropriate hash entry
+		if (_isTrafficTopup($topup->{'Type'})) {
+			$trafficSummaries{'traffic'} += $topup->{$key};
+
+		} elsif (_isUptimeTopup($topup->{'Type'})) {
+			$trafficSummaries{'uptime'} += $topup->{$key};
+		}
+
+	# Next we add up auto-topups
+	} else {
+		if (_isTrafficTopup($topup->{'Type'})) {
+			# Add to traffic summary list
+			$trafficSummaries{'traffic-auto'} += $topup->{$key};
+
+		} elsif (_isUptimeTopup($topup->{'Type'})) {
+			# Add to uptime summary list
+			$trafficSummaries{'uptime-auto'} += $topup->{$key};
+		}
+	}
+
+	return;
+}
+
 
 
 1;
