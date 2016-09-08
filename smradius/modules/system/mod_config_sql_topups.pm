@@ -1069,21 +1069,21 @@ sub _trafficSummaryAdd
 
 		# Add the topup amount to the appropriate hash entry
 		if (_isTrafficTopup($topup->{'Type'})) {
-			$trafficSummaries{'traffic'} += $topup->{$key};
+			$trafficSummaries->{'traffic'} += $topup->{$key};
 
 		} elsif (_isUptimeTopup($topup->{'Type'})) {
-			$trafficSummaries{'uptime'} += $topup->{$key};
+			$trafficSummaries->{'uptime'} += $topup->{$key};
 		}
 
 	# Next we add up auto-topups
 	} else {
 		if (_isTrafficTopup($topup->{'Type'})) {
 			# Add to traffic summary list
-			$trafficSummaries{'traffic-auto'} += $topup->{$key};
+			$trafficSummaries->{'traffic-auto'} += $topup->{$key};
 
 		} elsif (_isUptimeTopup($topup->{'Type'})) {
 			# Add to uptime summary list
-			$trafficSummaries{'uptime-auto'} += $topup->{$key};
+			$trafficSummaries->{'uptime-auto'} += $topup->{$key};
 		}
 	}
 
