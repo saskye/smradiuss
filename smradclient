@@ -170,7 +170,7 @@ $pkt->set_authenticator($authen);
 print(STDERR " > Authenticator: $ident\n");
 
 # Pull in attributes
-while (my $line = <>) {
+while (my $line = <STDIN>) {
 	# Remove EOL
 	chomp($line);
 	# Split on , and newline
