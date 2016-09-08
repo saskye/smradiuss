@@ -313,7 +313,7 @@ sub loadModules
 
 # Display help
 sub displayHelp {
-	print(<<EOF);
+	print(<<"EOF");
 
 Usage: $0 [args]
     --config=<file>        Configuration file

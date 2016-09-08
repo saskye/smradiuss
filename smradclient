@@ -124,10 +124,10 @@ print(STDERR "\n");
 print(STDERR "Loading dictionaries...");
 my $raddb = Radius::Dictionary->new();
 
-# Look for filesi n the dir
-opendir(DIR, $cmdline->{'raddb'})
+# Look for files in the dir
+opendir(my $DIR, $cmdline->{'raddb'})
 	or die "Cannot open '".$cmdline->{'raddb'}."': $!";
-my @raddb_files = readdir(DIR);
+my @raddb_files = readdir($DIR);
 
 # And load the dictionary
 foreach my $df (@raddb_files) {
