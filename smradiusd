@@ -210,9 +210,9 @@ sub configure {
 	if (ref($config{'system'}{'modules'}) eq "ARRAY") {
 		foreach my $module (@{$config{'system'}{'modules'}}) {
 			$module =~ s/\s+//g;
-	 		# Skip comments
-	 		next if ($module =~ /^#/);
-	 		$module = "system/$module";
+			# Skip comments
+			next if ($module =~ /^#/);
+			$module = "system/$module";
 			push(@{$cfg->{'module_list'}},$module);
 		}
 	} else {
@@ -231,9 +231,9 @@ sub configure {
 	if (ref($config{'features'}{'modules'}) eq "ARRAY") {
 		foreach my $module (@{$config{'features'}{'modules'}}) {
 			$module =~ s/\s+//g;
-	 		# Skip comments
-	 		next if ($module =~ /^#/);
-	 		$module = "features/$module";
+			# Skip comments
+			next if ($module =~ /^#/);
+			$module = "features/$module";
 			push(@{$cfg->{'module_list'}},$module);
 		}
 	} else {
@@ -252,9 +252,9 @@ sub configure {
 	if (ref($config{'authentication'}{'mechanisms'}) eq "ARRAY") {
 		foreach my $module (@{$config{'authentication'}{'mechanisms'}}) {
 			$module =~ s/\s+//g;
-	 		# Skip comments
-	 		next if ($module =~ /^#/);
-	 		$module = "authentication/$module";
+			# Skip comments
+			next if ($module =~ /^#/);
+			$module = "authentication/$module";
 			push(@{$cfg->{'module_list'}},$module);
 		}
 	} else {
@@ -270,9 +270,9 @@ sub configure {
 	if (ref($config{'authentication'}{'users'}) eq "ARRAY") {
 		foreach my $module (@{$config{'authentication'}{'users'}}) {
 			$module =~ s/\s+//g;
-	 		# Skip comments
-	 		next if ($module =~ /^#/);
-	 		$module = "userdb/$module";
+			# Skip comments
+			next if ($module =~ /^#/);
+			$module = "userdb/$module";
 			push(@{$cfg->{'module_list'}},$module);
 		}
 	} else {
@@ -291,9 +291,9 @@ sub configure {
 	if (ref($config{'accounting'}{'modules'}) eq "ARRAY") {
 		foreach my $module (@{$config{'accounting'}{'modules'}}) {
 			$module =~ s/\s+//g;
-	 		# Skip comments
-	 		next if ($module =~ /^#/);
-	 		$module = "accounting/$module";
+			# Skip comments
+			next if ($module =~ /^#/);
+			$module = "accounting/$module";
 			push(@{$cfg->{'module_list'}},$module);
 		}
 	} else {
@@ -313,8 +313,8 @@ sub configure {
 	if (ref($config{'dictionary'}->{'load'}) eq "ARRAY") {
 		foreach my $dict (@{$config{'dictionary'}->{'load'}}) {
 			$dict =~ s/\s+//g;
-	 		# Skip comments
-	 		next if ($dict =~ /^#/);
+			# Skip comments
+			next if ($dict =~ /^#/);
 			push(@{$cfg->{'dictionary_list'}},$dict);
 		}
 	} else {
@@ -585,7 +585,7 @@ sub process_request {
 	# Timestamp AND Timestamp-Unix are in the CONVERTED timezone (event_timezone)
 	my $eventTimestamp = DateTime->from_epoch(
 			epoch => $user->{'_Internal'}->{'Timestamp-Unix'},
-			time_zone => $self->{'smradius'}->{'event_timezone'} 
+			time_zone => $self->{'smradius'}->{'event_timezone'}
 	);
 	$user->{'_Internal'}->{'Timestamp'} = $eventTimestamp->strftime('%Y-%m-%d %H:%M:%S');
 
@@ -1341,8 +1341,8 @@ EOF
 
 
 
+__PACKAGE__->run();
 
-__PACKAGE__->run;
 
 
 1;
