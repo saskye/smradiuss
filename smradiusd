@@ -17,13 +17,17 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 
-use strict;
-use warnings;
 
 use lib('/usr/local/lib/smradius-0.0','/usr/lib/smradius-0.0',
 	'/usr/lib64/smradius-0.0','smradius','awitpt/lib');
 
-package smradiusd;
+
+
+package smradius::daemon;
+
+
+use strict;
+use warnings;
 
 
 # Check if we have Net::Server::PreFork installed
@@ -58,21 +62,24 @@ eval qq{
 	use base qw(Net::Server::PreFork);
 };
 ## use critic
+
 use Getopt::Long;
+use Socket;
 use Sys::Syslog;
 use Time::HiRes qw( gettimeofday tv_interval );
 
+use AWITPT::DB::DBILayer;
+use Radius::Packet;
+
 use smradius::version;
 use smradius::constants;
+use smradius::daemon::request;
 use smradius::logging;
 use smradius::config;
-use AWITPT::DB::DBILayer;
 use smradius::util;
 use smradius::attributes;
 
-use Radius::Packet;
 
-use Socket;
 
 
 
