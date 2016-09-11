@@ -71,6 +71,7 @@ use Sys::Syslog;
 use Time::HiRes qw( gettimeofday tv_interval );
 
 use AWITPT::DB::DBILayer;
+use AWITPT::Util qw( booleanize );
 use Radius::Packet;
 
 use smradius::version;
@@ -496,10 +497,10 @@ sub process_request {
 
 
 	# Grab packet
-	my $udp_packet = $server->{'udp_data'};
+	my $rawPacket = $server->{'udp_data'};
 
 	# Check min size
-	if (length($udp_packet) < 18)
+	if (length($rawPacket) < 18)
 	{
 		$self->log(LOG_WARN, "[SMRADIUS] Packet too short - Ignoring");
 		return;
@@ -510,9 +511,6 @@ sub process_request {
 
 	# Grab NOW()
 	my $now = time();
-
-	# Parse packet
-	my $pkt = Radius::Packet->new($self->{'radius'}->{'dictionary'},$udp_packet);
 
 	# VERIFY SOURCE SERVER
 	$self->log(LOG_DEBUG,"[SMRADIUS] Packet From = > ".$server->{'peeraddr'});
@@ -555,50 +553,30 @@ sub process_request {
 	# Setup database handle
 	AWITPT::DB::DBLayer::setHandle($self->{'client'}->{'dbh'});
 
-	# Log line to use with logging
-	my $logLine = "";
-	my @logLineArgs;
-	my $logReason = "UNKNOWN";
-	foreach my $attr ($pkt->attributes) {
-		$logLine .= " %s: '%s',";
-		push(@logLineArgs,$attr,$pkt->rawattr($attr));
+
+	my $request = smradius::daemon::request->new($self);
+	$request->setTimeZone($self->{'smradius'}->{'event_timezone'});
+
+	$request->parsePacket($self->{'radius'}->{'dictionary'},$rawPacket);
+
+	# Check if we need to override the packet timestamp, if we are not using the packet timestamp, set it to when we go the packet
+	if (!booleanize($self->{'smradius'}->{'use_packet_timestamp'})) {
+		$request->setTimestamp($now);
 	}
-	# Chop off ,
-	chop($logLine);
-
-	# Main user hash with everything in
-	my $user;
-	$user->{'ConfigAttributes'} = {};
-	$user->{'Attributes'} = {};
-	$user->{'VAttributes'} = {};
-	$user->{'ReplyAttributes'} = {};
-	$user->{'ReplyVAttributes'} = {};
-	$user->{'AttributeConditionalVariables'} = {};
-
-	# Private data
-	# Where we going to get the timestamp to use from?, from the packet, if its there, or from ourselves
-	if (defined($pkt->rawattr('Event-Timestamp')) && $self->{'smradius'}->{'use_packet_timestamp'}) {
-		$user->{'_Internal'}->{'Timestamp-Unix'} = $pkt->rawattr('Event-Timestamp');
-	} else {
-		$user->{'_Internal'}->{'Timestamp-Unix'} = $now;
-	}
-
-	# VERY IMPORTANT!!!!!!
-	# Timestamp AND Timestamp-Unix are in the CONVERTED timezone (event_timezone)
-	my $eventTimestamp = DateTime->from_epoch(
-			epoch => $user->{'_Internal'}->{'Timestamp-Unix'},
-			time_zone => $self->{'smradius'}->{'event_timezone'}
-	);
-	$user->{'_Internal'}->{'Timestamp'} = $eventTimestamp->strftime('%Y-%m-%d %H:%M:%S');
-
-	# Set username
-	$user->{'Username'} = $pkt->attr('User-Name');
 
 	# Username should always be defined?
-	if (!defined($user->{'Username'})) {
+	if (!$request->hasUsername()) {
 		$self->log(LOG_NOTICE,"[SMRADIUS] Packet with no username from ".$server->{'peeraddr'});
 		return;
 	}
+
+
+	# TODO/FIXME: WIP
+	my $pkt = $request->{'packet'};
+	my $user = $request->{'user'};
+	my $logReason = "UNKNOWN";
+
+
 
 	# First thing we do is to make sure the NAS behaves if we using abuse prevention
 	if ($self->{'smradius'}->{'use_abuse_prevention'} && defined($user->{'Username'})) {
@@ -622,6 +600,8 @@ sub process_request {
 	#
 	# GRAB & PROCESS CONFIG
 	#
+
+	my $configured = 1;
 
 	foreach my $module (@{$self->{'module_list'}}) {
 		# Try find config attribute
@@ -649,10 +629,19 @@ sub process_request {
 			} elsif ($res == MOD_RES_NACK) {
 				$self->log(LOG_DEBUG,"[SMRADIUS] CONFIG: Configuration rejection when using '".$module->{'Name'}."'");
 				$logReason = "Config Rejected";
-				goto CHECK_RESULT;
+
+				# FIXME/TODO NK WIP
+				return;
+#				$configured = 0;
+#				last;
 			}
 		}
 	}
+
+
+	#
+	# USERNAME TRANSFORM
+	#
 
 	# If we have a config attribute to transform username, use it
 	if (defined($user->{'ConfigAttributes'}->{'SMRadius-Username-Transform'})) {
@@ -679,25 +668,23 @@ sub process_request {
 #		}
 	}
 
+
+	#
+	# FIND USER
+	#
+
 	# Get the user timer
 	my $timer1 = [gettimeofday];
 
 	# FIXME - need secret
 	# FIXME - need acl list
 
-	#
-	# START PROCESSING
-	#
-
 	# Common stuff for multiple codes....
 	if ($pkt->code eq "Accounting-Request" || $pkt->code eq "Access-Request") {
 
-		#
-		# FIND USER
-		#
-
 		# Loop with modules to try find user
 		foreach my $module (@{$self->{'module_list'}}) {
+
 			# Try find user
 			if ($module->{'User_find'}) {
 				$self->log(LOG_DEBUG,"[SMRADIUS] FIND: Trying plugin '".$module->{'Name'}."' for username '".
@@ -730,6 +717,11 @@ sub process_request {
 			}
 		}
 	}
+
+
+	#
+	# PROCESS PACKET
+	#
 
 	# Process the packet timer
 	my $timer2 = [gettimeofday];
@@ -789,8 +781,9 @@ sub process_request {
 		$resp->set_code('Accounting-Response');
 		$resp->set_identifier($pkt->identifier);
 		$resp->set_authenticator($pkt->authenticator);
-		$udp_packet = auth_resp($resp->pack, getAttributeValue($user->{'ConfigAttributes'},"SMRadius-Config-Secret"));
-		$server->{'client'}->send($udp_packet);
+		$server->{'client'}->send(
+			auth_resp($resp->pack, getAttributeValue($user->{'ConfigAttributes'},"SMRadius-Config-Secret"))
+		);
 
 		# Are we going to POD the user?
 		my $PODUser = 0;
@@ -858,16 +851,17 @@ sub process_request {
 			$resp->set_attr('NAS-IP-Address',$pkt->attr('NAS-IP-Address'));
 
 			# Add onto logline
-			$logLine .= ". REPLY => ";
-			foreach my $attr ($resp->attributes) {
-				$logLine .= " %s: '%s',";
-				push(@logLineArgs,$attr,$resp->rawattr($attr));
+			$request->addLogLine(". REPLY => ");
+			foreach my $attrName ($resp->attributes) {
+				$request->addLogLine(
+					"%s: '%s'",
+					$attrName,
+					$resp->rawattr($attrName)
+				);
 			}
-			# Chop off ,
-			chop($logLine);
 
 			# Grab packet
-			$udp_packet = auth_resp($resp->pack, getAttributeValue($user->{'ConfigAttributes'},"SMRadius-Config-Secret"));
+			my $response = auth_resp($resp->pack, getAttributeValue($user->{'ConfigAttributes'},"SMRadius-Config-Secret"));
 
 			# Check for POD Servers and send disconnect
 			if (defined($user->{'ConfigAttributes'}->{'SMRadius-Config-PODServer'})) {
@@ -905,7 +899,7 @@ sub process_request {
 						}
 
 						# Check if we sent the packet...
-						if (!$podSock->send($udp_packet)) {
+						if (!$podSock->send($response)) {
 							$self->log(LOG_ERR,"[SMRADIUS] POST-ACCT: Failed to send data on socket");
 							next;
 						}
@@ -1104,7 +1098,7 @@ sub process_request {
 				}
 			}
 			# Loop with reply attributes
-			$logLine .= ". RFILTER => ";
+			$request->addLogLine(". RFILTER => ");
 			foreach my $attrName (keys %replyAttributes) {
 				# Loop with values
 				foreach my $value (@{$replyAttributes{$attrName}}) {
@@ -1121,13 +1115,12 @@ sub process_request {
 						# Add each value
 						$resp->set_attr($attrName,$value);
 					} else {
-						$logLine .= "%s ";
-						push(@logLineArgs,$attrName);
+						$request->addLogLine("%s ",$attrName);
 					}
 				}
 			}
 			# Loop with vendor reply attributes
-			$logLine .= ". RVFILTER => ";
+			$request->addLogLine(". RVFILTER => ");
 			my %replyVAttributes = ();
 			# Process reply vattributes already added
 			foreach my $vendor (keys %{ $user->{'ReplyVAttributes'} }) {
@@ -1148,8 +1141,7 @@ sub process_request {
 							# This attribute is not excluded, so its ok
 							$replyVAttributes{$vendor}->{$attrName} = $user->{'ReplyVAttributes'}->{$vendor}->{$attrName};
 						} else {
-							$logLine .= "%s ";
-							push(@logLineArgs,$attrName);
+							$request->addLogLine("%s ",$attrName);
 						}
 					}
 				}
@@ -1173,8 +1165,7 @@ sub process_request {
 						# Add this to the reply attribute?
 						setReplyVAttribute($self,\%replyVAttributes,$attr);
 					} else {
-						$logLine .= "%s ";
-						push(@logLineArgs,$attrName);
+						$request->addLogLine("%s ",$attrName);
 					}
 				}
 			}
@@ -1189,22 +1180,23 @@ sub process_request {
 			}
 	
 			# Add attributes onto logline
-			$logLine .= ". REPLY => ";
-			foreach my $attr ($resp->attributes) {
-				$logLine .= " %s: '%s',";
-				push(@logLineArgs,$attr,$resp->rawattr($attr));
+			$request->addLogLine(". REPLY => ");
+			foreach my $attrName ($resp->attributes) {
+				$request->addLogLine(
+					"%s: '%s",
+					$attrName,
+					$resp->rawattr($attrName)
+				);
 			}
-			# Chop off ,
-			chop($logLine);
 
 			# Add vattributes onto logline
-			$logLine .= ". VREPLY => ";
+			$request->addLogLine(". VREPLY => ");
 			# Loop with vendors
 			foreach my $vendor ($resp->vendors()) {
 				# Loop with attributes
-				foreach my $attr ($resp->vsattributes($vendor)) {
+				foreach my $attrName ($resp->vsattributes($vendor)) {
 					# Grab the value
-					my @attrRawVal = ( $resp->vsattr($vendor,$attr) );
+					my @attrRawVal = ( $resp->vsattr($vendor,$attrName) );
 					my $attrVal = $attrRawVal[0][0];
 					# Sanatize it a bit
 					if ($attrVal =~ /[[:cntrl:]]/) {
@@ -1213,15 +1205,18 @@ sub process_request {
 						$attrVal = "'$attrVal'";
 					}
 
-					$logLine .= " %s/%s: %s,";
-					push(@logLineArgs,$vendor,$attr,$attrVal);
+					$request->addLogLine(
+						"%s/%s: %s",
+						$attrName,
+						$attrVal,
+						$resp->rawattr($attrName)
+					);
 				}
 			}
-			# Chop off ,
-			chop($logLine);
 
-			$udp_packet = auth_resp($resp->pack, getAttributeValue($user->{'ConfigAttributes'},"SMRadius-Config-Secret"));
-			$server->{'client'}->send($udp_packet);
+			$server->{'client'}->send(
+				auth_resp($resp->pack, getAttributeValue($user->{'ConfigAttributes'},"SMRadius-Config-Secret"))
+			);
 
 		}
 
@@ -1232,11 +1227,12 @@ CHECK_RESULT:
 			$logReason = "User NOT Authenticated or Authorized"; 
 
 			my $resp = Radius::Packet->new($self->{'radius'}->{'dictionary'});
-		 	$resp->set_code('Access-Reject');
+			$resp->set_code('Access-Reject');
 			$resp->set_identifier($pkt->identifier);
 			$resp->set_authenticator($pkt->authenticator);
-			$udp_packet = auth_resp($resp->pack, getAttributeValue($user->{'ConfigAttributes'},"SMRadius-Config-Secret"));
-			$server->{'client'}->send($udp_packet);
+			$server->{'client'}->send(
+				auth_resp($resp->pack, getAttributeValue($user->{'ConfigAttributes'},"SMRadius-Config-Secret"))
+			);
 		}
 
 	# We don't know how to handle this
@@ -1250,6 +1246,11 @@ CHECK_RESULT:
 	my $timediff2 = tv_interval($timer1,$timer2);
 	my $timediff3 = tv_interval($timer2,$timer9);
 	my $timediff = tv_interval($timer0,$timer9);
+
+	# FIXME/TODO NK WIP
+	my $logLine = join(' ',@{$request->{'logLine'}});
+	my @logLineArgs = @{$request->{'logLineParams'}};
+
 
 	# How should we output this ...
 	if ($server->{'log_level'} > LOG_NOTICE) {
