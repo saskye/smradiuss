@@ -37,11 +37,19 @@ sub parsePacket
 
 	# Loop with packet attribute names and add to our log line
 	$self->addLogLine("PACKET => ");
-	foreach my $attrName ($self->{'packet'}->attributes()) {
+	foreach my $attrName (sort $self->{'packet'}->attributes()) {
+		# Make the value a bit more pretty to print
+		my $attrVal;
+		if ($attrName eq "User-Password") {
+			$attrVal = "-encrypted-";
+		} else {
+			$attrVal = $self->{'packet'}->rawattr($attrName);
+		}
+		# Add it onto the log line...
 		$self->addLogLine(
 			"%s: '%s'",
 			$attrName,
-			$self->{'packet'}->rawattr($attrName)
+			$attrVal,
 		);
 	}
 
