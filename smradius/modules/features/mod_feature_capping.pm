@@ -212,7 +212,7 @@ sub post_auth_hook
 	#
 
 	# Uptime..
-	if (defined($uptimeLimit) && $uptimeLimit > 0) {
+	if (!defined($uptimeLimit) || $uptimeLimit > 0) {
 
 		# Capped
 		if ($accountingUsage->{'TotalSessionTime'} >= $uptimeLimitWithTopups) {
@@ -237,7 +237,7 @@ sub post_auth_hook
 	}
 
 	# Traffic
-	if (defined($trafficLimit) && $trafficLimit > 0) {
+	if (!defined($trafficLimit) || $trafficLimit > 0) {
 
 		# Capped
 		if ($accountingUsage->{'TotalDataUsage'} >= $trafficLimitWithTopups) {
@@ -390,7 +390,7 @@ sub post_acct_hook
 	#
 
 	# Uptime..
-	if (defined($uptimeLimit) && $uptimeLimit > 0) {
+	if (!defined($uptimeLimit) || $uptimeLimit > 0) {
 
 		# Capped
 		if ($accountingUsage->{'TotalSessionTime'} >= $uptimeLimitWithTopups) {
@@ -401,7 +401,7 @@ sub post_acct_hook
 	}
 
 	# Traffic
-	if (defined($trafficLimit) && $trafficLimit > 0) {
+	if (!defined($trafficLimit) || $trafficLimit > 0) {
 
 		# Capped
 		if ($accountingUsage->{'TotalDataUsage'} >= $trafficLimitWithTopups) {
