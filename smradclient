@@ -156,7 +156,7 @@ if ($type eq "acct") {
 
 
 print(STDERR "\nRequest:\n");
-print(STDERR "  > Secret => '$secret'\n");
+print(STDERR " > Secret => '$secret'\n");
 # Build packet
 my $pkt = Radius::Packet->new($raddb);
 $pkt->set_code($pkt_code);
