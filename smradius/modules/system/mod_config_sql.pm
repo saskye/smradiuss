@@ -1,5 +1,5 @@
 # SQL config database support
-# Copyright (C) 2007-2011, AllWorldIT
+# Copyright (C) 2007-2016, AllWorldIT
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -199,7 +199,7 @@ sub getConfig
 	# Extract realm from username
 	if (defined($user->{'Username'}) && $user->{'Username'} =~ /^\S+@(\S+)$/) {
 		$realmName = $1;
-		
+
 		$server->log(LOG_DEBUG,"Processing realm attributes for '$realmName'");
 
 		$sth = DBSelect($config->{'get_config_realm_id_query'},$realmName);
@@ -264,7 +264,6 @@ sub getConfig
 
 		# Grab peer address object
 		my $peerAddrObj =  AWITPT::NetIP->new($server->{'server'}{'peeraddr'});
-
 		# Check if we know this client
 		my @accessList;
 		while (my $row = $sth->fetchrow_hashref()) {
@@ -274,9 +273,9 @@ sub getConfig
 			@accessList = split(',',$res->{'AccessList'});
 			# Loop with what we get and check if we have match
 			foreach my $range (@accessList) {
-				my $rangeObj = new AWITPT::NetIP->new($range);
+				my $rangeObj = AWITPT::NetIP->new($range);
 				# Check for match
-		 		if ($peerAddrObj->is_within($rangeObj)) {
+				if ($peerAddrObj->is_within($rangeObj)) {
 					$clientID = $res->{'ID'};
 					$server->log(LOG_INFO,"(SETCACHE) Got client ID '$clientID' from DB");
 					last;
