@@ -755,7 +755,7 @@ sub addAttributeConditionalVariable
 {
 	my ($user,$name,$value) = @_;
 
-	print(STDERR "CONDITIONAL VARIABLE:  $name => $value\n");
+
 	$user->{'AttributeConditionalVariables'}->{$name} = [ $value ];
 
 	return;
