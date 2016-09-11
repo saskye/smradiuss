@@ -161,11 +161,11 @@ print(STDERR " > Secret => '$secret'\n");
 my $pkt = Radius::Packet->new($raddb);
 $pkt->set_code($pkt_code);
 # Generate identifier
-my $ident = rand(32768);
+my $ident = int(rand(32768));
 $pkt->set_identifier($ident);
 print(STDERR " > Identifier: $ident\n");
 # Generate authenticator number
-my $authen = rand(32768);
+my $authen = int(rand(32768));
 $pkt->set_authenticator($authen);
 print(STDERR " > Authenticator: $ident\n");
 
