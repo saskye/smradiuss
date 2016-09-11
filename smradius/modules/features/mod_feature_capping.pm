@@ -214,7 +214,7 @@ sub post_auth_hook
 	# Uptime..
 	if (!defined($uptimeLimit) || $uptimeLimit > 0) {
 
-		# Capped
+		# Check session time has not exceeded what we're allowed
 		if ($accountingUsage->{'TotalSessionTime'} >= $uptimeLimitWithTopups) {
 			$server->log(LOG_DEBUG,"[MOD_FEATURE_CAPPING] Usage of ".$accountingUsage->{'TotalSessionTime'}.
 					"Min exceeds allowed limit of ".$uptimeLimitWithTopups."Min. Capped.");
