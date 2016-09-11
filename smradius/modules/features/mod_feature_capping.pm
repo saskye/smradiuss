@@ -536,23 +536,23 @@ sub _getConfigAttributeNumeric
 
 
 	# Short circuit if the attribute does not exist
-	return 0 if (!defined($user->{'ConfigAttributes'}->{$$attributeName}));
+	return 0 if (!defined($user->{'ConfigAttributes'}->{$attributeName}));
 
-	$server->log(LOG_DEBUG,"[MOD_FEATURE_CAPPING] Config attribute '".$$attributeName."' is defined");
+	$server->log(LOG_DEBUG,"[MOD_FEATURE_CAPPING] Config attribute '".$attributeName."' is defined");
 	# Check for value
-	if (!defined($user->{'ConfigAttributes'}->{$$attributeName}->[0])) {
-		$server->log(LOG_NOTICE,"[MOD_FEATURE_CAPPING] Config attribute '".$$attributeName."' has no value");
+	if (!defined($user->{'ConfigAttributes'}->{$attributeName}->[0])) {
+		$server->log(LOG_NOTICE,"[MOD_FEATURE_CAPPING] Config attribute '".$attributeName."' has no value");
 		return 0;
 	}
 
 	# Is it a number?
-	if ($user->{'ConfigAttributes'}->{$$attributeName}->[0] !~ /^\d+$/) {
-		$server->log(LOG_NOTICE,"[MOD_FEATURE_CAPPING] Config attribute '".$user->{'ConfigAttributes'}->{$$attributeName}->[0].
+	if ($user->{'ConfigAttributes'}->{$attributeName}->[0] !~ /^\d+$/) {
+		$server->log(LOG_NOTICE,"[MOD_FEATURE_CAPPING] Config attribute '".$user->{'ConfigAttributes'}->{$attributeName}->[0].
 				"' is NOT a numeric value");
 		return 0;
 	}
 
-	return $user->{'ConfigAttributes'}->{$$attributeName}->[0];
+	return $user->{'ConfigAttributes'}->{$attributeName}->[0];
 }
 
 
