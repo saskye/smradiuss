@@ -163,6 +163,8 @@ sub getTopups
 		'uptime' => 0,
 		'traffic-topup' => 0,
 		'uptime-topup' => 0,
+		'traffic-auto' => 0,
+		'uptime-auto' => 0,
 	};
 
 	# Check to see if we have a username
