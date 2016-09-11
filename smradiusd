@@ -1034,12 +1034,12 @@ sub process_request {
 					# Check if we got a positive result back
 					} elsif ($res == MOD_RES_ACK) {
 						$self->log(LOG_DEBUG,"[SMRADIUS] POST-AUTH: Passed authenticated by '".$module->{'Name'}."'");
-						$logReason = "Post Authentication Success"; 
+						$logReason = "Post Authentication Success";
 
 					# Or a negative result
 					} elsif ($res == MOD_RES_NACK) {
 						$self->log(LOG_DEBUG,"[SMRADIUS] POST-AUTH: Failed authentication by '".$module->{'Name'}."'");
-						$logReason = "Post Authentication Failure"; 
+						$logReason = "Post Authentication Failure";
 						$authenticated = 0;
 						# Do we want to run the other modules ??
 						last;
@@ -1079,10 +1079,10 @@ sub process_request {
 		# Check if we authenticated or not
 		if ($authenticated && $authorized) {
 			$self->log(LOG_DEBUG,"[SMRADIUS] Authenticated and authorized");
-			$logReason = "User Authorized"; 
+			$logReason = "User Authorized";
 
 			my $resp = Radius::Packet->new($self->{'radius'}->{'dictionary'});
-		 	$resp->set_code('Access-Accept');
+			$resp->set_code('Access-Accept');
 			$resp->set_identifier($pkt->identifier);
 			$resp->set_authenticator($pkt->authenticator);
 
@@ -1178,7 +1178,7 @@ sub process_request {
 					}
 				}
 			}
-	
+
 			# Add attributes onto logline
 			$request->addLogLine(". REPLY => ");
 			foreach my $attrName ($resp->attributes) {
@@ -1224,7 +1224,7 @@ CHECK_RESULT:
 		# Check if found and authenticated
 		if (!$authenticated || !$authorized) {
 			$self->log(LOG_DEBUG,"[SMRADIUS] Authentication or authorization failure");
-			$logReason = "User NOT Authenticated or Authorized"; 
+			$logReason = "User NOT Authenticated or Authorized";
 
 			my $resp = Radius::Packet->new($self->{'radius'}->{'dictionary'});
 			$resp->set_code('Access-Reject');
