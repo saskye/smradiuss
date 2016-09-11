@@ -217,7 +217,7 @@ sub post_auth_hook
 		# Check session time has not exceeded what we're allowed
 		if ($accountingUsage->{'TotalSessionTime'} >= $uptimeLimitWithTopups) {
 			$server->log(LOG_DEBUG,"[MOD_FEATURE_CAPPING] Usage of ".$accountingUsage->{'TotalSessionTime'}.
-					"Min exceeds allowed limit of ".$uptimeLimitWithTopups."Min. Capped.");
+					"min exceeds allowed limit of ".$uptimeLimitWithTopups."min");
 			return MOD_RES_NACK;
 		# Setup limits
 		} else {
@@ -242,7 +242,7 @@ sub post_auth_hook
 		# Capped
 		if ($accountingUsage->{'TotalDataUsage'} >= $trafficLimitWithTopups) {
 			$server->log(LOG_DEBUG,"[MOD_FEATURE_CAPPING] Usage of ".$accountingUsage->{'TotalDataUsage'}.
-					"Mb exceeds allowed limit of ".$trafficLimitWithTopups."Mb. Capped.");
+					"Mbyte exceeds allowed limit of ".$trafficLimitWithTopups."Mbyte");
 			return MOD_RES_NACK;
 		# Setup limits
 		} else {
@@ -395,7 +395,7 @@ sub post_acct_hook
 		# Capped
 		if ($accountingUsage->{'TotalSessionTime'} >= $uptimeLimitWithTopups) {
 			$server->log(LOG_DEBUG,"[MOD_FEATURE_CAPPING] Usage of ".$accountingUsage->{'TotalSessionTime'}.
-					"Min exceeds allowed limit of ".$uptimeLimitWithTopups."Min. Capped.");
+					"min exceeds allowed limit of ".$uptimeLimitWithTopups."min");
 			return MOD_RES_NACK;
 		}
 	}
@@ -406,7 +406,7 @@ sub post_acct_hook
 		# Capped
 		if ($accountingUsage->{'TotalDataUsage'} >= $trafficLimitWithTopups) {
 			$server->log(LOG_DEBUG,"[MOD_FEATURE_CAPPING] Usage of ".$accountingUsage->{'TotalDataUsage'}.
-					"Mb exceeds allowed limit of ".$trafficLimitWithTopups."Mb. Capped.");
+					"Mbyte exceeds allowed limit of ".$trafficLimitWithTopups."Mbyte");
 			return MOD_RES_NACK;
 		}
 	}
@@ -482,17 +482,17 @@ sub _logUptimeUsage
 	# Check if our limit is defined
 	if (!defined($uptimeLimit)) {
 		$server->log(LOG_DEBUG,"[MOD_FEATURE_CAPPING] Uptime => Usage total: ".$accountingUsage->{'TotalSessionTime'}.
-				"Min (Cap: Prepaid, Topups: ".$uptimeTopupAmount."Min)");
+				"min (Limit: Prepaid, Topups: ".$uptimeTopupAmount."min)");
 		return;
 	}
 
 	# If so, check if its > 0, which would depict its capped
 	if ($uptimeLimit > 0) {
 		$server->log(LOG_DEBUG,"[MOD_FEATURE_CAPPING] Uptime => Usage total: ".$accountingUsage->{'TotalSessionTime'}.
-				"Min (Cap: ".$uptimeLimit."Min, Topups: ".$uptimeTopupAmount."Min)");
+				"min (Limit: ".$uptimeLimit."min, Topups: ".$uptimeTopupAmount."min)");
 	} else {
 		$server->log(LOG_DEBUG,"[MOD_FEATURE_CAPPING] Uptime => Usage total: ".$accountingUsage->{'TotalSessionTime'}.
-				"Min (Cap: Uncapped, Topups: ".$uptimeTopupAmount."Min)");
+				"min (Limit: none, Topups: ".$uptimeTopupAmount."min)");
 	}
 
 	return;
@@ -510,17 +510,17 @@ sub _logTrafficUsage
 	# Check if our limit is defined
 	if (!defined($trafficLimit)) {
 		$server->log(LOG_DEBUG,"[MOD_FEATURE_CAPPING] Bandwidth => Usage total: ".$accountingUsage->{'TotalDataUsage'}.
-				"Mb (Cap: Prepaid, Topups: ".$trafficTopupAmount."Mb)");
+				"Mbyte (Limit: Prepaid, Topups: ".$trafficTopupAmount."Mbyte)");
 		return;
 	}
 
 	# If so, check if its > 0, which would depict its capped
 	if ($trafficLimit > 0) {
 		$server->log(LOG_DEBUG,"[MOD_FEATURE_CAPPING] Bandwidth => Usage total: ".$accountingUsage->{'TotalDataUsage'}.
-				"Mb (Cap: ".$trafficLimit."Mb, Topups: ".$trafficTopupAmount."Mb)");
+				"Mbyte (Limit: ".$trafficLimit."Mbyte, Topups: ".$trafficTopupAmount."Mbyte)");
 	} else {
 		$server->log(LOG_DEBUG,"[MOD_FEATURE_CAPPING] Bandwidth => Usage total: ".$accountingUsage->{'TotalDataUsage'}.
-				"Mb (Cap: Uncapped, Topups: ".$trafficTopupAmount."Mb)");
+				"Mbyte (Limit: none, Topups: ".$trafficTopupAmount."Mbyte)");
 	}
 
 	return;
