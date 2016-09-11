@@ -51,10 +51,14 @@ our $pluginInfo = {
 
 
 # Some constants
-my $TRAFFIC_LIMIT_KEY = 'SMRadius-Capping-Traffic-Limit';
-my $UPTIME_LIMIT_KEY = 'SMRadius-Capping-Uptime-Limit';
-my $TRAFFIC_TOPUPS_KEY = 'SMRadius-Capping-Traffic-Topup';
-my $TIME_TOPUPS_KEY = 'SMRadius-Capping-Uptime-Topup';
+my $TRAFFIC_LIMIT_ATTRIBUTE = 'SMRadius-Capping-Traffic-Limit';
+my $UPTIME_LIMIT_ATTRIBUTE = 'SMRadius-Capping-Uptime-Limit';
+
+my $TRAFFIC_TOPUP_ATTRIBUTE = 'SMRadius-Capping-Traffic-Topup';
+my $TIME_TOPUP_ATTRIBUTE = 'SMRadius-Capping-Uptime-Topup';
+
+my $TRAFFIC_AUTOTOPUP_ATTRIBUTE = 'SMRadius-Capping-Traffic-AutoTopup';
+my $TIME_AUTOTOPUP_ATTRIBUTE = 'SMRadius-Capping-Uptime-AutoTopup';
 
 my $config;
 
@@ -113,8 +117,8 @@ sub post_auth_hook
 	# Get limits from attributes
 	#
 
-	my $uptimeLimit = _getAttributeKeyLimit($server,$user,$UPTIME_LIMIT_KEY);
-	my $trafficLimit = _getAttributeKeyLimit($server,$user,$TRAFFIC_LIMIT_KEY);
+	my $uptimeLimit = _getAttributeKeyLimit($server,$user,$UPTIME_LIMIT_ATTRIBUTE);
+	my $trafficLimit = _getAttributeKeyLimit($server,$user,$TRAFFIC_LIMIT_ATTRIBUTE);
 
 
 	#
@@ -126,17 +130,23 @@ sub post_auth_hook
 		return MOD_RES_SKIP;
 	}
 
+
 	#
 	# Get valid traffic and uptime topups
 	#
 
-	my $uptimeTopup = _getUptimeTopup($server,$user);
-	my $trafficTopup = _getTrafficTopup($server,$user);
+
+	# Check if there was any data returned at all
+	my $uptimeTopupAmount = _getConfigAttributeNumeric($server,$user,$TIME_TOPUP_ATTRIBUTE) // 0;
+	my $trafficTopupAmount = _getConfigAttributeNumeric($server,$user,$TRAFFIC_TOPUP_ATTRIBUTE) // 0;
+	my $uptimeAutoTopupAmount = _getConfigAttributeNumeric($server,$user,$TIME_AUTOTOPUP_ATTRIBUTE) // 0;
+	my $trafficAutoTopupAmount = _getConfigAttributeNumeric($server,$user,$TRAFFIC_AUTOTOPUP_ATTRIBUTE) // 0;
 
 
 	#
 	# Set the new uptime and traffic limits (limit, if any.. + topups)
 	#
+
 
 	# Uptime..
 	# // is a defined operator,  $a ? defined($a) : $b
@@ -150,8 +160,8 @@ sub post_auth_hook
 	#
 	# Display our usages
 	#
-	_logUptimeUsage($server,$accountingUsage,$uptimeLimit,$uptimeTopup);
-	_logTrafficUsage($server,$accountingUsage,$trafficLimit,$trafficTopup);
+	_logUptimeUsage($server,$accountingUsage,$uptimeLimit,$uptimeTopupAmount);
+	_logTrafficUsage($server,$accountingUsage,$trafficLimit,$trafficTopupAmount);
 
 
 	#
@@ -188,7 +198,7 @@ sub post_auth_hook
 		my $newDataUsage = $accountingUsage->{'TotalDataUsage'} * $multiplier;
 
 		$trafficLimitWithTopups = $newLimit;
-		$accountingUsage->{'TotalDataUsage'} = $newDataUsage; 
+		$accountingUsage->{'TotalDataUsage'} = $newDataUsage;
 
 		$server->log(LOG_INFO,"[MOD_FEATURE_CAPPING] Client traffic multiplier '$multiplier' changes ".
 				"traffic limit ('$trafficLimitWithTopups' => '$newLimit'), ".
@@ -242,7 +252,7 @@ sub post_auth_hook
 				my $remainingTraffic = $trafficLimitWithTopups - $accountingUsage->{'TotalDataUsage'};
 				my $remainingTrafficLimit = ( $remainingTraffic % 4096 ) * 1024 * 1024;
 				my $remainingTrafficGigawords = floor($remainingTraffic / 4096);
-	
+
 				# Setup reply attributes for Mikrotik HotSpots
 				foreach my $attrName ('Recv','Xmit','Total') {
 					my %attribute = (
@@ -253,7 +263,7 @@ sub post_auth_hook
 						'Value' => $remainingTrafficLimit
 					);
 					setReplyVAttribute($server,$user->{'ReplyVAttributes'},\%attribute);
-	
+
 					%attribute = (
 						'Vendor' => 14988,
 						'Name' => "Mikrotik-$attrName-Limit-Gigawords",
@@ -301,8 +311,8 @@ sub post_acct_hook
 	# Get limits from attributes
 	#
 
-	my $uptimeLimit = _getAttributeKeyLimit($server,$user,$UPTIME_LIMIT_KEY);
-	my $trafficLimit = _getAttributeKeyLimit($server,$user,$TRAFFIC_LIMIT_KEY);
+	my $uptimeLimit = _getAttributeKeyLimit($server,$user,$UPTIME_LIMIT_ATTRIBUTE);
+	my $trafficLimit = _getAttributeKeyLimit($server,$user,$TRAFFIC_LIMIT_ATTRIBUTE);
 
 
 	#
@@ -320,46 +330,15 @@ sub post_acct_hook
 	#
 
 	# Check if there was any data returned at all
-	my $uptimeTopup = 0;
-	if (defined($user->{'ConfigAttributes'}->{$TIME_TOPUPS_KEY})) {
-		$server->log(LOG_DEBUG,"[MOD_FEATURE_CAPPING] '".$TIME_TOPUPS_KEY."' is defined");
+	my $uptimeTopupAmount = _getConfigAttributeNumeric($server,$user,$TIME_TOPUP_ATTRIBUTE) // 0;
+	my $trafficTopupAmount = _getConfigAttributeNumeric($server,$user,$TRAFFIC_TOPUP_ATTRIBUTE) // 0;
+	my $uptimeAutoTopupAmount = _getConfigAttributeNumeric($server,$user,$TIME_AUTOTOPUP_ATTRIBUTE) // 0;
+	my $trafficAutoTopupAmount = _getConfigAttributeNumeric($server,$user,$TRAFFIC_AUTOTOPUP_ATTRIBUTE) // 0;
 
-		# Check if there is a value
-		if (defined($user->{'ConfigAttributes'}->{$TIME_TOPUPS_KEY}->[0])) {
-			# Check if the value is of a valid type
-			if ($user->{'ConfigAttributes'}->{$TIME_TOPUPS_KEY}->[0] =~ /^\d+$/) {
-				$uptimeTopup = $user->{'ConfigAttributes'}->{$TIME_TOPUPS_KEY}->[0];
-			} else {
-				$server->log(LOG_NOTICE,"[MOD_FEATURE_CAPPING] '".$user->{'ConfigAttributes'}->{$TIME_TOPUPS_KEY}->[0].
-						"' is NOT a numeric value");
-			}
-		} else {
-			$server->log(LOG_NOTICE,"[MOD_FEATURE_CAPPING] '".$TIME_TOPUPS_KEY."' has no value");
-		}
-	}
-
-	# Check if there was any data returned at all
-	my $trafficTopup = 0;
-	if (defined($user->{'ConfigAttributes'}->{$TRAFFIC_TOPUPS_KEY})) {
-		$server->log(LOG_DEBUG,"[MOD_FEATURE_CAPPING] '".$TRAFFIC_TOPUPS_KEY."' is defined");
-		# Check for value
-		if (defined($user->{'ConfigAttributes'}->{$TRAFFIC_TOPUPS_KEY}->[0])) {
-			# Is it a number?
-			if ($user->{'ConfigAttributes'}->{$TRAFFIC_TOPUPS_KEY}->[0] =~ /^\d+$/) {
-				$trafficTopup = $user->{'ConfigAttributes'}->{$TRAFFIC_TOPUPS_KEY}->[0];
-			} else {
-				$server->log(LOG_NOTICE,"[MOD_FEATURE_CAPPING] '".$user->{'ConfigAttributes'}->{$TRAFFIC_TOPUPS_KEY}->[0].
-						"' is NOT a numeric value");
-			}
-		} else {
-			$server->log(LOG_NOTICE,"[MOD_FEATURE_CAPPING] '".$TRAFFIC_TOPUPS_KEY."' has no value");
-		}
-	}
 
 	#
 	# Set the new uptime and traffic limits (limit, if any.. + topups)
 	#
-
 
 	# Uptime..
 	# // is a defined operator,  $a ? defined($a) : $b
@@ -368,15 +347,13 @@ sub post_acct_hook
 	# Traffic..
 	# // is a defined operator,  $a ? defined($a) : $b
 	my $trafficLimitWithTopups = ($trafficLimit // 0) + $trafficTopupAmount;
-	}
-
 
 	#
 	# Display our usages
 	#
 
-	_logUptimeUsage($server,$accountingUsage,$uptimeLimit,$uptimeTopup);
-	_logTrafficUsage($server,$accountingUsage,$trafficLimit,$trafficTopup);
+	_logUptimeUsage($server,$accountingUsage,$uptimeLimit,$uptimeTopupAmount);
+	_logTrafficUsage($server,$accountingUsage,$trafficLimit,$trafficTopupAmount);
 
 
 	#
@@ -499,23 +476,23 @@ sub _getAccountingUsage
 # Code snippet to log our uptime usage
 sub _logUptimeUsage
 {
-	my ($server,$accountingUsage,$uptimeLimit,$uptimeTopup) = @_;
+	my ($server,$accountingUsage,$uptimeLimit,$uptimeTopupAmount) = @_;
 
 
 	# Check if our limit is defined
 	if (!defined($uptimeLimit)) {
 		$server->log(LOG_DEBUG,"[MOD_FEATURE_CAPPING] Uptime => Usage total: ".$accountingUsage->{'TotalSessionTime'}.
-				"Min (Cap: Prepaid, Topups: ".$uptimeTopup."Min)");
+				"Min (Cap: Prepaid, Topups: ".$uptimeTopupAmount."Min)");
 		return;
 	}
 
 	# If so, check if its > 0, which would depict its capped
 	if ($uptimeLimit > 0) {
 		$server->log(LOG_DEBUG,"[MOD_FEATURE_CAPPING] Uptime => Usage total: ".$accountingUsage->{'TotalSessionTime'}.
-				"Min (Cap: ".$uptimeLimit."Min, Topups: ".$uptimeTopup."Min)");
+				"Min (Cap: ".$uptimeLimit."Min, Topups: ".$uptimeTopupAmount."Min)");
 	} else {
 		$server->log(LOG_DEBUG,"[MOD_FEATURE_CAPPING] Uptime => Usage total: ".$accountingUsage->{'TotalSessionTime'}.
-				"Min (Cap: Uncapped, Topups: ".$uptimeTopup."Min)");
+				"Min (Cap: Uncapped, Topups: ".$uptimeTopupAmount."Min)");
 	}
 
 	return;
@@ -527,23 +504,23 @@ sub _logUptimeUsage
 # Code snippet to log our traffic usage
 sub _logTrafficUsage
 {
-	my ($server,$accountingUsage,$trafficLimit,$trafficTopup) = @_;
+	my ($server,$accountingUsage,$trafficLimit,$trafficTopupAmount) = @_;
 
 
 	# Check if our limit is defined
 	if (!defined($trafficLimit)) {
 		$server->log(LOG_DEBUG,"[MOD_FEATURE_CAPPING] Bandwidth => Usage total: ".$accountingUsage->{'TotalDataUsage'}.
-				"Mb (Cap: Prepaid, Topups: ".$trafficTopup."Mb)");
+				"Mb (Cap: Prepaid, Topups: ".$trafficTopupAmount."Mb)");
 		return;
 	}
 
 	# If so, check if its > 0, which would depict its capped
 	if ($trafficLimit > 0) {
 		$server->log(LOG_DEBUG,"[MOD_FEATURE_CAPPING] Bandwidth => Usage total: ".$accountingUsage->{'TotalDataUsage'}.
-				"Mb (Cap: ".$trafficLimit."Mb, Topups: ".$trafficTopup."Mb)");
+				"Mb (Cap: ".$trafficLimit."Mb, Topups: ".$trafficTopupAmount."Mb)");
 	} else {
 		$server->log(LOG_DEBUG,"[MOD_FEATURE_CAPPING] Bandwidth => Usage total: ".$accountingUsage->{'TotalDataUsage'}.
-				"Mb (Cap: Uncapped, Topups: ".$trafficTopup."Mb)");
+				"Mb (Cap: Uncapped, Topups: ".$trafficTopupAmount."Mb)");
 	}
 
 	return;
@@ -552,60 +529,30 @@ sub _logTrafficUsage
 
 
 ## @internal
-# Code snippet to get our uptime topup amount
-sub _getUptimeTopup
+# Function snippet to return a numeric configuration attribute
+sub _getConfigAttributeNumeric
 {
-	my ($server,$user) = @_;
+	my ($server,$user,$attributeName) = @_;
 
 
 	# Short circuit if the attribute does not exist
-	return 0 if (!defined($user->{'ConfigAttributes'}->{$TIME_TOPUPS_KEY}));
+	return 0 if (!defined($user->{'ConfigAttributes'}->{$$attributeName}));
 
-	$server->log(LOG_DEBUG,"[MOD_FEATURE_CAPPING] '".$TIME_TOPUPS_KEY."' is defined");
-
-	# Check if there is a value
-	if (!defined($user->{'ConfigAttributes'}->{$TIME_TOPUPS_KEY}->[0])) {
-		$server->log(LOG_NOTICE,"[MOD_FEATURE_CAPPING] '".$TIME_TOPUPS_KEY."' has no value");
-		return 0;
-	}
-
-	# Check if the value is of a valid type
-	if ($user->{'ConfigAttributes'}->{$TIME_TOPUPS_KEY}->[0] !~ /^\d+$/) {
-		$server->log(LOG_NOTICE,"[MOD_FEATURE_CAPPING] '".$user->{'ConfigAttributes'}->{$TIME_TOPUPS_KEY}->[0].
-				"' is NOT a numeric value");
-		return 0;
-	}
-
-	return $user->{'ConfigAttributes'}->{$TIME_TOPUPS_KEY}->[0];
-}
-
-
-
-## @internal
-# Code snippet to get our traffic topup amount
-sub _getTrafficTopup
-{
-	my ($server,$user) = @_;
-
-
-	# Short circuit if the attribute does not exist
-	return 0 if (!defined($user->{'ConfigAttributes'}->{$TRAFFIC_TOPUPS_KEY}));
-
-	$server->log(LOG_DEBUG,"[MOD_FEATURE_CAPPING] '".$TRAFFIC_TOPUPS_KEY."' is defined");
+	$server->log(LOG_DEBUG,"[MOD_FEATURE_CAPPING] Config attribute '".$$attributeName."' is defined");
 	# Check for value
-	if (!defined($user->{'ConfigAttributes'}->{$TRAFFIC_TOPUPS_KEY}->[0])) {
-		$server->log(LOG_NOTICE,"[MOD_FEATURE_CAPPING] '".$TRAFFIC_TOPUPS_KEY."' has no value");
+	if (!defined($user->{'ConfigAttributes'}->{$$attributeName}->[0])) {
+		$server->log(LOG_NOTICE,"[MOD_FEATURE_CAPPING] Config attribute '".$$attributeName."' has no value");
 		return 0;
 	}
 
 	# Is it a number?
-	if ($user->{'ConfigAttributes'}->{$TRAFFIC_TOPUPS_KEY}->[0] !~ /^\d+$/) {
-		$server->log(LOG_NOTICE,"[MOD_FEATURE_CAPPING] '".$user->{'ConfigAttributes'}->{$TRAFFIC_TOPUPS_KEY}->[0].
+	if ($user->{'ConfigAttributes'}->{$$attributeName}->[0] !~ /^\d+$/) {
+		$server->log(LOG_NOTICE,"[MOD_FEATURE_CAPPING] Config attribute '".$user->{'ConfigAttributes'}->{$$attributeName}->[0].
 				"' is NOT a numeric value");
 		return 0;
 	}
 
-	return $user->{'ConfigAttributes'}->{$TRAFFIC_TOPUPS_KEY}->[0];
+	return $user->{'ConfigAttributes'}->{$$attributeName}->[0];
 }
 
 
