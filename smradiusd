@@ -17,6 +17,8 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 
+use strict;
+use warnings;
 
 use lib('/usr/local/lib/smradius-0.0','/usr/lib/smradius-0.0',
 	'/usr/lib64/smradius-0.0','smradius','awitpt/lib');
