@@ -2,8 +2,8 @@ stages:
   - codequality
   - tests
 
-publish:
-  stage: codequality
+quality:
+  stage: code
   script:
     - DEBIAN_FRONTEND=noninteractive
     - apt-get update
@@ -11,7 +11,7 @@ publish:
     - apt-get install -y libperl-critic-perl
     - perlcritic --gentle "$CI_PROJECT_DIR"
 
-publish:
+tests:
   stage: tests
   script:
     - DEBIAN_FRONTEND=noninteractive
