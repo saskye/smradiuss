@@ -1336,10 +1336,6 @@ EOF
 
 
 
-__PACKAGE__->run();
-
-
-
 1;
 # vim: ts=4
 
