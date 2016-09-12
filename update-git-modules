@@ -3,7 +3,7 @@
 git submodule update --recursive --init
 
 pushd awitpt
-git checkout v0.0.x
+git checkout v1.0.x
 git pull
 popd
 
