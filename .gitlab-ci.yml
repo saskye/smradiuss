@@ -5,7 +5,7 @@ stages:
 quality:
   stage: code
   script:
-    - DEBIAN_FRONTEND=noninteractive
+    - export DEBIAN_FRONTEND=noninteractive
     - apt-get update
     - apt-get dist-upgrade -y
     - apt-get install -y libperl-critic-perl
@@ -14,7 +14,7 @@ quality:
 tests:
   stage: tests
   script:
-    - DEBIAN_FRONTEND=noninteractive
+    - export DEBIAN_FRONTEND=noninteractive
     - apt-get update
     - apt-get dist-upgrade -y
     - apt-get install -y git
