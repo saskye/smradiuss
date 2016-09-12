@@ -1,24 +1,24 @@
 stages:
-  - requirements
   - codequality
   - tests
 
 publish:
-  stage: requirements
-  script:
-    - apt-get update
-    - apt-get dist-upgrade -y
-    - apt-get install -y git
-    - apt-get install -y libperl-critic-perl
-
-publish:
   stage: codequality
   script:
+    - DEBIAN_FRONTEND=noninteractive
+    - apt-get update
+    - apt-get dist-upgrade -y
+    - apt-get install -y libperl-critic-perl
     - perlcritic --gentle "$CI_PROJECT_DIR"
 
 publish:
   stage: tests
   script:
+    - DEBIAN_FRONTEND=noninteractive
+    - apt-get update
+    - apt-get dist-upgrade -y
+    - apt-get install -y git
+    - apt-get install -y mysql-server
     - cd "$CI_PROJECT_DIR"
     - ./update-git-modules
 
