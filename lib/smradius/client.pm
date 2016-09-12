@@ -28,7 +28,7 @@ use IO::Select;
 use IO::Socket;
 
 use smradius::version;
-use Radius::Packet;
+use smradius::Radius::Packet;
 
 # Check Config::IniFiles is instaslled
 if (!eval {require Config::IniFiles; 1;}) {
@@ -114,7 +114,7 @@ sub run
 
 	# Time to start loading the dictionary
 	print(STDERR "Loading dictionaries...");
-	my $raddb = Radius::Dictionary->new();
+	my $raddb = smradius::Radius::Dictionary->new();
 
 	# Look for files in the dir
 	opendir(my $DIR, $cmdline->{'raddb'})
@@ -150,7 +150,7 @@ sub run
 	print(STDERR "\nRequest:\n");
 	print(STDERR " > Secret => '$secret'\n");
 	# Build packet
-	my $pkt = Radius::Packet->new($raddb);
+	my $pkt = smradius::Radius::Packet->new($raddb);
 	$pkt->set_code($pkt_code);
 	# Generate identifier
 	my $ident = int(rand(32768));
@@ -228,7 +228,7 @@ sub run
 	}
 
 	# Parse packet
-	$pkt = Radius::Packet->new($raddb,$udp_packet);
+	$pkt = smradius::Radius::Packet->new($raddb,$udp_packet);
 	print(STDERR " > Authenticated: ". (defined(auth_req_verify($udp_packet,$secret,$authen)) ? "yes" : "no") ."\n");
 	print(STDERR $pkt->str_dump());
 

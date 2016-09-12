@@ -64,8 +64,8 @@ use Time::HiRes qw( gettimeofday tv_interval );
 
 use AWITPT::DB::DBILayer;
 use AWITPT::Util qw( booleanize );
-use Radius::Packet;
 
+use smradius::Radius::Packet;
 use smradius::version;
 use smradius::constants;
 use smradius::daemon::request;
@@ -352,7 +352,7 @@ sub post_configure_hook {
 
 	# Load dictionaries
 	$self->log(LOG_INFO,"[SMRADIUS] Initializing dictionaries...");
-	my $dict = Radius::Dictionary->new();
+	my $dict = smradius::Radius::Dictionary->new();
 	foreach my $df (@{$config->{'dictionary_list'}}) {
 		# Load dictionary
 		if (!$dict->readfile($df)) {
@@ -769,7 +769,7 @@ sub process_request {
 		}
 
 		# Tell the NAS we got its packet
-		my $resp = Radius::Packet->new($self->{'radius'}->{'dictionary'});
+		my $resp = smradius::Radius::Packet->new($self->{'radius'}->{'dictionary'});
 		$resp->set_code('Accounting-Response');
 		$resp->set_identifier($pkt->identifier);
 		$resp->set_authenticator($pkt->authenticator);
@@ -832,7 +832,7 @@ sub process_request {
 		if ($PODUser) {
 			$self->log(LOG_DEBUG,"[SMRADIUS] POST-ACCT: Trying to disconnect user...");
 
-			my $resp = Radius::Packet->new($self->{'radius'}->{'dictionary'});
+			my $resp = smradius::Radius::Packet->new($self->{'radius'}->{'dictionary'});
 
 			$resp->set_code('Disconnect-Request');
 			my $id = $$ & 0xff;
@@ -1073,7 +1073,7 @@ sub process_request {
 			$self->log(LOG_DEBUG,"[SMRADIUS] Authenticated and authorized");
 			$logReason = "User Authorized";
 
-			my $resp = Radius::Packet->new($self->{'radius'}->{'dictionary'});
+			my $resp = smradius::Radius::Packet->new($self->{'radius'}->{'dictionary'});
 			$resp->set_code('Access-Accept');
 			$resp->set_identifier($pkt->identifier);
 			$resp->set_authenticator($pkt->authenticator);
@@ -1218,7 +1218,7 @@ CHECK_RESULT:
 			$self->log(LOG_DEBUG,"[SMRADIUS] Authentication or authorization failure");
 			$logReason = "User NOT Authenticated or Authorized";
 
-			my $resp = Radius::Packet->new($self->{'radius'}->{'dictionary'});
+			my $resp = smradius::Radius::Packet->new($self->{'radius'}->{'dictionary'});
 			$resp->set_code('Access-Reject');
 			$resp->set_identifier($pkt->identifier);
 			$resp->set_authenticator($pkt->authenticator);
