@@ -17,7 +17,7 @@
 # relevant information for reproducing the bug. Packet dumps are most
 # useful.
 
-package Radius::Packet;
+package smradius::Radius::Packet;
 
 use strict;
 require Exporter;
@@ -32,7 +32,7 @@ $VSA = 26;			# Type assigned in RFC2138 to the
 				# Vendor-Specific Attributes
 
 # Be sure our dictionaries are current
-use Radius::Dictionary 1.50;
+use smradius::Radius::Dictionary 1.50;
 use Carp;
 use Socket;
 use Digest::MD5;

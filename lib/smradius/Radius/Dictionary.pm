@@ -17,7 +17,7 @@
 # relevant information for reproducing the bug. Packet dumps are most
 # useful.
 
-package Radius::Dictionary;
+package smradius::Radius::Dictionary;
 
 use strict;
 use warnings;
