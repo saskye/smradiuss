@@ -1,9 +1,9 @@
 stages:
-  - codequality
+  - quality
   - tests
 
-quality:
-  stage: code
+code:
+  stage: quality
   script:
     - export DEBIAN_FRONTEND=noninteractive
     - apt-get update
