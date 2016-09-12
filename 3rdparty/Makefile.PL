@@ -1,4 +1,3 @@
-my @additionalDirs = ();
 # Makefile
 # Copyright (C) 2014-2016, AllWorldIT
 #
@@ -28,6 +27,8 @@ use File::Find;
 
 
 
+my @additionalDirs = ();
+
 find(
 	{
 		wanted => sub {
@@ -43,8 +44,6 @@ find(
 	},
 	".",
 );
-
-
 
 WriteMakefile(
 	'NAME' => 'SMRadius-3rdParty',
