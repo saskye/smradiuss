@@ -1,11 +1,22 @@
 stages:
-  - default
+  - requirements
+  - codequality
+  - tests
 
 publish:
-  stage: default
+  stage: requirements
   script:
     - apt-get update
     - apt-get dist-upgrade -y
+    - apt-get install -y git
     - apt-get install -y libperl-critic-perl
+
+publish:
+  stage: codequality
     - perlcritic --gentle "$CI_PROJECT_DIR"
+
+publish:
+  stage: tests
+    - cd "$CI_PROJECT_DIR"
+    - ./update-git-modules
 
