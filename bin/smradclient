@@ -19,14 +19,17 @@
 use strict;
 use warnings;
 
-use lib('/usr/local/lib/smradius-0.0','/usr/lib/smradius-0.0',
-	'/usr/lib64/smradius-0.0','smradius','awitpt');
 
+
+use FindBin;
+use lib "$FindBin::Bin/../share/perl5";
 
 use smradius::client;
 
 
+
 smradius::client->run();
+
 
 
 1;

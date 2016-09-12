@@ -17,15 +17,15 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 
+
 use strict;
 use warnings;
 
 
-# Set library directory
-use lib qw(
-	smradius
-	awitpt/lib
-);
+
+use FindBin;
+use lib "$FindBin::Bin/../share/perl5";
+
 
 
 # Check Config::IniFiles is instaslled
