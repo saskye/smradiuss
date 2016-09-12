@@ -1,3 +1,4 @@
+my @additionalDirs = ();
 # Makefile
 # Copyright (C) 2014-2016, AllWorldIT
 #
@@ -27,17 +28,28 @@ use File::Find;
 
 
 
+find(
+	{
+		wanted => sub {
+			if (/^Makefile.PL$/) {
+				my $dirname = $File::Find::dir;
+				if ($dirname ne ".") {
+					$dirname =~ s,\./,,;
+					push(@additionalDirs,$dirname);
+				}
+			};
+		},
+		bydepth => 1,
+	},
+	".",
+);
+
+
+
 WriteMakefile(
-	'NAME' => 'SMRadius',
+	'NAME' => 'SMRadius-3rdParty',
 
-	'VENDORPREFIX' => '/opt/smradius',
-	'INSTALLDIRS' => 'vendor',
-
-	'VERSION_FROM' => "lib/smradius/version.pm",
-
-	'DIR' => ["3rdparty"],
-
-	'EXE_FILES' => [qw( bin/smradiusd bin/smadmin bin/smradclient )],
+	'DIR' => \@additionalDirs,
 );
 
 
