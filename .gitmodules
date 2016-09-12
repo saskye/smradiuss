@@ -1,6 +1,7 @@
-[submodule "awitpt"]
-	path = 3rdparty/awitpt
-	url = https://gitlab.devlabs.linuxassist.net/awit-frameworks/awit-perl-toolkit.git
 [submodule "webgui/awitef"]
 	path = webgui/awitef
 	url = https://gitlab.devlabs.linuxassist.net/awit-frameworks/awit-extjs-framework.git
+[submodule "awitpt"]
+	path = ext/awitpt
+	url = https://gitlab.devlabs.linuxassist.net/awit-frameworks/awit-perl-toolkit.git
+	branch = v1.0.x
