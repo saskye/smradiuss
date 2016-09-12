@@ -1,5 +1,5 @@
 [submodule "awitpt"]
-	path = awitpt
+	path = 3rdparty/awitpt
 	url = https://gitlab.devlabs.linuxassist.net/awit-frameworks/awit-perl-toolkit.git
 [submodule "webgui/awitef"]
 	path = webgui/awitef
