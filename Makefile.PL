@@ -21,9 +21,13 @@ use warnings;
 use ExtUtils::MakeMaker;
 
 WriteMakefile(
-	NAME => 'AWITPT',
-	VERSION_FROM => "smradius/version.pm",
+	'NAME' => 'AWITPT',
 
-	EXE_FILES => [qw( bin/smradiusd bin/smadmin bin/smradclient )],
+	'VENDORPREFIX' => '/opt/smradius',
+	'INSTALLDIRS' => 'vendor',
+
+	'VERSION_FROM' => "lib/smradius/version.pm",
+
+	'EXE_FILES' => [qw( bin/smradiusd bin/smadmin bin/smradclient )],
 );
 
