@@ -8,7 +8,7 @@ code:
     - export DEBIAN_FRONTEND=noninteractive
     - apt-get update
     - apt-get dist-upgrade -y
-    - apt-get install -y libperl-critic-perl
+    - apt-get install -y libperl-critic-perl make
     - perlcritic --gentle "$CI_PROJECT_DIR"
 
 tests:
@@ -17,8 +17,10 @@ tests:
     - export DEBIAN_FRONTEND=noninteractive
     - apt-get update
     - apt-get dist-upgrade -y
-    - apt-get install -y git
+    - apt-get install -y git make
     - apt-get install -y mysql-server
     - cd "$CI_PROJECT_DIR"
     - ./update-git-modules
+    - perl Makefile.PL
+    - make test
 

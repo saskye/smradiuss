@@ -1,5 +1,5 @@
-# SMRadius version package
-# Copyright (C) 2007-2016, AllWorldIT
+# Makefile
+# Copyright (C) 2014, AllWorldIT
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -15,33 +15,15 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-
-package smradius::version;
-
 use strict;
 use warnings;
 
+use ExtUtils::MakeMaker;
 
-# Exporter stuff
-require Exporter;
-our (@ISA,@EXPORT,@EXPORT_OK);
-@ISA = qw(Exporter);
-@EXPORT = qw(
-	$VERSION
-	VERSION
-);
-@EXPORT_OK = qw(
+WriteMakefile(
+	NAME => 'AWITPT',
+	VERSION_FROM => "smradius/version.pm",
+
+	EXE_FILES => [qw( bin/smradiusd bin/smadmin bin/smradclient )],
 );
 
-
-
-our $VERSION = "1.0.x";
-
-
-
-sub VERSION { return $VERSION };
-
-
-
-1;
-# vim: ts=4
