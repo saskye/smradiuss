@@ -13,10 +13,12 @@ publish:
 
 publish:
   stage: codequality
+  script:
     - perlcritic --gentle "$CI_PROJECT_DIR"
 
 publish:
   stage: tests
+  script:
     - cd "$CI_PROJECT_DIR"
     - ./update-git-modules
 
