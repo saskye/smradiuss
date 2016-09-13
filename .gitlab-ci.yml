@@ -26,6 +26,8 @@ make-test:
     - cd "$CI_PROJECT_DIR"
     - ./update-git-modules
     - perl Makefile.PL
+    - make test
+      perl Makefile.PL DIR=
     - cover -test | tee devel-coverage.txt
     - grep "^Total" devel-coverage.txt | awk '{ print "(" $8 "%) covered" }'
 
