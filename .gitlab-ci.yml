@@ -9,7 +9,9 @@ code-quality:
     - export DEBIAN_FRONTEND=noninteractive
     - apt-get update
     - apt-get dist-upgrade -y
-    - apt-get install -y libperl-critic-perl make
+    - apt-get install -y perl-modules
+    - apt-get install -y make
+    - apt-get install -y libperl-critic-perl
     - perlcritic --gentle "$CI_PROJECT_DIR"
 
 make-test:
@@ -19,11 +21,13 @@ make-test:
     - apt-get update
     - apt-get dist-upgrade -y
     - apt-get install -y git make
+    - apt-get install -y libdevel-cover-perl libpod-coverage-perl
     - apt-get install -y mysql-server
     - cd "$CI_PROJECT_DIR"
     - ./update-git-modules
     - perl Makefile.PL
-    - make test
+    - cover -test | tee devel-coverage.txt
+    - grep "^Total" devel-coverage.txt | awk '{ print "(" $8 "%) covered" }'
 
 make-install:
   stage: install
