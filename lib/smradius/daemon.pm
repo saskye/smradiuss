@@ -57,7 +57,7 @@ eval qq{
 };
 ## use critic
 
-use Getopt::Long;
+use Getopt::Long qw( GetOptionsFromArray );
 use Socket;
 use Sys::Syslog;
 use Time::HiRes qw( gettimeofday tv_interval );
@@ -113,16 +113,23 @@ sub configure {
 	$server->{'max_servers'} = 25;
 	$server->{'max_requests'} = 1000;
 
+	# Work out runtime arguments
+	my @runArgs = @{$server->{'_run_args'}} ? @{$server->{'_run_args'}} : @ARGV;
+
 	# Parse command line params
 	my $cmdline;
 	%{$cmdline} = ();
-	GetOptions(
+	if (!GetOptionsFromArray(
+			\@runArgs,
 			\%{$cmdline},
 			"help",
 			"config:s",
 			"debug",
 			"fg",
-	) or die "Error parsing commandline arguments";
+	)) {
+	   print(STDERR "ERROR: Error parsing commandline arguments");
+	   return 1;
+	}
 
 	# Check for some args
 	if ($cmdline->{'help'}) {
@@ -343,7 +350,7 @@ sub post_configure_hook {
 	my $config = $self->{'config'};
 
 
-	$self->log(LOG_NOTICE,"[SMRADIUS] SMRadius - v".VERSION);
+	$self->log(LOG_NOTICE,"[SMRADIUS] SMRadius - v$VERSION");
 
 	# Init config
 	$self->log(LOG_INFO,"[SMRADIUS] Initializing configuration...");
@@ -1320,7 +1327,7 @@ sub log ## no critic (Subroutines::ProhibitBuiltinHomonyms)
 
 # Display help
 sub displayHelp {
-	print(STDERR "SMRadius v".VERSION." - Copyright (c) 2007-2016, AllWorldIT\n");
+	print(STDERR "SMRadius v$VERSION - Copyright (c) 2007-2016, AllWorldIT\n");
 
 	print(STDERR<<EOF);
 
