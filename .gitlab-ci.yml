@@ -22,9 +22,11 @@ make-test:
     - apt-get dist-upgrade -y
     - apt-get install -y git make
     - apt-get install -y libdevel-cover-perl libpod-coverage-perl
+    - apt-get install -y libnet-server-perl libconfig-inifiles-perl libdatetime-perl libcache-fastmmap-perl
     - apt-get install -y mysql-server
     - cd "$CI_PROJECT_DIR"
     - ./update-git-modules
+    - perl -MCPAN -e 'install Math::Expression' < /dev/null
     - perl Makefile.PL
     - make test
     - perl Makefile.PL DIR=
