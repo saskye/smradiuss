@@ -1,8 +1,9 @@
 stages:
   - quality
   - tests
+  - install
 
-code:
+code-quality:
   stage: quality
   script:
     - export DEBIAN_FRONTEND=noninteractive
@@ -11,7 +12,7 @@ code:
     - apt-get install -y libperl-critic-perl make
     - perlcritic --gentle "$CI_PROJECT_DIR"
 
-tests:
+make-test:
   stage: tests
   script:
     - export DEBIAN_FRONTEND=noninteractive
@@ -23,4 +24,17 @@ tests:
     - ./update-git-modules
     - perl Makefile.PL
     - make test
+
+make-install:
+  stage: install
+  script:
+    - export DEBIAN_FRONTEND=noninteractive
+    - apt-get update
+    - apt-get dist-upgrade -y
+    - apt-get install -y git make
+    - apt-get install -y mysql-server
+    - cd "$CI_PROJECT_DIR"
+    - ./update-git-modules
+    - perl Makefile.PL
+    - make install
 
