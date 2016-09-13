@@ -48,7 +48,7 @@ sub run
 	$self = $self->new() if (!ref($self));
 
 
-	print(STDERR "SMRadClient v".VERSION." - Copyright (c) 2007-2016, AllWorldIT\n");
+	print(STDERR "SMRadClient v$VERSION - Copyright (c) 2007-2016, AllWorldIT\n");
 
 	print(STDERR "\n");
 
