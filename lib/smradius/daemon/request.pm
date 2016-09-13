@@ -25,6 +25,9 @@ use warnings;
 use base qw{AWITPT::Object};
 
 
+use smradius::Radius::Packet;
+
+
 
 # Parse radius packet
 sub parsePacket
@@ -33,7 +36,7 @@ sub parsePacket
 
 
 	# Parse the radius packet
-	$self->{'packet'} = Radius::Packet->new($dictionary,$rawPacket);
+	$self->{'packet'} = smradius::Radius::Packet->new($dictionary,$rawPacket);
 
 	# Loop with packet attribute names and add to our log line
 	$self->addLogLine("PACKET => ");
