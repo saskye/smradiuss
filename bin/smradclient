@@ -28,9 +28,10 @@ use smradius::client;
 
 
 
-smradius::client->run();
+# Grab and exit with result received
+my $res = smradius::client->run();
+exit($res);
 
 
 
-1;
 # vim: ts=4

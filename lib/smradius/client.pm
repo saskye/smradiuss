@@ -23,7 +23,9 @@ package smradius::client;
 use strict;
 use warnings;
 
-use Getopt::Long;
+use base qw(AWITPT::Object);
+
+use Getopt::Long qw( GetOptionsFromArray );
 use IO::Select;
 use IO::Socket;
 
@@ -38,76 +40,70 @@ if (!eval {require Config::IniFiles; 1;}) {
 
 
 
-
+# Run the client
 sub run
 {
+	my ($self,@methodArgs) = @_;
+	# Instantiate if we're not already instantiated
+	$self = $self->new() if (!ref($self));
 
 
 	print(STDERR "SMRadClient v".VERSION." - Copyright (c) 2007-2016, AllWorldIT\n");
+
+	print(STDERR "\n");
 
 	# Set defaults
 	my $cfg;
 	$cfg->{'config_file'} = "/etc/smradiusd.conf";
 
+	# Grab runtime arguments
+	my @runArgs = @methodArgs ? @methodArgs : @ARGV;
 
 	# Parse command line params
 	my $cmdline;
 	%{$cmdline} = ();
-	GetOptions(
+	if (!GetOptionsFromArray(
+		\@runArgs,
 		\%{$cmdline},
 		"config:s",
 		"raddb:s",
 		"help",
-	) or die "Error parsing commandline arguments";
+	)) {
+	   print(STDERR "ERROR: Error parsing commandline arguments");
+	   return 1;
+	}
 
 	# Check for some args
 	if ($cmdline->{'help'}) {
 		displayHelp();
-		exit 0;
+		return 0;
 	}
 
 	# Make sure we only have 2 additional args
-	if (@ARGV > 3 || @ARGV < 3) {
-		print(STDERR "ERROR: Invalid number of arguments\n\n");
+	if (@runArgs < 3) {
+		print(STDERR "ERROR: Invalid number of arguments\n");
 		displayHelp();
-		exit 1;
+		return 1;
 	}
 
 	if (!defined($cmdline->{'raddb'}) || $cmdline->{'raddb'} eq "") {
-		print(STDERR "ERROR: No raddb directory specified!\n\n");
+		print(STDERR "ERROR: No raddb directory specified!\n");
 		displayHelp();
-		exit 1;
+		return 1;
 	}
 
 	# Get variables we need
-	my ($server,$type,$secret) = @ARGV;
+	my $server = shift(@runArgs);
+	my $type = shift(@runArgs);
+	$self->{'secret'} = shift(@runArgs);
 
 	# Validate type
-	if (!defined($type) || ( $type ne "acct" && $type ne "auth" &&
-				$type ne "disconnect"
-	)){
-		print(STDERR "ERROR: Invalid packet type specified!\n\n");
+	if (!defined($type) || ( $type ne "acct" && $type ne "auth" && $type ne "disconnect")) {
+		print(STDERR "ERROR: Invalid packet type specified!\n");
 		displayHelp();
-		exit 1;
+		return 1;
 	}
 
-
-	#if (defined($cmdline->{'config'}) && $cmdline->{'config'} ne "") {
-	#	$cfg->{'config_file'} = $cmdline->{'config'};
-	#}
-
-	# Check config file exists
-	#if (! -f $cfg->{'config_file'}) {
-	#	die("No configuration file '".$cfg->{'config_file'}."' found!\n");
-	#}
-
-	# Use config file, ignore case
-	#tie my %inifile, 'Config::IniFiles', (
-	#		-file => $cfg->{'config_file'},
-	#		-nocase => 1
-	#) or die "Failed to open config file '".$cfg->{'config_file'}."': $!";
-	# Copy config
-	#my %config = %inifile;
 
 	print(STDERR "\n");
 
@@ -117,18 +113,21 @@ sub run
 	my $raddb = smradius::Radius::Dictionary->new();
 
 	# Look for files in the dir
-	opendir(my $DIR, $cmdline->{'raddb'})
-	or die "Cannot open '".$cmdline->{'raddb'}."': $!";
+	my $DIR;
+	if (!opendir($DIR, $cmdline->{'raddb'})) {
+		print(STDERR "ERROR: Cannot open '".$cmdline->{'raddb'}."': $!");
+		return 1;
+	}
 	my @raddb_files = readdir($DIR);
 
 	# And load the dictionary
 	foreach my $df (@raddb_files) {
-	my $df_fn = $cmdline->{'raddb'}."/$df";
-	# Load dictionary
-	if (!$raddb->readfile($df_fn)) {
-		print(STDERR "Failed to load dictionary '$df_fn': $!");
-	}
-	print(STDERR ".");
+		my $df_fn = $cmdline->{'raddb'}."/$df";
+		# Load dictionary
+		if (!$raddb->readfile($df_fn)) {
+			print(STDERR "Failed to load dictionary '$df_fn': $!");
+		}
+		print(STDERR ".");
 	}
 	print(STDERR "\n");
 
@@ -136,52 +135,43 @@ sub run
 	my $port;
 	my $pkt_code;
 	if ($type eq "acct") {
-	$port = 1813;
-	$pkt_code = "Accounting-Request";
+		$port = 1813;
+		$pkt_code = "Accounting-Request";
 	} elsif ($type eq "auth") {
-	$port = 1812;
-	$pkt_code = "Access-Request";
+		$port = 1812;
+		$pkt_code = "Access-Request";
 	} elsif ($type eq "disconnect") {
-	$port = 1813;
-	$pkt_code = "Disconnect-Request";
+		$port = 1813;
+		$pkt_code = "Disconnect-Request";
 	}
 
 
 	print(STDERR "\nRequest:\n");
-	print(STDERR " > Secret => '$secret'\n");
+	printf(STDERR " > Secret => '%s'\n",$self->{'secret'});
 	# Build packet
-	my $pkt = smradius::Radius::Packet->new($raddb);
-	$pkt->set_code($pkt_code);
+	$self->{'pkt'} = smradius::Radius::Packet->new($raddb);
+	$self->{'pkt'}->set_code($pkt_code);
 	# Generate identifier
 	my $ident = int(rand(32768));
-	$pkt->set_identifier($ident);
+	$self->{'pkt'}->set_identifier($ident);
 	print(STDERR " > Identifier: $ident\n");
 	# Generate authenticator number
 	my $authen = int(rand(32768));
-	$pkt->set_authenticator($authen);
+	$self->{'pkt'}->set_authenticator($authen);
 	print(STDERR " > Authenticator: $ident\n");
 
-	# Pull in attributes
+	# Pull in attributes from STDIN
 	while (my $line = <STDIN>) {
-	# Remove EOL
-	chomp($line);
-	# Split on , and newline
-	my @rawAttributes = split(/,\n/,$line);
-	foreach my $attr (@rawAttributes) {
-		# Pull off attribute name & value
-		my ($name,$value) = ($attr =~ /\s*(\S+)\s*=\s?(.+)/);
-		# Add to packet
-		print(STDERR " > Adding '$name' => '$value'\n");
-		if ($name eq "User-Password") {
-			$pkt->set_password($value,$secret);
-		} else {
-			$pkt->set_attr($name,$value);
-		}
+		$self->addAttributesFromString($line);
 	}
+
+	# Pull in attributes from commandline
+	while (my $line = shift(@runArgs)) {
+		$self->addAttributesFromString($line);
 	}
 
 	# Create UDP packet
-	my $udp_packet = $pkt->pack();
+	my $udp_packet = $self->{'pkt'}->pack();
 
 	# Create socket to send packet out on
 	my $sockTimeout = "10";  # 10 second timeout
@@ -194,13 +184,14 @@ sub run
 	);
 
 	if (!$sock) {
-	print(STDERR "ERROR: Failed to create socket\n");
+		print(STDERR "ERROR: Failed to create socket\n");
+		return 1;
 	}
 
 	# Check if we sent the packet...
 	if (!$sock->send($udp_packet)) {
-	print(STDERR "ERROR: Failed to send data on socket\n");
-	exit 1;
+		print(STDERR "ERROR: Failed to send data on socket\n");
+		return 1;
 	}
 
 
@@ -210,27 +201,73 @@ sub run
 	# Once sent, we need to get a response back
 	my $rsock = IO::Select->new($sock);
 	if (!$rsock) {
-	print(STDERR "ERROR: Failed to select response data on socket\n");
-	exit 1;
+		print(STDERR "ERROR: Failed to select response data on socket\n");
+		return 1;
 	}
 
 	# Check if we can read a response after the select()
 	if (!$rsock->can_read($sockTimeout)) {
-	print(STDERR "ERROR: Failed to receive response data on socket\n");
-	exit 1;
+		print(STDERR "ERROR: Failed to receive response data on socket\n");
+		return 1;
 	}
 
 	# Read packet
 	$sock->recv($udp_packet, 65536);
 	if (!$udp_packet) {
-	print(STDERR "ERROR: Receive response data failed: $!\n");
-	exit 1;
+		print(STDERR "ERROR: Receive response data failed: $!\n");
+		return 1;
 	}
 
 	# Parse packet
-	$pkt = smradius::Radius::Packet->new($raddb,$udp_packet);
-	print(STDERR " > Authenticated: ". (defined(auth_req_verify($udp_packet,$secret,$authen)) ? "yes" : "no") ."\n");
+	my $pkt = smradius::Radius::Packet->new($raddb,$udp_packet);
+	print(STDERR " > Authenticated: ". (defined(auth_req_verify($udp_packet,$self->{'secret'},$authen)) ? "yes" : "no") ."\n");
 	print(STDERR $pkt->str_dump());
+
+
+	if (@methodArgs) {
+		warn "CALLED FROM FUNCTION";
+	}
+
+	return 0;
+}
+
+
+
+
+# Allow adding attribute from a string
+sub addAttributesFromString
+{
+	my ($self,$line) = @_;
+
+
+	# Remove EOL
+	chomp($line);
+	# Split on , and newline
+	my @rawAttributes = split(/[,\n]+/,$line);
+	foreach my $attr (@rawAttributes) {
+		# Pull off attribute name & value
+		my ($name,$value) = ($attr =~ /\s*(\S+)\s*=\s?(.+)/);
+		$self->addAttribute($name,$value);
+	}
+
+	return;
+}
+
+
+
+# Add attribute to packet
+sub addAttribute
+{
+	my ($self,$name,$value) = @_;
+
+
+	# Add to packet
+	print(STDERR " > Adding '$name' => '$value'\n");
+	if ($name eq "User-Password") {
+		$self->{'pkt'}->set_password($value,$self->{'secret'});
+	} else {
+		$self->{'pkt'}->set_attr($name,$value);
+	}
 
 	return;
 }
@@ -241,8 +278,8 @@ sub run
 sub displayHelp {
 	print(STDERR<<EOF);
 
-Usage: $0 [args] <server> <acct|auth|disconnect> <secret>
-    --raddb                Directory where the radius dictionary files are
+Usage: $0 [args] <server> <acct|auth|disconnect> <secret> [ATTR=VALUE,...]
+    --raddb=<DIR>          Directory where the radius dictionary files are
 
 EOF
 
