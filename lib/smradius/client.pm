@@ -149,20 +149,22 @@ sub run
 	print(STDERR "\nRequest:\n");
 	printf(STDERR " > Secret => '%s'\n",$self->{'secret'});
 	# Build packet
-	$self->{'pkt'} = smradius::Radius::Packet->new($raddb);
-	$self->{'pkt'}->set_code($pkt_code);
+	$self->{'packet'} = smradius::Radius::Packet->new($raddb);
+	$self->{'packet'}->set_code($pkt_code);
 	# Generate identifier
 	my $ident = int(rand(32768));
-	$self->{'pkt'}->set_identifier($ident);
+	$self->{'packet'}->set_identifier($ident);
 	print(STDERR " > Identifier: $ident\n");
 	# Generate authenticator number
 	my $authen = int(rand(32768));
-	$self->{'pkt'}->set_authenticator($authen);
+	$self->{'packet'}->set_authenticator($authen);
 	print(STDERR " > Authenticator: $ident\n");
 
-	# Pull in attributes from STDIN
-	while (my $line = <STDIN>) {
-		$self->addAttributesFromString($line);
+	# Pull in attributes from STDIN if we're not being called as a function
+	if (!@runArgs) {
+		while (my $line = <STDIN>) {
+			$self->addAttributesFromString($line);
+		}
 	}
 
 	# Pull in attributes from commandline
@@ -171,7 +173,7 @@ sub run
 	}
 
 	# Create UDP packet
-	my $udp_packet = $self->{'pkt'}->pack();
+	my $udp_packet = $self->{'packet'}->pack();
 
 	# Create socket to send packet out on
 	my $sockTimeout = "10";  # 10 second timeout
@@ -180,7 +182,7 @@ sub run
 		PeerPort => $port,
 		Type => SOCK_DGRAM,
 		Proto => 'udp',
-		TimeOut => $sockTimeout,
+		Timeout => $sockTimeout,
 	);
 
 	if (!$sock) {
@@ -224,13 +226,45 @@ sub run
 	print(STDERR $pkt->str_dump());
 
 
+	# If we were called as a function, return hashed version of the response packet
 	if (@methodArgs) {
-		warn "CALLED FROM FUNCTION";
+		return {
+			'request' => $self->hashedPacket($self->{'packet'}),
+			'response' => $self->hashedPacket($pkt),
+		};
 	}
 
 	return 0;
 }
 
+
+
+
+# Return a hashed version of the packet
+sub hashedPacket
+{
+	my ($self,$pkt) = @_;
+
+
+	my $res = {};
+
+
+	$res->{'code'} = $pkt->code();
+	$res->{'identifier'} = $pkt->identifier();
+
+	foreach my $attrName (sort $pkt->attributes()) {
+		my $attrVal = $pkt->rawattr($attrName);
+		$res->{'attributes'}->{$attrName} = $attrVal;
+	}
+
+	foreach my $attrVendor ($pkt->vendors()) {
+		foreach my $attrName ($pkt->vsattributes($attrVendor)) {
+			$res->{'vattributes'}->{$attrVendor}->{$attrName} = $pkt->vsattr($attrVendor,$attrName);
+		}
+    }
+
+	return $res;
+}
 
 
 
@@ -264,9 +298,9 @@ sub addAttribute
 	# Add to packet
 	print(STDERR " > Adding '$name' => '$value'\n");
 	if ($name eq "User-Password") {
-		$self->{'pkt'}->set_password($value,$self->{'secret'});
+		$self->{'packet'}->set_password($value,$self->{'secret'});
 	} else {
-		$self->{'pkt'}->set_attr($name,$value);
+		$self->{'packet'}->set_attr($name,$value);
 	}
 
 	return;
