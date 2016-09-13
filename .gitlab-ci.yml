@@ -27,7 +27,7 @@ make-test:
     - ./update-git-modules
     - perl Makefile.PL
     - make test
-      perl Makefile.PL DIR=
+    - perl Makefile.PL DIR=
     - cover -test | tee devel-coverage.txt
     - grep "^Total" devel-coverage.txt | awk '{ print "(" $8 "%) covered" }'
 
