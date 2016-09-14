@@ -124,9 +124,6 @@ sub quickTemplateToolkit
 	my $config = {
 		# Our include path built below
 		INCLUDE_PATH => [ ],
-		# Chomp whitespaces
-		PRE_CHOMP => 1,
-		POST_CHOMP => 1,
 	};
 
 	# Create template engine

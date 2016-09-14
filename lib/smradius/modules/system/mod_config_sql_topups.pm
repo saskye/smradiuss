@@ -54,7 +54,10 @@ our $pluginInfo = {
 	Cleanup => \&cleanup,
 
 	# User database
-	Config_get => \&getTopups
+	Config_get => \&getTopups,
+
+	# Topups
+	Feature_Config_Topop_add => \&addTopup,
 };
 
 # Module config
@@ -115,6 +118,29 @@ sub init
 			AND @TP@users.Username = ?
 	';
 
+	$config->{'topups_add_query'} = '
+		INSERT INTO
+			@TP@topups
+		(
+			UserID,
+			Timestamp,
+			ValidFrom,
+			ValidTo,
+			Type,
+			Value,
+			Depleted
+		)
+		VALUES
+		(
+			%{user.ID},
+			%{query.Timestamp},
+			%{query.ValidFrom},
+			%{query.ValidTo},
+			%{query.Type},
+			%{query.Value},
+			%{query.Depleted}
+		)
+	';
 
 	# Setup SQL queries
 	if (defined($scfg->{'mod_config_sql_topups'})) {
@@ -136,6 +162,15 @@ sub init
 				$config->{'get_topups_query'} = $scfg->{'mod_config_sql_topups'}->{'get_topups_query'};
 			}
 
+		}
+
+		if (defined($scfg->{'mod_config_sql_topups'}->{'topups_add_query'}) &&
+				$scfg->{'mod_config_sql_topups'}->{'topups_add_query'} ne "") {
+			if (ref($scfg->{'mod_config_sql_topups'}->{'topups_add_query'}) eq "ARRAY") {
+				$config->{'topups_add_query'} = join(' ',@{$scfg->{'mod_config_sql_topups'}->{'topups_add_query'}});
+			} else {
+				$config->{'topups_add_query'} = $scfg->{'mod_config_sql_topups'}->{'topups_add_query'};
+			}
 		}
 	}
 }
@@ -1053,6 +1088,47 @@ FAIL_ROLLBACK:
 	DBRollback();
 	$server->log(LOG_NOTICE,"[MOD_CONFIG_SQL_TOPUPS] Cleanup => Database has been rolled back, no records updated");
 	return;
+}
+
+
+
+## @addTopup
+# Create a topup
+#
+# @param server Server object
+# @param user User
+# @param packet Radius packet
+#
+# @return Result
+sub addTopup
+{
+	my ($server,$user,$validFrom,$validTo,$type,$value) = @_;
+
+
+	# Build template
+	my $template;
+	$template->{'user'}->{'ID'} = $user->{'ID'};
+	$template->{'user'}->{'Username'} = $user->{'Username'};
+
+	my $now = DateTime->now->set_time_zone($server->{'smradius'}->{'event_timezone'});
+
+	$template->{'query'}->{'Timestamp'} = $now->strftime('%F %T');
+	$template->{'query'}->{'ValidFrom'} = $validFrom;
+	$template->{'query'}->{'ValidTo'} = $validTo;
+	$template->{'query'}->{'Type'} = $type;
+	$template->{'query'}->{'Value'} = $value;
+	$template->{'query'}->{'Depleted'} = 0;
+
+	# Replace template entries
+	my @dbDoParams = templateReplace($config->{'topups_add_query'},$template);
+	# Insert into database
+	my $sth = DBDo(@dbDoParams);
+	if (!$sth) {
+		$server->log(LOG_ERR,"[MOD_CONFIG_SQL_TOPUPS] Failed to insert topup record: %s",AWITPT::DB::DBLayer::Error());
+		return MOD_RES_NACK;
+	}
+
+	return MOD_RES_ACK;
 }
 
 
