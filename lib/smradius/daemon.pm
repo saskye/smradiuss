@@ -62,7 +62,7 @@ use Socket;
 use Sys::Syslog;
 use Time::HiRes qw( gettimeofday tv_interval );
 
-use AWITPT::DB::DBILayer;
+use AWITPT::DB::DBLayer;
 use AWITPT::Util qw( booleanize );
 
 use smradius::Radius::Packet;
