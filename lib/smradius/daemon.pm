@@ -42,6 +42,12 @@ if (!eval {require DateTime; 1;}) {
 	exit 1;
 }
 
+# Check Date::Parse is installed
+if (!eval {require Date::Parse; 1;}) {
+	print STDERR "You're missing DateTime, try 'apt-get install libtimedate-perl'\n";
+	exit 1;
+}
+
 # Check Cache::FastMmap is installed
 if (!eval {require Cache::FastMmap; 1;}) {
 	print STDERR "You're missing DateTime, try 'apt-get install libcache-fastmmap-perl'\n";
