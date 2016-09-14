@@ -179,7 +179,7 @@ CREATE TABLE @PREFIX@topups_summary (
 
 	TopupID			@SERIAL_REF_TYPE@ NOT NULL,
 
-	PeriodKey		VARCHAR(255) NOT NULL, 
+	PeriodKey		VARCHAR(255) NOT NULL,
 
 	Balance			@INT_UNSIGNED@,
 

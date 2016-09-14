@@ -3,6 +3,8 @@ stages:
   - tests
   - install
 
+
+
 code-quality:
   stage: quality
   script:
@@ -14,6 +16,8 @@ code-quality:
     - apt-get install -y libperl-critic-perl
     - perlcritic --gentle "$CI_PROJECT_DIR"
 
+
+
 make-test:
   stage: tests
   script:
@@ -22,16 +26,42 @@ make-test:
     - apt-get dist-upgrade -y
     - apt-get install -y git make
     - apt-get install -y libdevel-cover-perl libpod-coverage-perl
-    - apt-get install -y libnet-server-perl libconfig-inifiles-perl libdatetime-perl libcache-fastmmap-perl
+    - apt-get install -y libnet-server-perl libconfig-inifiles-perl libdatetime-perl libcache-fastmmap-perl libtimedate-perl
+      libcrypt-des-perl libcrypt-rc4-perl libdigest-sha-perl libdigest-md4-perl
     - apt-get install -y mysql-server
+
+    # Start services and create dirs we need
+    - service mysql start
+    - mkdir /var/run/smradius
+
+    # Update our dependencies
     - cd "$CI_PROJECT_DIR"
     - ./update-git-modules
     - perl -MCPAN -e 'install Math::Expression' < /dev/null
+
+    # Convert DB into MySQL
+    - 3rdparty/awitpt/bin/convert-tsql mysql database/core.tsql > database/core.mysql
+    - 3rdparty/awitpt/bin/convert-tsql mysql database/users-accounting-summary.tsql > database/users-accounting-summary.mysql
+    - 3rdparty/awitpt/bin/convert-tsql mysql database/wisp.tsql > database/wisp.mysql
+
+    # Load SQL into DB
+    - echo "CREATE DATABASE smradiustest;" | mysql -u root
+    - mysql -u root smradiustest < database/core.mysql
+    - mysql -u root smradiustest < database/users-accounting-summary.mysql
+    - mysql -u root smradiustest < database/wisp.mysql
+
+    # Sort out config file
+    - cp smradiusd.conf smradiusd.conf.test
+    - perl -pi -e 's/database=smradius/database=smradiustest/' smradiusd.conf.test
+
+    # Run tests
     - perl Makefile.PL
     - make test
     - perl Makefile.PL DIR=
     - cover -test | tee devel-coverage.txt
     - grep "^Total" devel-coverage.txt | awk '{ print "(" $8 "%) covered" }'
+
+
 
 make-install:
   stage: install
