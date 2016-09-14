@@ -463,6 +463,52 @@ if ($child = fork()) {
 	);
 
 
+	#
+	# Check we get a Access-Accept for an uncapped usage user
+	#
+
+	my $user3_ID = testDBInsert("Create user 'testuser3'",
+		"INSERT INTO users (UserName,Disabled) VALUES ('testuser3',0)"
+	);
+
+	my $user3attr1_ID = testDBInsert("Create user 'testuser3' attribute 'User-Password'",
+		"INSERT INTO user_attributes (UserID,Name,Operator,Value,Disabled) VALUES (?,?,?,?,0)",
+			$user3_ID,'User-Password','==','test456'
+	);
+
+	my $user3attr2_ID = testDBInsert("Create user 'testuser3' attribute 'SMRadius-AutoTopup-Traffic-Enabled'",
+		"INSERT INTO user_attributes (UserID,Name,Operator,Value,Disabled) VALUES (?,?,?,?,0)",
+			$user3_ID,'SMRadius-AutoTopup-Traffic-Enabled',':=','yes'
+	);
+
+	my $user3attr3_ID = testDBInsert("Create user 'testuser3' attribute 'SMRadius-AutoTopup-Traffic-Amount'",
+		"INSERT INTO user_attributes (UserID,Name,Operator,Value,Disabled) VALUES (?,?,?,?,0)",
+			$user3_ID,'SMRadius-AutoTopup-Traffic-Amount',':=','100'
+	);
+
+	my $user3attr4_ID = testDBInsert("Create user 'testuser3' attribute 'SMRadius-AutoTopup-Traffic-Limit'",
+		"INSERT INTO user_attributes (UserID,Name,Operator,Value,Disabled) VALUES (?,?,?,?,0)",
+			$user3_ID,'SMRadius-AutoTopup-Traffic-Limit',':=','500'
+	);
+
+	my $user3attr5_ID = testDBInsert("Create user 'testuser3' attribute 'SMRadius-Capping-Uptime-Limit'",
+		"INSERT INTO user_attributes (UserID,Name,Operator,Value,Disabled) VALUES (?,?,?,?,0)",
+			$user3_ID,'SMRadius-Capping-Uptime-Limit',':=','0'
+	);
+
+	$res = smradius::client->run(
+		"--raddb","dicts",
+		"127.0.0.1",
+		"auth",
+		"secret123",
+		'User-Name=testuser3',
+		'User-Password=test456',
+	);
+	is(ref($res),"HASH","smradclient should return a HASH");
+	is($res->{'response'}->{'code'},"Access-Accept","Check our return is 'Access-Accept' for a basically configured user");
+
+
+
 	sleep(5);
 
 

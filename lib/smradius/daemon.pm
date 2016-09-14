@@ -80,6 +80,12 @@ if (!eval {require Cache::FastMmap; 1;}) {
 	eval {use AWITPT::Cache;};
 }
 
+# Check MIME::Lite is installed
+if (!eval {require MIME::Lite; 1;}) {
+	print STDERR "You're missing MIME::Lite, try 'apt-get install libmime-lite-perl'\n";
+	exit 1;
+}
+
 
 ## no critic (BuiltinFunctions::ProhibitStringyEval)
 eval qq{

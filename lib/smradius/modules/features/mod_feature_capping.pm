@@ -27,7 +27,9 @@ use smradius::logging;
 use smradius::util;
 
 use AWITPT::Util;
-use POSIX qw(floor);
+use List::Util qw( min );
+use MIME::Lite;
+use POSIX qw( floor );
 
 
 # Load exporter
@@ -58,9 +60,6 @@ my $UPTIME_LIMIT_ATTRIBUTE = 'SMRadius-Capping-Uptime-Limit';
 
 my $TRAFFIC_TOPUP_ATTRIBUTE = 'SMRadius-Capping-Traffic-Topup';
 my $TIME_TOPUP_ATTRIBUTE = 'SMRadius-Capping-Uptime-Topup';
-
-my $TRAFFIC_AUTOTOPUP_ATTRIBUTE = 'SMRadius-Capping-Traffic-AutoTopup';
-my $TIME_AUTOTOPUP_ATTRIBUTE = 'SMRadius-Capping-Uptime-AutoTopup';
 
 my $config;
 
@@ -137,18 +136,14 @@ sub post_auth_hook
 	# Get valid traffic and uptime topups
 	#
 
-
 	# Check if there was any data returned at all
 	my $uptimeTopupAmount = _getConfigAttributeNumeric($server,$user,$TIME_TOPUP_ATTRIBUTE) // 0;
 	my $trafficTopupAmount = _getConfigAttributeNumeric($server,$user,$TRAFFIC_TOPUP_ATTRIBUTE) // 0;
-	my $uptimeAutoTopupAmount = _getConfigAttributeNumeric($server,$user,$TIME_AUTOTOPUP_ATTRIBUTE) // 0;
-	my $trafficAutoTopupAmount = _getConfigAttributeNumeric($server,$user,$TRAFFIC_AUTOTOPUP_ATTRIBUTE) // 0;
 
 
 	#
 	# Set the new uptime and traffic limits (limit, if any.. + topups)
 	#
-
 
 	# Uptime..
 	# // is a defined operator,  $a ? defined($a) : $b
@@ -160,17 +155,34 @@ sub post_auth_hook
 
 
 	#
+	# Do auto-topups for both traffic and uptime
+	#
+
+	my $autoTopupTrafficAdded = _doAutoTopup($server,$user,$accountingUsage->{'TotalDataUsage'},"traffic",
+			$trafficLimitWithTopups,1);
+	if (defined($autoTopupTrafficAdded)) {
+		$trafficLimitWithTopups += $autoTopupTrafficAdded;
+	}
+
+	my $autoTopupUptimeAdded = _doAutoTopup($server,$user,$accountingUsage->{'TotalSessionTime'},"uptime",
+			$uptimeLimitWithTopups,2);
+	if (defined($autoTopupUptimeAdded)) {
+		$uptimeLimitWithTopups += $autoTopupUptimeAdded;
+	}
+
+
+	#
 	# Display our usages
 	#
-	_logUptimeUsage($server,$accountingUsage,$uptimeLimit,$uptimeTopupAmount);
-	_logTrafficUsage($server,$accountingUsage,$trafficLimit,$trafficTopupAmount);
+
+	_logUsage($server,$accountingUsage->{'TotalDataUsage'},$uptimeLimit,$uptimeTopupAmount,'traffic');
+	_logUsage($server,$accountingUsage->{'TotalSessionTime'},$uptimeLimit,$uptimeTopupAmount,'uptime');
 
 
 	#
 	# Add conditional variables
 	#
 
-	# Add attribute conditionals BEFORE override
 	addAttributeConditionalVariable($user,"SMRadius_Capping_TotalDataUsage",$accountingUsage->{'TotalDataUsage'});
 	addAttributeConditionalVariable($user,"SMRadius_Capping_TotalSessionTime",$accountingUsage->{'TotalSessionTime'});
 
@@ -334,8 +346,6 @@ sub post_acct_hook
 	# Check if there was any data returned at all
 	my $uptimeTopupAmount = _getConfigAttributeNumeric($server,$user,$TIME_TOPUP_ATTRIBUTE) // 0;
 	my $trafficTopupAmount = _getConfigAttributeNumeric($server,$user,$TRAFFIC_TOPUP_ATTRIBUTE) // 0;
-	my $uptimeAutoTopupAmount = _getConfigAttributeNumeric($server,$user,$TIME_AUTOTOPUP_ATTRIBUTE) // 0;
-	my $trafficAutoTopupAmount = _getConfigAttributeNumeric($server,$user,$TRAFFIC_AUTOTOPUP_ATTRIBUTE) // 0;
 
 
 	#
@@ -350,12 +360,30 @@ sub post_acct_hook
 	# // is a defined operator,  $a ? defined($a) : $b
 	my $trafficLimitWithTopups = ($trafficLimit // 0) + $trafficTopupAmount;
 
+
+	#
+	# Do auto-topups for both traffic and uptime
+	#
+
+	my $autoTopupTrafficAdded = _doAutoTopup($server,$user,$accountingUsage->{'TotalDataUsage'},"traffic",
+			$trafficLimitWithTopups,1);
+	if (defined($autoTopupTrafficAdded)) {
+		$trafficLimitWithTopups += $autoTopupTrafficAdded;
+	}
+
+	my $autoTopupUptimeAdded = _doAutoTopup($server,$user,$accountingUsage->{'TotalSessionTime'},"uptime",
+			$uptimeLimitWithTopups,2);
+	if (defined($autoTopupUptimeAdded)) {
+		$uptimeLimitWithTopups += $autoTopupUptimeAdded;
+	}
+
+
 	#
 	# Display our usages
 	#
 
-	_logUptimeUsage($server,$accountingUsage,$uptimeLimit,$uptimeTopupAmount);
-	_logTrafficUsage($server,$accountingUsage,$trafficLimit,$trafficTopupAmount);
+	_logUsage($server,$accountingUsage->{'TotalDataUsage'},$uptimeLimit,$uptimeTopupAmount,'traffic');
+	_logUsage($server,$accountingUsage->{'TotalSessionTime'},$uptimeLimit,$uptimeTopupAmount,'uptime');
 
 
 	#
@@ -476,26 +504,22 @@ sub _getAccountingUsage
 
 ## @internal
 # Code snippet to log our uptime usage
-sub _logUptimeUsage
+sub _logUsage
 {
-	my ($server,$accountingUsage,$uptimeLimit,$uptimeTopupAmount) = @_;
+	my ($server,$accountingUsage,$limit,$topupAmount,$type) = @_;
 
+
+	my $typeKey = ucfirst($type);
 
 	# Check if our limit is defined
-	if (!defined($uptimeLimit)) {
-		$server->log(LOG_DEBUG,"[MOD_FEATURE_CAPPING] Uptime => Usage total: ".$accountingUsage->{'TotalSessionTime'}.
-				"min (Limit: Prepaid, Topups: ".$uptimeTopupAmount."min)");
-		return;
+	if (defined($limit) && !$limit) {
+		$limit = '-none-';
+	} else {
+		$limit = '-topup-';
 	}
 
-	# If so, check if its > 0, which would depict its capped
-	if ($uptimeLimit > 0) {
-		$server->log(LOG_DEBUG,"[MOD_FEATURE_CAPPING] Uptime => Usage total: ".$accountingUsage->{'TotalSessionTime'}.
-				"min (Limit: ".$uptimeLimit."min, Topups: ".$uptimeTopupAmount."min)");
-	} else {
-		$server->log(LOG_DEBUG,"[MOD_FEATURE_CAPPING] Uptime => Usage total: ".$accountingUsage->{'TotalSessionTime'}.
-				"min (Limit: none, Topups: ".$uptimeTopupAmount."min)");
-	}
+	$server->log(LOG_INFO,"[MOD_FEATURE_CAPPING] Capping information [type: %s, total: %s, limit: %s, topups: %s]",
+			$type,$accountingUsage,$limit,$topupAmount);
 
 	return;
 }
@@ -503,35 +527,7 @@ sub _logUptimeUsage
 
 
 ## @internal
-# Code snippet to log our traffic usage
-sub _logTrafficUsage
-{
-	my ($server,$accountingUsage,$trafficLimit,$trafficTopupAmount) = @_;
-
-
-	# Check if our limit is defined
-	if (!defined($trafficLimit)) {
-		$server->log(LOG_DEBUG,"[MOD_FEATURE_CAPPING] Bandwidth => Usage total: ".$accountingUsage->{'TotalDataUsage'}.
-				"Mbyte (Limit: Prepaid, Topups: ".$trafficTopupAmount."Mbyte)");
-		return;
-	}
-
-	# If so, check if its > 0, which would depict its capped
-	if ($trafficLimit > 0) {
-		$server->log(LOG_DEBUG,"[MOD_FEATURE_CAPPING] Bandwidth => Usage total: ".$accountingUsage->{'TotalDataUsage'}.
-				"Mbyte (Limit: ".$trafficLimit."Mbyte, Topups: ".$trafficTopupAmount."Mbyte)");
-	} else {
-		$server->log(LOG_DEBUG,"[MOD_FEATURE_CAPPING] Bandwidth => Usage total: ".$accountingUsage->{'TotalDataUsage'}.
-				"Mbyte (Limit: none, Topups: ".$trafficTopupAmount."Mbyte)");
-	}
-
-	return;
-}
-
-
-
-## @internal
-# Function snippet to return a numeric configuration attribute
+# Function snippet to return a user attribute
 sub _getConfigAttributeNumeric
 {
 	my ($server,$user,$attributeName) = @_;
@@ -555,6 +551,256 @@ sub _getConfigAttributeNumeric
 	}
 
 	return $user->{'ConfigAttributes'}->{$attributeName}->[0];
+}
+
+
+
+## @internal
+# Function snippet to return a attribute
+sub _getAttribute
+{
+	my ($server,$user,$attributeName) = @_;
+
+
+	# Check the attribute exists
+	return if (!defined($user->{'Attributes'}->{$attributeName}));
+
+	$server->log(LOG_DEBUG,"[MOD_FEATURE_CAPPING] User attribute '".$attributeName."' is defined");
+
+	# Check the required operator is present in this case :=
+	if (!defined($user->{'Attributes'}->{$attributeName}->{':='})) {
+		$server->log(LOG_NOTICE,"[MOD_FEATURE_CAPPING] User attribute '".$attributeName."' has no ':=' operator");
+		return;
+	}
+
+	# Check the operator value is defined...
+	if (!defined($user->{'Attributes'}->{$attributeName}->{':='}->{'Value'})) {
+		$server->log(LOG_NOTICE,"[MOD_FEATURE_CAPPING] User attribute '".$attributeName."' has no value");
+		return;
+	}
+
+	return $user->{'Attributes'}->{$attributeName}->{':='}->{'Value'};
+}
+
+
+
+## @internal
+# Function which impelments our auto-topup functionality
+sub _doAutoTopup
+{
+	my ($server,$user,$accountingUsage,$type,$usageLimit,$topupType) = @_;
+	my $scfg = $server->{'inifile'};
+
+
+	# Get the key, which has the first letter uppercased
+	my $typeKey = ucfirst($type);
+
+	# Booleanize the attribute and check if its enabled
+	if (my $enabled = booleanize(_getAttribute($server,$user,"SMRadius-AutoTopup-$typeKey-Enabled"))) {
+		$server->log(LOG_INFO,'[MOD_FEATURE_CAPPING] AutoToups for %s is enabled',$type);
+	} else {
+		$server->log(LOG_DEBUG,'[MOD_FEATURE_CAPPING] AutoToups for %s is not enabled',$type);
+		return;
+	}
+
+	# Do sanity checks on the auto-topup amount
+	my $autoTopupAmount = _getAttribute($server,$user,"SMRadius-AutoTopup-$typeKey-Amount");
+	if (!defined($autoTopupAmount)) {
+		$server->log(LOG_WARN,'[MOD_FEATURE_CAPPING] SMRadius-AutoToup-%s-Amount must have a value',$typeKey);
+		return;
+	}
+	if (!isNumber($autoTopupAmount)){
+		$server->log(LOG_WARN,'[MOD_FEATURE_CAPPING] SMRadius-AutoToup-%s-Amount must be a number and be > 0, instead it was '.
+				'\'%s\', IGNORING SMRadius-AutoTopup-%s-Enabled',$typeKey,$autoTopupAmount,$typeKey);
+		return;
+	}
+
+	# Do sanity checks on the auto-topup threshold
+	my $autoTopupThreshold = _getAttribute($server,$user,"SMRadius-AutoTopup-$typeKey-Threshold");
+	if (defined($autoTopupThreshold) && !isNumber($autoTopupThreshold)){
+		$server->log(LOG_WARN,'[MOD_FEATURE_CAPPING] SMRadius-AutoToup-%s-Threshold must be a number and be > 0, instead it was '.
+				'\'%s\', IGNORING SMRadius-AutoTopup-%s-Threshold',$typeKey,$autoTopupAmount,$typeKey);
+		$autoTopupThreshold = undef;
+	}
+
+	# Check that if the auto-topup limit is defined, that it is > 0
+	my $autoTopupLimit = _getAttribute($server,$user,"SMRadius-AutoTopup-$typeKey-Limit");
+	if (defined($autoTopupLimit) && !isNumber($autoTopupLimit)) {
+		$server->log(LOG_WARN,'[MOD_FEATURE_CAPPING] SMRadius-AutoToup-%s-Limit must be a number and be > 0, instead it was '.
+				'\'%s\', IGNORING SMRadius-AutoTopup-%s-Enabled',$typeKey,$autoTopupAmount,$typeKey);
+		return;
+	}
+
+	# Pull in ahow many auto-topups were already added
+	my $autoTopupsAdded = _getConfigAttributeNumeric($server,$user,"SMRadius-Capping-$typeKey-AutoTopup") // 0;
+
+	# Default to an auto-topup threshold of the topup amount divided by two if none has been provided
+	$autoTopupThreshold //= floor($autoTopupAmount / 2);
+
+	# Check if we're still within our usage limit
+	return if ($accountingUsage + $autoTopupThreshold < $usageLimit + $autoTopupsAdded);
+
+	# Check the difference between our accounting usage and our usage limit
+	my $usageDelta = $accountingUsage - $usageLimit;
+	# Make sure our delta is at least 0
+	$usageDelta = 0 if ($usageDelta < 0);
+
+	# Calculate how many topups are needed
+	my $autoTopupsRequired = floor($usageDelta / $autoTopupAmount) + 1;
+
+	# Default the topups to add to the number required
+	my $autoTopupsToAdd = $autoTopupsRequired;
+
+	# If we have an auto-topup limit, recalculate how many we must add... maybe it exceeds
+	if (defined($autoTopupLimit)) {
+		my $autoTopupsAllowed = floor(($autoTopupLimit - $autoTopupsAdded) / $autoTopupAmount);
+		$autoTopupsToAdd = min($autoTopupsRequired,$autoTopupsAllowed);
+		# We cannot add a negative amount of auto-topups, if we have a negative amount, we have hit our limit
+		$autoTopupsToAdd = 0 if ($autoTopupsToAdd < 0);
+	}
+
+	# Total topup amount
+	my $autoTopupsToAddAmount = $autoTopupsToAdd * $autoTopupAmount;
+
+	# The datetime now
+	my $now = DateTime->now->set_time_zone($server->{'smradius'}->{'event_timezone'});
+	# Use truncate to set all values after 'month' to their default values
+	my $thisMonth = $now->clone()->truncate( to => "month" );
+	# This month, in string form
+	my $thisMonth_str = $thisMonth->strftime("%Y-%m-%d");
+	# Next month..
+	my $nextMonth = $thisMonth->clone()->add( months => 1 );
+	my $nextMonth_str = $nextMonth->strftime("%Y-%m-%d");
+
+	# Lets see if a module accepts to add a topup
+	my $res;
+	foreach my $module (@{$server->{'module_list'}}) {
+		# Do we have the correct plugin?
+		if (defined($module->{'Feature_Config_Topop_add'})) {
+			$server->log(LOG_INFO,"[MOD_FEATURE_CAPPING] Found plugin: '".$module->{'Name'}."'");
+			# Try add topup
+			$res = $module->{'Feature_Config_Topop_add'}($server,$user,$thisMonth_str,$nextMonth_str,
+					($topupType | 4),$autoTopupAmount);
+			# Skip to end if we added a topup
+			if ($res == MOD_RES_ACK) {
+				my $topupsRemaining = $autoTopupsToAdd - 1;
+				while ($topupsRemaining > 0) {
+					# Try add another topup
+					$res = $module->{'Feature_Config_Topop_add'}($server,$user,$thisMonth_str,$nextMonth_str,
+							($topupType | 4),$autoTopupAmount);
+					$topupsRemaining--;
+				}
+				last;
+			}
+		}
+	}
+	# If not, return undef
+	if (!defined($res) || $res != MOD_RES_ACK) {
+		$server->log(LOG_WARN,'[MOD_FEATURE_CAPPING] Auto-Topup(s) cannot be added, no module replied with ACK');
+		return;
+	}
+
+	$server->log(LOG_INFO,'[MOD_FEATURE_CAPPING] Auto-Topups added [type: %s, threshold: %s, amount: %s, required: %s, limit: %s, added: %s]',
+			$type,$autoTopupThreshold,$autoTopupAmount,$autoTopupsRequired,$autoTopupLimit,$autoTopupsToAdd);
+
+	# Grab notify destinations
+	my $notify;
+	if (!defined($notify = _getAttribute($server,$user,"SMRadius-AutoTopup-$typeKey-Notify"))) {
+		$server->log(LOG_INFO,'[MOD_FEATURE_CAPPING] AutoToups notify destination is not specified, NOT notifying');
+		goto END;
+	}
+	$server->log(LOG_INFO,'[MOD_FEATURE_CAPPING] AutoToups notify destination is \'%s\'',$notify);
+
+	# Grab notify template
+	my $notifyTemplate;
+	if (!defined($notifyTemplate = _getAttribute($server,$user,"SMRadius-AutoTopup-$typeKey-NotifyTemplate"))) {
+		$server->log(LOG_INFO,'[MOD_FEATURE_CAPPING] AutoToups notify template is not specified, NOT notifying');
+		goto END;
+	}
+
+	# NOTE: $autoTopupToAdd and autoTopupsToAddAmount will be 0 if no auto-topups were added
+
+	# Create variable hash to pass to TT
+	my $variables = {
+		'user' => {
+			'ID' => $user->{'ID'},
+			'username' => $user->{'Username'},
+		},
+		'usage' => {
+			'total' => $accountingUsage,
+			'limit' => $usageLimit,
+		},
+		'autotopup' => {
+			'amount' => $autoTopupAmount,
+			'limit' => $autoTopupLimit,
+			'added' => $autoTopupsAdded,
+			'toAdd' => $autoTopupsToAdd,
+			'toAddAmount' => $autoTopupsToAddAmount,
+		},
+	};
+
+	# Split off notification targets
+	my @notificationTargets = split(/[,;\s]+/,$notify);
+
+	foreach my $notifyTarget (@notificationTargets) {
+		# Parse template
+		my ($notifyMsg,$error) = quickTemplateToolkit($notifyTemplate,{
+				%{$variables},
+				'notify' => { 'target' => $notifyTarget }
+		});
+
+		# Check if we have a result, if not, report the error
+		if (!defined($notifyMsg)) {
+			my $errorMsg = $error->info();
+			$errorMsg =~ s/\r?\n/\\n/g;
+			$server->log(LOG_WARN,'[MOD_FEATURE_CAPPING] AutoToups notify template parsing failed: %s',$errorMsg);
+			next;
+		}
+
+		my %messageHeaders = ();
+
+		# Split message into lines
+		my @lines = split(/\r?\n/,$notifyMsg);
+		while (defined($lines[0]) && (my $line = $lines[0]) =~ /(\S+): (.*)/) {
+			my ($header,$value) = ($1,$2);
+			$messageHeaders{$header} = $value;
+			# Remove line
+			shift(@lines);
+			# Last if our next line is undefined
+			last if (!defined($lines[0]));
+			# If the next line is blank, remove it, and continue below
+			if ($lines[0] =~ /^\s*$/) {
+				# Remove blank line
+				shift(@lines);
+				last;
+			}
+		}
+
+		# Create message
+		my $msg = MIME::Lite->new(
+			'Type' => 'multipart/mixed',
+			'Date' => $now->strftime('%a, %d %b %Y %H:%M:%S %z'),
+			%messageHeaders
+		);
+
+		# Attach body
+		$msg->attach(
+			'Type' => 'TEXT',
+			'Encoding' => '8bit',
+			'Data' => join("\n",@lines),
+		);
+
+		# Send email
+		my $smtpServer = $scfg->{'server'}{'smtp_server'} // 'localhost';
+		eval { $msg->send("smtp",$smtpServer); };
+		if (my $error = $@) {
+			$server->log(LOG_WARN,"[MOD_FEATURE_CAPPING] Email sending failed: '%s'",$error);
+		}
+
+	}
+
+END:
+	return $autoTopupsToAddAmount;
 }
 
 
