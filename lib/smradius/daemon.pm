@@ -42,6 +42,36 @@ if (!eval {require DateTime; 1;}) {
 	exit 1;
 }
 
+# Check Crypt::DES is installed
+if (!eval {require Crypt::DES; 1;}) {
+	print STDERR "You're missing DateTime, try 'apt-get install libcrypt-des-perl'\n";
+	exit 1;
+}
+
+# Check Crypt::RC4 is installed
+if (!eval {require Crypt::RC4; 1;}) {
+	print STDERR "You're missing Crypt::RC4, try 'apt-get install libcrypt-rc4-perl'\n";
+	exit 1;
+}
+
+# Check Digest::MD4 is installed
+if (!eval {require Digest::MD4; 1;}) {
+	print STDERR "You're missing Digest::MD4, try 'apt-get install libdigest-md4-perl'\n";
+	exit 1;
+}
+
+# Check Digest::SHA is installed
+if (!eval {require Digest::SHA; 1;}) {
+	print STDERR "You're missing Digest::SHA, try 'apt-get install libdigest-sha-perl'\n";
+	exit 1;
+}
+
+# Check Date::Parse is installed
+if (!eval {require Date::Parse; 1;}) {
+	print STDERR "You're missing TimeDate, try 'apt-get install libtimedate-perl'\n";
+	exit 1;
+}
+
 # Check Cache::FastMmap is installed
 if (!eval {require Cache::FastMmap; 1;}) {
 	print STDERR "You're missing DateTime, try 'apt-get install libcache-fastmmap-perl'\n";
@@ -62,7 +92,7 @@ use Socket;
 use Sys::Syslog;
 use Time::HiRes qw( gettimeofday tv_interval );
 
-use AWITPT::DB::DBILayer;
+use AWITPT::DB::DBLayer;
 use AWITPT::Util qw( booleanize );
 
 use smradius::Radius::Packet;

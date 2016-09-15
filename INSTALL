@@ -8,10 +8,10 @@ Installing SMRadius.
 - Cache::FastMmap (Debian based: libcache-fastmmap-perl, RPM based: perl-Cache-FastMmap)
 - DateTime (requires: perl-Class-Singleton)
 - TimeDate
-- Crypt::DES
-- Crytpt::RC4
-- Digest::SHA1
-- Digest::MD4
+- Crypt::DES (Debian based: libcrypt-des-perl)
+- Crytpt::RC4 (Debian based: libcrypt-rc4-perl)
+- Digest::SHA1 (Debian based: libdigest-sha-perl)
+- Digest::MD4 (Debian based: libdigest-md4-perl)
 - Math::Expression
 
 * Requirements for webui
