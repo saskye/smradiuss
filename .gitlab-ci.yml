@@ -44,9 +44,9 @@ make-test:
     - make
 
     # Convert DB into MySQL
-    - blib/script/convert-tsql mysql database/core.tsql > database/core.mysql
-    - blib/script/convert-tsql mysql database/users-accounting-summary.tsql > database/users-accounting-summary.mysql
-    - blib/script/convert-tsql mysql database/wisp.tsql > database/wisp.mysql
+    - blib/script/convert-tsql MySQL database/core.tsql > database/core.mysql
+    - blib/script/convert-tsql MySQL database/users-accounting-summary.tsql > database/users-accounting-summary.mysql
+    - blib/script/convert-tsql MySQL database/wisp.tsql > database/wisp.mysql
 
     # Load SQL into DB
     - echo "CREATE DATABASE smradiustest;" | mysql -u root
