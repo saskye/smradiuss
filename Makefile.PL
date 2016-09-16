@@ -37,7 +37,11 @@ WriteMakefile(
 
 	'DIR' => ["3rdparty"],
 
-	'EXE_FILES' => [qw( bin/smradiusd bin/smadmin bin/smradclient )],
+	'EXE_FILES' => [qw(
+		bin/smradiusd
+		bin/smadmin
+		bin/smradclient
+	)],
 );
 
 
