@@ -39,10 +39,14 @@ make-test:
     - ./update-git-modules
     - perl -MCPAN -e 'install Math::Expression' < /dev/null
 
+    # Build Makefile and make
+    - perl Makefile.PL
+    - make
+
     # Convert DB into MySQL
-    - 3rdparty/awitpt/bin/convert-tsql mysql database/core.tsql > database/core.mysql
-    - 3rdparty/awitpt/bin/convert-tsql mysql database/users-accounting-summary.tsql > database/users-accounting-summary.mysql
-    - 3rdparty/awitpt/bin/convert-tsql mysql database/wisp.tsql > database/wisp.mysql
+    - blib/script/convert-tsql mysql database/core.tsql > database/core.mysql
+    - blib/script/convert-tsql mysql database/users-accounting-summary.tsql > database/users-accounting-summary.mysql
+    - blib/script/convert-tsql mysql database/wisp.tsql > database/wisp.mysql
 
     # Load SQL into DB
     - echo "CREATE DATABASE smradiustest;" | mysql -u root
@@ -55,7 +59,6 @@ make-test:
     - perl -pi -e 's/database=smradius/database=smradiustest/' smradiusd.conf.test
 
     # Run tests
-    - perl Makefile.PL
     - make test
     - perl Makefile.PL DIR=
     - cover -test | tee devel-coverage.txt
