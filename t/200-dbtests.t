@@ -140,26 +140,22 @@ if ($child = fork()) {
 	# Create test case data
 	#
 
-	DBDo("INSERT INTO clients (Name,AccessList,Disabled) VALUES ('localhost','127.0.0.0/8',0)");
-	is(AWITPT::DB::DBLayer::error(),"","Insert into 'clients' table");
-	my $client1_ID = DBLastInsertID();
-	is($client1_ID > 0,1,"Client1 ID > 0");
+	my $client1_ID = testDBInsert("Create client 'localhost'",
+		"INSERT INTO clients (Name,AccessList,Disabled) VALUES ('localhost','127.0.0.0/8',0)"
+	);
 
-	DBDo("INSERT INTO client_attributes (ClientID,Name,Operator,Value,Disabled) VALUES (?,?,?,?,0)",
-		$client1_ID,'SMRadius-Config-Secret',':=','secret123');
-	is(AWITPT::DB::DBLayer::error(),"","Insert into 'client_attributes' table");
-	my $client1attr1_ID = DBLastInsertID();
-	is($client1attr1_ID > 0,1,"Client1Attr1 ID > 0");
+	my $client1attr1_ID = testDBInsert("Create client 'localhost' secret",
+		"INSERT INTO client_attributes (ClientID,Name,Operator,Value,Disabled) VALUES (?,?,?,?,0)",
+			$client1_ID,'SMRadius-Config-Secret',':=','secret123'
+	);
 
-	DBDo("INSERT INTO realms (Name,Disabled) VALUES ('',0)");
-	is(AWITPT::DB::DBLayer::error(),"","Insert into 'realms' table");
-	my $realm1_ID = DBLastInsertID();
-	is($realm1_ID > 0,1,"Realm1 ID > 0");
+	my $realm1_ID = testDBInsert("Create realm ''",
+		"INSERT INTO realms (Name,Disabled) VALUES ('',0)"
+	);
 
-	DBDo("INSERT INTO clients_to_realms (ClientID,RealmID,Disabled) VALUES (?,?,0)",$client1_ID,$realm1_ID);
-	is(AWITPT::DB::DBLayer::error(),"","Insert into 'clients_to_realms' table");
-	my $clientTOrealm1_ID = DBLastInsertID();
-	is($clientTOrealm1_ID > 0,1,"ClientTORealm1 ID > 0");
+	my $clientTOrealm1_ID = testDBInsert("Link client 'localhost' to realm ''",
+		"INSERT INTO clients_to_realms (ClientID,RealmID,Disabled) VALUES (?,?,0)",$client1_ID,$realm1_ID
+	);
 
 
 
@@ -167,16 +163,14 @@ if ($child = fork()) {
 	# Check we get an Access-Reject for an unconfigured user
 	#
 
-	DBDo("INSERT INTO users (UserName,Disabled) VALUES ('testuser1',0)");
-	is(AWITPT::DB::DBLayer::error(),"","Insert into 'users' table");
-	my $user1_ID = DBLastInsertID();
-	is($user1_ID > 0,1,"User1 ID > 0");
+	my $user1_ID = testDBInsert("Create user 'testuser1'",
+		"INSERT INTO users (UserName,Disabled) VALUES ('testuser1',0)"
+	);
 
-	DBDo("INSERT INTO user_attributes (UserID,Name,Operator,Value,Disabled) VALUES (?,?,?,?,0)",
-		$user1_ID,'User-Password','==','test123');
-	is(AWITPT::DB::DBLayer::error(),"","Insert into 'user_attributes' table");
-	my $user1attr1_ID = DBLastInsertID();
-	is($user1attr1_ID > 0,1,"ClientTORealm1 ID > 0");
+	my $user1attr1_ID = testDBInsert("Create user 'testuser1' attribute 'User-Password'",
+		"INSERT INTO user_attributes (UserID,Name,Operator,Value,Disabled) VALUES (?,?,?,?,0)",
+			$user1_ID,'User-Password','==','test123'
+	);
 
 	$res = smradius::client->run(
 		"--raddb","dicts",
@@ -195,28 +189,24 @@ if ($child = fork()) {
 	# Check we get a Access-Accept for an uncapped usage user
 	#
 
-	DBDo("INSERT INTO users (UserName,Disabled) VALUES ('testuser2',0)");
-	is(AWITPT::DB::DBLayer::error(),"","Insert into 'users' table");
-	my $user2_ID = DBLastInsertID();
-	is($user2_ID > 0,1,"User2 ID > 0");
+	my $user2_ID = testDBInsert("Create user 'testuser2'",
+		"INSERT INTO users (UserName,Disabled) VALUES ('testuser2',0)"
+	);
 
-	DBDo("INSERT INTO user_attributes (UserID,Name,Operator,Value,Disabled) VALUES (?,?,?,?,0)",
-		$user2_ID,'User-Password','==','test123');
-	is(AWITPT::DB::DBLayer::error(),"","Insert into 'user_attributes' table");
-	my $user2attr1_ID = DBLastInsertID();
-	is($user2attr1_ID > 0,1,"ClientTORealm1 ID > 0");
+	my $user2attr1_ID = testDBInsert("Create user 'testuser2' attribute 'User-Password'",
+		"INSERT INTO user_attributes (UserID,Name,Operator,Value,Disabled) VALUES (?,?,?,?,0)",
+			$user2_ID,'User-Password','==','test123'
+	);
 
-	DBDo("INSERT INTO user_attributes (UserID,Name,Operator,Value,Disabled) VALUES (?,?,?,?,0)",
-		$user2_ID,'SMRadius-Capping-Traffic-Limit',':=','0');
-	is(AWITPT::DB::DBLayer::error(),"","Insert into 'user_attributes' table");
-	my $user2attr2_ID = DBLastInsertID();
-	is($user2attr2_ID > 0,1,"ClientTORealm1 ID > 0");
+	my $user2attr2_ID = testDBInsert("Create user 'testuser2' attribute 'SMRadius-Capping-Traffic-Limit'",
+		"INSERT INTO user_attributes (UserID,Name,Operator,Value,Disabled) VALUES (?,?,?,?,0)",
+			$user2_ID,'SMRadius-Capping-Traffic-Limit',':=','0'
+	);
 
-	DBDo("INSERT INTO user_attributes (UserID,Name,Operator,Value,Disabled) VALUES (?,?,?,?,0)",
-		$user2_ID,'SMRadius-Capping-Uptime-Limit',':=','0');
-	is(AWITPT::DB::DBLayer::error(),"","Insert into 'user_attributes' table");
-	my $user2attr3_ID = DBLastInsertID();
-	is($user2attr3_ID > 0,1,"ClientTORealm1 ID > 0");
+	my $user2attr3_ID = testDBInsert("Create user 'testuser2' attribute 'SMRadius-Capping-Uptime-Limit'",
+		"INSERT INTO user_attributes (UserID,Name,Operator,Value,Disabled) VALUES (?,?,?,?,0)",
+			$user2_ID,'SMRadius-Capping-Uptime-Limit',':=','0'
+	);
 
 	$res = smradius::client->run(
 		"--raddb","dicts",
@@ -265,6 +255,27 @@ sub cleanup
 		waitpid($child,-1);
 	}
 
+}
+
+
+
+# Function to quickly and easily insert data into the DB and generate 2 tests out of it
+sub testDBInsert
+{
+	my ($name,@params) = @_;
+
+
+	# Do the work...
+	DBDo(@params);
+	# Make sure we got no error
+	is(AWITPT::DB::DBLayer::error(),"",$name);
+
+	# Grab the last insert ID
+	my $id = DBLastInsertID();
+	# Make sure its > 0
+	is($id > 0,1,"$name, insert ID > 0");
+
+	return $id;
 }
 
 
