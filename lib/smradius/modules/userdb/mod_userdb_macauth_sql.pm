@@ -1,16 +1,16 @@
 # SQL user database support for mac authentication
-# Copyright (C) 2007-2011, AllWorldIT
-# 
+# Copyright (C) 2007-2016, AllWorldIT
+#
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; either version 2 of the License, or
 # (at your option) any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
@@ -21,13 +21,13 @@ use strict;
 use warnings;
 
 # Modules we need
-use smradius::constants;
 use AWITPT::Cache;
-use smradius::logging;
 use AWITPT::DB::DBLayer;
 use AWITPT::Util;
-use smradius::util;
 use smradius::attributes;
+use smradius::constants;
+use smradius::logging;
+use smradius::util;
 
 # Exporter stuff
 require Exporter;
@@ -70,7 +70,7 @@ sub init
 	# Default configs...
 	$config->{'userdb_macauth_find_query'} = '
 		SELECT
-			user_attributes.ID, 
+			user_attributes.ID,
 			user_attributes.Operator, user_attributes.Disabled,
 			users.Username, users.Disabled AS UserDisabled
 		FROM

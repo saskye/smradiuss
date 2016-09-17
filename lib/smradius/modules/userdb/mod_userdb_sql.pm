@@ -1,16 +1,16 @@
 # SQL user database support
-# Copyright (C) 2007-2011, AllWorldIT
-# 
+# Copyright (C) 2007-2016, AllWorldIT
+#
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; either version 2 of the License, or
 # (at your option) any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
@@ -21,13 +21,13 @@ use strict;
 use warnings;
 
 # Modules we need
-use smradius::constants;
 use AWITPT::Cache;
-use smradius::logging;
 use AWITPT::DB::DBLayer;
 use AWITPT::Util;
-use smradius::util;
 use smradius::attributes;
+use smradius::constants;
+use smradius::logging;
+use smradius::util;
 
 # Exporter stuff
 require Exporter;
@@ -105,7 +105,7 @@ sub init
 			UserID = %{userdb.ID}
 			AND Disabled = 0
 	';
-	
+
 	$config->{'users_data_set_query'} = '
 		INSERT INTO
 			@TP@users_data (UserID, LastUpdated, Name, Value)
@@ -117,7 +117,7 @@ sub init
 				%{query.Value}
 			)
 	';
-	
+
 	$config->{'users_data_update_query'} = '
 		UPDATE
 			@TP@users_data
@@ -128,7 +128,7 @@ sub init
 			UserID = %{userdb.ID}
 			AND Name = %{query.Name}
 	';
-	
+
 	$config->{'users_data_get_query'} = '
 		SELECT
 			LastUpdated, Name, Value
@@ -138,7 +138,7 @@ sub init
 			UserID = %{userdb.ID}
 			AND Name = %{query.Name}
 	';
-	
+
 	$config->{'users_data_delete_query'} = '
 		DELETE FROM
 			@TP@users_data
@@ -165,10 +165,10 @@ sub init
 		if (defined($scfg->{'mod_userdb_sql'}->{'userdb_get_group_attributes_query'}) &&
 				$scfg->{'mod_userdb_sql'}->{'userdb_get_group_attributes_query'} ne "") {
 			if (ref($scfg->{'mod_userdb_sql'}->{'userdb_get_group_attributes_query'}) eq "ARRAY") {
-				$config->{'userdb_get_group_attributes_query'} = join(' ', 
+				$config->{'userdb_get_group_attributes_query'} = join(' ',
 						@{$scfg->{'mod_userdb_sql'}->{'userdb_get_group_attributes_query'}});
 			} else {
-				$config->{'userdb_get_group_attributes_query'} = 
+				$config->{'userdb_get_group_attributes_query'} =
 						$scfg->{'mod_userdb_sql'}->{'userdb_get_group_attributes_query'};
 			}
 		}
@@ -179,7 +179,7 @@ sub init
 				$config->{'userdb_get_user_attributes_query'} = join(' ',
 						@{$scfg->{'mod_userdb_sql'}->{'userdb_get_user_attributes_query'}});
 			} else {
-					$config->{'userdb_get_user_attributes_query'} = 
+					$config->{'userdb_get_user_attributes_query'} =
 						$scfg->{'mod_userdb_sql'}->{'userdb_get_user_attributes_query'};
 			}
 		}
@@ -422,7 +422,7 @@ sub data_set
 		$data{'Module'} = $module;
 		$data{'Name'} = $name;
 		$data{'Value'} = $value;
-		
+
 		# Cache the result
 		cacheStoreComplexKeyPair('mod_userdb_sql(users_data)',
 				sprintf('%s/%s/%s',$module,$user->{'_UserDB_Data'}->{'ID'},$name),
@@ -497,7 +497,7 @@ sub data_get
 	# If we using caching and got here, it means that we must cache the result
 	if (defined($config->{'userdb_data_cache_time'})) {
 		$data{'CachedUntil'} = $user->{'_Internal'}->{'Timestamp-Unix'} + $config->{'userdb_data_cache_time'};
-		
+
 		# Cache the result
 		cacheStoreComplexKeyPair('mod_userdb_sql(users_data)',
 				sprintf('%s/%s/%s',$module,$user->{'_UserDB_Data'}->{'ID'},$name),
