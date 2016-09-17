@@ -28,26 +28,9 @@ require Exporter;
 our (@ISA,@EXPORT);
 @ISA = qw(Exporter);
 @EXPORT = qw(
-	niceUndef
 	templateReplace
-	isBoolean
 );
 
-
-
-## @fn niceUndef($string)
-# If string defined return 'string', or if undefined return -undef-
-#
-# @param string String to check
-#
-# @return Return 'string' if defined, or -undef- otherwise
-sub niceUndef
-{
-	my $string = shift;
-
-
-	return defined($string) ? "'$string'" : '-undef-';
-}
 
 
 ## @fn templateReplace($string,$hashref)
@@ -66,52 +49,19 @@ sub templateReplace
 
 	# Replace blanks
 	while (my ($entireMacro,$section,$item,$default) = ($string =~ /(\%{([a-z]+)\.([a-z0-9\-]+)(?:=([^}]*))?})/i )) {
-		# Replace macro with ?	
+		# Replace macro with ?
 		$string =~ s/$entireMacro/\?/;
 
 		# Get value to substitute
-		my $value = defined($hashref->{$section}->{$item}) ? $hashref->{$section}->{$item} : $default;
+		my $value = (defined($hashref->{$section}) && defined($hashref->{$section}->{$item})) ?
+				$hashref->{$section}->{$item} : $default;
 
 		# Add value onto our array
 		push(@valueArray,$value);
-		
 	}
 
 	return ($string, @valueArray);
 }
-
-
-## @fn isBoolean($var)
-# Check if a variable is boolean
-#
-# @param var Variable to check
-#
-# @return 1, 0 or undef
-sub isBoolean
-{
-	my $var = shift;
-
-
-	# Check if we're defined
-	if (!defined($var)) {
-		return;
-	}
-
-	# Nuke whitespaces
-	$var =~ s/\s//g;
-
-	# Allow true, on, set, enabled, 1, false, off, unset, disabled, 0
-	if ($var =~ /^(?:true|on|set|enabled|1)$/i) {
-		return 1;
-	}
-	if ($var =~ /^(?:false|off|unset|disabled|0)$/i) {
-		return 0;
-	}
-
-	# Invalid or unknown
-	return;
-}
-
 
 
 1;

@@ -41,6 +41,8 @@ our (@EXPORT);
 );
 
 
+use AWITPT::Util;
+
 # Check Math::Expression is installed
 if (!eval {require Math::Expression; 1;}) {
 	print STDERR "You're missing Math::Expression, try 'apt-get install libmath-expression-perl'\n";
@@ -49,6 +51,7 @@ if (!eval {require Math::Expression; 1;}) {
 
 use smradius::logging;
 use smradius::util;
+
 
 
 # Attributes we do not handle
@@ -85,8 +88,8 @@ sub addAttribute
 
 	# Check we have the name, operator AND value
 	if (!defined($attribute->{'Name'}) || !defined($attribute->{'Operator'}) || !defined($attribute->{'Value'})) {
-		$server->log(LOG_DEBUG,"[ATTRIBUTES] Problem adding attribute with name = ".niceUndef($attribute->{'Name'}).
-				", operator = ".niceUndef($attribute->{'Operator'}).", value = ".niceUndef($attribute->{'Value'}));
+		$server->log(LOG_DEBUG,"[ATTRIBUTES] Problem adding attribute with name = ".prettyUndef($attribute->{'Name'}).
+				", operator = ".prettyUndef($attribute->{'Operator'}).", value = ".prettyUndef($attribute->{'Value'}));
 		return;
 	}
 
@@ -170,7 +173,7 @@ sub checkAuthAttribute
 	# Get packet attribute value
 	my $attrVal = $packetAttributes->{$attribute->{'Name'}};
 
-	$server->log(LOG_DEBUG,"[ATTRIBUTES] Processing CHECK attribute value ".niceUndef($attrVal)." against: '".
+	$server->log(LOG_DEBUG,"[ATTRIBUTES] Processing CHECK attribute value ".prettyUndef($attrVal)." against: '".
 			$attribute->{'Name'}."' ".$attribute->{'Operator'}." '".join("','",@attrValues)."'");
 
 	# Loop with all the test attribute values
@@ -410,7 +413,7 @@ sub checkAcctAttribute
 	# Get packet attribute value
 	my $attrVal = $packetAttributes->{$attribute->{'Name'}};
 
-	$server->log(LOG_DEBUG,"[ATTRIBUTES] Processing CHECK attribute value ".niceUndef($attrVal)." against: '".
+	$server->log(LOG_DEBUG,"[ATTRIBUTES] Processing CHECK attribute value ".prettyUndef($attrVal)." against: '".
 			$attribute->{'Name'}."' ".$attribute->{'Operator'}." '".join("','",@attrValues)."'");
 
 	# Loop with all the test attribute values
