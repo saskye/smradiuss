@@ -761,6 +761,16 @@ sub process_request {
 
 		$self->log(LOG_DEBUG,"[SMRADIUS] Accounting Request Packet");
 
+		# Add onto logline
+		$request->addLogLine(". REQUEST => ");
+		foreach my $attrName ($pkt->attributes) {
+			$request->addLogLine(
+				"%s: '%s'",
+				$attrName,
+				$pkt->rawattr($attrName)
+			);
+		}
+
 		#
 		# GET USER
 		#
