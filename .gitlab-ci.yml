@@ -25,7 +25,7 @@ make-test:
     - apt-get update
     - apt-get dist-upgrade -y
     - apt-get install -y git make
-    - apt-get install -y libdevel-cover-perl libpod-coverage-perl
+    - apt-get install -y libdevel-cover-perl libpod-coverage-perl libtest-most-perl
     - apt-get install -y libnet-server-perl libconfig-inifiles-perl libdatetime-perl libcache-fastmmap-perl libtimedate-perl
       libcrypt-des-perl libcrypt-rc4-perl libdigest-sha-perl libdigest-md4-perl
     - apt-get install -y mysql-server
@@ -59,9 +59,8 @@ make-test:
     - perl -pi -e 's/database=smradius/database=smradiustest/' smradiusd.conf.test
 
     # Run tests
-    - make test
     - perl Makefile.PL DIR=
-    - cover -test | tee devel-coverage.txt
+    - DBTESTS=1 cover -test | tee devel-coverage.txt
     - grep "^Total" devel-coverage.txt | awk '{ print "(" $8 "%) covered" }'
 
 
