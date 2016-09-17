@@ -1,3 +1,4 @@
-[![coverage report](../badges/master/coverage.svg)](../commits/master)
 
-[![build status](../badges/master/build.svg)](../commits/master)
+[![build status](https://gitlab.devlabs.linuxassist.net/smradius/smradius/badges/master/build.svg)](https://gitlab.devlabs.linuxassist.net/smradius/smradius/commits/master)
+
+[![coverage report](https://gitlab.devlabs.linuxassist.net/smradius/smradius/badges/master/coverage.svg)](https://gitlab.devlabs.linuxassist.net/smradius/smradius/commits/master)
