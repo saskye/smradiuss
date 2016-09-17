@@ -197,14 +197,14 @@ sub getConfig
 	}
 
 	# Extract realm from username
-	if (defined($user->{'Username'}) && $user->{'Username'} =~ /^\S+@(\S+)$/) {
-		$realmName = $1;
+	if (defined($user->{'Username'}) && $user->{'Username'} =~ /^\S+(?:@(\S+))?$/) {
+		$realmName = $1 // "";
 
-		$server->log(LOG_DEBUG,"Processing realm attributes for '$realmName'");
+		$server->log(LOG_DEBUG,"Processing attributes for realm '$realmName'");
 
 		$sth = DBSelect($config->{'get_config_realm_id_query'},$realmName);
 		if (!$sth) {
-			$server->log(LOG_ERR,"Failed to get user realm config attributes: ".AWITPT::DB::DBLayer::Error());
+			$server->log(LOG_ERR,"Failed to get realm config attributes: ".AWITPT::DB::DBLayer::Error());
 			return MOD_RES_NACK;
 		}
 		# Fetch realm ID
@@ -216,7 +216,7 @@ sub getConfig
 			# User realm attributes
 			$sth = DBSelect($config->{'get_config_realm_attributes_query'},$realmID);
 			if (!$sth) {
-				$server->log(LOG_ERR,"Failed to get user realm config attributes: ".AWITPT::DB::DBLayer::Error());
+				$server->log(LOG_ERR,"Failed to get realm config attributes: ".AWITPT::DB::DBLayer::Error());
 				return MOD_RES_NACK;
 			}
 			# Add any realm attributes to config attributes
@@ -232,6 +232,8 @@ sub getConfig
 		$server->log(LOG_DEBUG,"No realm configured, rejecting");
 		return MOD_RES_NACK;
 	}
+
+	$server->log(LOG_DEBUG,"Realm '$realmName' has ID '$realmID'");
 
 	# Get client name
 	my $clientID;
