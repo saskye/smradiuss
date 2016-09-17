@@ -157,8 +157,8 @@ sub configure {
 			"debug",
 			"fg",
 	)) {
-	   print(STDERR "ERROR: Error parsing commandline arguments");
-	   return 1;
+		print(STDERR "ERROR: Error parsing commandline arguments");
+		return 1;
 	}
 
 	# Check for some args
