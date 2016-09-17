@@ -25,7 +25,7 @@ make-test:
     - apt-get update
     - apt-get dist-upgrade -y
     - apt-get install -y git make
-    - apt-get install -y libdevel-cover-perl libpod-coverage-perl
+    - apt-get install -y libdevel-cover-perl libpod-coverage-perl libtest-most-perl
     - apt-get install -y libnet-server-perl libconfig-inifiles-perl libdatetime-perl libcache-fastmmap-perl libtimedate-perl
       libcrypt-des-perl libcrypt-rc4-perl libdigest-sha-perl libdigest-md4-perl
     - apt-get install -y mysql-server
@@ -39,10 +39,14 @@ make-test:
     - ./update-git-modules
     - perl -MCPAN -e 'install Math::Expression' < /dev/null
 
+    # Build Makefile and make
+    - perl Makefile.PL
+    - make
+
     # Convert DB into MySQL
-    - 3rdparty/awitpt/bin/convert-tsql mysql database/core.tsql > database/core.mysql
-    - 3rdparty/awitpt/bin/convert-tsql mysql database/users-accounting-summary.tsql > database/users-accounting-summary.mysql
-    - 3rdparty/awitpt/bin/convert-tsql mysql database/wisp.tsql > database/wisp.mysql
+    - blib/script/convert-tsql MySQL database/core.tsql > database/core.mysql
+    - blib/script/convert-tsql MySQL database/users-accounting-summary.tsql > database/users-accounting-summary.mysql
+    - blib/script/convert-tsql MySQL database/wisp.tsql > database/wisp.mysql
 
     # Load SQL into DB
     - echo "CREATE DATABASE smradiustest;" | mysql -u root
@@ -55,10 +59,8 @@ make-test:
     - perl -pi -e 's/database=smradius/database=smradiustest/' smradiusd.conf.test
 
     # Run tests
-    - perl Makefile.PL
-    - make test
     - perl Makefile.PL DIR=
-    - cover -test | tee devel-coverage.txt
+    - DBTESTS=1 cover -test | tee devel-coverage.txt
     - grep "^Total" devel-coverage.txt | awk '{ print "(" $8 "%) covered" }'
 
 
