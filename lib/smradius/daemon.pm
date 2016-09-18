@@ -157,8 +157,8 @@ sub configure {
 			"debug",
 			"fg",
 	)) {
-	   print(STDERR "ERROR: Error parsing commandline arguments");
-	   return 1;
+		print(STDERR "ERROR: Error parsing commandline arguments");
+		return 1;
 	}
 
 	# Check for some args
@@ -760,6 +760,16 @@ sub process_request {
 	if ($pkt->code eq "Accounting-Request") {
 
 		$self->log(LOG_DEBUG,"[SMRADIUS] Accounting Request Packet");
+
+		# Add onto logline
+		$request->addLogLine(". REQUEST => ");
+		foreach my $attrName ($pkt->attributes) {
+			$request->addLogLine(
+				"%s: '%s'",
+				$attrName,
+				$pkt->rawattr($attrName)
+			);
+		}
 
 		#
 		# GET USER

@@ -1,16 +1,16 @@
 # SQL accounting database
-# Copyright (C) 2007-2015, AllWorldIT
-# 
+# Copyright (C) 2007-2016, AllWorldIT
+#
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; either version 2 of the License, or
 # (at your option) any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
@@ -127,26 +127,26 @@ sub init
 			%{request.NAS-Identifier},
 			%{request.NAS-IP-Address},
 			%{request.Acct-Delay-Time},
-			%{request.SessionTime},
-			%{request.InputOctets},
-			%{request.InputGigawords},
-			%{request.InputPackets},
-			%{request.OutputOctets},
-			%{request.OutputGigawords},
-			%{request.OutputPackets},
+			%{request.Acct-Session-Time},
+			%{request.Acct-Input-Octets},
+			%{request.Acct-Input-Gigawords},
+			%{request.Acct-Input-Packets},
+			%{request.Acct-Output-Octets},
+			%{request.Acct-Output-Gigawords},
+			%{request.Acct-Output-Packets},
 			%{query.PeriodKey}
 		)
 	';
 
 	$config->{'accounting_update_get_records_query'} = '
 		SELECT
-			SUM(AcctInputOctets) AS InputOctets,
-			SUM(AcctInputPackets) AS InputPackets,
-			SUM(AcctOutputOctets) AS OutputOctets,
-			SUM(AcctOutputPackets) AS OutputPackets,
-			SUM(AcctInputGigawords) AS InputGigawords,
-			SUM(AcctOutputGigawords) AS OutputGigawords,
-			SUM(AcctSessionTime) AS SessionTime,
+			SUM(AcctInputOctets) AS AcctInputOctets,
+			SUM(AcctInputPackets) AS AcctInputPackets,
+			SUM(AcctOutputOctets) AS AcctOutputOctets,
+			SUM(AcctOutputPackets) AS AcctOutputPackets,
+			SUM(AcctInputGigawords) AS AcctInputGigawords,
+			SUM(AcctOutputGigawords) AS AcctOutputGigawords,
+			SUM(AcctSessionTime) AS AcctSessionTime,
 			PeriodKey
 		FROM
 			@TP@accounting
@@ -165,13 +165,13 @@ sub init
 		UPDATE
 			@TP@accounting
 		SET
-			AcctSessionTime = %{query.SessionTime},
-			AcctInputOctets = %{query.InputOctets},
-			AcctInputGigawords = %{query.InputGigawords},
-			AcctInputPackets = %{query.InputPackets},
-			AcctOutputOctets = %{query.OutputOctets},
-			AcctOutputGigawords = %{query.OutputGigawords},
-			AcctOutputPackets = %{query.OutputPackets},
+			AcctSessionTime = %{query.Acct-Session-Time},
+			AcctInputOctets = %{query.Acct-Input-Octets},
+			AcctInputGigawords = %{query.Acct-Input-Gigawords},
+			AcctInputPackets = %{query.Acct-Input-Packets},
+			AcctOutputOctets = %{query.Acct-Output-Octets},
+			AcctOutputGigawords = %{query.Acct-Output-Gigawords},
+			AcctOutputPackets = %{query.Acct-Output-Packets},
 			AcctStatusType = %{request.Acct-Status-Type}
 		WHERE
 			Username = %{user.Username}
@@ -408,7 +408,7 @@ sub getUsage
 	# If we using caching and got here, it means that we must cache the result
 	if (defined($config->{'accounting_usage_cache_time'})) {
 		$res{'CachedUntil'} = $user->{'_Internal'}->{'Timestamp-Unix'} + $config->{'accounting_usage_cache_time'};
-		
+
 		# Cache the result
 		cacheStoreComplexKeyPair('mod_accounting_sql(getUsage)',$user->{'Username'}."/".$template->{'query'}->{'PeriodKey'},\%res);
 	}
@@ -429,6 +429,7 @@ sub acct_log
 {
 	my ($server,$user,$packet) = @_;
 
+
 	# Build template
 	my $template;
 	foreach my $attr ($packet->attributes) {
@@ -447,11 +448,12 @@ sub acct_log
 	# For our queries
 	$template->{'query'}->{'PeriodKey'} = $periodKey;
 
+	# Default to being a new period, only if we update on INTERIM or STOP do we set this to 0
+	my $newPeriod = 1;
+
 	#
 	# U P D A T E   &   S T O P   P A C K E T
 	#
-	# If its a new period we're going to trigger START
-	my $newPeriod;
 	if ($packet->rawattr('Acct-Status-Type') eq "2" || $packet->rawattr('Acct-Status-Type') eq "3") {
 		# Replace template entries
 		my @dbDoParams = templateReplace($config->{'accounting_update_get_records_query'},$template);
@@ -478,21 +480,22 @@ sub acct_log
 
 		# Loop through previous records and subtract them from our session totals
 		while (my $sessionPart = hashifyLCtoMC($sth->fetchrow_hashref(),
-				qw(InputOctets InputPackets OutputOctets OutputPackets InputGigawords OutputGigawords SessionTime PeriodKey)
+				qw(AcctInputOctets AcctInputPackets AcctOutputOctets AcctOutputPackets AcctInputGigawords AcctOutputGigawords
+					SessionTime PeriodKey)
 		)) {
 
 			# Convert this session usage to bytes
 			my $sessionInputBytes = Math::BigInt->new();
-			$sessionInputBytes->badd($sessionPart->{'InputGigawods'})->bmul(UINT_MAX);
-			$sessionInputBytes->badd($sessionPart->{'InputOctets'});
+			$sessionInputBytes->badd($sessionPart->{'AcctInputGigawods'})->bmul(UINT_MAX);
+			$sessionInputBytes->badd($sessionPart->{'AcctInputOctets'});
 			my $sessionOutputBytes = Math::BigInt->new();
-			$sessionOutputBytes->badd($sessionPart->{'OutputGigawods'})->bmul(UINT_MAX);
-			$sessionOutputBytes->badd($sessionPart->{'OutputOctets'});
+			$sessionOutputBytes->badd($sessionPart->{'AcctOutputGigawods'})->bmul(UINT_MAX);
+			$sessionOutputBytes->badd($sessionPart->{'AcctOutputOctets'});
 			# And packets
-			my $sessionInputPackets = Math::BigInt->new($sessionPart->{'InputPackets'});
-			my $sessionOutputPackets = Math::BigInt->new($sessionPart->{'OutputPackets'});
+			my $sessionInputPackets = Math::BigInt->new($sessionPart->{'AcctInputPackets'});
+			my $sessionOutputPackets = Math::BigInt->new($sessionPart->{'AcctOutputPackets'});
 			# Finally session time
-			my $sessionSessionTime = Math::BigInt->new($sessionPart->{'SessionTime'});
+			my $sessionSessionTime = Math::BigInt->new($sessionPart->{'AcctSessionTime'});
 
 			# Check if this record is from an earlier period
 			if (defined($sessionPart->{'PeriodKey'}) && $sessionPart->{'PeriodKey'} ne $periodKey) {
@@ -511,19 +514,19 @@ sub acct_log
 		DBFreeRes($sth);
 
 		# Sanitize
-		if ($totalInputBytes->is_neg()) {	
+		if ($totalInputBytes->is_neg()) {
 			$totalInputBytes->bzero();
 		}
-		if ($totalOutputBytes->is_neg()) {	
+		if ($totalOutputBytes->is_neg()) {
 			$totalOutputBytes->bzero();
 		}
-		if ($totalInputPackets->is_neg()) {	
+		if ($totalInputPackets->is_neg()) {
 			$totalInputPackets->bzero();
 		}
-		if ($totalOutputPackets->is_neg()) {	
+		if ($totalOutputPackets->is_neg()) {
 			$totalOutputPackets->bzero();
 		}
-		if ($totalSessionTime->is_neg()) {	
+		if ($totalSessionTime->is_neg()) {
 			$totalSessionTime->bzero();
 		}
 
@@ -532,15 +535,15 @@ sub acct_log
 		my ($outputGigawordsStr,$outputOctetsStr) = $totalOutputBytes->bdiv(UINT_MAX);
 
 		# Conversion to strings
-		$template->{'query'}->{'InputGigawords'} = $inputGigawordsStr->bstr();
-		$template->{'query'}->{'InputOctets'} = $inputOctetsStr->bstr();
-		$template->{'query'}->{'OutputGigawords'} = $outputGigawordsStr->bstr();
-		$template->{'query'}->{'OutputOctets'} = $outputOctetsStr->bstr();
+		$template->{'query'}->{'Acct-Input-Gigawords'} = $inputGigawordsStr->bstr();
+		$template->{'query'}->{'Acct-Input-Octets'} = $inputOctetsStr->bstr();
+		$template->{'query'}->{'Acct-Output-Gigawords'} = $outputGigawordsStr->bstr();
+		$template->{'query'}->{'Acct-Output-Octets'} = $outputOctetsStr->bstr();
 
-		$template->{'query'}->{'InputPackets'} = $totalInputPackets->bstr();
-		$template->{'query'}->{'OutputPackets'} = $totalOutputPackets->bstr();
+		$template->{'query'}->{'Acct-Input-Packets'} = $totalInputPackets->bstr();
+		$template->{'query'}->{'Acct-Output-Packets'} = $totalOutputPackets->bstr();
 
-		$template->{'query'}->{'SessionTime'} = $totalSessionTime->bstr();
+		$template->{'query'}->{'Acct-Session-Time'} = $totalSessionTime->bstr();
 
 
 		# Replace template entries
@@ -559,7 +562,7 @@ sub acct_log
 			# Be very sneaky .... if we updated something, this is obviously NOT a new period
 			$newPeriod = 0;
 			# If we updated a few things ... possibly duplicates?
- 			if ($sth > 1) {
+			if ($sth > 1) {
 				fixDuplicates($server, $template);
 			}
 		}
@@ -575,7 +578,6 @@ sub acct_log
 	if ($packet->rawattr('Acct-Status-Type') eq "1" || $newPeriod) {
 		# Replace template entries
 		my @dbDoParams = templateReplace($config->{'accounting_start_query'},$template);
-
 		# Insert into database
 		my $sth = DBDo(@dbDoParams);
 		if (!$sth) {
@@ -592,7 +594,6 @@ sub acct_log
 				$user->{'_UserDB'}->{'Users_data_set'}($server,$user,'global','FirstLogin',$user->{'_Internal'}->{'Timestamp-Unix'});
 			}
 		}
-	
 	}
 
 
@@ -612,6 +613,7 @@ sub acct_log
 			return MOD_RES_NACK;
 		}
 	}
+
 
 	return MOD_RES_ACK;
 }
@@ -682,7 +684,7 @@ sub cleanup
 	# Last month..
 	my $lastMonth = $thisMonth->clone()->subtract( months => 1 );
 	my $prevPeriodKey = $lastMonth->strftime("%Y-%m");
-	
+
 
 	# Begin transaction
 	DBBegin();
