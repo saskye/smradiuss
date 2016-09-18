@@ -225,12 +225,182 @@ if ($child = fork()) {
 
 
 	#
+	# Test accounting START packet
+	#
+
+	my $session1_ID = "09d15244";
+	my $session1_Timestamp = time();
+	my $session1_Timestamp_str = DateTime->from_epoch(epoch => $session1_Timestamp,time_zone => 'UTC')
+			->strftime('%Y-%m-%d %H:%M:%S');
+
+	$res = smradius::client->run(
+		"--raddb","dicts",
+		"127.0.0.1",
+		"acct",
+		"secret123",
+		'NAS-IP-Address=10.0.0.3',
+		'Acct-Delay-Time=11',
+		'NAS-Identifier=Test-NAS1',
+		'Acct-Status-Type=Start',
+		'Event-Timestamp='.$session1_Timestamp,
+		'Framed-IP-Address=10.0.1.3',
+		'Acct-Session-Id='.$session1_ID,
+		'NAS-Port-Id=test iface name1',
+		'Called-Station-Id=testservice1',
+		'Calling-Station-Id=00:00:0C:EE:47:AA',
+		'User-Name=testuser1',
+		'NAS-Port-Type=Ethernet',
+		'NAS-Port=45355555',
+		'Framed-Protocol=PPP',
+		'Service-Type=Framed-User',
+	);
+	is(ref($res),"HASH","smradclient should return a HASH");
+
+	testDBResults("Check accounting record is created correctly",'accounting',{'AcctSessionID' => $session1_ID},
+		{
+			'NASIPAddress' => '10.0.0.3',
+			'AcctDelayTime' => '11',
+			'NASIdentifier' => 'Test-NAS1',
+			'AcctStatusType' => 1,
+			'EventTimestamp' => $session1_Timestamp_str,
+			'FramedIPAddress' => '10.0.1.3',
+			'AcctSessionId' => $session1_ID,
+			'NASPortId' => 'test iface name1',
+			'CalledStationId' => 'testservice1',
+			'CallingStationId' => '00:00:0C:EE:47:AA',
+			'Username' => 'testuser1',
+			'NASPortType' => 15,
+			'NASPort' => '45355555',
+			'FramedProtocol' => 1,
+			'ServiceType' => 2,
+			'AcctOutputPackets' => undef,
+			'AcctOutputGigawords' => undef,
+			'AcctOutputOctets' => undef,
+			'AcctInputPackets' => undef,
+			'AcctInputGigawords' => undef,
+			'AcctInputOctets' => undef,
+			'AcctSessionTime' => undef,
+		}
+	);
+
+
+	#
+	# Test accounting ALIVE packet
+	#
+
+	$res = smradius::client->run(
+		"--raddb","dicts",
+		"127.0.0.1",
+		"acct",
+		"secret123",
+
+		'Acct-Status-Type=Interim-Update',
+		'Acct-Output-Packets=800000',
+		'Acct-Output-Gigawords=0',
+		'Acct-Output-Octets=810000000',
+		'Acct-Input-Packets=777777',
+		'Acct-Input-Gigawords=0',
+		'Acct-Input-Octets=123456789',
+		'Acct-Session-Time=999',
+
+		'User-Name=testuser1',
+		'Acct-Session-Id='.$session1_ID,
+		'NAS-IP-Address=10.0.0.3',
+		'NAS-Port=45355555',
+	);
+	is(ref($res),"HASH","smradclient should return a HASH");
+
+	testDBResults("Check accounting record is updated correctly",'accounting',{'AcctSessionID' => $session1_ID},
+		{
+			'NASIPAddress' => '10.0.0.3',
+			'AcctDelayTime' => '11',
+			'NASIdentifier' => 'Test-NAS1',
+			'AcctStatusType' => 3,
+			'EventTimestamp' => $session1_Timestamp_str,
+			'FramedIPAddress' => '10.0.1.3',
+			'AcctSessionId' => $session1_ID,
+			'NASPortId' => 'test iface name1',
+			'CalledStationId' => 'testservice1',
+			'CallingStationId' => '00:00:0C:EE:47:AA',
+			'Username' => 'testuser1',
+			'NASPortType' => 15,
+			'NASPort' => '45355555',
+			'FramedProtocol' => 1,
+			'ServiceType' => 2,
+			'AcctOutputPackets' => '800000',
+			'AcctOutputGigawords' => '0',
+			'AcctOutputOctets' => '810000000',
+			'AcctInputPackets' => '777777',
+			'AcctInputGigawords' => '0',
+			'AcctInputOctets' => '123456789',
+			'AcctSessionTime' => '999',
+		}
+	);
+
+
+	#
+	# Test accounting STOP packet
+	#
+
+	$res = smradius::client->run(
+		"--raddb","dicts",
+		"127.0.0.1",
+		"acct",
+		"secret123",
+
+		'Acct-Status-Type=Stop',
+		'Acct-Output-Packets=999999',
+		'Acct-Output-Gigawords=0',
+		'Acct-Output-Octets=888888888',
+		'Acct-Input-Packets=1111111',
+		'Acct-Input-Gigawords=0',
+		'Acct-Input-Octets=222222222',
+		'Acct-Session-Time=3998',
+		'Acct-Terminate-Cause=Session-Timeout',
+
+		'User-Name=testuser1',
+		'Acct-Session-Id='.$session1_ID,
+		'NAS-IP-Address=10.0.0.3',
+		'NAS-Port=45355555',
+	);
+	is(ref($res),"HASH","smradclient should return a HASH");
+
+	testDBResults("Check accounting record is stopped correctly",'accounting',{'AcctSessionID' => $session1_ID},
+		{
+			'NASIPAddress' => '10.0.0.3',
+			'AcctDelayTime' => '11',
+			'NASIdentifier' => 'Test-NAS1',
+			'AcctStatusType' => 2,
+			'EventTimestamp' => $session1_Timestamp_str,
+			'FramedIPAddress' => '10.0.1.3',
+			'AcctSessionId' => $session1_ID,
+			'NASPortId' => 'test iface name1',
+			'CalledStationId' => 'testservice1',
+			'CallingStationId' => '00:00:0C:EE:47:AA',
+			'Username' => 'testuser1',
+			'NASPortType' => 15,
+			'NASPort' => '45355555',
+			'FramedProtocol' => 1,
+			'ServiceType' => 2,
+			'AcctOutputPackets' => '999999',
+			'AcctOutputGigawords' => '0',
+			'AcctOutputOctets' => '888888888',
+			'AcctInputPackets' => '1111111',
+			'AcctInputGigawords' => '0',
+			'AcctInputOctets' => '222222222',
+			'AcctSessionTime' => '3998',
+			'AcctTerminateCause' => '5',
+		}
+	);
+
+
+	#
 	# Test missing accounting START packet
 	#
 
-	my $session1_ID = 81700217;
-	my $session1_Timestamp = time();
-	my $session1_Timestamp_str = DateTime->from_epoch(epoch => $session1_Timestamp,time_zone => 'UTC')
+	my $session2_ID = 81700217;
+	my $session2_Timestamp = time();
+	my $session2_Timestamp_str = DateTime->from_epoch(epoch => $session2_Timestamp,time_zone => 'UTC')
 			->strftime('%Y-%m-%d %H:%M:%S');
 
 	$res = smradius::client->run(
@@ -241,7 +411,7 @@ if ($child = fork()) {
 		'User-Name=testuser2',
 		'NAS-IP-Address=10.0.0.1',
 		'Acct-Delay-Time=12',
-		'NAS-Identifier=Test-NAS',
+		'NAS-Identifier=Test-NAS2',
 		'Acct-Status-Type=Interim-Update',
 		'Acct-Output-Packets=786933',
 		'Acct-Output-Gigawords=0',
@@ -250,11 +420,11 @@ if ($child = fork()) {
 		'Acct-Input-Gigawords=0',
 		'Acct-Input-Octets=102600046',
 		'Acct-Session-Time=800',
-		'Event-Timestamp='.$session1_Timestamp,
+		'Event-Timestamp='.$session2_Timestamp,
 		'Framed-IP-Address=10.0.1.1',
-		'Acct-Session-Id='.$session1_ID,
+		'Acct-Session-Id='.$session2_ID,
 		'NAS-Port-Id=wlan1',
-		'Called-Station-Id=testservice',
+		'Called-Station-Id=testservice2',
 		'Calling-Station-Id=00:00:0C:EE:47:BF',
 		'User-Name=testuser2',
 		'NAS-Port-Type=Ethernet',
@@ -264,12 +434,12 @@ if ($child = fork()) {
 	);
 	is(ref($res),"HASH","smradclient should return a HASH");
 
-	testDBResults("Check accounting record is created correctly",'accounting',{'AcctSessionID' => $session1_ID},
+	testDBResults("Check missing accounting record is created correctly",'accounting',{'AcctSessionID' => $session2_ID},
 		{
 			'Username' => 'testuser2',
 			'NASIPAddress' => '10.0.0.1',
 			'AcctDelayTime' => '12',
-			'NASIdentifier' => 'Test-NAS',
+			'NASIdentifier' => 'Test-NAS2',
 			'AcctStatusType' => 3,
 			'AcctOutputPackets' => '786933',
 			'AcctOutputGigawords' => '0',
@@ -278,11 +448,11 @@ if ($child = fork()) {
 			'AcctInputGigawords' => '0',
 			'AcctInputOctets' => '102600046',
 			'AcctSessionTime' => '800',
-			'EventTimestamp' => $session1_Timestamp_str,
+			'EventTimestamp' => $session2_Timestamp_str,
 			'FramedIPAddress' => '10.0.1.1',
-			'AcctSessionId' => $session1_ID,
+			'AcctSessionId' => $session2_ID,
 			'NASPortId' => 'wlan1',
-			'CalledStationId' => 'testservice',
+			'CalledStationId' => 'testservice2',
 			'CallingStationId' => '00:00:0C:EE:47:BF',
 			'NASPortType' => 15,
 			'NASPort' => '15729175',
