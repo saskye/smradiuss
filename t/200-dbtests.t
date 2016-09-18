@@ -2,6 +2,7 @@ use strict;
 use warnings;
 
 
+use AWITPT::Util;
 use Data::Dumper;
 use POSIX qw(:sys_wait_h);
 use Test::Most;
@@ -70,6 +71,9 @@ AWITPT::DB::DBLayer::setHandle($dbh);
 #
 
 my $sth;
+
+$sth = DBDo("DELETE FROM accounting");
+is(AWITPT::DB::DBLayer::error(),"","Clean table 'accounting");
 
 $sth = DBDo("DELETE FROM user_attributes");
 is(AWITPT::DB::DBLayer::error(),"","Clean table 'user_attributes");
@@ -220,6 +224,76 @@ if ($child = fork()) {
 	is($res->{'response'}->{'code'},"Access-Accept","Check our return is 'Access-Accept' for a basically configured user");
 
 
+	#
+	# Test missing accounting START packet
+	#
+
+	my $session1_ID = 81700217;
+	my $session1_Timestamp = time();
+	my $session1_Timestamp_str = DateTime->from_epoch(epoch => $session1_Timestamp,time_zone => 'UTC')
+			->strftime('%Y-%m-%d %H:%M:%S');
+
+	$res = smradius::client->run(
+		"--raddb","dicts",
+		"127.0.0.1",
+		"acct",
+		"secret123",
+		'User-Name=testuser2',
+		'NAS-IP-Address=10.0.0.1',
+		'Acct-Delay-Time=12',
+		'NAS-Identifier=Test-NAS',
+		'Acct-Status-Type=Interim-Update',
+		'Acct-Output-Packets=786933',
+		'Acct-Output-Gigawords=0',
+		'Acct-Output-Octets=708163705',
+		'Acct-Input-Packets=670235',
+		'Acct-Input-Gigawords=0',
+		'Acct-Input-Octets=102600046',
+		'Acct-Session-Time=800',
+		'Event-Timestamp='.$session1_Timestamp,
+		'Framed-IP-Address=10.0.1.1',
+		'Acct-Session-Id='.$session1_ID,
+		'NAS-Port-Id=wlan1',
+		'Called-Station-Id=testservice',
+		'Calling-Station-Id=00:00:0C:EE:47:BF',
+		'User-Name=testuser2',
+		'NAS-Port-Type=Ethernet',
+		'NAS-Port=15729175',
+		'Framed-Protocol=PPP',
+		'Service-Type=Framed-User',
+	);
+	is(ref($res),"HASH","smradclient should return a HASH");
+
+	testDBResults("Check accounting record is created correctly",'accounting',{'AcctSessionID' => $session1_ID},
+		{
+			'Username' => 'testuser2',
+			'NASIPAddress' => '10.0.0.1',
+			'AcctDelayTime' => '12',
+			'NASIdentifier' => 'Test-NAS',
+			'AcctStatusType' => 3,
+			'AcctOutputPackets' => '786933',
+			'AcctOutputGigawords' => '0',
+			'AcctOutputOctets' => '708163705',
+			'AcctInputPackets' => '670235',
+			'AcctInputGigawords' => '0',
+			'AcctInputOctets' => '102600046',
+			'AcctSessionTime' => '800',
+			'EventTimestamp' => $session1_Timestamp_str,
+			'FramedIPAddress' => '10.0.1.1',
+			'AcctSessionId' => $session1_ID,
+			'NASPortId' => 'wlan1',
+			'CalledStationId' => 'testservice',
+			'CallingStationId' => '00:00:0C:EE:47:BF',
+			'NASPortType' => 15,
+			'NASPort' => '15729175',
+			'FramedProtocol' => 1,
+			'ServiceType' => 2,
+		}
+	);
+
+
+	sleep(5);
+
 
 } else {
 
@@ -276,6 +350,51 @@ sub testDBInsert
 	is($id > 0,1,"$name, insert ID > 0");
 
 	return $id;
+}
+
+
+
+# Test DB select results
+sub testDBResults
+{
+	my ($name,$table,$where,$resultCheck) = @_;
+
+
+	# Build column list
+	my $columnList_str = join(',',keys %{$resultCheck});
+
+	# Create where criteria
+	my @whereLines = ();
+	my @whereData = ();
+	foreach my $columnName (keys %{$where}) {
+		# Add template placeholders
+		push(@whereLines,"$columnName = ?");
+		# Add data for template placeholders
+		push(@whereData,$where->{$columnName});
+	}
+	my $whereLines_str = join(',',@whereLines);
+
+	# Do select
+	my $sth = DBSelect("
+		SELECT
+			$columnList_str
+		FROM
+			$table
+		WHERE
+			$whereLines_str
+	",@whereData);
+
+	# Make sure we got no error
+	is(AWITPT::DB::DBLayer::error(),"","Errors on DBSelect: $name");
+
+	# We should get one result...
+	my $row = hashifyLCtoMC($sth->fetchrow_hashref(),keys %{$resultCheck});
+	is(defined($row),1,"DBSelect row defined: $name");
+
+	# Loop through results and check if they match
+	foreach my $resultName (keys %{$resultCheck}) {
+		is($row->{$resultName},$resultCheck->{$resultName},"$name: $resultName check");
+	}
 }
 
 
