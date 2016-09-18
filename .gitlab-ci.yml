@@ -58,9 +58,8 @@ make-test:
     - cp smradiusd.conf smradiusd.conf.test
     - perl -pi -e 's/database=smradius/database=smradiustest/' smradiusd.conf.test
 
-    # Run tests
-    - perl Makefile.PL DIR=
-    - DBTESTS=1 cover -test | tee devel-coverage.txt
+    # Run tests, exclude all but smradius
+    - DBTESTS=1 cover -test -ignore_re '.*' -select_re '^blib\/lib\/smradius\/' | tee devel-coverage.txt
     - grep "^Total" devel-coverage.txt | awk '{ print "(" $8 "%) covered" }'
 
 
