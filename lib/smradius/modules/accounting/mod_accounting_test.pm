@@ -1,16 +1,16 @@
 # Test accounting database
-# Copyright (C) 2007-2015, AllWorldIT
-# 
+# Copyright (C) 2007-2016, AllWorldIT
+#
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; either version 2 of the License, or
 # (at your option) any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
@@ -99,7 +99,10 @@ Acct-Delay-Time: %{accounting.Acct-Delay-Time}
 	foreach my $attr ($packet->attributes) {
 		$template->{'accounting'}->{$attr} = $packet->attr($attr)
 	}
-	$template->{'user'} = $user;
+
+	# Add user details
+	$template->{'user'}->{'ID'} = $user->{'ID'};
+	$template->{'user'}->{'Username'} = $user->{'Username'};
 
 	if ($packet->rawattr('Acct-Status-Type') eq "1") {
 		$server->log(LOG_DEBUG,"Start Packet: ".$packet->dump());

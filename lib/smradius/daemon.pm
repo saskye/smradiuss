@@ -734,6 +734,8 @@ sub process_request {
 					$self->log(LOG_DEBUG,"[SMRADIUS] FIND: Username found with '".$module->{'Name'}."'");
 					$user->{'_UserDB'} = $module;
 					$user->{'_UserDB_Data'} = $userdb_data;
+					# The user ID is supposed to be global unique, on the same level as the username
+					$user->{'ID'} = $user->{'_UserDB_Data'}->{'ID'};
 					last;
 
 				# Or a negative result

@@ -333,7 +333,10 @@ sub getUsage
 	foreach my $attr ($packet->attributes) {
 		$template->{'request'}->{$attr} = $packet->rawattr($attr)
 	}
-	$template->{'user'} = $user;
+
+	# Add user details
+	$template->{'user'}->{'ID'} = $user->{'ID'};
+	$template->{'user'}->{'Username'} = $user->{'Username'};
 
 	# Current PeriodKey
 	my $now = DateTime->now->set_time_zone($server->{'smradius'}->{'event_timezone'});
@@ -438,8 +441,9 @@ sub acct_log
 	# Fix event timestamp
 	$template->{'request'}->{'Timestamp'} = $user->{'_Internal'}->{'Timestamp'};
 
-	# Add user
-	$template->{'user'} = $user;
+	# Add user details
+	$template->{'user'}->{'ID'} = $user->{'ID'};
+	$template->{'user'}->{'Username'} = $user->{'Username'};
 
 	# Current PeriodKey
 	my $now = DateTime->now->set_time_zone($server->{'smradius'}->{'event_timezone'});
