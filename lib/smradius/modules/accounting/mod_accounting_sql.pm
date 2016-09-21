@@ -35,12 +35,10 @@ use Math::BigFloat;
 
 
 # Exporter stuff
-require Exporter;
-our (@ISA,@EXPORT,@EXPORT_OK);
-@ISA = qw(Exporter);
-@EXPORT = qw(
+use base qw(Exporter);
+our @EXPORT = qw(
 );
-@EXPORT_OK = qw(
+our @EXPORT_OK = qw(
 );
 
 
@@ -357,7 +355,7 @@ sub getUsage
 	# Fetch data
 	my $sth = DBSelect(@dbDoParams);
 	if (!$sth) {
-		$server->log(LOG_ERR,"[MOD_ACCOUNTING_SQL] Database query failed: ".AWITPT::DB::DBLayer::Error());
+		$server->log(LOG_ERR,"[MOD_ACCOUNTING_SQL] Database query failed: %s",AWITPT::DB::DBLayer::Error());
 		return;
 	}
 
@@ -465,7 +463,7 @@ sub acct_log
 		# Fetch previous records of the same session
 		my $sth = DBSelect(@dbDoParams);
 		if (!$sth) {
-			$server->log(LOG_ERR,"[MOD_ACCOUNTING_SQL] Database query failed: ".AWITPT::DB::DBLayer::Error());
+			$server->log(LOG_ERR,"[MOD_ACCOUNTING_SQL] Database query failed: %s",AWITPT::DB::DBLayer::Error());
 			return;
 		}
 
@@ -613,7 +611,7 @@ sub acct_log
 		# Update database (status)
 		my $sth = DBDo(@dbDoParams);
 		if (!$sth) {
-			$server->log(LOG_ERR,"[MOD_ACCOUNTING_SQL] Failed to update accounting STOP record: ".AWITPT::DB::DBLayer::Error());
+			$server->log(LOG_ERR,"[MOD_ACCOUNTING_SQL] Failed to update accounting STOP record: %s",AWITPT::DB::DBLayer::Error());
 			return MOD_RES_NACK;
 		}
 	}
@@ -635,7 +633,7 @@ sub fixDuplicates
 	# Select duplicates
 	my $sth = DBSelect(@dbDoParams);
 	if (!$sth) {
-		$server->log(LOG_ERR,"[MOD_ACCOUNTING_SQL] Database query failed: ".AWITPT::DB::DBLayer::Error());
+		$server->log(LOG_ERR,"[MOD_ACCOUNTING_SQL] Database query failed: %s",AWITPT::DB::DBLayer::Error());
 		return;
 	}
 
@@ -658,7 +656,7 @@ sub fixDuplicates
 		# Delete duplicates
 		$sth = DBDo(@dbDoParams);
 		if (!$sth) {
-			$server->log(LOG_ERR,"[MOD_ACCOUNTING_SQL] Database query failed: ".AWITPT::DB::DBLayer::Error());
+			$server->log(LOG_ERR,"[MOD_ACCOUNTING_SQL] Database query failed: %s",AWITPT::DB::DBLayer::Error());
 			DBRollback();
 			return;
 		}
@@ -853,6 +851,7 @@ sub cleanup
 	DBCommit();
 	$server->log(LOG_NOTICE,"[MOD_ACCOUNTING_SQL] Cleanup => Accounting summaries created");
 }
+
 
 
 1;
