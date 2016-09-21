@@ -130,7 +130,8 @@ sub find
 	foreach my $attr ($packet->attributes) {
 		$template->{'request'}->{$attr} = $packet->rawattr($attr)
 	}
-	$template->{'user'} = $user;
+
+	# Add MAC address details
 	$template->{'user'}->{'MACAddress'} = $macAddress;
 
 	# Replace template entries

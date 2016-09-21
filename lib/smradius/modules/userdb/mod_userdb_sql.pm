@@ -91,7 +91,7 @@ sub init
 		FROM
 			@TP@group_attributes, @TP@users_to_groups
 		WHERE
-			@TP@users_to_groups.UserID = %{userdb.ID}
+			@TP@users_to_groups.UserID = %{user.ID}
 			AND @TP@group_attributes.GroupID = @TP@users_to_groups.GroupID
 			AND @TP@group_attributes.Disabled = 0
 	';
@@ -102,7 +102,7 @@ sub init
 		FROM
 			@TP@user_attributes
 		WHERE
-			UserID = %{userdb.ID}
+			UserID = %{user.ID}
 			AND Disabled = 0
 	';
 
@@ -111,7 +111,7 @@ sub init
 			@TP@users_data (UserID, LastUpdated, Name, Value)
 		VALUES
 			(
-				%{userdb.ID},
+				%{user.ID},
 				%{query.LastUpdated},
 				%{query.Name},
 				%{query.Value}
@@ -125,7 +125,7 @@ sub init
 			LastUpdated = %{query.LastUpdated},
 			Value = %{query.Value}
 		WHERE
-			UserID = %{userdb.ID}
+			UserID = %{user.ID}
 			AND Name = %{query.Name}
 	';
 
@@ -135,7 +135,7 @@ sub init
 		FROM
 			@TP@users_data
 		WHERE
-			UserID = %{userdb.ID}
+			UserID = %{user.ID}
 			AND Name = %{query.Name}
 	';
 
@@ -143,7 +143,7 @@ sub init
 		DELETE FROM
 			@TP@users_data
 		WHERE
-			UserID = %{userdb.ID}
+			UserID = %{user.ID}
 			AND Name = %{query.Name}
 	';
 
@@ -264,7 +264,9 @@ sub find
 	foreach my $attr ($packet->attributes) {
 		$template->{'request'}->{$attr} = $packet->rawattr($attr)
 	}
-	$template->{'user'} = $user;
+
+	# Add user details, not user ID is available here as thats what we are retrieving
+	$template->{'user'}->{'Username'} = $user->{'Username'};
 
 	# Replace template entries
 	my @dbDoParams = templateReplace($config->{'userdb_find_query'},$template);
@@ -320,6 +322,11 @@ sub get
 	foreach my $attr ($packet->attributes) {
 		$template->{'request'}->{$attr} = $packet->rawattr($attr)
 	}
+
+	# Add user details
+	$template->{'user'}->{'ID'} = $user->{'ID'};
+	$template->{'user'}->{'Username'} = $user->{'Username'};
+
 	# Add in userdb data
 	foreach my $item (keys %{$user->{'_UserDB_Data'}}) {
 		$template->{'userdb'}->{$item} = $user->{'_UserDB_Data'}->{$item};
@@ -381,15 +388,20 @@ sub data_set
 
 	# Build template
 	my $template;
-	# Last updated time would be now
-	$template->{'query'}->{'LastUpdated'} = $user->{'_Internal'}->{'Timestamp'};
-	$template->{'query'}->{'Name'} = sprintf('%s/%s',$module,$name);
-	$template->{'query'}->{'Value'} = $value;
+
+	# Add user details
+	$template->{'user'}->{'ID'} = $user->{'ID'};
+	$template->{'user'}->{'Username'} = $user->{'Username'};
 
 	# Add in userdb data
 	foreach my $item (keys %{$user->{'_UserDB_Data'}}) {
 		$template->{'userdb'}->{$item} = $user->{'_UserDB_Data'}->{$item};
 	}
+
+	# Last updated time would be now
+	$template->{'query'}->{'LastUpdated'} = $user->{'_Internal'}->{'Timestamp'};
+	$template->{'query'}->{'Name'} = sprintf('%s/%s',$module,$name);
+	$template->{'query'}->{'Value'} = $value;
 
 	# Replace template entries
 	my @dbDoParams = templateReplace($config->{'users_data_update_query'},$template);
@@ -453,12 +465,17 @@ sub data_get
 
 	# Build template
 	my $template;
-	$template->{'query'}->{'Name'} = sprintf('%s/%s',$module,$name);
+
+	# Add user details
+	$template->{'user'}->{'ID'} = $user->{'ID'};
+	$template->{'user'}->{'Username'} = $user->{'Username'};
 
 	# Add in userdb data
 	foreach my $item (keys %{$user->{'_UserDB_Data'}}) {
 		$template->{'userdb'}->{$item} = $user->{'_UserDB_Data'}->{$item};
 	}
+
+	$template->{'query'}->{'Name'} = sprintf('%s/%s',$module,$name);
 
 	# If we using caching, check how old the result is
 	if (defined($config->{'userdb_data_cache_time'})) {
