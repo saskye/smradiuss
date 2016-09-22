@@ -155,7 +155,7 @@ sub updateUserStats
 	# Perform query
 	my $sth = DBDo(@dbDoParams);
 	if (!$sth) {
-		$server->log(LOG_ERR,"[MOD_FEATURE_UPDATE_USER_STATS_SQL] Database query failed: ".AWITPT::DB::DBLayer::Error());
+		$server->log(LOG_ERR,"[MOD_FEATURE_UPDATE_USER_STATS_SQL] Database query failed: ".AWITPT::DB::DBLayer::error());
 		return;
 	}
 
