@@ -146,7 +146,7 @@ sub checkValidity
 	if (defined($validFrom)) {
 
 		# Convert string to datetime
-		my $validFrom_unixtime = str2time($validFrom);
+		my $validFrom_unixtime = str2time($validFrom,$server->{'smradius'}->{'event_timezone'});
 		if (!defined($validFrom_unixtime)) {
 			$server->log(LOG_NOTICE,"[MOD_FEATURE_VALIDITY] Date conversion failed on '%s'",$validFrom);
 
@@ -165,7 +165,7 @@ sub checkValidity
 	if (defined($validTo)) {
 
 		# Convert string to datetime
-		my $validTo_unixtime = str2time($validTo);
+		my $validTo_unixtime = str2time($validTo,$server->{'smradius'}->{'event_timezone'});
 		if (!defined($validTo_unixtime)) {
 				$server->log(LOG_DEBUG,"[MOD_FEATURE_VALIDITY] Date conversion failed on '%s'",$validTo);
 
