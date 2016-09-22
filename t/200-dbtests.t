@@ -4,6 +4,7 @@ use warnings;
 
 use AWITPT::Util;
 use Data::Dumper;
+use Date::Parse;
 use POSIX qw(:sys_wait_h);
 use Test::Most;
 use Test::Most::Exception 'throw_failure';
@@ -262,7 +263,7 @@ if ($child = fork()) {
 			'AcctDelayTime' => '11',
 			'NASIdentifier' => 'Test-NAS1',
 			'AcctStatusType' => 1,
-			'EventTimestamp' => $session1_Timestamp_str,
+			'EventTimestamp' => sub{ _timestampCheck(shift,$session1_Timestamp_str) },
 			'FramedIPAddress' => '10.0.1.3',
 			'AcctSessionId' => $session1_ID,
 			'NASPortId' => 'test iface name1',
@@ -316,7 +317,7 @@ if ($child = fork()) {
 			'AcctDelayTime' => '11',
 			'NASIdentifier' => 'Test-NAS1',
 			'AcctStatusType' => 3,
-			'EventTimestamp' => $session1_Timestamp_str,
+			'EventTimestamp' => sub{ _timestampCheck(shift,$session1_Timestamp_str) },
 			'FramedIPAddress' => '10.0.1.3',
 			'AcctSessionId' => $session1_ID,
 			'NASPortId' => 'test iface name1',
@@ -371,7 +372,7 @@ if ($child = fork()) {
 			'AcctDelayTime' => '11',
 			'NASIdentifier' => 'Test-NAS1',
 			'AcctStatusType' => 2,
-			'EventTimestamp' => $session1_Timestamp_str,
+			'EventTimestamp' => sub{ _timestampCheck(shift,$session1_Timestamp_str) },
 			'FramedIPAddress' => '10.0.1.3',
 			'AcctSessionId' => $session1_ID,
 			'NASPortId' => 'test iface name1',
@@ -448,7 +449,7 @@ if ($child = fork()) {
 			'AcctInputGigawords' => '0',
 			'AcctInputOctets' => '102600046',
 			'AcctSessionTime' => '800',
-			'EventTimestamp' => $session2_Timestamp_str,
+			'EventTimestamp' => sub{ _timestampCheck(shift,$session2_Timestamp_str) },
 			'FramedIPAddress' => '10.0.1.1',
 			'AcctSessionId' => $session2_ID,
 			'NASPortId' => 'wlan1',
@@ -565,6 +566,37 @@ sub testDBResults
 	foreach my $resultName (keys %{$resultCheck}) {
 		is($row->{$resultName},$resultCheck->{$resultName},"$name: $resultName check");
 	}
+}
+
+
+
+sub _timestampCheck
+{
+	my ($testVal,$rightVal) = @_;
+
+
+	# Make sure testVal is defined
+	return "_timestampCheck: NO \$testVal" if (!defined($testVal));
+	# Make sure $testVal_time is returned form str2time
+	my $testVal_time = str2time($testVal,'UTC');
+
+	# Check if $rightVal is defined
+	my $rightVal_time;
+	if (!defined($rightVal)) {
+		$rightVal_time = time();
+	} elsif ($rightVal =~ /^\d+$/) {
+		$rightVal_time = $rightVal;
+	} else {
+		$rightVal_time = str2time($rightVal,'UTC');
+	}
+
+	# Make sure rightVal_time is defined
+	return "_timestampCheck: NO \$rightVal_time" if (!defined($rightVal_time));
+
+	# Grab the absolute difference
+	my $diff = abs($testVal_time - $rightVal_time);
+
+	return ($diff < 10) // "TIME DEVIATION: $diff";
 }
 
 
