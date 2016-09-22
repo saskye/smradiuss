@@ -217,7 +217,7 @@ sub getTopups
 	# Query database
 	my $sth = DBSelect($config->{'get_topups_summary_query'},$periodKey,$username);
 	if (!$sth) {
-		$server->log(LOG_ERR,"Failed to get topup information: %s",AWITPT::DB::DBLayer::Error());
+		$server->log(LOG_ERR,"Failed to get topup information: %s",AWITPT::DB::DBLayer::error());
 		return MOD_RES_NACK;
 	}
 	while (my $row = hashifyLCtoMC($sth->fetchrow_hashref(), qw(Balance Type ID))) {
@@ -228,7 +228,7 @@ sub getTopups
 	# Query database
 	$sth = DBSelect($config->{'get_topups_query'},$thisMonth->ymd,$now->ymd,$username);
 	if (!$sth) {
-		$server->log(LOG_ERR,"Failed to get topup information: %s",AWITPT::DB::DBLayer::Error());
+		$server->log(LOG_ERR,"Failed to get topup information: %s",AWITPT::DB::DBLayer::error());
 		return MOD_RES_NACK;
 	}
 	# Fetch all new topups
@@ -286,7 +286,7 @@ sub cleanup
 
 	if (!$sth) {
 		$server->log(LOG_ERR,"[MOD_CONFIG_SQL_TOPUPS] Cleanup => Failed to select users: ".
-				AWITPT::DB::DBLayer::Error());
+				AWITPT::DB::DBLayer::error());
 		return;
 	}
 
@@ -315,7 +315,7 @@ sub cleanup
 	);
 	if (!$sth) {
 		$server->log(LOG_ERR,"[MOD_CONFIG_SQL_TOPUPS] Cleanup => Failed to delete topup summaries: ".
-				AWITPT::DB::DBLayer::Error());
+				AWITPT::DB::DBLayer::error());
 		DBRollback();
 		return;
 	}
@@ -331,8 +331,7 @@ sub cleanup
 			SMAdminDepletedOn >= ?', $thisMonth->ymd()
 	);
 	if (!$sth) {
-		$server->log(LOG_ERR,"[MOD_CONFIG_SQL_TOPUPS] Cleanup => Failed to undeplete topups: ".
-				AWITPT::DB::DBLayer::Error());
+		$server->log(LOG_ERR,"[MOD_CONFIG_SQL_TOPUPS] Cleanup => Failed to undeplete topups: ".AWITPT::DB::DBLayer::error());
 		DBRollback();
 		return;
 	}
@@ -351,7 +350,7 @@ sub cleanup
 	);
 	if (!$sth) {
 		$server->log(LOG_ERR,"[MOD_CONFIG_SQL_TOPUPS] Cleanup => Failed to retrieve accounting summaries: ".
-				AWITPT::DB::DBLayer::Error());
+				AWITPT::DB::DBLayer::error());
 		DBRollback();
 		return;
 	}
@@ -378,7 +377,7 @@ sub cleanup
 		);
 		if (!$sth) {
 			$server->log(LOG_ERR,"[MOD_CONFIG_SQL_TOPUPS] Cleanup => Failed to select accounting summary record: ".
-					AWITPT::DB::DBLayer::Error());
+					AWITPT::DB::DBLayer::error());
 			goto FAIL_ROLLBACK;
 		}
 
@@ -428,7 +427,7 @@ sub cleanup
 
 		if (!$sth) {
 			$server->log(LOG_ERR,"[MOD_CONFIG_SQL_TOPUPS] Cleanup => Failed to select group usage caps: ".
-					AWITPT::DB::DBLayer::Error());
+					AWITPT::DB::DBLayer::error());
 			goto FAIL_ROLLBACK;
 		}
 
@@ -483,7 +482,7 @@ sub cleanup
 
 		if (!$sth) {
 			$server->log(LOG_ERR,"[MOD_CONFIG_SQL_TOPUPS] Cleanup => Failed to select user usage caps: ".
-					AWITPT::DB::DBLayer::Error());
+					AWITPT::DB::DBLayer::error());
 			goto FAIL_ROLLBACK;
 		}
 
@@ -552,7 +551,7 @@ sub cleanup
 
 		if (!$sth) {
 			$server->log(LOG_ERR,"[MOD_CONFIG_SQL_TOPUPS] Cleanup => Failed to select topup summaries: ".
-					AWITPT::DB::DBLayer::Error());
+					AWITPT::DB::DBLayer::error());
 			goto FAIL_ROLLBACK;
 		}
 
@@ -622,8 +621,7 @@ sub cleanup
 		);
 
 		if (!$sth) {
-			$server->log(LOG_ERR,"[MOD_CONFIG_SQL_TOPUPS] Cleanup => Failed to select topups: ".
-					AWITPT::DB::DBLayer::Error());
+			$server->log(LOG_ERR,"[MOD_CONFIG_SQL_TOPUPS] Cleanup => Failed to select topups: ".AWITPT::DB::DBLayer::error());
 			goto FAIL_ROLLBACK;
 		}
 
@@ -1015,7 +1013,7 @@ sub cleanup
 
 			if (!$sth) {
 				$server->log(LOG_ERR,"[MOD_CONFIG_SQL_TOPUPS] Cleanup => Failed to create topup summary: ".
-						AWITPT::DB::DBLayer::Error());
+						AWITPT::DB::DBLayer::error());
 				goto FAIL_ROLLBACK;
 			}
 
@@ -1042,7 +1040,7 @@ sub cleanup
 			);
 			if (!$sth) {
 				$server->log(LOG_ERR,"[MOD_CONFIG_SQL_TOPUPS] Cleanup => Failed to deplete topup: ".
-						AWITPT::DB::DBLayer::Error());
+						AWITPT::DB::DBLayer::error());
 				goto FAIL_ROLLBACK;
 			}
 
@@ -1068,7 +1066,7 @@ sub cleanup
 			);
 			if (!$sth) {
 				$server->log(LOG_ERR,"[MOD_CONFIG_SQL_TOPUPS] Cleanup => Failed to update topups_summary: ".
-						AWITPT::DB::DBLayer::Error());
+						AWITPT::DB::DBLayer::error());
 				goto FAIL_ROLLBACK;
 			}
 
@@ -1124,7 +1122,7 @@ sub addTopup
 	# Insert into database
 	my $sth = DBDo(@dbDoParams);
 	if (!$sth) {
-		$server->log(LOG_ERR,"[MOD_CONFIG_SQL_TOPUPS] Failed to insert topup record: %s",AWITPT::DB::DBLayer::Error());
+		$server->log(LOG_ERR,"[MOD_CONFIG_SQL_TOPUPS] Failed to insert topup record: %s",AWITPT::DB::DBLayer::error());
 		return MOD_RES_NACK;
 	}
 

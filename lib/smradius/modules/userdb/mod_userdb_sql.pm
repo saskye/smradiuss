@@ -273,7 +273,7 @@ sub find
 
 	my $sth = DBSelect(@dbDoParams);
 	if (!$sth) {
-		$server->log(LOG_ERR,"[MOD_USERDB_SQL] Failed to find user data: ".AWITPT::DB::DBLayer::Error());
+		$server->log(LOG_ERR,"[MOD_USERDB_SQL] Failed to find user data: ".AWITPT::DB::DBLayer::error());
 		return MOD_RES_SKIP;
 	}
 
@@ -338,7 +338,7 @@ sub get
 	# Query database
 	my $sth = DBSelect(@dbDoParams);
 	if (!$sth) {
-		$server->log(LOG_ERR,"Failed to get group attributes: ".AWITPT::DB::DBLayer::Error());
+		$server->log(LOG_ERR,"Failed to get group attributes: ".AWITPT::DB::DBLayer::error());
 		return RES_ERROR;
 	}
 
@@ -356,7 +356,7 @@ sub get
 	# Query database
 	$sth = DBSelect(@dbDoParams);
 	if (!$sth) {
-		$server->log(LOG_ERR,"Failed to get user attributes: ".AWITPT::DB::DBLayer::Error());
+		$server->log(LOG_ERR,"Failed to get user attributes: ".AWITPT::DB::DBLayer::error());
 		return RES_ERROR;
 	}
 
@@ -409,7 +409,7 @@ sub data_set
 	# Query database
 	my $sth = DBDo(@dbDoParams);
 	if (!$sth) {
-		$server->log(LOG_ERR,"Failed to update users data: ".AWITPT::DB::DBLayer::Error());
+		$server->log(LOG_ERR,"Failed to update users data: ".AWITPT::DB::DBLayer::error());
 		return RES_ERROR;
 	}
 
@@ -420,7 +420,7 @@ sub data_set
 		# Insert
 		$sth = DBDo(@dbDoParams);
 		if (!$sth) {
-			$server->log(LOG_ERR,"Failed to set users data: ".AWITPT::DB::DBLayer::Error());
+			$server->log(LOG_ERR,"Failed to set users data: ".AWITPT::DB::DBLayer::error());
 			return RES_ERROR;
 		}
 	}
@@ -494,7 +494,7 @@ sub data_get
 	# Query database
 	my $sth = DBSelect(@dbDoParams);
 	if (!$sth) {
-		$server->log(LOG_ERR,"Failed to get users data: ".AWITPT::DB::DBLayer::Error());
+		$server->log(LOG_ERR,"Failed to get users data: ".AWITPT::DB::DBLayer::error());
 		return RES_ERROR;
 	}
 
