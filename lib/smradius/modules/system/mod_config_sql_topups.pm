@@ -529,7 +529,7 @@ sub cleanup
 
 			if (defined($row->{'ValidTo'})) {
 				# Convert string to unix time
-				my $unix_validTo = str2time($row->{'ValidTo'});
+				my $unix_validTo = str2time($row->{'ValidTo'},$server->{'smradius'}->{'event_timezone'});
 				# Process traffic topup
 				if (_isTrafficTopup($row->{'Type'})) {
 					push(@trafficSummary, {
@@ -597,7 +597,7 @@ sub cleanup
 		while (my $row = hashifyLCtoMC($sth->fetchrow_hashref(), qw(ID Value Type ValidTo))) {
 
 			# Convert string to unix time
-			my $unix_validTo = str2time($row->{'ValidTo'});
+			my $unix_validTo = str2time($row->{'ValidTo'},$server->{'smradius'}->{'event_timezone'});
 			# If this is a traffic topup ...
 			if (_isTrafficTopup($row->{'Type'})) {
 				push(@trafficTopups, {
