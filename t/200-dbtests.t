@@ -73,6 +73,9 @@ AWITPT::DB::DBLayer::setHandle($dbh);
 
 my $sth;
 
+$sth = DBDo("DELETE FROM topups");
+is(AWITPT::DB::DBLayer::error(),"","Clean table 'topups");
+
 $sth = DBDo("DELETE FROM accounting");
 is(AWITPT::DB::DBLayer::error(),"","Clean table 'accounting");
 
@@ -427,7 +430,6 @@ if ($child = fork()) {
 		'NAS-Port-Id=wlan1',
 		'Called-Station-Id=testservice2',
 		'Calling-Station-Id=00:00:0C:EE:47:BF',
-		'User-Name=testuser2',
 		'NAS-Port-Type=Ethernet',
 		'NAS-Port=15729175',
 		'Framed-Protocol=PPP',
@@ -464,8 +466,10 @@ if ($child = fork()) {
 
 
 	#
-	# Check we get a Access-Accept for an uncapped usage user
+	# Check we get a Access-Accept for an autotopup user
 	#
+
+	my $topuptest1_amount = 100;
 
 	my $user3_ID = testDBInsert("Create user 'testuser3'",
 		"INSERT INTO users (UserName,Disabled) VALUES ('testuser3',0)"
@@ -483,7 +487,7 @@ if ($child = fork()) {
 
 	my $user3attr3_ID = testDBInsert("Create user 'testuser3' attribute 'SMRadius-AutoTopup-Traffic-Amount'",
 		"INSERT INTO user_attributes (UserID,Name,Operator,Value,Disabled) VALUES (?,?,?,?,0)",
-			$user3_ID,'SMRadius-AutoTopup-Traffic-Amount',':=','100'
+			$user3_ID,'SMRadius-AutoTopup-Traffic-Amount',':=',$topuptest1_amount
 	);
 
 	my $user3attr4_ID = testDBInsert("Create user 'testuser3' attribute 'SMRadius-AutoTopup-Traffic-Limit'",
@@ -506,6 +510,134 @@ if ($child = fork()) {
 	);
 	is(ref($res),"HASH","smradclient should return a HASH");
 	is($res->{'response'}->{'code'},"Access-Accept","Check our return is 'Access-Accept' for a basically configured user");
+
+	# Get the time now
+	my $topuptest1_now = time();
+	my $topuptest1 = DateTime->from_epoch( 'epoch' => $topuptest1_now, 'time_zone' => 'UTC');
+
+	# Use truncate to set all values after 'month' to their default values
+	my $topuptest1_thisMonth = $topuptest1->clone()->truncate( to => "month" );
+	# This month, in string form
+	my $topuptest1_thisMonth_str = $topuptest1_thisMonth->strftime("%Y-%m-%d %H:%M:%S");
+	# Next month..
+	my $topuptest1_nextMonth = $topuptest1_thisMonth->clone()->add( months => 1 );
+	my $topuptest1_nextMonth_str = $topuptest1_nextMonth->strftime("%Y-%m-%d %H:%M:%S");
+
+	testDBResults("Check autotopup is added correctly",'topups',{'UserID' => $user3_ID},
+		{
+			'UserID' => $user3_ID,
+			'Timestamp' => sub { return _timestampCheck(shift,$topuptest1_now) },
+			'Type' => 5,
+			'ValidFrom' => $topuptest1_thisMonth_str,
+			'ValidTo' => $topuptest1_nextMonth_str,
+			'Value' => $topuptest1_amount,
+			'Depleted' => 0,
+			'SMAdminDepletedOn' => undef,
+		}
+	);
+
+
+
+	#
+	# Check that if we send an accounting ALIVE we update the auto-topups
+	#
+
+	my $topuptest2_amount = 100;
+
+	my $user4_ID = testDBInsert("Create user 'testuser4'",
+		"INSERT INTO users (UserName,Disabled) VALUES ('testuser4',0)"
+	);
+
+	my $user4attr1_ID = testDBInsert("Create user 'testuser4' attribute 'User-Password'",
+		"INSERT INTO user_attributes (UserID,Name,Operator,Value,Disabled) VALUES (?,?,?,?,0)",
+			$user4_ID,'User-Password','==','test456'
+	);
+
+	my $user4attr2_ID = testDBInsert("Create user 'testuser4' attribute 'SMRadius-AutoTopup-Traffic-Enabled'",
+		"INSERT INTO user_attributes (UserID,Name,Operator,Value,Disabled) VALUES (?,?,?,?,0)",
+			$user4_ID,'SMRadius-AutoTopup-Traffic-Enabled',':=','yes'
+	);
+
+	my $user4attr3_ID = testDBInsert("Create user 'testuser4' attribute 'SMRadius-AutoTopup-Traffic-Amount'",
+		"INSERT INTO user_attributes (UserID,Name,Operator,Value,Disabled) VALUES (?,?,?,?,0)",
+			$user4_ID,'SMRadius-AutoTopup-Traffic-Amount',':=',$topuptest2_amount
+	);
+
+	my $user4attr4_ID = testDBInsert("Create user 'testuser4' attribute 'SMRadius-AutoTopup-Traffic-Limit'",
+		"INSERT INTO user_attributes (UserID,Name,Operator,Value,Disabled) VALUES (?,?,?,?,0)",
+			$user4_ID,'SMRadius-AutoTopup-Traffic-Limit',':=','500'
+	);
+
+	my $user4attr5_ID = testDBInsert("Create user 'testuser4' attribute 'SMRadius-Capping-Uptime-Limit'",
+		"INSERT INTO user_attributes (UserID,Name,Operator,Value,Disabled) VALUES (?,?,?,?,0)",
+			$user4_ID,'SMRadius-Capping-Uptime-Limit',':=','0'
+	);
+
+	my $user4attr6_ID = testDBInsert("Create user 'testuser4' attribute 'SMRadius-AutoTopup-Traffic-Notify'",
+		"INSERT INTO user_attributes (UserID,Name,Operator,Value,Disabled) VALUES (?,?,?,?,0)",
+			$user4_ID,'SMRadius-AutoTopup-Traffic-Notify',':=','root@localhost'
+	);
+
+
+	my $session3_ID = 9858240;
+	my $session3_Timestamp = time();
+	my $session3_Timestamp_str = DateTime->from_epoch(epoch => $session3_Timestamp,time_zone => 'UTC')
+			->strftime('%Y-%m-%d %H:%M:%S');
+
+	$res = smradius::client->run(
+		"--raddb","dicts",
+		"127.0.0.1",
+		"acct",
+		"secret123",
+		'User-Name=testuser4',
+		'NAS-IP-Address=10.0.0.1',
+		'Acct-Delay-Time=12',
+		'NAS-Identifier=Test-NAS2',
+		'Acct-Status-Type=Interim-Update',
+		'Acct-Output-Packets=786933',
+		'Acct-Output-Gigawords=0',
+		'Acct-Output-Octets=708163705',
+		'Acct-Input-Packets=670235',
+		'Acct-Input-Gigawords=0',
+		'Acct-Input-Octets=102600046',
+		'Acct-Session-Time=800',
+		'Event-Timestamp='.$session3_Timestamp,
+		'Framed-IP-Address=10.0.1.1',
+		'Acct-Session-Id='.$session3_ID,
+		'NAS-Port-Id=wlan1',
+		'Called-Station-Id=testservice2',
+		'Calling-Station-Id=00:00:0C:EE:47:BF',
+		'NAS-Port-Type=Ethernet',
+		'NAS-Port=15729175',
+		'Framed-Protocol=PPP',
+		'Service-Type=Framed-User',
+	);
+	is(ref($res),"HASH","smradclient should return a HASH");
+
+	# Get the time now
+	my $topuptest2_now = time();
+	my $topuptest2 = DateTime->from_epoch( 'epoch' => $topuptest2_now, 'time_zone' => 'UTC');
+
+	# Use truncate to set all values after 'month' to their default values
+	my $topuptest2_thisMonth = $topuptest2->clone()->truncate( to => "month" );
+	# This month, in string form
+	my $topuptest2_thisMonth_str = $topuptest2_thisMonth->strftime("%Y-%m-%d %H:%M:%S");
+	# Next month..
+	my $topuptest2_nextMonth = $topuptest2_thisMonth->clone()->add( months => 1 );
+	my $topuptest2_nextMonth_str = $topuptest2_nextMonth->strftime("%Y-%m-%d %H:%M:%S");
+
+	testDBResults("Check autotopup is added correctly after acct_log",'topups',{'UserID' => $user4_ID},
+		{
+			'UserID' => $user4_ID,
+			'Timestamp' => sub { return _timestampCheck(shift,$topuptest2_now) },
+			'Type' => 5,
+			'ValidFrom' => $topuptest2_thisMonth_str,
+			'ValidTo' => $topuptest2_nextMonth_str,
+			'Value' => $topuptest2_amount,
+			'Depleted' => 0,
+			'SMAdminDepletedOn' => undef,
+		}
+	);
 
 
 

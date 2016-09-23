@@ -27,7 +27,7 @@ make-test:
     - apt-get install -y git make
     - apt-get install -y libdevel-cover-perl libpod-coverage-perl libtest-most-perl
     - apt-get install -y libnet-server-perl libconfig-inifiles-perl libdatetime-perl libcache-fastmmap-perl libtimedate-perl
-      libcrypt-des-perl libcrypt-rc4-perl libdigest-sha-perl libdigest-md4-perl
+      libcrypt-des-perl libcrypt-rc4-perl libdigest-sha-perl libdigest-md4-perl libmime-lite-perl
     - apt-get install -y mysql-server
 
     # Start services and create dirs we need
