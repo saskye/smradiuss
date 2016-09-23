@@ -74,7 +74,8 @@ sub init
 			PeriodKey = %{query.PeriodKey},
 			TotalTraffic = %{query.TotalTraffic},
 			TotalUptime = %{query.TotalUptime},
-			NASIdentifier = %{request.NAS-Identifier}
+			NASIdentifier = %{request.NAS-Identifier},
+			LastAcctUpdate = now()
 		WHERE
 			Username = %{user.Username}
 	';
