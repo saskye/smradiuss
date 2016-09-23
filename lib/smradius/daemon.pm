@@ -817,15 +817,6 @@ sub process_request {
 			}
 		}
 
-		# Tell the NAS we got its packet
-		my $resp = smradius::Radius::Packet->new($self->{'radius'}->{'dictionary'});
-		$resp->set_code('Accounting-Response');
-		$resp->set_identifier($pkt->identifier);
-		$resp->set_authenticator($pkt->authenticator);
-		$server->{'client'}->send(
-			auth_resp($resp->pack, getAttributeValue($user->{'ConfigAttributes'},"SMRadius-Config-Secret"))
-		);
-
 		# Are we going to POD the user?
 		my $PODUser = 0;
 
@@ -859,6 +850,15 @@ sub process_request {
 				}
 			}
 		}
+
+		# Tell the NAS we got its packet
+		my $resp = smradius::Radius::Packet->new($self->{'radius'}->{'dictionary'});
+		$resp->set_code('Accounting-Response');
+		$resp->set_identifier($pkt->identifier);
+		$resp->set_authenticator($pkt->authenticator);
+		$server->{'client'}->send(
+			auth_resp($resp->pack, getAttributeValue($user->{'ConfigAttributes'},"SMRadius-Config-Secret"))
+		);
 
 		# Build a list of our attributes in the packet
 		my $acctAttributes;
