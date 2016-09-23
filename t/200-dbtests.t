@@ -599,6 +599,8 @@ sub testDBResults
 			$table
 		WHERE
 			$whereLines_str
+		ORDER BY
+			ID DESC
 	",@whereData);
 
 	# Make sure we got no error
@@ -610,7 +612,12 @@ sub testDBResults
 
 	# Loop through results and check if they match
 	foreach my $resultName (keys %{$resultCheck}) {
-		is($row->{$resultName},$resultCheck->{$resultName},"$name: $resultName check");
+		# Check if the result is a code-based subroutine
+		if (ref(my $result = $resultCheck->{$resultName}) eq "CODE") {
+			is($resultCheck->{$resultName}($row->{$resultName}),1,"$name: $resultName sub{} check");
+		} else {
+			is($row->{$resultName},$resultCheck->{$resultName},"$name: $resultName check");
+		}
 	}
 }
 
