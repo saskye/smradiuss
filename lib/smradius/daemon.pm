@@ -718,7 +718,7 @@ sub process_request {
 			if ($module->{'User_find'}) {
 				$self->log(LOG_DEBUG,"[SMRADIUS] FIND: Trying plugin '".$module->{'Name'}."' for username '".
 						$user->{'Username'}."'");
-				my ($res,$userdb_data) = $module->{'User_find'}($self,$user,$pkt);
+				my ($res,$userDB_Data) = $module->{'User_find'}($self,$user,$pkt);
 
 				# Check result
 				if (!defined($res)) {
@@ -733,7 +733,9 @@ sub process_request {
 				} elsif ($res == MOD_RES_ACK) {
 					$self->log(LOG_DEBUG,"[SMRADIUS] FIND: Username found with '".$module->{'Name'}."'");
 					$user->{'_UserDB'} = $module;
-					$user->{'_UserDB_Data'} = $userdb_data;
+					$user->{'_UserDB_Data'} = $userDB_Data;
+					# The user ID is supposed to be global unique, on the same level as the username
+					$user->{'ID'} = $user->{'_UserDB_Data'}->{'ID'};
 					last;
 
 				# Or a negative result

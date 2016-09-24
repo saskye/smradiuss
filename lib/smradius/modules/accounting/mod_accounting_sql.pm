@@ -35,12 +35,10 @@ use Math::BigFloat;
 
 
 # Exporter stuff
-require Exporter;
-our (@ISA,@EXPORT,@EXPORT_OK);
-@ISA = qw(Exporter);
-@EXPORT = qw(
+use base qw(Exporter);
+our @EXPORT = qw(
 );
-@EXPORT_OK = qw(
+our @EXPORT_OK = qw(
 );
 
 
@@ -333,7 +331,10 @@ sub getUsage
 	foreach my $attr ($packet->attributes) {
 		$template->{'request'}->{$attr} = $packet->rawattr($attr)
 	}
-	$template->{'user'} = $user;
+
+	# Add user details
+	$template->{'user'}->{'ID'} = $user->{'ID'};
+	$template->{'user'}->{'Username'} = $user->{'Username'};
 
 	# Current PeriodKey
 	my $now = DateTime->now->set_time_zone($server->{'smradius'}->{'event_timezone'});
@@ -354,7 +355,7 @@ sub getUsage
 	# Fetch data
 	my $sth = DBSelect(@dbDoParams);
 	if (!$sth) {
-		$server->log(LOG_ERR,"[MOD_ACCOUNTING_SQL] Database query failed: ".AWITPT::DB::DBLayer::Error());
+		$server->log(LOG_ERR,"[MOD_ACCOUNTING_SQL] Database query failed: %s",AWITPT::DB::DBLayer::Error());
 		return;
 	}
 
@@ -438,8 +439,9 @@ sub acct_log
 	# Fix event timestamp
 	$template->{'request'}->{'Timestamp'} = $user->{'_Internal'}->{'Timestamp'};
 
-	# Add user
-	$template->{'user'} = $user;
+	# Add user details
+	$template->{'user'}->{'ID'} = $user->{'ID'};
+	$template->{'user'}->{'Username'} = $user->{'Username'};
 
 	# Current PeriodKey
 	my $now = DateTime->now->set_time_zone($server->{'smradius'}->{'event_timezone'});
@@ -461,7 +463,7 @@ sub acct_log
 		# Fetch previous records of the same session
 		my $sth = DBSelect(@dbDoParams);
 		if (!$sth) {
-			$server->log(LOG_ERR,"[MOD_ACCOUNTING_SQL] Database query failed: ".AWITPT::DB::DBLayer::Error());
+			$server->log(LOG_ERR,"[MOD_ACCOUNTING_SQL] Database query failed: %s",AWITPT::DB::DBLayer::Error());
 			return;
 		}
 
@@ -609,7 +611,7 @@ sub acct_log
 		# Update database (status)
 		my $sth = DBDo(@dbDoParams);
 		if (!$sth) {
-			$server->log(LOG_ERR,"[MOD_ACCOUNTING_SQL] Failed to update accounting STOP record: ".AWITPT::DB::DBLayer::Error());
+			$server->log(LOG_ERR,"[MOD_ACCOUNTING_SQL] Failed to update accounting STOP record: %s",AWITPT::DB::DBLayer::Error());
 			return MOD_RES_NACK;
 		}
 	}
@@ -631,7 +633,7 @@ sub fixDuplicates
 	# Select duplicates
 	my $sth = DBSelect(@dbDoParams);
 	if (!$sth) {
-		$server->log(LOG_ERR,"[MOD_ACCOUNTING_SQL] Database query failed: ".AWITPT::DB::DBLayer::Error());
+		$server->log(LOG_ERR,"[MOD_ACCOUNTING_SQL] Database query failed: %s",AWITPT::DB::DBLayer::Error());
 		return;
 	}
 
@@ -654,7 +656,7 @@ sub fixDuplicates
 		# Delete duplicates
 		$sth = DBDo(@dbDoParams);
 		if (!$sth) {
-			$server->log(LOG_ERR,"[MOD_ACCOUNTING_SQL] Database query failed: ".AWITPT::DB::DBLayer::Error());
+			$server->log(LOG_ERR,"[MOD_ACCOUNTING_SQL] Database query failed: %s",AWITPT::DB::DBLayer::Error());
 			DBRollback();
 			return;
 		}
@@ -849,6 +851,7 @@ sub cleanup
 	DBCommit();
 	$server->log(LOG_NOTICE,"[MOD_ACCOUNTING_SQL] Cleanup => Accounting summaries created");
 }
+
 
 
 1;

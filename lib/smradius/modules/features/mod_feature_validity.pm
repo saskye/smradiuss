@@ -1,16 +1,16 @@
 # Validity support
-# Copyright (C) 2007-2011, AllWorldIT
-# 
+# Copyright (C) 2007-2016, AllWorldIT
+#
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; either version 2 of the License, or
 # (at your option) any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
@@ -28,12 +28,10 @@ use DateTime;
 use Date::Parse;
 
 # Exporter stuff
-require Exporter;
-our (@ISA,@EXPORT,@EXPORT_OK);
-@ISA = qw(Exporter);
-@EXPORT = qw(
+use base qw(Exporter);
+our @EXPORT = qw(
 );
-@EXPORT_OK = qw(
+our @EXPORT_OK = qw(
 );
 
 
@@ -41,7 +39,7 @@ our (@ISA,@EXPORT,@EXPORT_OK);
 our $pluginInfo = {
 	Name => "User Validity Feature",
 	Init => \&init,
-	
+
 	# Authentication hook
 	'Feature_Post-Authentication_hook' => \&checkValidity,
 	'Feature_Post-Accounting_hook' => \&checkValidity
@@ -148,15 +146,15 @@ sub checkValidity
 	if (defined($validFrom)) {
 
 		# Convert string to datetime
-		my $validFrom_unixtime = str2time($validFrom);
+		my $validFrom_unixtime = str2time($validFrom,$server->{'smradius'}->{'event_timezone'});
 		if (!defined($validFrom_unixtime)) {
-			$server->log(LOG_NOTICE,"[MOD_FEATURE_VALIDITY] Date conversion failed on '".$validFrom."'");
+			$server->log(LOG_NOTICE,"[MOD_FEATURE_VALIDITY] Date conversion failed on '%s'",$validFrom);
 
 		# If current time before start of valid pariod
 		} elsif ($now < $validFrom_unixtime) {
 			my $pretty_dt = DateTime->from_epoch( epoch => $validFrom_unixtime )->strftime('%Y-%m-%d %H:%M:%S');
 
-			$server->log(LOG_DEBUG,"[MOD_FEATURE_VALIDITY] Current date outside valid start date: '".$pretty_dt."', rejecting");
+			$server->log(LOG_DEBUG,"[MOD_FEATURE_VALIDITY] Current date outside valid start date: '%s', rejecting",$pretty_dt);
 			# Date not within valid period, must be disconnected
 
 			return MOD_RES_NACK;
@@ -167,14 +165,14 @@ sub checkValidity
 	if (defined($validTo)) {
 
 		# Convert string to datetime
-		my $validTo_unixtime = str2time($validTo);
+		my $validTo_unixtime = str2time($validTo,$server->{'smradius'}->{'event_timezone'});
 		if (!defined($validTo_unixtime)) {
-				$server->log(LOG_DEBUG,"[MOD_FEATURE_VALIDITY] Date conversion failed on '".$validTo."'");
+				$server->log(LOG_DEBUG,"[MOD_FEATURE_VALIDITY] Date conversion failed on '%s'",$validTo);
 
 		# If current time after start of valid pariod
 		} elsif ($now > $validTo_unixtime) {
 			my $pretty_dt = DateTime->from_epoch( epoch => $validTo_unixtime )->strftime('%Y-%m-%d %H:%M:%S');
-			$server->log(LOG_DEBUG,"[MOD_FEATURE_VALIDITY] Current date outside valid end date: '".$pretty_dt."', rejecting");
+			$server->log(LOG_DEBUG,"[MOD_FEATURE_VALIDITY] Current date outside valid end date: '%s', rejecting",$pretty_dt);
 			# Date not within valid period, must be disconnected
 
 			return MOD_RES_NACK;
@@ -194,18 +192,20 @@ sub checkValidity
 					# If current time after start of valid pariod
 					if ($now > $validUntil) {
 						my $pretty_dt = DateTime->from_epoch( epoch => $validUntil )->strftime('%Y-%m-%d %H:%M:%S');
-						$server->log(LOG_DEBUG,"[MOD_FEATURE_VALIDITY] Current date outside valid window end date: '".$pretty_dt."', rejecting");
+						$server->log(LOG_DEBUG,"[MOD_FEATURE_VALIDITY] Current date outside valid window end date: '%s', ".
+								"rejecting",$pretty_dt);
 						# Date not within valid window, must be disconnected
 						return MOD_RES_NACK;
 					}
 				}
 	
 			} else {
-				$server->log(LOG_DEBUG,"[MOD_FEATURE_VALIDITY] No users_data 'global/FirstLogin' found for user '".$user->{'Username'}."'");
+				$server->log(LOG_DEBUG,"[MOD_FEATURE_VALIDITY] No users_data 'global/FirstLogin' found for user '%s'",
+						$user->{'Username'});
 			} # if (defined(my $res = $module->{'Users_data_get'}($server,$user,'global','FirstLogin'))) {
 		} else {
-			$server->log(LOG_WARN,"[MOD_FEATURE_VALIDITY] UserDB module '".$user->{'_UserDB'}->{'Name'}.
-					"' does not support 'users_data'. Therefore no support for Validity Window feature");
+			$server->log(LOG_WARN,"[MOD_FEATURE_VALIDITY] UserDB module '%s' does not support 'users_data'. Therefore no ".
+					"support for Validity Window feature",$user->{'_UserDB'}->{'Name'});
 		} # if (defined($user->{'_UserDB'}->{'Users_data_get'})) {
 	}
 

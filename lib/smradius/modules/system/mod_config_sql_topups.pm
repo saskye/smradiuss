@@ -28,21 +28,18 @@ use AWITPT::Util;
 use smradius::util;
 use smradius::attributes;
 
-use POSIX qw(ceil strftime);
+use POSIX qw(ceil);
 use DateTime;
 use Date::Parse;
 use Math::BigInt;
 use Math::BigFloat;
 
 
-
 # Exporter stuff
-require Exporter;
-our (@ISA,@EXPORT,@EXPORT_OK);
-@ISA = qw(Exporter);
-@EXPORT = qw(
+use base qw(Exporter);
+our @EXPORT = qw(
 );
-@EXPORT_OK = qw(
+our @EXPORT_OK = qw(
 );
 
 
@@ -185,7 +182,7 @@ sub getTopups
 	# Query database
 	my $sth = DBSelect($config->{'get_topups_summary_query'},$periodKey,$username);
 	if (!$sth) {
-		$server->log(LOG_ERR,"Failed to get topup information: ".AWITPT::DB::DBLayer::Error());
+		$server->log(LOG_ERR,"Failed to get topup information: %s",AWITPT::DB::DBLayer::Error());
 		return MOD_RES_NACK;
 	}
 	while (my $row = hashifyLCtoMC($sth->fetchrow_hashref(), qw(Balance Type ID))) {
@@ -196,7 +193,7 @@ sub getTopups
 	# Query database
 	$sth = DBSelect($config->{'get_topups_query'},$thisMonth->ymd,$now->ymd,$username);
 	if (!$sth) {
-		$server->log(LOG_ERR,"Failed to get topup information: ".AWITPT::DB::DBLayer::Error());
+		$server->log(LOG_ERR,"Failed to get topup information: %s",AWITPT::DB::DBLayer::Error());
 		return MOD_RES_NACK;
 	}
 	# Fetch all new topups
@@ -532,7 +529,7 @@ sub cleanup
 
 			if (defined($row->{'ValidTo'})) {
 				# Convert string to unix time
-				my $unix_validTo = str2time($row->{'ValidTo'});
+				my $unix_validTo = str2time($row->{'ValidTo'},$server->{'smradius'}->{'event_timezone'});
 				# Process traffic topup
 				if (_isTrafficTopup($row->{'Type'})) {
 					push(@trafficSummary, {
@@ -600,7 +597,7 @@ sub cleanup
 		while (my $row = hashifyLCtoMC($sth->fetchrow_hashref(), qw(ID Value Type ValidTo))) {
 
 			# Convert string to unix time
-			my $unix_validTo = str2time($row->{'ValidTo'});
+			my $unix_validTo = str2time($row->{'ValidTo'},$server->{'smradius'}->{'event_timezone'});
 			# If this is a traffic topup ...
 			if (_isTrafficTopup($row->{'Type'})) {
 				push(@trafficTopups, {
