@@ -615,20 +615,38 @@ sub process_request {
 	my $logReason = "UNKNOWN";
 
 
-
 	# First thing we do is to make sure the NAS behaves if we using abuse prevention
 	if ($self->{'smradius'}->{'use_abuse_prevention'} && defined($user->{'Username'})) {
 		my ($res,$val) = cacheGetKeyPair('FloodCheck',$server->{'peeraddr'}."/".$user->{'Username'}."/".$pkt->code);
 		if (defined($val)) {
 			my $timePeriod = $now - $val;
+			# Check if we're still within the abuse threshold
 			if ($pkt->code eq "Access-Request" && $timePeriod < $self->{'smradius'}->{'access_request_abuse_threshold'}) {
 				$self->log(LOG_NOTICE,"[SMRADIUS] ABUSE: Server trying too fast. server = ".$server->{'peeraddr'}.", user = ".$user->{'Username'}.
 						", code = ".$pkt->code.", timeout = ".($now - $val));
+				# Tell the NAS we got its packet
+				my $resp = smradius::Radius::Packet->new($self->{'radius'}->{'dictionary'});
+				$resp->set_code('Access-Reject');
+				$resp->set_identifier($pkt->identifier);
+				$resp->set_authenticator($pkt->authenticator);
+				$server->{'client'}->send(
+					auth_resp($resp->pack, getAttributeValue($user->{'ConfigAttributes'},"SMRadius-Config-Secret"))
+				);
 				return;
+
 			} elsif ($pkt->code eq "Accounting-Request" && $timePeriod < $self->{'smradius'}->{'accounting_request_abuse_threshold'}) {
 				$self->log(LOG_NOTICE,"[SMRADIUS] ABUSE: Server trying too fast. server = ".$server->{'peeraddr'}.", user = ".$user->{'Username'}.
 						", code = ".$pkt->code.", timeout = ".($now - $val));
+				# Tell the NAS we got its packet
+				my $resp = smradius::Radius::Packet->new($self->{'radius'}->{'dictionary'});
+				$resp->set_code('Accounting-Response');
+				$resp->set_identifier($pkt->identifier);
+				$resp->set_authenticator($pkt->authenticator);
+				$server->{'client'}->send(
+					auth_resp($resp->pack, getAttributeValue($user->{'ConfigAttributes'},"SMRadius-Config-Secret"))
+				);
 				return;
+
 			}
 		}
 		# We give the benefit of the doubt and let a query take 60s. We update to right stamp at end of this function
