@@ -1275,9 +1275,9 @@ sub process_request {
 
 					$request->addLogLine(
 						"%s/%s: %s",
+						$vendor,
 						$attrName,
-						$attrVal,
-						$resp->rawattr($attrName)
+						$attrVal
 					);
 				}
 			}
