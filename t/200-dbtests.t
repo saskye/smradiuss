@@ -168,7 +168,7 @@ if ($child = fork()) {
 
 
 	#
-	# Check we get an Access-Reject for an unconfigured user
+	# Check we get an Access-Accept for a bare user
 	#
 
 	my $user1_ID = testDBInsert("Create user 'testuser1'",
@@ -189,12 +189,12 @@ if ($child = fork()) {
 		'User-Password=test123',
 	);
 	is(ref($res),"HASH","smradclient should return a HASH");
-	is($res->{'response'}->{'code'},"Access-Reject","Check our return is 'Access-Reject' for unconfigured user");
+	is($res->{'response'}->{'code'},"Access-Accept","Check our return is 'Access-Accept' for bare user");
 
 
 
 	#
-	# Check we get a Access-Accept for an uncapped usage user
+	# Check we get a Access-Reject for a traffic topup user
 	#
 
 	my $user2_ID = testDBInsert("Create user 'testuser2'",
@@ -211,11 +211,6 @@ if ($child = fork()) {
 			$user2_ID,'SMRadius-Capping-Traffic-Limit',':=','0'
 	);
 
-	my $user2attr3_ID = testDBInsert("Create user 'testuser2' attribute 'SMRadius-Capping-Uptime-Limit'",
-		"INSERT INTO user_attributes (UserID,Name,Operator,Value,Disabled) VALUES (?,?,?,?,0)",
-			$user2_ID,'SMRadius-Capping-Uptime-Limit',':=','0'
-	);
-
 	$res = smradius::client->run(
 		"--raddb","dicts",
 		"127.0.0.1",
@@ -225,7 +220,37 @@ if ($child = fork()) {
 		'User-Password=test123',
 	);
 	is(ref($res),"HASH","smradclient should return a HASH");
-	is($res->{'response'}->{'code'},"Access-Accept","Check our return is 'Access-Accept' for a basically configured user");
+	is($res->{'response'}->{'code'},"Access-Reject","Check our return is 'Access-Reject' for a traffic topup user");
+
+
+	#
+	# Check we get a Access-Reject for a uptime topup user
+	#
+
+	my $user2b_ID = testDBInsert("Create user 'testuser2b'",
+		"INSERT INTO users (UserName,Disabled) VALUES ('testuser2b',0)"
+	);
+
+	my $user2battr1_ID = testDBInsert("Create user 'testuser2b' attribute 'User-Password'",
+		"INSERT INTO user_attributes (UserID,Name,Operator,Value,Disabled) VALUES (?,?,?,?,0)",
+			$user2b_ID,'User-Password','==','test123'
+	);
+
+	my $user2battr3_ID = testDBInsert("Create user 'testuser2b' attribute 'SMRadius-Capping-Uptime-Limit'",
+		"INSERT INTO user_attributes (UserID,Name,Operator,Value,Disabled) VALUES (?,?,?,?,0)",
+			$user2b_ID,'SMRadius-Capping-Uptime-Limit',':=','0'
+	);
+
+	$res = smradius::client->run(
+		"--raddb","dicts",
+		"127.0.0.1",
+		"auth",
+		"secret123",
+		'User-Name=testuser2b',
+		'User-Password=test123',
+	);
+	is(ref($res),"HASH","smradclient should return a HASH");
+	is($res->{'response'}->{'code'},"Access-Reject","Check our return is 'Access-Reject' for a uptime topup user");
 
 
 	#
@@ -466,7 +491,7 @@ if ($child = fork()) {
 
 
 	#
-	# Check we get a Access-Accept for an autotopup user
+	# Check we get a Access-Accept for a traffic autotopup user
 	#
 
 	my $topuptest1_amount = 100;
@@ -495,9 +520,9 @@ if ($child = fork()) {
 			$user3_ID,'SMRadius-AutoTopup-Traffic-Limit',':=','500'
 	);
 
-	my $user3attr5_ID = testDBInsert("Create user 'testuser3' attribute 'SMRadius-Capping-Uptime-Limit'",
+	my $user3attr5_ID = testDBInsert("Create user 'testuser3' attribute 'SMRadius-Capping-Traffic-Limit'",
 		"INSERT INTO user_attributes (UserID,Name,Operator,Value,Disabled) VALUES (?,?,?,?,0)",
-			$user3_ID,'SMRadius-Capping-Uptime-Limit',':=','0'
+			$user3_ID,'SMRadius-Capping-Traffic-Limit',':=','0'
 	);
 
 	$res = smradius::client->run(
@@ -509,7 +534,7 @@ if ($child = fork()) {
 		'User-Password=test456',
 	);
 	is(ref($res),"HASH","smradclient should return a HASH");
-	is($res->{'response'}->{'code'},"Access-Accept","Check our return is 'Access-Accept' for a basically configured user");
+	is($res->{'response'}->{'code'},"Access-Accept","Check our return is 'Access-Accept' for a traffic autotopup user");
 
 	# Get the time now
 	my $topuptest1_now = time();
@@ -531,6 +556,79 @@ if ($child = fork()) {
 			'ValidFrom' => $topuptest1_thisMonth_str,
 			'ValidTo' => $topuptest1_nextMonth_str,
 			'Value' => $topuptest1_amount,
+			'Depleted' => 0,
+			'SMAdminDepletedOn' => undef,
+		}
+	);
+
+
+
+	#
+	# Check we get a Access-Accept for a uptime autotopup user
+	#
+
+	my $topuptest1b_amount = 100;
+
+	my $user3b_ID = testDBInsert("Create user 'testuser3b'",
+		"INSERT INTO users (UserName,Disabled) VALUES ('testuser3b',0)"
+	);
+
+	my $user3battr1_ID = testDBInsert("Create user 'testuser3b' attribute 'User-Password'",
+		"INSERT INTO user_attributes (UserID,Name,Operator,Value,Disabled) VALUES (?,?,?,?,0)",
+			$user3b_ID,'User-Password','==','test456'
+	);
+
+	my $user3battr2_ID = testDBInsert("Create user 'testuser3b' attribute 'SMRadius-AutoTopup-Uptime-Enabled'",
+		"INSERT INTO user_attributes (UserID,Name,Operator,Value,Disabled) VALUES (?,?,?,?,0)",
+			$user3b_ID,'SMRadius-AutoTopup-Uptime-Enabled',':=','yes'
+	);
+
+	my $user3battr3_ID = testDBInsert("Create user 'testuser3b' attribute 'SMRadius-AutoTopup-Uptime-Amount'",
+		"INSERT INTO user_attributes (UserID,Name,Operator,Value,Disabled) VALUES (?,?,?,?,0)",
+			$user3b_ID,'SMRadius-AutoTopup-Uptime-Amount',':=',$topuptest1b_amount
+	);
+
+	my $user3battr4_ID = testDBInsert("Create user 'testuser3b' attribute 'SMRadius-AutoTopup-Uptime-Limit'",
+		"INSERT INTO user_attributes (UserID,Name,Operator,Value,Disabled) VALUES (?,?,?,?,0)",
+			$user3b_ID,'SMRadius-AutoTopup-Uptime-Limit',':=','500'
+	);
+
+	my $user3battr5_ID = testDBInsert("Create user 'testuser3b' attribute 'SMRadius-Capping-Uptime-Limit'",
+		"INSERT INTO user_attributes (UserID,Name,Operator,Value,Disabled) VALUES (?,?,?,?,0)",
+			$user3b_ID,'SMRadius-Capping-Uptime-Limit',':=','0'
+	);
+
+	$res = smradius::client->run(
+		"--raddb","dicts",
+		"127.0.0.1",
+		"auth",
+		"secret123",
+		'User-Name=testuser3b',
+		'User-Password=test456',
+	);
+	is(ref($res),"HASH","smradclient should return a HASH");
+	is($res->{'response'}->{'code'},"Access-Accept","Check our return is 'Access-Accept' for a uptime autotopup user");
+
+	# Get the time now
+	my $topuptest1b_now = time();
+	my $topuptest1b = DateTime->from_epoch( 'epoch' => $topuptest1b_now, 'time_zone' => 'UTC');
+
+	# Use truncate to set all values after 'month' to their default values
+	my $topuptest1b_thisMonth = $topuptest1b->clone()->truncate( to => "month" );
+	# This month, in string form
+	my $topuptest1b_thisMonth_str = $topuptest1b_thisMonth->strftime("%Y-%m-%d %H:%M:%S");
+	# Next month..
+	my $topuptest1b_nextMonth = $topuptest1b_thisMonth->clone()->add( months => 1 );
+	my $topuptest1b_nextMonth_str = $topuptest1b_nextMonth->strftime("%Y-%m-%d %H:%M:%S");
+
+	testDBResults("Check autotopup is added correctly",'topups',{'UserID' => $user3b_ID},
+		{
+			'UserID' => $user3b_ID,
+			'Timestamp' => sub { return _timestampCheck(shift,$topuptest1b_now) },
+			'Type' => 6,
+			'ValidFrom' => $topuptest1b_thisMonth_str,
+			'ValidTo' => $topuptest1b_nextMonth_str,
+			'Value' => $topuptest1b_amount,
 			'Depleted' => 0,
 			'SMAdminDepletedOn' => undef,
 		}
@@ -568,9 +666,9 @@ if ($child = fork()) {
 			$user4_ID,'SMRadius-AutoTopup-Traffic-Limit',':=','500'
 	);
 
-	my $user4attr5_ID = testDBInsert("Create user 'testuser4' attribute 'SMRadius-Capping-Uptime-Limit'",
+	my $user4attr5_ID = testDBInsert("Create user 'testuser4' attribute 'SMRadius-Capping-Traffic-Limit'",
 		"INSERT INTO user_attributes (UserID,Name,Operator,Value,Disabled) VALUES (?,?,?,?,0)",
-			$user4_ID,'SMRadius-Capping-Uptime-Limit',':=','0'
+			$user4_ID,'SMRadius-Capping-Traffic-Limit',':=','0'
 	);
 
 	my $user4attr6_ID = testDBInsert("Create user 'testuser4' attribute 'SMRadius-AutoTopup-Traffic-Notify'",
