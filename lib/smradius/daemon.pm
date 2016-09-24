@@ -590,7 +590,10 @@ sub process_request {
 
 
 	my $request = smradius::daemon::request->new($self);
-	$request->setTimeZone($self->{'smradius'}->{'event_timezone'});
+	if (!$request->setTimezone($self->{'smradius'}->{'event_timezone'})) {
+		$self->log(LOG_ERR,"[SMRADIUS] Setting event_timezone to '%s' failed",$self->{'smradius'}->{'event_timezone'});
+		return;
+	}
 
 	$request->parsePacket($self->{'radius'}->{'dictionary'},$rawPacket);
 
