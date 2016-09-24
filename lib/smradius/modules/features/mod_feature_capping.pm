@@ -73,17 +73,19 @@ sub init
 	my $scfg = $server->{'inifile'};
 
 
+	# Defaults
+	$config->{'enable_mikrotik'} = 0;
+
 	# Setup SQL queries
 	if (defined($scfg->{'mod_feature_capping'})) {
 		# Check if option exists
 		if (defined($scfg->{'mod_feature_capping'}{'enable_mikrotik'})) {
 			# Pull in config
-			if ($scfg->{'mod_feature_capping'}{'enable_mikrotik'} =~ /^\s*(yes|true|1)\s*$/i) {
-				$server->log(LOG_NOTICE,"[MOD_FEATURE_CAPPING] Mikrotik-specific vendor return attributes ENABLED");
-				$config->{'enable_mikrotik'} = $scfg->{'mod_feature_capping'}{'enable_mikrotik'};
-			# Default?
-			} elsif ($scfg->{'mod_feature_capping'}{'enable_mikrotik'} =~ /^\s*(no|false|0)\s*$/i) {
-				$config->{'enable_mikrotik'} = undef;
+			if (defined(my $val = isBoolean($scfg->{'mod_feature_capping'}{'enable_mikrotik'}))) {
+				if ($val) {
+					$server->log(LOG_NOTICE,"[MOD_FEATURE_CAPPING] Mikrotik-specific vendor return attributes ENABLED");
+					$config->{'enable_mikrotik'} = $val;
+				}
 			} else {
 				$server->log(LOG_NOTICE,"[MOD_FEATURE_CAPPING] Value for 'enable_mikrotik' is invalid");
 			}
@@ -237,7 +239,7 @@ sub post_auth_hook
 		} else {
 			# Check if we returning Mikrotik vattributes
 			# FIXME: NK - this is not mikrotik specific
-			if (defined($config->{'enable_mikrotik'})) {
+			if ($config->{'enable_mikrotik'}) {
 				# FIXME: NK - We should cap the maximum total session time to that which is already set, if something is set
 				# Setup reply attributes for Mikrotik HotSpots
 				my %attribute = (
@@ -261,7 +263,7 @@ sub post_auth_hook
 		# Setup limits
 		} else {
 			# Check if we returning Mikrotik vattributes
-			if (defined($config->{'enable_mikrotik'})) {
+			if ($config->{'enable_mikrotik'}) {
 				# Get remaining traffic
 				my $remainingTraffic = $trafficLimitWithTopups - $accountingUsage->{'TotalDataUsage'};
 				my $remainingTrafficLimit = ( $remainingTraffic % 4096 ) * 1024 * 1024;
