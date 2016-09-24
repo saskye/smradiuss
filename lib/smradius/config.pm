@@ -25,8 +25,9 @@ use warnings;
 
 # Exporter stuff
 use base qw(Exporter);
-our (@EXPORT);
-@EXPORT = qw(
+our @EXPORT = qw(
+);
+our @EXPORT_OK = qw(
 );
 
 
