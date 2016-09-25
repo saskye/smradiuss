@@ -68,7 +68,19 @@ my @attributeReplyIgnoreList = (
 	'SMRadius-Username-Transform',
 	'SMRadius-Evaluate',
 	'SMRadius-Peer-Address',
-	'SMRadius-Disable-WebUITopup'
+	'SMRadius-Disable-WebUITopup',
+	'SMRadius-AutoTopup-Traffic-Enabled',
+	'SMRadius-AutoTopup-Traffic-Amount',
+	'SMRadius-AutoTopup-Traffic-Limit',
+	'SMRadius-AutoTopup-Traffic-Notify',
+	'SMRadius-AutoTopup-Traffic-NotifyTemplate',
+	'SMRadius-AutoTopup-Traffic-Threshold',
+	'SMRadius-AutoTopup-Uptime-Enabled',
+	'SMRadius-AutoTopup-Uptime-Amount',
+	'SMRadius-AutoTopup-Uptime-Limit',
+	'SMRadius-AutoTopup-Uptime-Notify',
+	'SMRadius-AutoTopup-Uptime-NotifyTemplate',
+	'SMRadius-AutoTopup-Uptime-Threshold',
 );
 my @attributeVReplyIgnoreList = (
 );

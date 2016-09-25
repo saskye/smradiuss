@@ -139,7 +139,7 @@ sub find
 
 	my $sth = DBSelect(@dbDoParams);
 	if (!$sth) {
-		$server->log(LOG_ERR,"[MOD_USERDB_MACAUTH_SQL] Failed to find data for MAC address: ".AWITPT::DB::DBLayer::Error());
+		$server->log(LOG_ERR,"[MOD_USERDB_MACAUTH_SQL] Failed to find data for MAC address: ".AWITPT::DB::DBLayer::error());
 		return MOD_RES_SKIP;
 	}
 
