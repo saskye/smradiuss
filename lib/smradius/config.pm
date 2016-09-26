@@ -25,11 +25,13 @@ use warnings;
 
 # Exporter stuff
 use base qw(Exporter);
-our (@EXPORT);
-@EXPORT = qw(
+our @EXPORT = qw(
+);
+our @EXPORT_OK = qw(
 );
 
 
+use AWITPT::Util;
 use smradius::logging;
 
 
@@ -70,10 +72,8 @@ sub Init
 
 	# Should we use the packet timestamp?
 	if (defined($config->{'radius'}{'use_packet_timestamp'})) {
-		if ($config->{'radius'}{'use_packet_timestamp'} =~ /^\s*(yes|true|1)\s*$/i) {
-			$server->{'smradius'}{'use_packet_timestamp'} = 1;
-		} elsif ($config->{'radius'}{'use_packet_timestamp'} =~ /^\s*(no|false|0)\s*$/i) {
-			$server->{'smradius'}{'use_packet_timestamp'} = 0;
+		if (defined(my $val = isBoolean($config->{'radius'}{'use_packet_timestamp'}))) {
+			$server->{'smradius'}{'use_packet_timestamp'} = $val;
 		} else {
 			$server->log(LOG_NOTICE,"smradius/config.pm: Value for 'use_packet_timestamp' is invalid");
 		}
@@ -83,10 +83,8 @@ sub Init
 
 	# Should we use abuse prevention?
 	if (defined($config->{'radius'}{'use_abuse_prevention'})) {
-		if ($config->{'radius'}{'use_abuse_prevention'} =~ /^\s*(yes|true|1)\s*$/i) {
-			$server->{'smradius'}{'use_abuse_prevention'} = 1;
-		} elsif ($config->{'radius'}{'use_abuse_prevention'} =~ /^\s*(no|false|0)\s*$/i) {
-			$server->{'smradius'}{'use_abuse_prevention'} = 0;
+		if (defined(my $val = isBoolean($config->{'radius'}{'use_abuse_prevention'}))) {
+			$server->{'smradius'}{'use_abuse_prevention'} = $val;
 		} else {
 			$server->log(LOG_NOTICE,"smradius/config.pm: Value for 'use_abuse_prevention' is invalid");
 		}

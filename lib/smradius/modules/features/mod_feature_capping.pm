@@ -73,19 +73,32 @@ sub init
 	my $scfg = $server->{'inifile'};
 
 
+	# Defaults
+	$config->{'enable_mikrotik'} = 0;
+	$config->{'caveat_captrafzero'} = 0;
+
 	# Setup SQL queries
 	if (defined($scfg->{'mod_feature_capping'})) {
 		# Check if option exists
 		if (defined($scfg->{'mod_feature_capping'}{'enable_mikrotik'})) {
 			# Pull in config
-			if ($scfg->{'mod_feature_capping'}{'enable_mikrotik'} =~ /^\s*(yes|true|1)\s*$/i) {
-				$server->log(LOG_NOTICE,"[MOD_FEATURE_CAPPING] Mikrotik-specific vendor return attributes ENABLED");
-				$config->{'enable_mikrotik'} = $scfg->{'mod_feature_capping'}{'enable_mikrotik'};
-			# Default?
-			} elsif ($scfg->{'mod_feature_capping'}{'enable_mikrotik'} =~ /^\s*(no|false|0)\s*$/i) {
-				$config->{'enable_mikrotik'} = undef;
+			if (defined(my $val = isBoolean($scfg->{'mod_feature_capping'}{'enable_mikrotik'}))) {
+				if ($val) {
+					$server->log(LOG_NOTICE,"[MOD_FEATURE_CAPPING] Mikrotik-specific vendor return attributes ENABLED");
+					$config->{'enable_mikrotik'} = $val;
+				}
 			} else {
 				$server->log(LOG_NOTICE,"[MOD_FEATURE_CAPPING] Value for 'enable_mikrotik' is invalid");
+			}
+
+			if (defined(my $val = isBoolean($scfg->{'mod_feature_capping'}{'caveat_captrafzero'}))) {
+				if ($val) {
+					$server->log(LOG_NOTICE,"[MOD_FEATURE_CAPPING] Caveat to swap '0' and -undef- for ".
+							"SMRadius-Capping-Traffic-Limit ENABLED");
+					$config->{'caveat_captrafzero'} = $val;
+				}
+			} else {
+				$server->log(LOG_NOTICE,"[MOD_FEATURE_CAPPING] Value for 'caveat_captrafzero' is invalid");
 			}
 		}
 	}
@@ -120,6 +133,15 @@ sub post_auth_hook
 
 	my $uptimeLimit = _getAttributeKeyLimit($server,$user,$UPTIME_LIMIT_ATTRIBUTE);
 	my $trafficLimit = _getAttributeKeyLimit($server,$user,$TRAFFIC_LIMIT_ATTRIBUTE);
+
+	# Swap around 0 and undef if we need to apply the captrafzero caveat
+	if ($config->{'caveat_captrafzero'}) {
+		if (!defined($trafficLimit)) {
+			$trafficLimit = 0;
+		} elsif ($trafficLimit == 0) {
+			$trafficLimit = undef;
+		}
+	}
 
 
 	#
@@ -225,8 +247,8 @@ sub post_auth_hook
 	# Check if we've exceeded our limits
 	#
 
-	# Uptime..
-	if (!defined($uptimeLimit) || $uptimeLimit > 0) {
+	# Uptime...
+	if (defined($uptimeLimit)) {
 
 		# Check session time has not exceeded what we're allowed
 		if ($accountingUsage->{'TotalSessionTime'} >= $uptimeLimitWithTopups) {
@@ -237,7 +259,7 @@ sub post_auth_hook
 		} else {
 			# Check if we returning Mikrotik vattributes
 			# FIXME: NK - this is not mikrotik specific
-			if (defined($config->{'enable_mikrotik'})) {
+			if ($config->{'enable_mikrotik'}) {
 				# FIXME: NK - We should cap the maximum total session time to that which is already set, if something is set
 				# Setup reply attributes for Mikrotik HotSpots
 				my %attribute = (
@@ -251,7 +273,7 @@ sub post_auth_hook
 	}
 
 	# Traffic
-	if (!defined($trafficLimit) || $trafficLimit > 0) {
+	if (defined($trafficLimit)) {
 
 		# Capped
 		if ($accountingUsage->{'TotalDataUsage'} >= $trafficLimitWithTopups) {
@@ -261,7 +283,7 @@ sub post_auth_hook
 		# Setup limits
 		} else {
 			# Check if we returning Mikrotik vattributes
-			if (defined($config->{'enable_mikrotik'})) {
+			if ($config->{'enable_mikrotik'}) {
 				# Get remaining traffic
 				my $remainingTraffic = $trafficLimitWithTopups - $accountingUsage->{'TotalDataUsage'};
 				my $remainingTrafficLimit = ( $remainingTraffic % 4096 ) * 1024 * 1024;
@@ -328,6 +350,14 @@ sub post_acct_hook
 	my $uptimeLimit = _getAttributeKeyLimit($server,$user,$UPTIME_LIMIT_ATTRIBUTE);
 	my $trafficLimit = _getAttributeKeyLimit($server,$user,$TRAFFIC_LIMIT_ATTRIBUTE);
 
+	# Swap around 0 and undef if we need to apply the captrafzero caveat
+	if ($config->{'caveat_captrafzero'}) {
+		if (!defined($trafficLimit)) {
+			$trafficLimit = 0;
+		} elsif ($trafficLimit == 0) {
+			$trafficLimit = undef;
+		}
+	}
 
 	#
 	# Get current traffic and uptime usage
@@ -420,7 +450,7 @@ sub post_acct_hook
 	#
 
 	# Uptime..
-	if (!defined($uptimeLimit) || $uptimeLimit > 0) {
+	if (defined($uptimeLimit)) {
 
 		# Capped
 		if ($accountingUsage->{'TotalSessionTime'} >= $uptimeLimitWithTopups) {
@@ -431,7 +461,7 @@ sub post_acct_hook
 	}
 
 	# Traffic
-	if (!defined($trafficLimit) || $trafficLimit > 0) {
+	if (defined($trafficLimit)) {
 
 		# Capped
 		if ($accountingUsage->{'TotalDataUsage'} >= $trafficLimitWithTopups) {
@@ -512,10 +542,10 @@ sub _logUsage
 	my $typeKey = ucfirst($type);
 
 	# Check if our limit is defined
-	if (defined($limit) && !$limit) {
-		$limit = '-none-';
-	} else {
+	if (defined($limit) && $limit == 0) {
 		$limit = '-topup-';
+	} else {
+		$limit = '-none-';
 	}
 
 	$server->log(LOG_INFO,"[MOD_FEATURE_CAPPING] Capping information [type: %s, total: %s, limit: %s, topups: %s]",

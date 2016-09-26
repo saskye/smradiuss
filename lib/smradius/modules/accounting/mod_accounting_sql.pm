@@ -299,10 +299,15 @@ sub init
 			}
 		}
 		if (defined($scfg->{'mod_accounting_sql'}->{'accounting_usage_cache_time'})) {
-			if ($scfg->{'mod_accounting_sql'}{'accounting_usage_cache_time'} =~ /^\s*(yes|true|1)\s*$/i) {
-				# Default?
-			} elsif ($scfg->{'mod_accounting_sql'}{'accounting_usage_cache_time'} =~ /^\s*(no|false|0)\s*$/i) {
-				$config->{'accounting_usage_cache_time'} = undef;
+			# Check if we're a boolean
+			if (defined(my $val = isBoolean($scfg->{'mod_accounting_sql'}{'accounting_usage_cache_time'}))) {
+				# If val is true, we default to the default anyway
+
+				# We're disabled
+				if (!$val) {
+					$config->{'accounting_usage_cache_time'} = undef;
+				}
+			# We *could* have a value...
 			} elsif ($scfg->{'mod_accounting_sql'}{'accounting_usage_cache_time'} =~ /^[0-9]+$/) {
 				$config->{'accounting_usage_cache_time'} = $scfg->{'mod_accounting_sql'}{'accounting_usage_cache_time'};
 			} else {

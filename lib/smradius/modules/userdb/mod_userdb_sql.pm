@@ -225,10 +225,14 @@ sub init
 		}
 
 		if (defined($scfg->{'mod_userdb_sql'}->{'userdb_data_cache_time'})) {
-			if ($scfg->{'mod_userdb_sql'}{'userdb_data_cache_time'} =~ /^\s*(yes|true|1)\s*$/i) {
-				# Default?
-			} elsif ($scfg->{'mod_userdb_sql'}{'userdb_data_cache_time'} =~ /^\s*(no|false|0)\s*$/i) {
-				$config->{'userdb_data_cache_time'} = undef;
+			if (defined(my $val = isBoolean($scfg->{'mod_userdb_sql'}{'userdb_data_cache_time'}))) {
+				# If val is true, we default to the default anyway
+
+				# We're disabled
+				if (!$val) {
+					$config->{'userdb_data_cache_time'} = undef;
+				}
+			# We *could* have a value...
 			} elsif ($scfg->{'mod_userdb_sql'}{'userdb_data_cache_time'} =~ /^[0-9]+$/) {
 				$config->{'userdb_data_cache_time'} = $scfg->{'mod_userdb_sql'}{'userdb_data_cache_time'};
 			} else {

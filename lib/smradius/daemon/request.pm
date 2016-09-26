@@ -25,6 +25,10 @@ use warnings;
 use base qw{AWITPT::Object};
 
 
+use DateTime;
+use DateTime::TimeZone;
+use Try::Tiny;
+
 use smradius::Radius::Packet;
 
 
@@ -83,7 +87,7 @@ sub setTimestamp
 	# Grab real event timestamp in local time uzing the time zone
 	my $eventTimestamp = DateTime->from_epoch(
 			epoch => $self->{'user'}->{'_Internal'}->{'Timestamp-Unix'},
-			time_zone => $self->{'timeZone'},
+			time_zone => $self->{'timezone'},
 	);
 	# Set the timestamp (not in unix)
 	$self->{'user'}->{'_Internal'}->{'Timestamp'} = $eventTimestamp->strftime('%Y-%m-%d %H:%M:%S');
@@ -94,12 +98,20 @@ sub setTimestamp
 
 
 # Set internal time zone
-sub setTimeZone
+sub setTimezone
 {
-	my ($self,$timeZone) = @_;
+	my ($self,$timezone) = @_;
 
 
-	$self->{'timeZone'} = $timeZone;
+	my $timezone_obj;
+	try {
+		$timezone_obj = DateTime::TimeZone->new('name' => $timezone);
+	};
+
+	# Retrun if we don't have a value, this means we failed
+	return if (!defined($timezone_obj));
+
+	$self->{'timezone'} = $timezone_obj;
 
 	return $self;
 }
@@ -147,7 +159,7 @@ sub _init
 	$self->{'logLine'} = [ ];
 	$self->{'logLineParams'} = [ ];
 
-	$self->{'timeZone'} = "UTC";
+	$self->{'timezone'} = "UTC";
 
 	# Initialize user
 	$self->{'user'} = {
