@@ -198,11 +198,11 @@ sub getConfig
 
 	# Extract realm from username
 	if (defined($user->{'Username'}) && $user->{'Username'} =~ /^\S+(?:@(\S+))?$/) {
-		$realmName = $1 // "";
+		my $userRealm = $1 // "";
 
-		$server->log(LOG_DEBUG,"Processing attributes for realm '$realmName'");
+		$server->log(LOG_DEBUG,"Processing attributes for realm '$userRealm'");
 
-		$sth = DBSelect($config->{'get_config_realm_id_query'},$realmName);
+		$sth = DBSelect($config->{'get_config_realm_id_query'},$userRealm);
 		if (!$sth) {
 			$server->log(LOG_ERR,"Failed to get realm config attributes: ".AWITPT::DB::DBLayer::error());
 			return MOD_RES_NACK;
@@ -224,6 +224,8 @@ sub getConfig
 				processConfigAttribute($server,$user,hashifyLCtoMC($row, qw(Name Operator Value)));
 			}
 			DBFreeRes($sth);
+
+			$realmName = $userRealm;
 		}
 	}
 
