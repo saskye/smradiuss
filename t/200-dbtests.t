@@ -157,6 +157,7 @@ if ($child = fork()) {
 			$client1_ID,'SMRadius-Config-Secret',':=','secret123'
 	);
 
+	# Blank realm
 	my $realm1_ID = testDBInsert("Create realm ''",
 		"INSERT INTO realms (Name,Disabled) VALUES ('',0)"
 	);
@@ -168,7 +169,7 @@ if ($child = fork()) {
 
 
 	#
-	# Check we get an Access-Accept for a bare user
+	# Check we get an Access-Accept for a bare user using a blank realm
 	#
 
 	my $user1_ID = testDBInsert("Create user 'testuser1'",
@@ -189,7 +190,43 @@ if ($child = fork()) {
 		'User-Password=test123',
 	);
 	is(ref($res),"HASH","smradclient should return a HASH");
-	is($res->{'response'}->{'code'},"Access-Accept","Check our return is 'Access-Accept' for bare user");
+	is($res->{'response'}->{'code'},"Access-Accept","Check our return is 'Access-Accept' for bare user blank '' realm");
+
+
+	#
+	# Modify data for the default realm
+	#
+
+	testDBDelete("Delete blank realm '' link to client",
+		"DELETE FROM clients_to_realms WHERE ID = ?",$clientTOrealm1_ID
+	);
+	testDBDelete("Delete blank realm '' for realm '<DEFAULT>' test",
+		"DELETE FROM realms WHERE ID = ?",$realm1_ID
+	);
+
+	my $realm1b_ID = testDBInsert("Create default realm '<DEFAULT>'",
+		"INSERT INTO realms (Name,Disabled) VALUES ('<DEFAULT>',0)"
+	);
+
+	my $clientTOrealm1b_ID = testDBInsert("Link client 'localhost' to realm '<DEFAULT>'",
+		"INSERT INTO clients_to_realms (ClientID,RealmID,Disabled) VALUES (?,?,0)",$client1_ID,$realm1b_ID
+	);
+
+
+	#
+	# Check we get an Access-Accept for a bare user using the default realm
+	#
+
+	$res = smradius::client->run(
+		"--raddb","dicts",
+		"127.0.0.1",
+		"auth",
+		"secret123",
+		'User-Name=testuser1',
+		'User-Password=test123',
+	);
+	is(ref($res),"HASH","smradclient should return a HASH");
+	is($res->{'response'}->{'code'},"Access-Accept","Check our return is 'Access-Accept' for bare user on <DEFAULT> realm");
 
 
 
@@ -797,6 +834,22 @@ sub testDBInsert
 	is($id > 0,1,"$name, insert ID > 0");
 
 	return $id;
+}
+
+
+
+# Function to quickly and easily delete data from the DB
+sub testDBDelete
+{
+	my ($name,@params) = @_;
+
+
+	# Do the work...
+	DBDo(@params);
+	# Make sure we got no error
+	is(AWITPT::DB::DBLayer::error(),"",$name);
+
+	return 1;
 }
 
 
