@@ -801,6 +801,22 @@ sub testDBInsert
 
 
 
+# Function to quickly and easily delete data from the DB
+sub testDBDelete
+{
+	my ($name,@params) = @_;
+
+
+	# Do the work...
+	DBDo(@params);
+	# Make sure we got no error
+	is(AWITPT::DB::DBLayer::error(),"",$name);
+
+	return 1;
+}
+
+
+
 # Test DB select results
 sub testDBResults
 {
