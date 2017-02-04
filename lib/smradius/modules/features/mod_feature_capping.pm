@@ -1,5 +1,5 @@
 # Capping support
-# Copyright (C) 2007-2016, AllWorldIT
+# Copyright (C) 2007-2017, AllWorldIT
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -30,6 +30,10 @@ use AWITPT::Util;
 use List::Util qw( min );
 use MIME::Lite;
 use POSIX qw( floor );
+
+
+# Set our version
+our $VERSION = "0.0.1";
 
 
 # Load exporter
@@ -90,16 +94,16 @@ sub init
 			} else {
 				$server->log(LOG_NOTICE,"[MOD_FEATURE_CAPPING] Value for 'enable_mikrotik' is invalid");
 			}
-
-			if (defined(my $val = isBoolean($scfg->{'mod_feature_capping'}{'caveat_captrafzero'}))) {
-				if ($val) {
-					$server->log(LOG_NOTICE,"[MOD_FEATURE_CAPPING] Caveat to swap '0' and -undef- for ".
-							"SMRadius-Capping-Traffic-Limit ENABLED");
-					$config->{'caveat_captrafzero'} = $val;
-				}
-			} else {
-				$server->log(LOG_NOTICE,"[MOD_FEATURE_CAPPING] Value for 'caveat_captrafzero' is invalid");
+		}
+		# Check if we have the caveat setting
+		if (defined(my $val = isBoolean($scfg->{'mod_feature_capping'}{'caveat_captrafzero'}))) {
+			if ($val) {
+				$server->log(LOG_NOTICE,"[MOD_FEATURE_CAPPING] Caveat to swap '0' and -undef- for ".
+						"SMRadius-Capping-Traffic-Limit ENABLED");
+				$config->{'caveat_captrafzero'} = $val;
 			}
+		} else {
+			$server->log(LOG_NOTICE,"[MOD_FEATURE_CAPPING] Value for 'caveat_captrafzero' is invalid");
 		}
 	}
 
@@ -136,6 +140,11 @@ sub post_auth_hook
 
 	# Swap around 0 and undef if we need to apply the captrafzero caveat
 	if ($config->{'caveat_captrafzero'}) {
+		if (!defined($uptimeLimit)) {
+			$uptimeLimit = 0;
+		} elsif ($uptimeLimit == 0) {
+			$uptimeLimit = undef;
+		}
 		if (!defined($trafficLimit)) {
 			$trafficLimit = 0;
 		} elsif ($trafficLimit == 0) {
@@ -197,7 +206,7 @@ sub post_auth_hook
 	# Display our usages
 	#
 
-	_logUsage($server,$accountingUsage->{'TotalDataUsage'},$uptimeLimit,$uptimeTopupAmount,'traffic');
+	_logUsage($server,$accountingUsage->{'TotalDataUsage'},$trafficLimit,$trafficTopupAmount,'traffic');
 	_logUsage($server,$accountingUsage->{'TotalSessionTime'},$uptimeLimit,$uptimeTopupAmount,'uptime');
 
 
@@ -352,6 +361,11 @@ sub post_acct_hook
 
 	# Swap around 0 and undef if we need to apply the captrafzero caveat
 	if ($config->{'caveat_captrafzero'}) {
+		if (!defined($uptimeLimit)) {
+			$uptimeLimit = 0;
+		} elsif ($uptimeLimit == 0) {
+			$uptimeLimit = undef;
+		}
 		if (!defined($trafficLimit)) {
 			$trafficLimit = 0;
 		} elsif ($trafficLimit == 0) {
@@ -412,7 +426,7 @@ sub post_acct_hook
 	# Display our usages
 	#
 
-	_logUsage($server,$accountingUsage->{'TotalDataUsage'},$uptimeLimit,$uptimeTopupAmount,'traffic');
+	_logUsage($server,$accountingUsage->{'TotalDataUsage'},$trafficLimit,$trafficTopupAmount,'traffic');
 	_logUsage($server,$accountingUsage->{'TotalSessionTime'},$uptimeLimit,$uptimeTopupAmount,'uptime');
 
 
@@ -627,20 +641,20 @@ sub _doAutoTopup
 
 	# Booleanize the attribute and check if its enabled
 	if (my $enabled = booleanize(_getAttribute($server,$user,"SMRadius-AutoTopup-$typeKey-Enabled"))) {
-		$server->log(LOG_INFO,'[MOD_FEATURE_CAPPING] AutoToups for %s is enabled',$type);
+		$server->log(LOG_INFO,'[MOD_FEATURE_CAPPING] AutoTopups for %s is enabled',$type);
 	} else {
-		$server->log(LOG_DEBUG,'[MOD_FEATURE_CAPPING] AutoToups for %s is not enabled',$type);
+		$server->log(LOG_DEBUG,'[MOD_FEATURE_CAPPING] AutoTopups for %s is not enabled',$type);
 		return;
 	}
 
 	# Do sanity checks on the auto-topup amount
 	my $autoTopupAmount = _getAttribute($server,$user,"SMRadius-AutoTopup-$typeKey-Amount");
 	if (!defined($autoTopupAmount)) {
-		$server->log(LOG_WARN,'[MOD_FEATURE_CAPPING] SMRadius-AutoToup-%s-Amount must have a value',$typeKey);
+		$server->log(LOG_WARN,'[MOD_FEATURE_CAPPING] SMRadius-AutoTopup-%s-Amount must have a value',$typeKey);
 		return;
 	}
 	if (!isNumber($autoTopupAmount)){
-		$server->log(LOG_WARN,'[MOD_FEATURE_CAPPING] SMRadius-AutoToup-%s-Amount must be a number and be > 0, instead it was '.
+		$server->log(LOG_WARN,'[MOD_FEATURE_CAPPING] SMRadius-AutoTopup-%s-Amount must be a number and be > 0, instead it was '.
 				'\'%s\', IGNORING SMRadius-AutoTopup-%s-Enabled',$typeKey,$autoTopupAmount,$typeKey);
 		return;
 	}
@@ -648,7 +662,7 @@ sub _doAutoTopup
 	# Do sanity checks on the auto-topup threshold
 	my $autoTopupThreshold = _getAttribute($server,$user,"SMRadius-AutoTopup-$typeKey-Threshold");
 	if (defined($autoTopupThreshold) && !isNumber($autoTopupThreshold)){
-		$server->log(LOG_WARN,'[MOD_FEATURE_CAPPING] SMRadius-AutoToup-%s-Threshold must be a number and be > 0, instead it was '.
+		$server->log(LOG_WARN,'[MOD_FEATURE_CAPPING] SMRadius-AutoTopup-%s-Threshold must be a number and be > 0, instead it was '.
 				'\'%s\', IGNORING SMRadius-AutoTopup-%s-Threshold',$typeKey,$autoTopupAmount,$typeKey);
 		$autoTopupThreshold = undef;
 	}
@@ -656,7 +670,7 @@ sub _doAutoTopup
 	# Check that if the auto-topup limit is defined, that it is > 0
 	my $autoTopupLimit = _getAttribute($server,$user,"SMRadius-AutoTopup-$typeKey-Limit");
 	if (defined($autoTopupLimit) && !isNumber($autoTopupLimit)) {
-		$server->log(LOG_WARN,'[MOD_FEATURE_CAPPING] SMRadius-AutoToup-%s-Limit must be a number and be > 0, instead it was '.
+		$server->log(LOG_WARN,'[MOD_FEATURE_CAPPING] SMRadius-AutoTopup-%s-Limit must be a number and be > 0, instead it was '.
 				'\'%s\', IGNORING SMRadius-AutoTopup-%s-Enabled',$typeKey,$autoTopupAmount,$typeKey);
 		return;
 	}
@@ -667,8 +681,17 @@ sub _doAutoTopup
 	# Default to an auto-topup threshold of the topup amount divided by two if none has been provided
 	$autoTopupThreshold //= floor($autoTopupAmount / 2);
 
-	# Check if we're still within our usage limit
-	return if ($accountingUsage + $autoTopupThreshold < $usageLimit + $autoTopupsAdded);
+	# Check if we're still within our usage limit and return
+	if (($usageLimit + $autoTopupsAdded - $accountingUsage) > $autoTopupThreshold) {
+		$server->log(LOG_DEBUG,'[MOD_FEATURE_CAPPING] SMRadius-AutoTopup-%s: CHECK => usageLimit(%s) + autoTopupsAdded(%s) - '.
+				'accountingUsage(%s) < autoTopupThreshold(%s) = not eligble for auto-topup yet',$typeKey,
+				$usageLimit,$autoTopupsAdded,$accountingUsage,$autoTopupThreshold);
+		return;
+	} else {
+		$server->log(LOG_DEBUG,'[MOD_FEATURE_CAPPING] SMRadius-AutoTopup-%s: CHECK => usageLimit(%s) + autoTopupsAdded(%s) - '.
+				'accountingUsage(%s) < autoTopupThreshold(%s) = eligble, processing',$typeKey,
+				$usageLimit,$autoTopupsAdded,$accountingUsage,$autoTopupThreshold);
+	}
 
 	# Check the difference between our accounting usage and our usage limit
 	my $usageDelta = $accountingUsage - $usageLimit;
@@ -736,15 +759,15 @@ sub _doAutoTopup
 	# Grab notify destinations
 	my $notify;
 	if (!defined($notify = _getAttribute($server,$user,"SMRadius-AutoTopup-$typeKey-Notify"))) {
-		$server->log(LOG_INFO,'[MOD_FEATURE_CAPPING] AutoToups notify destination is not specified, NOT notifying');
+		$server->log(LOG_INFO,'[MOD_FEATURE_CAPPING] AutoTopups notify destination is not specified, NOT notifying');
 		goto END;
 	}
-	$server->log(LOG_INFO,'[MOD_FEATURE_CAPPING] AutoToups notify destination is \'%s\'',$notify);
+	$server->log(LOG_INFO,'[MOD_FEATURE_CAPPING] AutoTopups notify destination is \'%s\'',$notify);
 
 	# Grab notify template
 	my $notifyTemplate;
 	if (!defined($notifyTemplate = _getAttribute($server,$user,"SMRadius-AutoTopup-$typeKey-NotifyTemplate"))) {
-		$server->log(LOG_INFO,'[MOD_FEATURE_CAPPING] AutoToups notify template is not specified, NOT notifying');
+		$server->log(LOG_INFO,'[MOD_FEATURE_CAPPING] AutoTopups notify template is not specified, NOT notifying');
 		goto END;
 	}
 
@@ -783,7 +806,7 @@ sub _doAutoTopup
 		if (!defined($notifyMsg)) {
 			my $errorMsg = $error->info();
 			$errorMsg =~ s/\r?\n/\\n/g;
-			$server->log(LOG_WARN,'[MOD_FEATURE_CAPPING] AutoToups notify template parsing failed: %s',$errorMsg);
+			$server->log(LOG_WARN,'[MOD_FEATURE_CAPPING] AutoTopups notify template parsing failed: %s',$errorMsg);
 			next;
 		}
 
