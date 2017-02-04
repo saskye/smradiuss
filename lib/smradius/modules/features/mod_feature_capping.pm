@@ -140,6 +140,11 @@ sub post_auth_hook
 
 	# Swap around 0 and undef if we need to apply the captrafzero caveat
 	if ($config->{'caveat_captrafzero'}) {
+		if (!defined($uptimeLimit)) {
+			$uptimeLimit = 0;
+		} elsif ($uptimeLimit == 0) {
+			$uptimeLimit = undef;
+		}
 		if (!defined($trafficLimit)) {
 			$trafficLimit = 0;
 		} elsif ($trafficLimit == 0) {
@@ -356,6 +361,11 @@ sub post_acct_hook
 
 	# Swap around 0 and undef if we need to apply the captrafzero caveat
 	if ($config->{'caveat_captrafzero'}) {
+		if (!defined($uptimeLimit)) {
+			$uptimeLimit = 0;
+		} elsif ($uptimeLimit == 0) {
+			$uptimeLimit = undef;
+		}
 		if (!defined($trafficLimit)) {
 			$trafficLimit = 0;
 		} elsif ($trafficLimit == 0) {
