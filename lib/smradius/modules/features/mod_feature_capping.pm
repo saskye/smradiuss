@@ -1,5 +1,5 @@
 # Capping support
-# Copyright (C) 2007-2016, AllWorldIT
+# Copyright (C) 2007-2017, AllWorldIT
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -668,7 +668,7 @@ sub _doAutoTopup
 	$autoTopupThreshold //= floor($autoTopupAmount / 2);
 
 	# Check if we're still within our usage limit
-	return if ($accountingUsage + $autoTopupThreshold < $usageLimit + $autoTopupsAdded);
+	return if ($usageLimit + $autoTopupsAdded - $accountingUsage < $autoTopupThreshold);
 
 	# Check the difference between our accounting usage and our usage limit
 	my $usageDelta = $accountingUsage - $usageLimit;
