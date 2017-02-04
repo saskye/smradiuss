@@ -681,8 +681,17 @@ sub _doAutoTopup
 	# Default to an auto-topup threshold of the topup amount divided by two if none has been provided
 	$autoTopupThreshold //= floor($autoTopupAmount / 2);
 
-	# Check if we're still within our usage limit
-	return if ($usageLimit + $autoTopupsAdded - $accountingUsage < $autoTopupThreshold);
+	# Check if we're still within our usage limit and return
+	if (($usageLimit + $autoTopupsAdded - $accountingUsage) > $autoTopupThreshold) {
+		$server->log(LOG_DEBUG,'[MOD_FEATURE_CAPPING] SMRadius-AutoToup-%s: CHECK => usageLimit(%s) + autoTopupsAdded(%s) - '.
+				'accountingUsage(%s) < autoTopupThreshold(%s) = not eligble for auto-topup yet',$typeKey,
+				$usageLimit,$autoTopupsAdded,$accountingUsage,$autoTopupThreshold);
+		return;
+	} else {
+		$server->log(LOG_DEBUG,'[MOD_FEATURE_CAPPING] SMRadius-AutoToup-%s: CHECK => usageLimit(%s) + autoTopupsAdded(%s) - '.
+				'accountingUsage(%s) < autoTopupThreshold(%s) = eligble, processing',$typeKey,
+				$usageLimit,$autoTopupsAdded,$accountingUsage,$autoTopupThreshold);
+	}
 
 	# Check the difference between our accounting usage and our usage limit
 	my $usageDelta = $accountingUsage - $usageLimit;
