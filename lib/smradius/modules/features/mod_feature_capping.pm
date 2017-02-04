@@ -32,6 +32,10 @@ use MIME::Lite;
 use POSIX qw( floor );
 
 
+# Set our version
+our $VERSION = "0.0.1";
+
+
 # Load exporter
 use base qw(Exporter);
 our @EXPORT = qw(
