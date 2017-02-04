@@ -206,7 +206,7 @@ sub post_auth_hook
 	# Display our usages
 	#
 
-	_logUsage($server,$accountingUsage->{'TotalDataUsage'},$uptimeLimit,$uptimeTopupAmount,'traffic');
+	_logUsage($server,$accountingUsage->{'TotalDataUsage'},$trafficLimit,$trafficTopupAmount,'traffic');
 	_logUsage($server,$accountingUsage->{'TotalSessionTime'},$uptimeLimit,$uptimeTopupAmount,'uptime');
 
 
@@ -426,7 +426,7 @@ sub post_acct_hook
 	# Display our usages
 	#
 
-	_logUsage($server,$accountingUsage->{'TotalDataUsage'},$uptimeLimit,$uptimeTopupAmount,'traffic');
+	_logUsage($server,$accountingUsage->{'TotalDataUsage'},$trafficLimit,$trafficTopupAmount,'traffic');
 	_logUsage($server,$accountingUsage->{'TotalSessionTime'},$uptimeLimit,$uptimeTopupAmount,'uptime');
 
 
