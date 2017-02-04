@@ -94,16 +94,16 @@ sub init
 			} else {
 				$server->log(LOG_NOTICE,"[MOD_FEATURE_CAPPING] Value for 'enable_mikrotik' is invalid");
 			}
-
-			if (defined(my $val = isBoolean($scfg->{'mod_feature_capping'}{'caveat_captrafzero'}))) {
-				if ($val) {
-					$server->log(LOG_NOTICE,"[MOD_FEATURE_CAPPING] Caveat to swap '0' and -undef- for ".
-							"SMRadius-Capping-Traffic-Limit ENABLED");
-					$config->{'caveat_captrafzero'} = $val;
-				}
-			} else {
-				$server->log(LOG_NOTICE,"[MOD_FEATURE_CAPPING] Value for 'caveat_captrafzero' is invalid");
+		}
+		# Check if we have the caveat setting
+		if (defined(my $val = isBoolean($scfg->{'mod_feature_capping'}{'caveat_captrafzero'}))) {
+			if ($val) {
+				$server->log(LOG_NOTICE,"[MOD_FEATURE_CAPPING] Caveat to swap '0' and -undef- for ".
+						"SMRadius-Capping-Traffic-Limit ENABLED");
+				$config->{'caveat_captrafzero'} = $val;
 			}
+		} else {
+			$server->log(LOG_NOTICE,"[MOD_FEATURE_CAPPING] Value for 'caveat_captrafzero' is invalid");
 		}
 	}
 
